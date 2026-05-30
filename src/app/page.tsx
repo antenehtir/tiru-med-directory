@@ -1,3 +1,6 @@
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageShell } from "@/components/layout/PageShell";
+
 const trustSignals = [
   "Verified facilities",
   "Doctor profiles",
@@ -15,28 +18,9 @@ const tokens = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 py-2">
-          <a className="flex items-center gap-3" href="#" aria-label="DigitalDirectory-v2">
-            <span className="flex size-11 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground shadow-sm">
-              DD
-            </span>
-            <span className="flex flex-col leading-tight">
-              <span className="text-base font-semibold text-foreground">
-                DigitalDirectory-v2
-              </span>
-              <span className="text-sm text-muted-foreground">
-                Healthcare discovery
-              </span>
-            </span>
-          </a>
-          <span className="hidden rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-primary shadow-sm sm:inline-flex">
-            Ethiopia
-          </span>
-        </header>
-
-        <div className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:py-14">
+    <PageShell>
+      <PageContainer className="py-10 lg:py-14">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="max-w-2xl">
             <p className="mb-4 inline-flex rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-primary shadow-sm">
               Design system foundation
@@ -144,7 +128,7 @@ export default function Home() {
             </div>
           </aside>
         </div>
-      </section>
-    </main>
+      </PageContainer>
+    </PageShell>
   );
 }
