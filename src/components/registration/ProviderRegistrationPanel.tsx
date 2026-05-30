@@ -18,6 +18,7 @@ export function ProviderRegistrationPanel() {
         <Link
           className="inline-flex min-h-12 items-center justify-center rounded-md bg-card px-5 text-sm font-semibold text-[#0F4C81]"
           href="/register"
+          style={{ color: "#0F172A" }}
         >
           Request listing preview
         </Link>
