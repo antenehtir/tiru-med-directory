@@ -19,7 +19,7 @@ const trustItems = [
 export function TrustExplanationSection() {
   return (
     <section className="bg-background">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <SectionHeading
           eyebrow="Why trust matters"
           title="The homepage should make verified healthcare feel different."

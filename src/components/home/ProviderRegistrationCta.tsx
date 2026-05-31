@@ -7,7 +7,7 @@ import { VerificationProcessSteps } from "@/components/registration/Verification
 export function ProviderRegistrationCta() {
   return (
     <section className="bg-card">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <ProviderRegistrationPanel />
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <ProviderTypeGrid />

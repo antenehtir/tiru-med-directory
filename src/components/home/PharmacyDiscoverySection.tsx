@@ -11,14 +11,14 @@ const pharmacyItems = [
 export function PharmacyDiscoverySection() {
   return (
     <section className="bg-card">
-      <PageContainer className="grid gap-6 py-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:py-14">
+      <PageContainer className="grid gap-6 py-8 sm:py-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:py-14">
         <SectionHeading
           eyebrow="Pharmacies"
           title="Make pharmacy discovery easy to reach."
           description="A focused pharmacy section gives medicine access its own place in the homepage structure."
         />
-        <div className="rounded-lg border border-border bg-background p-5 shadow-sm">
-          <h3 className="text-xl font-semibold text-foreground">
+        <div className="rounded-lg border border-border bg-background p-4 shadow-sm sm:p-5">
+          <h3 className="text-lg font-semibold text-foreground sm:text-xl">
             Pharmacy discovery preview
           </h3>
           <div className="mt-5 grid gap-3">
@@ -35,7 +35,7 @@ export function PharmacyDiscoverySection() {
             ))}
           </div>
           <Link
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            className="mt-5 inline-flex min-h-12 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
             href="/pharmacies"
           >
             Explore pharmacies

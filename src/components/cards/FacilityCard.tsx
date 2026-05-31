@@ -8,20 +8,20 @@ type FacilityCardProps = {
 
 export function FacilityCard({ facility }: FacilityCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border bg-background p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <article className="flex h-full min-w-0 flex-col rounded-lg border border-border bg-background p-4 shadow-sm sm:p-5">
+      <div className="flex flex-col items-start gap-3 min-[420px]:flex-row min-[420px]:justify-between">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-primary">
             {facility.category}
           </p>
-          <h3 className="mt-2 text-xl font-semibold leading-tight text-foreground">
+          <h3 className="mt-2 text-lg font-semibold leading-tight text-foreground sm:text-xl">
             {facility.name}
           </h3>
         </div>
         <VerificationBadge status={facility.verificationStatus} />
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm">
+      <div className="mt-4 grid gap-3 text-sm leading-6">
         <div>
           <p className="font-medium text-card-foreground">
             {facility.subcategory}
@@ -32,7 +32,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
           {facility.services.slice(0, 3).map((service) => (
             <span
               key={service}
-              className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground"
+              className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-foreground"
             >
               {service}
             </span>
@@ -51,21 +51,21 @@ export function FacilityCard({ facility }: FacilityCardProps) {
         </div>
       </div>
 
-      <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-3">
+      <div className="mt-auto grid gap-2 pt-5 min-[520px]:grid-cols-3">
         <button
-          className="min-h-11 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
+          className="min-h-12 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
           type="button"
         >
           {facility.contactActionLabel}
         </button>
         <button
-          className="min-h-11 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
+          className="min-h-12 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
           type="button"
         >
           {facility.directionsActionLabel}
         </button>
         <Link
-          className="flex min-h-11 items-center justify-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+          className="flex min-h-12 items-center justify-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
           href="/facilities"
         >
           View details

@@ -14,7 +14,7 @@ const categories = [
 export function QuickCategoriesSection() {
   return (
     <section className="bg-card">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <SectionHeading
           eyebrow="Discover"
           title="Start with the care category you need."

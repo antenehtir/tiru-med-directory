@@ -10,7 +10,7 @@ const nearbyItems = [
 export function NearbyHealthcareSection() {
   return (
     <section className="bg-background">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <SectionHeading
             eyebrow="Nearby"
@@ -21,7 +21,7 @@ export function NearbyHealthcareSection() {
             {nearbyItems.map((item) => (
               <article
                 key={item.name}
-                className="grid gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:grid-cols-[1fr_auto]"
+                className="grid gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:grid-cols-[1fr_auto] sm:items-center"
               >
                 <div>
                   <p className="font-semibold text-card-foreground">
@@ -31,7 +31,7 @@ export function NearbyHealthcareSection() {
                     {item.type} in {item.area}
                   </p>
                 </div>
-                <span className="inline-flex h-8 items-center rounded-full bg-muted px-3 text-xs font-semibold text-primary">
+                <span className="inline-flex min-h-8 w-fit items-center rounded-full bg-muted px-3 text-xs font-semibold text-primary">
                   {item.status}
                 </span>
               </article>

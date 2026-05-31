@@ -14,17 +14,17 @@ const telemedicineLabels: Record<DoctorTelemedicineStatus, string> = {
 
 export function DoctorCard({ doctor }: DoctorCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+    <article className="flex h-full min-w-0 flex-col rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+      <div className="flex flex-col items-start gap-3 min-[420px]:flex-row min-[420px]:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-bold text-primary">
             {doctor.profileInitials}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-primary">
               {doctor.specialty}
             </p>
-            <h3 className="mt-1 text-lg font-semibold leading-tight text-card-foreground">
+            <h3 className="mt-1 text-lg font-semibold leading-snug text-card-foreground">
               {doctor.name}
             </h3>
           </div>
@@ -32,7 +32,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
         <VerificationBadge status={doctor.verificationStatus} entityType="doctor" />
       </div>
 
-      <div className="mt-5 grid gap-3 text-sm">
+      <div className="mt-4 grid gap-3 text-sm leading-6 sm:mt-5">
         <div>
           <p className="font-medium text-card-foreground">{doctor.facility}</p>
           <p className="mt-1 text-muted-foreground">{doctor.location}</p>
@@ -45,15 +45,15 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
         </div>
       </div>
 
-      <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-2">
+      <div className="mt-auto grid gap-2 pt-5 min-[420px]:grid-cols-2">
         <button
-          className="min-h-11 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
+          className="min-h-12 rounded-md border border-border bg-card px-3 text-sm font-semibold text-primary"
           type="button"
         >
           {doctor.bookingActionLabel}
         </button>
         <Link
-          className="flex min-h-11 items-center justify-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+          className="flex min-h-12 items-center justify-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
           href="/doctors"
         >
           {doctor.profileActionLabel}

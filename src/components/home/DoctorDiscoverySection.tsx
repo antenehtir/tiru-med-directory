@@ -6,7 +6,7 @@ import { SectionHeading } from "./SectionHeading";
 export function DoctorDiscoverySection() {
   return (
     <section className="bg-background">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <SectionHeading
             eyebrow="Doctors"

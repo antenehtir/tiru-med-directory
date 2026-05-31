@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function ProviderRegistrationPanel() {
   return (
-    <div className="rounded-lg bg-primary p-6 text-primary-foreground shadow-sm sm:p-8">
+    <div className="rounded-lg bg-primary p-5 text-primary-foreground shadow-sm sm:p-8">
       <p className="text-sm font-semibold uppercase tracking-normal">
         Provider registration
       </p>
@@ -14,16 +14,16 @@ export function ProviderRegistrationPanel() {
         for listing or verification without adding live forms or backend review
         logic yet.
       </p>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
-          className="inline-flex min-h-12 items-center justify-center rounded-md bg-card px-5 text-sm font-semibold text-[#0F4C81]"
+          className="inline-flex min-h-12 items-center justify-center rounded-md bg-card px-5 text-center text-sm font-semibold text-[#0F4C81]"
           href="/register"
           style={{ color: "#0F172A" }}
         >
           Request listing preview
         </Link>
         <Link
-          className="inline-flex min-h-12 items-center justify-center rounded-md border border-primary-foreground/40 px-5 text-sm font-semibold text-primary-foreground"
+          className="inline-flex min-h-12 items-center justify-center rounded-md border border-primary-foreground/40 px-5 text-center text-sm font-semibold text-primary-foreground"
           href="/register"
         >
           Request verification preview

@@ -16,7 +16,7 @@ const specialties = [
 export function PopularSpecialtiesSection() {
   return (
     <section className="bg-background">
-      <PageContainer className="py-10 lg:py-14">
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
         <SectionHeading
           eyebrow="Specialties"
           title="Popular specialties prepared for future search filters."
@@ -26,7 +26,7 @@ export function PopularSpecialtiesSection() {
           {specialties.map((specialty) => (
             <Link
               key={specialty}
-              className="rounded-full border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground shadow-sm hover:border-primary"
+              className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:border-primary"
               href="/doctors"
             >
               {specialty}

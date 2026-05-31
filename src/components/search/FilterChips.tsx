@@ -10,7 +10,7 @@ export function FilterChips() {
         {healthcareFilters.map((filter) => (
           <button
             key={filter}
-            className="min-h-10 rounded-full border border-border bg-muted px-4 text-sm font-semibold text-foreground"
+            className="min-h-10 rounded-full border border-border bg-muted px-3 text-sm font-semibold text-foreground sm:px-4"
             type="button"
             aria-pressed="false"
           >

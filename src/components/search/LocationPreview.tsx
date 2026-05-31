@@ -1,6 +1,6 @@
 export function LocationPreview() {
   return (
-    <div className="rounded-lg border border-border bg-muted p-4">
+    <div className="rounded-lg border border-border bg-muted p-3 sm:p-4">
       <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
         Location preview
       </p>

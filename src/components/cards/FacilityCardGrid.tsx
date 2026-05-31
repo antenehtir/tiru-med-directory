@@ -7,7 +7,7 @@ type FacilityCardGridProps = {
 
 export function FacilityCardGrid({ facilities }: FacilityCardGridProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {facilities.map((facility) => (
         <FacilityCard key={facility.id} facility={facility} />
       ))}

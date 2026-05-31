@@ -10,7 +10,7 @@ export function PopularSearchSuggestions() {
         {popularSearchSuggestions.map((suggestion) => (
           <button
             key={suggestion}
-            className="rounded-full bg-muted px-3 py-2 text-sm font-medium text-foreground"
+            className="min-h-10 rounded-full bg-muted px-3 py-2 text-sm font-medium text-foreground"
             type="button"
           >
             {suggestion}
