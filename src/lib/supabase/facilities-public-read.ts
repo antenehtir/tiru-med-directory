@@ -8,9 +8,9 @@ import type { PublicProviderCard } from "@/types/public-listings";
 import type { VerificationStatus } from "@/types/verification";
 
 import {
-  getSupabaseBrowserClient,
-  getSupabaseBrowserClientStatus,
-} from "./browser-client";
+  getSupabasePublicClient,
+  getSupabasePublicClientStatus,
+} from "./public-client";
 
 const FACILITIES_PUBLIC_SELECT = [
   "id",
@@ -96,7 +96,7 @@ export type FacilitiesPublicReadResult =
     };
 
 export async function getSupabasePublicFacilityCards(): Promise<FacilitiesPublicReadResult> {
-  const clientStatus = getSupabaseBrowserClientStatus();
+  const clientStatus = getSupabasePublicClientStatus();
 
   if (!clientStatus.isAvailable) {
     return {
@@ -111,7 +111,7 @@ export async function getSupabasePublicFacilityCards(): Promise<FacilitiesPublic
     };
   }
 
-  const client = getSupabaseBrowserClient();
+  const client = getSupabasePublicClient();
 
   if (!client) {
     return {

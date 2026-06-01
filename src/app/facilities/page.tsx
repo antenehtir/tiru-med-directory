@@ -5,6 +5,8 @@ import { getPublicFacilityCardsFromSource } from "@/lib/public-listing-source";
 import type { PublicProviderCard } from "@/types/public-listings";
 import type { Facility } from "@/types/facility";
 
+export const dynamic = "force-dynamic";
+
 export default async function FacilitiesRoute() {
   const facilitiesSource = await getPublicFacilityCardsFromSource({
     mode: "supabase-facilities-preview",
