@@ -48,21 +48,20 @@ create table if not exists public.facilities (
   constraint facilities_listing_status_check
     check (
       listing_status in (
-        'pending',
-        'published',
         'draft',
+        'pending',
+        'active',
         'rejected',
         'archived',
-        'duplicate',
-        'deleted'
+        'suspended'
       )
     ),
   constraint facilities_visibility_status_check
     check (
       visibility_status in (
-        'hidden',
         'public',
-        'private'
+        'hidden',
+        'internal'
       )
     ),
   constraint facilities_verification_status_check
