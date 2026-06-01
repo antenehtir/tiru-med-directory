@@ -6,7 +6,9 @@ import type { PublicProviderCard } from "@/types/public-listings";
 import type { Facility } from "@/types/facility";
 
 export default async function FacilitiesRoute() {
-  const facilitiesSource = await getPublicFacilityCardsFromSource();
+  const facilitiesSource = await getPublicFacilityCardsFromSource({
+    mode: "supabase-facilities-preview",
+  });
   const facilities = mapPublicFacilityCardsToFacilities(
     facilitiesSource.cards,
   );
