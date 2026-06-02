@@ -8,9 +8,10 @@ type FacilityCardProps = {
 
 export function FacilityCard({ facility }: FacilityCardProps) {
   const detailHref =
-    facility.slug === "addis-health-center"
+    facility.detailHref ??
+    (facility.slug === "addis-health-center"
       ? "/facilities/addis-health-center"
-      : "/facilities";
+      : "/facilities");
 
   return (
     <article className="flex h-full min-w-0 flex-col rounded-lg border border-border bg-background p-4 shadow-sm sm:p-5">

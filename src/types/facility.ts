@@ -34,4 +34,5 @@ export type Facility = {
   contactActionLabel: string;
   directionsActionLabel: string;
   contactChannels?: FacilityContactChannel[];
+  detailHref?: string;
 };

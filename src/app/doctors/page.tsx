@@ -43,6 +43,7 @@ function mapPublicDoctorCardsToDoctors(cards: PublicProviderCard[]): Doctor[] {
     profileInitials: createDoctorInitials(card.name),
     profileActionLabel: card.primaryActionLabel,
     bookingActionLabel: card.secondaryActionLabel,
+    detailHref: card.listingHref,
   }));
 }
 

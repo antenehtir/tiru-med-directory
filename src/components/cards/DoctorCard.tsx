@@ -14,9 +14,10 @@ const telemedicineLabels: Record<DoctorTelemedicineStatus, string> = {
 
 export function DoctorCard({ doctor }: DoctorCardProps) {
   const detailHref =
-    doctor.id === "doctor-hana-bekele"
+    doctor.detailHref ??
+    (doctor.id === "doctor-hana-bekele"
       ? "/doctors/dr-hana-bekele"
-      : "/doctors";
+      : "/doctors");
 
   return (
     <article className="flex h-full min-w-0 flex-col rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">

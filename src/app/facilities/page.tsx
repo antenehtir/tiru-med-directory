@@ -55,6 +55,7 @@ function mapPublicFacilityCardsToFacilities(
       availabilityNote: card.availabilityPreview ?? "Availability not listed",
       contactActionLabel: card.primaryActionLabel,
       directionsActionLabel: card.secondaryActionLabel,
+      detailHref: card.listingHref,
     };
   });
 }

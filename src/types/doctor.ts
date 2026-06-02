@@ -15,4 +15,5 @@ export type Doctor = {
   profileInitials: string;
   profileActionLabel: string;
   bookingActionLabel: string;
+  detailHref?: string;
 };
