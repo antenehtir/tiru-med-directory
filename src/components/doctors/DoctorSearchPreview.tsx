@@ -1,4 +1,8 @@
-export function DoctorSearchPreview() {
+type DoctorSearchPreviewProps = {
+  query?: string;
+};
+
+export function DoctorSearchPreview({ query = "" }: DoctorSearchPreviewProps) {
   return (
     <section className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
       <label
@@ -12,6 +16,7 @@ export function DoctorSearchPreview() {
           id="doctor-search-preview"
           className="min-h-13 w-full rounded-md border border-border bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground sm:min-h-14 sm:px-4"
           placeholder="Search by doctor name, specialty, or facility"
+          value={query}
           readOnly
         />
         <button

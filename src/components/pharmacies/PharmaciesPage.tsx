@@ -7,8 +7,17 @@ import { PharmacySearchPreview } from "./PharmacySearchPreview";
 import { PharmacyTrustNote } from "./PharmacyTrustNote";
 import { PrescriptionPickupPreview } from "./PrescriptionPickupPreview";
 import { RequestPharmacyAdditionCta } from "./RequestPharmacyAdditionCta";
+import type { Facility } from "@/types/facility";
 
-export function PharmaciesPage() {
+type PharmaciesPageProps = {
+  activeQuery?: string;
+  pharmacies?: Facility[];
+};
+
+export function PharmaciesPage({
+  activeQuery = "",
+  pharmacies,
+}: PharmaciesPageProps) {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
@@ -16,13 +25,13 @@ export function PharmaciesPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="grid gap-6">
-            <PharmacySearchPreview />
+            <PharmacySearchPreview query={activeQuery} />
             <PharmacyFilterChips />
           </div>
           <PharmacyTrustNote />
         </div>
 
-        <PharmacyResultsSection />
+        <PharmacyResultsSection query={activeQuery} pharmacies={pharmacies} />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <PrescriptionPickupPreview />

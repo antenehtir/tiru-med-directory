@@ -1,18 +1,41 @@
 import { DoctorsPage } from "@/components/doctors/DoctorsPage";
 import { PageShell } from "@/components/layout/PageShell";
 import { sampleDoctors } from "@/data/sampleDoctors";
+import {
+  filterDoctorsByQuery,
+  filterDoctorsBySpecialty,
+  normalizeSearchParam,
+} from "@/lib/frontend-search-filters";
 import { getSupabasePublicDoctorCards } from "@/lib/supabase/doctors-public-read";
 import type { PublicProviderCard } from "@/types/public-listings";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 
 export const dynamic = "force-dynamic";
 
-export default async function DoctorsRoute() {
+type DoctorsRouteProps = {
+  searchParams?: Promise<{
+    q?: string | string[];
+    specialty?: string | string[];
+  }>;
+};
+
+export default async function DoctorsRoute({ searchParams }: DoctorsRouteProps) {
+  const params = await searchParams;
+  const query = normalizeSearchParam(params?.q);
+  const specialty = normalizeSearchParam(params?.specialty);
   const doctors = await getDoctorsForRoute();
+  const filteredDoctors = filterDoctorsByQuery(
+    filterDoctorsBySpecialty(doctors, specialty),
+    query,
+  );
 
   return (
     <PageShell>
-      <DoctorsPage doctors={doctors} />
+      <DoctorsPage
+        activeQuery={query}
+        activeSpecialty={specialty}
+        doctors={filteredDoctors}
+      />
     </PageShell>
   );
 }

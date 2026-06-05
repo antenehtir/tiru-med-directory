@@ -1,4 +1,10 @@
-export function PharmacySearchPreview() {
+type PharmacySearchPreviewProps = {
+  query?: string;
+};
+
+export function PharmacySearchPreview({
+  query = "",
+}: PharmacySearchPreviewProps) {
   return (
     <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
       <p className="text-sm font-semibold uppercase tracking-normal text-primary">
@@ -14,7 +20,7 @@ export function PharmacySearchPreview() {
 
       <div className="mt-5 grid gap-3 rounded-md border border-border bg-background p-4">
         <div className="rounded-md border border-border bg-input px-4 py-3 text-sm font-medium text-muted-foreground shadow-sm">
-          Search pharmacy name, area, or medicine category
+          {query || "Search pharmacy name, area, or medicine category"}
         </div>
         <div className="rounded-md bg-muted px-4 py-3 text-sm font-semibold text-primary">
           Location preview: Addis Ababa

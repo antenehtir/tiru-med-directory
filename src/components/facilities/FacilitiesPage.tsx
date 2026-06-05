@@ -7,20 +7,29 @@ import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
 import { FacilitySearchPreview } from "./FacilitySearchPreview";
 import { FacilityTrustBlock } from "./FacilityTrustBlock";
 import { RequestFacilityAdditionCta } from "./RequestFacilityAdditionCta";
+import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 
 type FacilitiesPageProps = {
+  activeCategory?: FacilityCategoryFilter;
+  activeCategoryLabel?: string;
+  activeQuery?: string;
   facilities?: Facility[];
 };
 
 export function FacilitiesPage({
+  activeCategory,
+  activeCategoryLabel,
+  activeQuery = "",
   facilities = sampleFacilities,
 }: FacilitiesPageProps) {
+  const isFiltered = Boolean(activeCategory || activeQuery);
+
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
         <FacilitiesHero />
         <FacilitySearchPreview />
-        <FacilityCategoryFilters />
+        <FacilityCategoryFilters activeCategory={activeCategory} />
 
         <section>
           <div className="mb-4">
@@ -28,10 +37,27 @@ export function FacilitiesPage({
               Facility results
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Sample facility cards using the reusable card system.
+              {isFiltered
+                ? `Showing facility matches${activeCategoryLabel ? ` for ${activeCategoryLabel.toLowerCase()}` : ""}${activeQuery ? ` matching "${activeQuery}"` : ""}.`
+                : "Sample facility cards using the reusable card system."}
             </p>
           </div>
-          <FacilityCardGrid facilities={facilities} />
+          {facilities.length > 0 ? (
+            <FacilityCardGrid facilities={facilities} />
+          ) : (
+            <section className="rounded-lg border border-dashed border-border bg-card p-5 text-center shadow-sm">
+              <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-lg bg-muted text-sm font-bold text-primary">
+                0
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                No facility matches yet
+              </h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                Try another facility category or return to all facilities while
+                category filtering is still using frontend-only data.
+              </p>
+            </section>
+          )}
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">

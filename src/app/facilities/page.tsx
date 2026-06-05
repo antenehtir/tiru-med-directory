@@ -1,23 +1,51 @@
 import { FacilitiesPage } from "@/components/facilities/FacilitiesPage";
 import { PageShell } from "@/components/layout/PageShell";
 import { sampleFacilities } from "@/data/sampleFacilities";
+import {
+  filterFacilitiesByCategory,
+  filterFacilitiesByQuery,
+  getFacilityCategoryLabel,
+  normalizeFacilityCategoryParam,
+  normalizeSearchParam,
+} from "@/lib/frontend-search-filters";
 import { getPublicFacilityCardsFromSource } from "@/lib/public-listing-source";
 import type { PublicProviderCard } from "@/types/public-listings";
 import type { Facility } from "@/types/facility";
 
 export const dynamic = "force-dynamic";
 
-export default async function FacilitiesRoute() {
+type FacilitiesRouteProps = {
+  searchParams?: Promise<{
+    category?: string | string[];
+    q?: string | string[];
+  }>;
+};
+
+export default async function FacilitiesRoute({
+  searchParams,
+}: FacilitiesRouteProps) {
+  const params = await searchParams;
+  const category = normalizeFacilityCategoryParam(params?.category);
+  const query = normalizeSearchParam(params?.q);
   const facilitiesSource = await getPublicFacilityCardsFromSource({
     mode: "supabase-facilities-preview",
   });
-  const facilities = mapPublicFacilityCardsToFacilities(
-    facilitiesSource.cards,
+  const facilities = filterFacilitiesByQuery(
+    filterFacilitiesByCategory(
+      mapPublicFacilityCardsToFacilities(facilitiesSource.cards),
+      category,
+    ),
+    query,
   );
 
   return (
     <PageShell>
-      <FacilitiesPage facilities={facilities} />
+      <FacilitiesPage
+        activeCategory={category}
+        activeCategoryLabel={getFacilityCategoryLabel(category)}
+        activeQuery={query}
+        facilities={facilities}
+      />
     </PageShell>
   );
 }
