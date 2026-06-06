@@ -145,9 +145,11 @@ create table if not exists public.diagnostic_providers (
       diagnostic_provider_type in (
         'laboratory',
         'imaging_center',
-        'pathology',
-        'radiology',
-        'mixed_diagnostic_center'
+        'radiology_center',
+        'pathology_service',
+        'mixed_diagnostic_center',
+        'facility_diagnostic_department',
+        'home_sample_collection_provider'
       )
     ),
   constraint diagnostic_providers_listing_status_check
@@ -191,7 +193,7 @@ comment on column public.diagnostic_providers.display_name is
   'Reviewed public diagnostics provider name only.';
 
 comment on column public.diagnostic_providers.diagnostic_provider_type is
-  'Reviewed public diagnostics provider type such as laboratory, imaging center, pathology, radiology, or mixed diagnostic center.';
+  'Reviewed public diagnostics provider type such as laboratory, imaging center, radiology center, pathology service, mixed diagnostic center, facility diagnostic department, or home sample collection provider.';
 
 comment on column public.diagnostic_providers.category is
   'Optional reviewed public category label for discovery and filtering.';
@@ -341,9 +343,11 @@ Diagnostic provider type values:
 
 - `laboratory`
 - `imaging_center`
-- `pathology`
-- `radiology`
 - `mixed_diagnostic_center`
+- `radiology_center`
+- `pathology_service`
+- `facility_diagnostic_department`
+- `home_sample_collection_provider`
 
 Status vocabulary:
 
