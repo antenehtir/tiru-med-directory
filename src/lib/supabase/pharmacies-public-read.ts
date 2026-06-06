@@ -2,12 +2,16 @@ import { seedPharmacies } from "@/data";
 import {
   coercePublicList,
   coercePublicText,
+  createPublicVerification,
   getPublicProviderDetailPath,
+  mapSeedPharmacyToPublicCard,
   normalizeCategoryLabel,
   normalizePublicSlug,
-  mapSeedPharmacyToPublicCard,
 } from "@/lib/public-listing-mappers";
-import type { PublicProviderCard } from "@/types/public-listings";
+import type {
+  PublicProviderCard,
+  PublicProviderDetail,
+} from "@/types/public-listings";
 import type { VerificationStatus } from "@/types/verification";
 
 import {
@@ -76,7 +80,8 @@ type SupabasePharmacyPublicRow = {
 
 type PharmaciesPublicReadUnavailableReason =
   | "missing-env"
-  | "client-unavailable";
+  | "client-unavailable"
+  | "invalid-slug";
 
 type PharmaciesPublicReadErrorReason = "query-failed";
 
@@ -107,6 +112,40 @@ export type PharmaciesPublicReadResult =
       status: "error";
       source: "static-fallback";
       cards: PublicProviderCard[];
+      fallbackRecommended: true;
+      reason: PharmaciesPublicReadErrorReason;
+      errorCode: PharmaciesPublicReadSafeErrorCode;
+      message: string;
+    };
+
+export type PharmacyPublicDetailReadResult =
+  | {
+      status: "success";
+      source: "supabase";
+      detail: PublicProviderDetail;
+      fallbackRecommended: false;
+    }
+  | {
+      status: "not-found";
+      source: "static-fallback";
+      detail: null;
+      fallbackRecommended: true;
+      reason: "not-found";
+      message: string;
+    }
+  | {
+      status: "unavailable";
+      source: "static-fallback";
+      detail: null;
+      fallbackRecommended: true;
+      reason: PharmaciesPublicReadUnavailableReason;
+      missingKeys: string[];
+      message: string;
+    }
+  | {
+      status: "error";
+      source: "static-fallback";
+      detail: null;
       fallbackRecommended: true;
       reason: PharmaciesPublicReadErrorReason;
       errorCode: PharmaciesPublicReadSafeErrorCode;
@@ -175,6 +214,98 @@ export async function getSupabasePublicPharmacyCards(): Promise<PharmaciesPublic
   };
 }
 
+export async function getSupabasePublicPharmacyDetailBySlug(
+  slug: string,
+): Promise<PharmacyPublicDetailReadResult> {
+  const requestedSlug = slug.trim();
+
+  if (!requestedSlug) {
+    return {
+      status: "unavailable",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "invalid-slug",
+      missingKeys: [],
+      message:
+        "Pharmacy detail slug is unavailable. Use not-found handling.",
+    };
+  }
+
+  const clientStatus = getSupabasePublicClientStatus();
+
+  if (!clientStatus.isAvailable) {
+    return {
+      status: "unavailable",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "missing-env",
+      missingKeys: clientStatus.missingKeys,
+      message:
+        "Supabase public listing environment is unavailable. Use not-found handling for pharmacy detail.",
+    };
+  }
+
+  const client = getSupabasePublicClient();
+
+  if (!client) {
+    return {
+      status: "unavailable",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "client-unavailable",
+      missingKeys: [],
+      message:
+        "Supabase public client is unavailable. Use not-found handling for pharmacy detail.",
+    };
+  }
+
+  const { data, error } = await client
+    .from("pharmacies")
+    .select(PHARMACIES_PUBLIC_SELECT)
+    .eq("slug", requestedSlug)
+    .eq("listing_status", "active")
+    .eq("visibility_status", "public")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      status: "error",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "query-failed",
+      errorCode: getSafePharmaciesPublicReadErrorCode(error),
+      message:
+        "Supabase pharmacy detail public read failed. Use not-found handling.",
+    };
+  }
+
+  if (!data) {
+    return {
+      status: "not-found",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "not-found",
+      message:
+        "Supabase pharmacy detail was not found as an active public listing. Use not-found handling.",
+    };
+  }
+
+  return {
+    status: "success",
+    source: "supabase",
+    detail: mapSupabasePharmacyRowToPublicDetail(
+      data as unknown as SupabasePharmacyPublicRow,
+    ),
+    fallbackRecommended: false,
+  };
+}
+
 function getStaticPharmacyFallbackCards(): PublicProviderCard[] {
   return seedPharmacies.map(mapSeedPharmacyToPublicCard);
 }
@@ -225,6 +356,31 @@ function mapSupabasePharmacyRowToPublicCard(
   };
 }
 
+function mapSupabasePharmacyRowToPublicDetail(
+  row: SupabasePharmacyPublicRow,
+): PublicProviderDetail {
+  const card = mapSupabasePharmacyRowToPublicCard(row);
+  const address = createAddressLabel(row);
+
+  return {
+    ...card,
+    description: card.summary,
+    location: {
+      name: card.locationLabel,
+      displayName: card.locationLabel,
+    },
+    address,
+    contactChannels: [],
+    workingHours: card.hoursPreview ?? "Hours not listed",
+    verification: createPublicVerification({
+      status: card.verificationStatus,
+      note: "Supabase public pharmacy discovery preview. Verification evidence, inventory, prescriptions, orders, payments, and private staff details are not exposed in public reads.",
+    }),
+    relatedProviderIds: [],
+    correctionHref: `/corrections?listing=${card.slug}`,
+  };
+}
+
 function createPharmacyTypeLabel(pharmacyType: string | null): string {
   if (!pharmacyType) {
     return "Pharmacy";
@@ -262,6 +418,14 @@ function createLocationLabel(row: SupabasePharmacyPublicRow): string {
   return locationParts.length > 0
     ? locationParts.join(", ")
     : "Location not listed";
+}
+
+function createAddressLabel(row: SupabasePharmacyPublicRow): string | undefined {
+  const addressParts = [row.address_public, row.landmark_public]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  return addressParts.length > 0 ? addressParts.join(", ") : undefined;
 }
 
 function createFreshnessLabel(lastConfirmedAt: string | null): string {
