@@ -2,8 +2,10 @@ import { seedDiagnostics } from "@/data";
 import {
   coercePublicList,
   coercePublicText,
+  createPublicVerification,
   getPublicProviderDetailPath,
   mapSeedDiagnosticsProviderToPublicCard,
+  mapSeedDiagnosticsProviderToPublicDetail,
   normalizeCategoryLabel,
   normalizePublicDiagnosticsType,
   normalizePublicSlug,
@@ -11,6 +13,7 @@ import {
 import type {
   PublicDiagnosticsType,
   PublicProviderCard,
+  PublicProviderDetail,
 } from "@/types/public-listings";
 import type { VerificationStatus } from "@/types/verification";
 
@@ -97,6 +100,19 @@ type DiagnosticsPublicReadSafeErrorCode =
   | "DIAGNOSTICS_PUBLIC_SCHEMA_UNAVAILABLE"
   | "DIAGNOSTICS_PUBLIC_COLUMN_MISMATCH";
 
+type DiagnosticPublicDetailReadUnavailableReason =
+  | DiagnosticsPublicReadUnavailableReason
+  | "invalid-slug";
+
+type DiagnosticPublicDetailReadErrorReason = "query-failed";
+
+type DiagnosticPublicDetailReadSafeErrorCode =
+  | "DIAGNOSTICS_DETAIL_PUBLIC_READ_FAILED"
+  | "DIAGNOSTICS_DETAIL_NETWORK_OR_FETCH_FAILED"
+  | "DIAGNOSTICS_DETAIL_PERMISSION_DENIED"
+  | "DIAGNOSTICS_DETAIL_SCHEMA_UNAVAILABLE"
+  | "DIAGNOSTICS_DETAIL_COLUMN_MISMATCH";
+
 export type DiagnosticsPublicReadResult =
   | {
       status: "success";
@@ -120,6 +136,48 @@ export type DiagnosticsPublicReadResult =
       fallbackRecommended: true;
       reason: DiagnosticsPublicReadErrorReason;
       errorCode: DiagnosticsPublicReadSafeErrorCode;
+      message: string;
+    };
+
+export type DiagnosticPublicDetailReadResult =
+  | {
+      status: "success";
+      source: "supabase";
+      detail: PublicProviderDetail;
+      fallbackRecommended: false;
+    }
+  | {
+      status: "success";
+      source: "static-fallback";
+      detail: PublicProviderDetail;
+      fallbackRecommended: true;
+      reason: "static-fallback";
+      message: string;
+    }
+  | {
+      status: "not-found";
+      source: "static-fallback";
+      detail: null;
+      fallbackRecommended: true;
+      reason: "not-found";
+      message: string;
+    }
+  | {
+      status: "unavailable";
+      source: "static-fallback";
+      detail: null;
+      fallbackRecommended: true;
+      reason: DiagnosticPublicDetailReadUnavailableReason;
+      missingKeys: string[];
+      message: string;
+    }
+  | {
+      status: "error";
+      source: "static-fallback";
+      detail: null;
+      fallbackRecommended: true;
+      reason: DiagnosticPublicDetailReadErrorReason;
+      errorCode: DiagnosticPublicDetailReadSafeErrorCode;
       message: string;
     };
 
@@ -219,8 +277,143 @@ export async function getSupabasePublicDiagnosticsCards(): Promise<DiagnosticsPu
   };
 }
 
+export async function getSupabasePublicDiagnosticDetailBySlug(
+  slug: string,
+): Promise<DiagnosticPublicDetailReadResult> {
+  const requestedSlug = typeof slug === "string" ? slug.trim() : "";
+
+  if (!isValidPublicSlug(requestedSlug)) {
+    return {
+      status: "not-found",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "not-found",
+      message:
+        "Diagnostics detail slug was not found as an active public listing. Use not-found handling.",
+    };
+  }
+
+  const clientStatus = getSupabasePublicClientStatus();
+  const staticFallbackDetail = getStaticDiagnosticsFallbackDetail(requestedSlug);
+
+  if (!clientStatus.isAvailable) {
+    if (staticFallbackDetail) {
+      return {
+        status: "success",
+        source: "static-fallback",
+        detail: staticFallbackDetail,
+        fallbackRecommended: true,
+        reason: "static-fallback",
+        message:
+          "Supabase public listing environment is unavailable. Static diagnostics detail data was returned.",
+      };
+    }
+
+    return {
+      status: "unavailable",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "missing-env",
+      missingKeys: clientStatus.missingKeys,
+      message:
+        "Supabase public listing environment is unavailable. Use not-found handling for diagnostics detail.",
+    };
+  }
+
+  let client: ReturnType<typeof getSupabasePublicClient>;
+
+  try {
+    client = getSupabasePublicClient();
+  } catch (error) {
+    return createDiagnosticsDetailQueryErrorResult(error);
+  }
+
+  if (!client) {
+    if (staticFallbackDetail) {
+      return {
+        status: "success",
+        source: "static-fallback",
+        detail: staticFallbackDetail,
+        fallbackRecommended: true,
+        reason: "static-fallback",
+        message:
+          "Supabase public client is unavailable. Static diagnostics detail data was returned.",
+      };
+    }
+
+    return {
+      status: "unavailable",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "client-unavailable",
+      missingKeys: [],
+      message:
+        "Supabase public client is unavailable. Use not-found handling for diagnostics detail.",
+    };
+  }
+
+  let rowData: unknown = null;
+  let readError: unknown = null;
+
+  try {
+    const result = await client
+      .from("diagnostic_providers")
+      .select(DIAGNOSTICS_PUBLIC_SELECT)
+      .eq("slug", requestedSlug)
+      .eq("listing_status", "active")
+      .eq("visibility_status", "public")
+      .limit(1)
+      .maybeSingle();
+
+    rowData = result.data;
+    readError = result.error;
+  } catch (error) {
+    return createDiagnosticsDetailQueryErrorResult(error);
+  }
+
+  if (readError) {
+    return createDiagnosticsDetailQueryErrorResult(readError);
+  }
+
+  if (!rowData) {
+    return {
+      status: "not-found",
+      source: "static-fallback",
+      detail: null,
+      fallbackRecommended: true,
+      reason: "not-found",
+      message:
+        "Supabase diagnostics detail was not found as an active public listing. Use not-found handling.",
+    };
+  }
+
+  return {
+    status: "success",
+    source: "supabase",
+    detail: mapSupabaseDiagnosticsRowToPublicDetail(
+      rowData as SupabaseDiagnosticsPublicRow,
+    ),
+    fallbackRecommended: false,
+  };
+}
+
 function getStaticDiagnosticsFallbackCards(): PublicProviderCard[] {
   return seedDiagnostics.map(mapSeedDiagnosticsProviderToPublicCard);
+}
+
+function getStaticDiagnosticsFallbackDetail(
+  slug: string,
+): PublicProviderDetail | null {
+  const diagnosticsProvider = seedDiagnostics.find(
+    (provider) => normalizePublicSlug(provider.slug, provider.id) === slug,
+  );
+
+  return diagnosticsProvider
+    ? mapSeedDiagnosticsProviderToPublicDetail(diagnosticsProvider)
+    : null;
 }
 
 function mapSupabaseDiagnosticsRowToPublicCard(
@@ -269,6 +462,31 @@ function mapSupabaseDiagnosticsRowToPublicCard(
   };
 }
 
+function mapSupabaseDiagnosticsRowToPublicDetail(
+  row: SupabaseDiagnosticsPublicRow,
+): PublicProviderDetail {
+  const card = mapSupabaseDiagnosticsRowToPublicCard(row);
+  const address = createAddressLabel(row);
+
+  return {
+    ...card,
+    description: card.summary,
+    location: {
+      name: card.locationLabel,
+      displayName: card.locationLabel,
+    },
+    address,
+    contactChannels: [],
+    workingHours: card.hoursPreview ?? "Hours not listed",
+    verification: createPublicVerification({
+      status: card.verificationStatus,
+      note: "Supabase public diagnostics discovery preview. Verification evidence, reports, results, orders, payments, sample tracking, and private staff details are not exposed in public reads.",
+    }),
+    relatedProviderIds: [],
+    correctionHref: `/corrections?listing=${card.slug}`,
+  };
+}
+
 function createDiagnosticsProviderTypeLabel(providerType: string): string {
   const labels: Record<string, string> = {
     laboratory: "Laboratory",
@@ -312,6 +530,16 @@ function createLocationLabel(row: SupabaseDiagnosticsPublicRow): string {
   return locationParts.length > 0
     ? locationParts.join(", ")
     : "Location not listed";
+}
+
+function createAddressLabel(
+  row: SupabaseDiagnosticsPublicRow,
+): string | undefined {
+  const addressParts = [row.address_public, row.landmark_public]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  return addressParts.length > 0 ? addressParts.join(", ") : undefined;
 }
 
 function createAvailabilityPreview(
@@ -374,6 +602,49 @@ function getSafeDiagnosticsPublicReadErrorCode(
   }
 
   return "DIAGNOSTICS_PUBLIC_READ_FAILED";
+}
+
+function getSafeDiagnosticsDetailReadErrorCode(
+  error: unknown,
+): DiagnosticPublicDetailReadSafeErrorCode {
+  const publicReadErrorCode = getSafeDiagnosticsPublicReadErrorCode(error);
+
+  if (publicReadErrorCode === "DIAGNOSTICS_PUBLIC_NETWORK_OR_FETCH_FAILED") {
+    return "DIAGNOSTICS_DETAIL_NETWORK_OR_FETCH_FAILED";
+  }
+
+  if (publicReadErrorCode === "DIAGNOSTICS_PUBLIC_PERMISSION_DENIED") {
+    return "DIAGNOSTICS_DETAIL_PERMISSION_DENIED";
+  }
+
+  if (publicReadErrorCode === "DIAGNOSTICS_PUBLIC_SCHEMA_UNAVAILABLE") {
+    return "DIAGNOSTICS_DETAIL_SCHEMA_UNAVAILABLE";
+  }
+
+  if (publicReadErrorCode === "DIAGNOSTICS_PUBLIC_COLUMN_MISMATCH") {
+    return "DIAGNOSTICS_DETAIL_COLUMN_MISMATCH";
+  }
+
+  return "DIAGNOSTICS_DETAIL_PUBLIC_READ_FAILED";
+}
+
+function createDiagnosticsDetailQueryErrorResult(
+  error: unknown,
+): DiagnosticPublicDetailReadResult {
+  return {
+    status: "error",
+    source: "static-fallback",
+    detail: null,
+    fallbackRecommended: true,
+    reason: "query-failed",
+    errorCode: getSafeDiagnosticsDetailReadErrorCode(error),
+    message:
+      "Supabase diagnostics detail public read failed. Use not-found handling.",
+  };
+}
+
+function isValidPublicSlug(slug: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
 function getSafeErrorSearchText(error: unknown): string {
