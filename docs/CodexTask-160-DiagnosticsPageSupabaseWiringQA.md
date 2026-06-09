@@ -6,51 +6,33 @@ DigitalDirectory-v2
 
 ## Goal
 
-Create a QA record for the diagnostics page Supabase wiring completed in Task 159.
+Record QA for the diagnostics page Supabase wiring completed in Task 159.
 
-This task documents the implementation result, validation results, safe fallback behavior, and the remaining live Supabase runtime verification limitation.
-
-This task follows:
-
-* CodexTask-151-DiagnosticsDiscoverySchemaPlanning.md
-* CodexTask-152-DiagnosticsTableSQLDraft.md
-* CodexTask-153-DiagnosticsRLSPolicySQLDraft.md
-* CodexTask-154-DiagnosticsTestDataSQLDraft.md
-* CodexTask-155-DiagnosticsManualSQLExecutionGuide.md
-* CodexTask-156-DiagnosticsSQLExecutionQARecord.md
-* CodexTask-157-DiagnosticsPublicReadHelperImplementation.md
-* CodexTask-158-DiagnosticsRuntimeProbe.md
-* CodexTask-159-DiagnosticsPageSupabaseWiring.md
-
----
-
-## Important Context
-
-The diagnostics Supabase setup was manually executed and verified before page wiring.
-
-Confirmed database state:
-
-* `public.diagnostic_providers` table exists.
-* RLS is enabled.
-* Public select policy is active for:
-
-  * `listing_status = 'active'`
-  * `visibility_status = 'public'`
-* Total test rows: 8.
-* Expected active/public rows: 6.
-* Expected blocked rows: 2.
-
-Task 157 created the diagnostics public read helper.
-
-Task 158 created the diagnostics runtime probe.
-
-Task 159 wired the diagnostics page to the diagnostics public read helper.
+This is a documentation-only QA record. No source code, SQL, RLS, schema, migrations, probe scripts, package scripts, diagnostics detail pages, diagnostics contact channels, UI, brand, logo, pharmacy, doctors, facilities, or real data files were modified for this QA task.
 
 ---
 
 ## Task 159 Implementation Summary
 
-Task 159 modified diagnostics page-related files only:
+Task 159 wired the diagnostics listing page to the diagnostics public read helper created in Task 157.
+
+The diagnostics page now:
+
+- imports and calls `getSupabasePublicDiagnosticsCards`
+- requests diagnostics cards from the public helper on the server route
+- maps returned `PublicProviderCard` values into the existing facility-card data shape used by the diagnostics UI
+- passes diagnostics cards into `DiagnosticsPage`
+- passes diagnostics cards into `DiagnosticsResultsSection`
+- preserves the existing diagnostics layout and card system
+- preserves safe static fallback behavior
+
+The diagnostics route is dynamic so it can use the public Supabase helper at request time.
+
+---
+
+## Files Modified In Task 159
+
+Task 159 modified these files:
 
 ```text
 src/app/diagnostics/page.tsx
@@ -58,110 +40,160 @@ src/components/diagnostics/DiagnosticsPage.tsx
 src/components/diagnostics/DiagnosticsResultsSection.tsx
 ```
 
-The diagnostics page now uses the diagnostics public read helper and preserves fallback behavior.
+No SQL, RLS, schema, migration, diagnostics detail, diagnostics contact channel, pharmacy, doctors, facilities, global UI, brand, logo, color, package script, or real data files were modified as part of Task 159 page wiring.
 
 ---
 
-## Required QA Record
+## Helper Usage
 
-Create or update a focused QA markdown record documenting:
-
-1. Diagnostics page Supabase wiring was implemented.
-2. Diagnostics page imports/calls the diagnostics public read helper.
-3. Page can render using helper-provided cards.
-4. Page preserves fallback/static diagnostics data when Supabase is unavailable, errors, or returns no cards.
-5. No raw Supabase errors, env values, Supabase URL, anon key, or secrets are exposed.
-6. Existing diagnostics UI/layout/copy was preserved as much as possible.
-7. Pending/hidden rows are not expected to appear because the helper filters active/public rows.
-8. Validation command results are recorded.
-9. Remaining limitation is clearly documented:
-
-   * `npm.cmd run probe:diagnostics` currently returns safe fallback/error with `DIAGNOSTICS_PUBLIC_READ_FAILED`.
-   * Therefore the 6 live Supabase test rows were not verified through the local/Codex runtime probe yet.
-   * This is a runtime verification limitation, not a page build failure.
-
-Recommended file target:
+The diagnostics page now uses:
 
 ```text
-docs/CodexTask-160-DiagnosticsPageSupabaseWiringQA.md
+getSupabasePublicDiagnosticsCards
 ```
+
+from:
+
+```text
+src/lib/supabase/diagnostics-public-read.ts
+```
+
+The helper queries:
+
+```text
+public.diagnostic_providers
+```
+
+with public-read filters:
+
+```text
+listing_status = active
+visibility_status = public
+```
+
+Pending and hidden diagnostics rows are excluded by those helper filters and by the verified RLS policy from Task 156.
 
 ---
 
-## Known Validation Results From Task 159
+## Safe Fallback Behavior
 
-Record these results:
+Safe fallback/static behavior is preserved.
+
+If Supabase is unavailable, the public client is unavailable, the helper returns a safe error, or no helper cards are returned, the diagnostics page can still render using existing static diagnostics data.
+
+The page does not expose:
+
+- raw Supabase errors
+- Supabase URL
+- anon key
+- environment variable values
+- service-role values
+- secrets
+- private/internal database fields
+
+The page remains public discovery only.
+
+---
+
+## Validation Results Recorded
+
+Validation results from Task 159:
+
+| Command | Result |
+| --- | --- |
+| `npm.cmd run lint` | Passed |
+| `npm.cmd run build` | Passed |
+| `npm.cmd run probe:diagnostics` | Safe fallback/error, `DIAGNOSTICS_PUBLIC_READ_FAILED` |
+| `npm.cmd run probe:pharmacies` | Passed with safe static fallback |
+| `npm.cmd run probe:pharmacy-detail` | Passed with safe static fallback |
+
+The build confirmed the diagnostics route compiled successfully after page wiring.
+
+---
+
+## Runtime Supabase Verification Limitation
+
+The six live Supabase diagnostics rows were manually verified in SQL during Task 156:
 
 ```text
-npm.cmd run lint: passed
-npm.cmd run build: passed
-npm.cmd run probe:diagnostics: safe fallback/error, DIAGNOSTICS_PUBLIC_READ_FAILED
-npm.cmd run probe:pharmacies: passed with safe static fallback
-npm.cmd run probe:pharmacy-detail: passed with safe static fallback
+test-diagnostic-alpha-lab
+test-diagnostic-eta-imaging
+test-diagnostic-zeta-radiology
+test-diagnostic-omega-pathology
+test-diagnostic-kappa-mixed
+test-diagnostic-lambda-home-sample
 ```
+
+The blocked rows were also manually verified as excluded from active/public SQL results during Task 156:
+
+```text
+test-diagnostic-beta-pending
+test-diagnostic-delta-hidden
+```
+
+However, the six live Supabase diagnostics rows were not verified through the local/Codex diagnostics probe runtime yet.
+
+Current probe limitation:
+
+```text
+npm.cmd run probe:diagnostics returned safe fallback/error with DIAGNOSTICS_PUBLIC_READ_FAILED.
+```
+
+This is a runtime Supabase verification limitation, not a diagnostics page build failure.
 
 ---
 
 ## QA Status
 
-The QA record should state:
-
 ```text
-Status: Passed with runtime Supabase verification limitation
+Passed with runtime Supabase verification limitation
 ```
 
 Reason:
 
-* The page wiring builds successfully.
-* The page fallback behavior is safe.
-* The helper protects against pending/hidden rows through active/public filters.
-* The live Supabase rows were verified manually in SQL during Task 156.
-* The live Supabase rows were not verified through `probe:diagnostics` in the current runtime.
+- Diagnostics page Supabase wiring was implemented.
+- Diagnostics page imports and calls the diagnostics public read helper.
+- Diagnostics page can render helper-provided cards.
+- Safe fallback/static diagnostics behavior is preserved.
+- No raw Supabase errors, env values, URLs, anon keys, or secrets are exposed.
+- Pending/hidden diagnostics rows are excluded by helper active/public filters and RLS.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed.
+- The live Supabase rows were manually verified in SQL during Task 156.
+- The live Supabase rows were not verified through `probe:diagnostics` in the current local/Codex runtime.
 
 ---
 
-## Scope
+## Readiness
 
-Allowed:
+```text
+Ready for Task 161 — Diagnostics Detail Read Planning.
+```
 
-* Create/update `docs/CodexTask-160-DiagnosticsPageSupabaseWiringQA.md`.
-* Record validation results.
-* Record remaining limitation.
-* State readiness for diagnostics detail planning.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify diagnostics page files.
-* Do not modify diagnostics helper.
-* Do not modify probe scripts.
-* Do not modify package scripts.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not create diagnostics detail pages yet.
-* Do not implement diagnostics contact channels.
-* Do not change pharmacy, doctors, or facilities behavior.
-* Do not change UI, brand, logo, colors, or real data.
-* Do not create Task 161.
+Task 161 should remain planning-focused unless separately instructed. Diagnostics detail pages and diagnostics contact channels are not implemented in this QA record.
 
 ---
 
-## Acceptance Criteria
+## Safety Confirmation
 
-* QA markdown record exists.
-* Task 159 implementation files are listed.
-* Validation results are recorded.
-* Safe fallback behavior is documented.
-* Remaining diagnostics live Supabase probe limitation is documented.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* QA status is clear.
-* Readiness for Task 161 is stated.
-* Task 161 is not created.
+For Task 160:
+
+- No source code was modified.
+- No diagnostics page files were modified.
+- No diagnostics helper was modified.
+- No probe scripts were modified.
+- No package scripts were modified.
+- No SQL, RLS, schema, or migration files were modified.
+- No diagnostics detail pages were created.
+- No diagnostics contact channels were implemented.
+- No pharmacy, doctors, or facilities behavior was changed.
+- No UI, brand, logo, colors, or real data were changed.
+- No Task 161 file was created.
 
 ---
 
-## Deliverable
+## Summary
 
-A focused QA record for diagnostics page Supabase wiring.
+Diagnostics page Supabase wiring QA is complete.
 
-Do not proceed beyond Task 160.
+The page is wired to the diagnostics public read helper, preserves safe static fallback behavior, and builds successfully. Runtime verification of the six live Supabase diagnostics rows remains limited in the local/Codex probe runtime because `probe:diagnostics` returned a safe fallback/error result with `DIAGNOSTICS_PUBLIC_READ_FAILED`.
