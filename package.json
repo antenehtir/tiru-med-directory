@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "probe:pharmacies": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-pharmacies-public-read.ts",
-    "probe:pharmacy-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-pharmacy-detail-read.ts"
+    "probe:pharmacy-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-pharmacy-detail-read.ts",
+    "probe:diagnostics": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-diagnostics.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

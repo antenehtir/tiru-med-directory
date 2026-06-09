@@ -140,7 +140,22 @@ export async function getSupabasePublicDiagnosticsCards(): Promise<DiagnosticsPu
     };
   }
 
-  const client = getSupabasePublicClient();
+  let client: ReturnType<typeof getSupabasePublicClient>;
+
+  try {
+    client = getSupabasePublicClient();
+  } catch (error) {
+    return {
+      status: "error",
+      source: "static-fallback",
+      cards: fallbackCards,
+      fallbackRecommended: true,
+      reason: "query-failed",
+      errorCode: getSafeDiagnosticsPublicReadErrorCode(error),
+      message:
+        "Supabase diagnostics public read failed. Static diagnostics data was returned.",
+    };
+  }
 
   if (!client) {
     return {
@@ -155,14 +170,20 @@ export async function getSupabasePublicDiagnosticsCards(): Promise<DiagnosticsPu
     };
   }
 
-  const { data, error } = await client
-    .from("diagnostic_providers")
-    .select(DIAGNOSTICS_PUBLIC_SELECT)
-    .eq("listing_status", "active")
-    .eq("visibility_status", "public")
-    .order("display_name", { ascending: true });
+  let rowsData: unknown = null;
+  let readError: unknown = null;
 
-  if (error) {
+  try {
+    const result = await client
+      .from("diagnostic_providers")
+      .select(DIAGNOSTICS_PUBLIC_SELECT)
+      .eq("listing_status", "active")
+      .eq("visibility_status", "public")
+      .order("display_name", { ascending: true });
+
+    rowsData = result.data;
+    readError = result.error;
+  } catch (error) {
     return {
       status: "error",
       source: "static-fallback",
@@ -175,7 +196,20 @@ export async function getSupabasePublicDiagnosticsCards(): Promise<DiagnosticsPu
     };
   }
 
-  const rows = (data ?? []) as unknown as SupabaseDiagnosticsPublicRow[];
+  if (readError) {
+    return {
+      status: "error",
+      source: "static-fallback",
+      cards: fallbackCards,
+      fallbackRecommended: true,
+      reason: "query-failed",
+      errorCode: getSafeDiagnosticsPublicReadErrorCode(readError),
+      message:
+        "Supabase diagnostics public read failed. Static diagnostics data was returned.",
+    };
+  }
+
+  const rows = (rowsData ?? []) as unknown as SupabaseDiagnosticsPublicRow[];
 
   return {
     status: "success",
@@ -296,7 +330,7 @@ function createAvailabilityPreview(
   ].filter((part): part is string => Boolean(part));
 
   return parts.length > 0
-    ? parts.join(" · ")
+    ? parts.join(" | ")
     : "Sample collection and turnaround details not listed";
 }
 
