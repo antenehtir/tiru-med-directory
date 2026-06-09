@@ -6,18 +6,21 @@ DigitalDirectory-v2
 
 ## Goal
 
-Create a QA record for diagnostics contact channel wiring completed in Task 167.
+Record QA for diagnostics contact channel wiring completed in Task 167.
 
-This task documents that diagnostics detail pages now attempt to read public contact channels using the planned diagnostics contact provider type, preserve safe empty-state behavior, and do not expose raw errors or secrets.
-
-This task follows:
-
-* CodexTask-166-DiagnosticsContactChannelsPlanning.md
-* CodexTask-167-WireDiagnosticsContactChannelsIntoDetailPage.md
+This is a documentation-only QA record. No source code, diagnostics route files, diagnostics helper, contact channel helper, probe scripts, package scripts, SQL, RLS, schema, migrations, contact channel rows, pharmacy behavior, doctors behavior, facilities behavior, UI, brand, logo, colors, or real data were modified for this task.
 
 ---
 
-## Important Context
+## Context Reviewed
+
+Planning and implementation references:
+
+- `docs/CodexTask-166-DiagnosticsContactChannelsPlanning.md`
+- `docs/CodexTask-167-WireDiagnosticsContactChannelsIntoDetailPage.md`
+- `src/app/diagnostics/[slug]/page.tsx`
+- `src/lib/supabase/provider-contact-channels-public-read.ts`
+- `package.json`
 
 Task 167 modified:
 
@@ -25,58 +28,129 @@ Task 167 modified:
 src/app/diagnostics/[slug]/page.tsx
 ```
 
-Diagnostics contact channel wiring now uses the shared public provider contact channel helper pattern.
+---
 
-Planned diagnostics contact provider type:
+## Task 167 Implementation Summary
+
+The diagnostics detail page now reads public provider contact channels for the diagnostics slug.
+
+The route continues reading diagnostics detail data with:
+
+```ts
+getSupabasePublicDiagnosticDetailBySlug(slug)
+```
+
+The route now reads public contact channels with the shared provider contact channel helper:
+
+```ts
+getSupabasePublicProviderContactChannels("diagnostic", slug)
+```
+
+Contact channel reads run alongside diagnostics detail reads. The diagnostics detail result still controls whether the route renders or calls project-consistent `notFound()` behavior.
+
+---
+
+## Contact Provider Type
+
+The contact channel provider type used for diagnostics is:
 
 ```text
 diagnostic
 ```
 
-This is intentionally singular and separate from:
+This is intentionally singular and separate from app-level listing/card type naming such as:
 
 ```text
 diagnostics
 ```
 
-which may be used as the app-level listing provider type.
-
-It is also separate from:
+It is also separate from diagnostics subtype data such as:
 
 ```text
 diagnostic_provider_type
 ```
 
-which is the diagnostics provider subtype field on `public.diagnostic_providers`.
+---
+
+## Contact Channel Safety Behavior
+
+Contact read failure does not crash the page.
+
+If contact channel reading returns `unavailable`, `error`, throws unexpectedly, or returns no rows, the route resolves contact channels to:
+
+```ts
+[]
+```
+
+Missing or empty diagnostics contact rows therefore produce safe empty-state behavior. The existing detail action panel simply omits the public contact channels section when the list is empty.
+
+Unsupported contact channel types are safely ignored by the diagnostics route mapping and are not passed into the facility-style detail UI.
+
+Only supported public contact channel types are mapped into the existing detail UI shape:
+
+- `phone`
+- `whatsapp`
+- `website`
+- `maps`
+- `social`
+- `appointment`
 
 ---
 
-## Required QA Record
+## Error And Secret Safety
 
-Document the following:
+No raw Supabase errors are exposed.
 
-1. Diagnostics detail page now reads public contact channels.
-2. Contact channel provider type used:
+No environment values are exposed.
 
-   ```text
-   diagnostic
-   ```
-3. Contact reads run alongside diagnostics detail reads.
-4. Contact channel read failures do not crash the diagnostics detail page.
-5. Missing/empty contact rows result in safe empty-state behavior.
-6. Unsupported contact channel types are safely ignored or resolved to an empty list.
-7. No raw Supabase errors, env values, URLs, anon keys, or secrets are exposed.
-8. Diagnostics detail not-found behavior is unchanged.
-9. Pending and hidden diagnostics rows remain protected by the diagnostics detail helper.
-10. No SQL, RLS, schema, migration, or contact rows were created or modified.
-11. No pharmacy, doctors, or facilities behavior was changed.
-12. Remaining live Supabase diagnostics runtime limitation is documented.
+No Supabase URLs are exposed.
+
+No anon keys are exposed.
+
+No secrets are exposed.
+
+The shared contact channel helper returns safe result states, and the diagnostics route converts non-success contact channel results into an empty list.
 
 ---
 
-## Known Validation Results From Task 167
+## Diagnostics Detail Protection
 
-Record these results:
+Diagnostics detail not-found behavior is unchanged.
+
+The diagnostics detail helper remains responsible for public detail access and still filters protected diagnostics rows by:
+
+```text
+listing_status = active
+visibility_status = public
+```
+
+Pending and hidden diagnostics rows remain protected by the detail helper. Contact channel reads do not reveal blocked diagnostics records because a non-success diagnostics detail result still triggers `notFound()` behavior.
+
+---
+
+## Data And Schema Scope
+
+No SQL files were created or modified.
+
+No RLS policies were created or modified.
+
+No schema files were created or modified.
+
+No Supabase migrations were created or modified.
+
+No contact channel rows were inserted, created, or modified.
+
+No pharmacy, doctors, or facilities behavior was changed.
+
+No UI, brand, logo, colors, or real data were changed.
+
+Task 169 was not created.
+
+---
+
+## Validation Results Recorded
+
+Task 167 validation results:
 
 ```text
 npm.cmd run lint: passed
@@ -87,72 +161,49 @@ npm.cmd run probe:pharmacies: passed with safe static fallback
 npm.cmd run probe:pharmacy-detail: passed with safe static fallback
 ```
 
+The diagnostics detail probe confirmed safe handling for the public, blocked, missing, and invalid diagnostics detail cases within the local/Codex runtime constraints.
+
+The diagnostics listing probe still returned the known safe fallback/error state:
+
+```text
+DIAGNOSTICS_PUBLIC_READ_FAILED
+```
+
+---
+
+## Remaining Limitation
+
+Live Supabase diagnostics rows were manually verified in SQL during Task 156, but the 6 live Supabase diagnostics rows are still not verified through the local/Codex diagnostics runtime probe.
+
+This is the same runtime Supabase verification limitation carried from the earlier diagnostics public read and diagnostics detail QA tasks.
+
 ---
 
 ## QA Status
 
-The QA record should state:
-
 ```text
-Status: Passed with expected empty-contact-state and runtime Supabase verification limitation
+Passed with expected empty-contact-state and runtime Supabase verification limitation.
 ```
 
-Reason:
+Reasons:
 
-* Contact channel wiring builds successfully.
-* Contact helper uses provider type `diagnostic`.
-* Contact read failure does not crash the page.
-* Empty contact rows are safe and expected at this stage.
-* Detail safety probe still passes.
-* Live Supabase diagnostics rows were manually verified in SQL during Task 156.
-* Live Supabase diagnostics rows are still not verified through the local/Codex diagnostics runtime probe.
-
----
-
-## Scope
-
-Allowed:
-
-* Create/update `docs/CodexTask-168-DiagnosticsContactChannelsQA.md`.
-* Record Task 167 validation results.
-* Record empty-state behavior.
-* Record remaining runtime limitation.
-* State readiness for post-diagnostics cleanup or next MVP module step.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify diagnostics route files.
-* Do not modify diagnostics helper.
-* Do not modify contact channel helper.
-* Do not modify probe scripts.
-* Do not modify package scripts.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not insert contact channel rows.
-* Do not change pharmacy, doctors, or facilities behavior.
-* Do not change UI, brand, logo, colors, or real data.
-* Do not create Task 169.
+- Diagnostics contact channel wiring builds successfully.
+- The shared contact helper is used with provider type `diagnostic`.
+- Contact reads run alongside diagnostics detail reads.
+- Contact read failure resolves safely to an empty contact list.
+- Missing or empty contact rows produce safe empty-state behavior.
+- Unsupported contact channel types are ignored safely.
+- No raw errors, environment values, URLs, anon keys, or secrets are exposed.
+- Diagnostics detail not-found behavior is unchanged.
+- Pending and hidden diagnostics rows remain protected by the detail helper.
+- No SQL, RLS, schema, migration, or contact channel row changes were made.
 
 ---
 
-## Acceptance Criteria
+## Readiness
 
-* QA markdown record exists.
-* Task 167 route file is listed.
-* Provider type `diagnostic` is documented.
-* Safe empty-contact-state behavior is documented.
-* Contact failure safety is documented.
-* Validation results are recorded.
-* Remaining diagnostics Supabase runtime limitation is documented.
-* QA status is clear.
-* Readiness for the next MVP step is stated.
-* No source code is modified.
-* Task 169 is not created.
+```text
+Ready for post-diagnostics cleanup or next MVP module step.
+```
 
----
-
-## Deliverable
-
-A focused QA record for diagnostics contact channel wiring.
-
-Do not proceed beyond Task 168.
+Task 168 is complete and does not proceed to Task 169.
