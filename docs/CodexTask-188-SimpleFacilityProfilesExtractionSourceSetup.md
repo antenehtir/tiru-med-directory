@@ -6,151 +6,111 @@ DigitalDirectory-v2
 
 ## Goal
 
-Create a source setup record for the uploaded Tiru MedDirectory Facility Profiles Word document so it can be used later for simple MVP data extraction.
+Record that the Tiru MedDirectory facility profiles Word document is available at a stable project path for future JSON-first extraction.
 
-This task follows:
-
-* CodexTask-186-SimplifyRealProviderDataIntakeAroundFacilityProfilesDocument.md
-* CodexTask-187-SimpleFacilityProfilesExtractionPlanning.md
-
-This is a documentation and source setup task.
-
-Do not extract, import, insert, delete, or modify real provider data in this task.
-
----
-
-## Important Context
-
-The project owner placed the source Word document into the project folder:
-
-```text
-docs/data-intake/source/Tiru_MedDirectory_Facility_Profiles.docx
-```
-
-This document is the MVP source document for real provider data.
-
-It contains the Tiru MedDirectory full facility profiles database with:
-
-```text
-99 total facility/provider profiles in Addis Ababa
-```
-
-The source document includes provider categories such as:
-
-```text
-General Hospital
-Specialty Center
-Diagnostic Center
-Ambulance Service
-Home Care
-Telemedicine
-Pharmacy
-Medical Plaza
-Healthcare Financing
-```
-
-The source document includes practical public fields such as:
-
-```text
-facility name
-category
-specialty / services
-special services
-sub-city
-area
-address
-phone
-hours
-email
-website
-telegram
-whatsapp
-booking
-facebook
-instagram
-tiktok
-linkedin
-google maps
-```
-
----
-
-## Main Objective
-
-Record that the source document is now available in a stable project path for future extraction.
-
-Recommended target file:
-
-```text
-docs/CodexTask-188-SimpleFacilityProfilesExtractionSourceSetup.md
-```
-
----
-
-## Source File To Verify
-
-Verify that this file exists:
-
-```text
-docs/data-intake/source/Tiru_MedDirectory_Facility_Profiles.docx
-```
-
-Expected file size from local check:
-
-```text
-51998 bytes
-```
+This is a documentation and source setup record. No source code, UI copy, test data, real app/database data, spreadsheet data, SQL, RLS, schema, migrations, static app data, routes, probes, package scripts, extraction JSON/CSV outputs, or Task 189 file were created or modified.
 
 ---
 
 ## Source Setup Status
 
-The setup record should state:
-
 ```text
 Source setup complete.
 ```
 
-if the file exists at the expected path.
+The source DOCX exists at the expected project path and is ready for a future extraction task.
+
+---
+
+## Context Reviewed
+
+Planning references:
+
+- `docs/CodexTask-186-SimplifyRealProviderDataIntakeAroundFacilityProfilesDocument.md`
+- `docs/CodexTask-187-SimpleFacilityProfilesExtractionPlanning.md`
+
+Source file verified:
+
+```text
+docs/data-intake/source/Tiru_MedDirectory_Facility_Profiles.docx
+```
+
+---
+
+## Source File Verification
+
+Verified source path:
+
+```text
+docs/data-intake/source/Tiru_MedDirectory_Facility_Profiles.docx
+```
+
+Expected local file size:
+
+```text
+51998 bytes
+```
+
+Observed local file size:
+
+```text
+51998 bytes
+```
+
+Verification result:
+
+```text
+Source DOCX exists and matches the expected local file size.
+```
+
+The source document is the MVP source document for real provider data and contains the Tiru MedDirectory full facility profiles database with `99` total facility/provider profiles in Addis Ababa.
+
+No real provider data was extracted from the document in this task.
 
 ---
 
 ## Future Extraction Direction
 
-The next task should use this source file to plan or perform extraction into simple structured output.
-
-Preferred future extraction output format:
+Future extraction direction:
 
 ```text
-JSON first
-CSV later if needed
+JSON first, CSV later if needed.
 ```
 
-Recommended future output folder:
+Reason:
+
+- JSON can preserve optional and missing fields safely.
+- JSON can preserve multi-value contact and social fields as arrays.
+- JSON can preserve `raw_text` and `extraction_notes` for QA.
+- CSV can be generated later after JSON extraction QA if spreadsheet review is needed.
+
+Future output folder:
 
 ```text
 docs/data-intake/simple-facility-profiles/
 ```
 
-Potential future JSON output:
+Do not create this folder or any extraction output in Task 188 unless a future task explicitly approves it.
+
+Planned future JSON output:
 
 ```text
 docs/data-intake/simple-facility-profiles/tiru-med-directory-facility-profiles.simple.json
 ```
 
-Potential future CSV output:
+Optional future CSV output:
 
 ```text
 docs/data-intake/simple-facility-profiles/TiruMedDirectoryFacilityProfiles_Simple.csv
 ```
 
-Do not create these extraction output files in Task 188.
+No extraction JSON or CSV output files were created in Task 188.
 
 ---
 
-## Simplified Extraction Fields For Future Task
+## Future Simplified Extraction Fields
 
-Future extraction should target:
+Future extraction should target these simplified fields:
 
 ```text
 record_number
@@ -177,117 +137,138 @@ raw_text
 extraction_notes
 ```
 
-Generated fields such as slug, listing_status, visibility_status, verification_status, last_confirmed_at, and source_note should be handled later, not in Task 188.
+Field handling notes:
+
+- `record_number` should preserve profile order from the Word document.
+- `raw_text` should preserve the original profile block for QA comparison.
+- `extraction_notes` should record extraction uncertainty only and should not be public UI data.
+- Missing source fields should remain blank, `null`, or empty arrays; do not invent values.
 
 ---
 
-## What Not To Do Yet
+## Generated Fields To Handle Later
 
-Do not:
+Generated/default fields should be handled in later extraction QA, import planning, or import execution tasks.
+
+Do not generate these in Task 188:
 
 ```text
-extract real data
-create JSON output
-create CSV output
-create Supabase insert SQL
-import to Supabase
-delete diagnostics test rows
-delete fallback data
-modify app source code
-modify UI copy
-modify package scripts
-create Task 189
+slug
+listing_status
+visibility_status
+verification_status
+last_confirmed_at
+source_note
+```
+
+Later handling:
+
+| Field | Later handling |
+| --- | --- |
+| `slug` | Generate from `name`; resolve duplicates using area/category suffixes. |
+| `listing_status` | Apply after product decision: `active` or `pending`. |
+| `visibility_status` | Apply after product decision: `public` or `hidden`. |
+| `verification_status` | Apply after product decision: `unverified` or `pending`. |
+| `last_confirmed_at` | Assign only after extraction QA or review date is approved. |
+| `source_note` | Use a safe source note such as `Imported from Tiru MedDirectory Facility Profiles document`. |
+
+---
+
+## Product Decision Still Needed
+
+The active/public versus pending/hidden decision remains open for a later task.
+
+Option A:
+
+```text
+listing_status = active
+visibility_status = public
+verification_status = unverified
+```
+
+Use only if the project owner accepts the source DOCX as public MVP source data.
+
+Option B:
+
+```text
+listing_status = pending
+visibility_status = hidden
+verification_status = pending
+```
+
+Use if additional row-level verification is required before public display.
+
+Recommended timing:
+
+```text
+Extract JSON, run extraction QA, then record the visibility/import decision before any import planning.
+```
+
+---
+
+## No Extraction Outputs Created
+
+Confirmed for Task 188:
+
+- No JSON extraction output was created.
+- No CSV extraction output was created.
+- No app seed file was created.
+- No Supabase insert SQL was created.
+- No import file was created.
+- No source-code data file was created.
+
+Planned future output folder remains only a future path:
+
+```text
+docs/data-intake/simple-facility-profiles/
 ```
 
 ---
 
 ## Recommended Next Task
 
-The recommended next task should be:
+Recommended next task:
 
 ```text
-Task 189 — Simple Facility Profiles JSON Extraction
+Task 189 - Simple Facility Profiles JSON Extraction
 ```
 
 Purpose:
 
-* Extract the source Word document into a simple JSON file.
-* Preserve all 99 provider records.
-* Preserve public contact and map fields.
-* Avoid import to Supabase until extraction QA passes.
+- Extract the verified source Word document into a simple JSON file.
+- Preserve all `99` provider records.
+- Preserve public contact, social, booking, and Google Maps fields.
+- Preserve raw text and extraction notes for QA.
+- Avoid importing to Supabase until extraction QA passes and the product visibility decision is recorded.
+
+Task 189 was not created as part of this task.
 
 ---
 
-## Scope
+## Scope Confirmation
 
-Allowed:
+For Task 188:
 
-* Create/update this Task 188 setup record.
-* Verify that the source DOCX exists in `docs/data-intake/source/`.
-* Commit the source DOCX into the repository if approved.
-* Document future extraction direction.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify UI copy.
-* Do not delete test data.
-* Do not insert real data into app/database.
-* Do not import spreadsheet data.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not modify static app data.
-* Do not change routes.
-* Do not modify probes.
-* Do not modify package scripts.
-* Do not create extraction JSON/CSV outputs.
-* Do not create Task 189.
+- Only `docs/CodexTask-188-SimpleFacilityProfilesExtractionSourceSetup.md` was updated.
+- The source DOCX was verified but not modified.
+- No source code was modified.
+- No UI copy was modified.
+- No test data was deleted.
+- No real data was inserted into the app or database.
+- No spreadsheet data was imported.
+- No SQL was modified.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- No static app data was modified.
+- No routes were changed.
+- No probes were modified.
+- No package scripts were modified.
+- No extraction JSON or CSV outputs were created.
+- Task 189 was not created.
 
 ---
 
-## Validation
+## Setup Summary
 
-No code validation is required.
-
-Recommended checks:
-
-```bash
-git status
-Get-ChildItem .\docs\data-intake\source | Format-List Name,Length
-```
-
-Expected source file:
-
-```text
-Tiru_MedDirectory_Facility_Profiles.docx
-```
-
-Expected size:
-
-```text
-51998
-```
-
----
-
-## Acceptance Criteria
-
-* Task 188 setup record exists.
-* Source DOCX path is documented.
-* Source DOCX existence is verified.
-* Source file size is documented.
-* Future extraction direction is documented.
-* Simplified future extraction fields are documented.
-* Recommended next task is identified.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* No real provider data is inserted into app/database.
-* No extraction JSON/CSV output is created.
-* Task 189 is not created.
-
----
-
-## Deliverable
-
-A focused source setup record confirming the facility profiles Word document is ready for future simple extraction.
-
-Do not proceed beyond Task 188.
+The source setup is complete. `docs/data-intake/source/Tiru_MedDirectory_Facility_Profiles.docx` exists, has the expected local size of `51998` bytes, and is ready for a future JSON-first extraction task. Generated fields, product visibility decisions, extraction outputs, and any import work remain deferred.
