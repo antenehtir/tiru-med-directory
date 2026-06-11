@@ -6,63 +6,30 @@ DigitalDirectory-v2
 
 ## Goal
 
-Create a planning document for exporting the real provider data intake template into spreadsheet-ready files.
+Create a planning record for exporting the real provider data intake template into spreadsheet-ready files in a later task.
 
 This task follows:
 
-* CodexTask-176-RealProviderDataIntakeFormatAndReplacementPlanning.md
-* CodexTask-177-RealProviderDataIntakeTemplateCreation.md
-* CodexTask-178-RealProviderDataIntakeTemplateQA.md
+- `docs/CodexTask-176-RealProviderDataIntakeFormatAndReplacementPlanning.md`
+- `docs/CodexTask-177-RealProviderDataIntakeTemplateCreation.md`
+- `docs/CodexTask-178-RealProviderDataIntakeTemplateQA.md`
+- `docs/data-intake/RealProviderDataIntakeTemplate.md`
 
-This is a planning-only task.
-
-Do not create Excel or CSV files yet.
-
-Do not insert, delete, import, or modify real provider data in this task.
+This is a planning-only task. No Excel files, CSV files, source code, UI copy, test data, real data, SQL, RLS, schema, migrations, static data, routes, probes, or package scripts were created or modified for this task.
 
 ---
 
-## Important Context
-
-Task 177 created:
+## Planning Status
 
 ```text
-docs/data-intake/RealProviderDataIntakeTemplate.md
+Spreadsheet export planning complete.
 ```
 
-Task 178 verified the intake template and marked QA status as:
-
-```text
-Passed
-```
-
-The next step is to plan how to export that markdown template into practical spreadsheet files the project owner can fill outside the codebase.
+This document defines the future workbook/export structure only. It does not create the workbook, create CSV files, import data, delete data, or authorize real data insertion.
 
 ---
 
-## Main Objective
-
-Create a spreadsheet export planning record that defines:
-
-1. Recommended spreadsheet workbook structure.
-2. Recommended sheet/tab names.
-3. Column order for each sheet.
-4. Required versus optional fields.
-5. Allowed values and validation guidance.
-6. CSV export option.
-7. File naming convention.
-8. Review workflow before import.
-9. Recommended next task.
-
-Recommended target file:
-
-```text
-docs/CodexTask-179-RealProviderDataSpreadsheetExportPlanning.md
-```
-
----
-
-## Recommended Spreadsheet Workbook
+## Recommended Workbook
 
 Recommended workbook name:
 
@@ -70,32 +37,44 @@ Recommended workbook name:
 TiruMedicalDirectory_RealProviderDataIntake_Template.xlsx
 ```
 
-Recommended export folder:
+Recommended export folder for the future export task:
 
 ```text
 docs/data-intake/exports/
 ```
 
-The workbook should contain these sheets:
+Recommended CSV export folder for optional companion files:
 
 ```text
-01_Facilities
-02_Doctors
-03_Pharmacies
-04_Diagnostics
-05_Contact_Channels
-06_Verification_Notes
-07_Source_Tracking
-08_Import_QA_Checklist
-09_Allowed_Values
-10_Instructions
+docs/data-intake/exports/csv/
 ```
+
+Do not create these files or folders in Task 179 unless they already exist. Task 179 records the plan only.
 
 ---
 
-## Sheet 01: Facilities
+## Workbook Structure
 
-Recommended columns:
+Recommended workbook sheets:
+
+| Order | Sheet name | Purpose |
+| --- | --- | --- |
+| 01 | `01_Facilities` | Facility provider rows. |
+| 02 | `02_Doctors` | Doctor provider rows. |
+| 03 | `03_Pharmacies` | Pharmacy provider rows. |
+| 04 | `04_Diagnostics` | Diagnostics provider rows. |
+| 05 | `05_Contact_Channels` | One row per provider contact method. |
+| 06 | `06_Verification_Notes` | Verification/review history and issue notes. |
+| 07 | `07_Source_Tracking` | Source provenance for provider/contact data. |
+| 08 | `08_Import_QA_Checklist` | QA checks before import/export approval. |
+| 09 | `09_Allowed_Values` | Controlled values reference for validation. |
+| 10 | `10_Instructions` | Plain-language data entry instructions. |
+
+---
+
+## Column Order
+
+### `01_Facilities`
 
 ```text
 provider_category
@@ -128,17 +107,13 @@ source_note
 internal_review_note
 ```
 
-Default provider category:
+Default `provider_category`:
 
 ```text
 facility
 ```
 
----
-
-## Sheet 02: Doctors
-
-Recommended columns:
+### `02_Doctors`
 
 ```text
 provider_category
@@ -166,17 +141,13 @@ source_note
 internal_review_note
 ```
 
-Default provider category:
+Default `provider_category`:
 
 ```text
 doctor
 ```
 
----
-
-## Sheet 03: Pharmacies
-
-Recommended columns:
+### `03_Pharmacies`
 
 ```text
 provider_category
@@ -205,17 +176,13 @@ source_note
 internal_review_note
 ```
 
-Default provider category:
+Default `provider_category`:
 
 ```text
 pharmacy
 ```
 
----
-
-## Sheet 04: Diagnostics
-
-Recommended columns:
+### `04_Diagnostics`
 
 ```text
 provider_category
@@ -244,13 +211,13 @@ source_note
 internal_review_note
 ```
 
-Default provider category:
+Default `provider_category`:
 
 ```text
-diagnostic
+diagnostics
 ```
 
-Approved diagnostics provider types:
+Approved `diagnostic_provider_type` values:
 
 ```text
 laboratory
@@ -262,64 +229,29 @@ facility_diagnostic_department
 home_sample_collection_provider
 ```
 
----
-
-## Sheet 05: Contact Channels
-
-Recommended columns:
+### `05_Contact_Channels`
 
 ```text
 provider_category
+contact_provider_type
 provider_slug
 channel_type
 label
-value
-href
-availability_note
+value_public
+url_public
+is_primary
 display_order
-is_public
+listing_status
+visibility_status
 verification_status
 last_confirmed_at
 source_note
 internal_review_note
 ```
 
-Allowed provider categories:
+Use `provider_category = diagnostics` and `contact_provider_type = diagnostic` for diagnostics contact channels.
 
-```text
-facility
-doctor
-pharmacy
-diagnostic
-```
-
-Allowed channel types:
-
-```text
-phone
-whatsapp
-email
-website
-map
-booking
-telegram
-facebook
-instagram
-linkedin
-```
-
-Important:
-
-* Use `diagnostic` for diagnostics contact channels.
-* Do not include private staff phone numbers unless approved for public display.
-* `provider_slug` must match the slug of the provider row.
-* One provider may have multiple contact channel rows.
-
----
-
-## Sheet 06: Verification Notes
-
-Recommended columns:
+### `06_Verification_Notes`
 
 ```text
 provider_category
@@ -334,30 +266,7 @@ issue_flag
 next_review_date
 ```
 
-Allowed review statuses:
-
-```text
-not_started
-in_review
-approved
-needs_correction
-rejected
-```
-
-Allowed verification statuses:
-
-```text
-verified
-unverified
-pending
-disputed
-```
-
----
-
-## Sheet 07: Source Tracking
-
-Recommended columns:
+### `07_Source_Tracking`
 
 ```text
 provider_category
@@ -372,24 +281,18 @@ review_status
 review_note
 ```
 
-Allowed source types:
+### `08_Import_QA_Checklist`
 
 ```text
-provider_submitted
-phone_verified
-official_website
-social_media
-public_directory
-field_visit
-internal_staff_confirmation
-unknown
+check_name
+required
+result
+reviewer
+review_date
+notes
 ```
 
----
-
-## Sheet 08: Import QA Checklist
-
-Recommended checklist items:
+Recommended checklist rows:
 
 ```text
 No duplicate slugs
@@ -406,104 +309,76 @@ Contact channel provider_category matches provider rows
 Contact channel provider_slug matches an existing provider slug
 Rows marked hidden/internal will not appear publicly
 Rows marked pending are not imported as public active listings
+Source tracking exists for each row
+Public fields contain no internal notes
 ```
 
 ---
 
-## Sheet 09: Allowed Values
+## Allowed Values Sheet
 
-This sheet should list all controlled values for easy reference.
+Sheet `09_Allowed_Values` should list controlled values in a simple reference format.
 
-Provider category:
-
-```text
-facility
-doctor
-pharmacy
-diagnostic
-```
-
-Listing status:
+Recommended columns:
 
 ```text
-active
-pending
-inactive
-archived
+value_group
+allowed_value
+description
+notes
 ```
 
-Visibility status:
+Recommended value groups:
 
-```text
-public
-hidden
-internal
-```
-
-Verification status:
-
-```text
-verified
-unverified
-pending
-disputed
-```
-
-Boolean values:
-
-```text
-true
-false
-unknown
-```
-
-Diagnostics provider type:
-
-```text
-laboratory
-imaging_center
-radiology_center
-pathology_service
-mixed_diagnostic_center
-facility_diagnostic_department
-home_sample_collection_provider
-```
-
-Contact channel type:
-
-```text
-phone
-whatsapp
-email
-website
-map
-booking
-telegram
-facebook
-instagram
-linkedin
-```
+| Value group | Allowed values |
+| --- | --- |
+| `provider_category` | `facility`, `doctor`, `pharmacy`, `diagnostics` |
+| `contact_provider_type` | `facility`, `doctor`, `pharmacy`, `diagnostic` |
+| `listing_status` | `draft`, `pending`, `active`, `rejected`, `archived`, `suspended` |
+| `visibility_status` | `public`, `hidden`, `internal` |
+| `verification_status` | `unverified`, `pending`, `verified`, `disputed`, `expired` |
+| `boolean_or_unknown` | `true`, `false`, `unknown` |
+| `review_status` | `not_started`, `needs_review`, `in_review`, `approved`, `needs_correction`, `needs_followup`, `rejected` |
+| `facility_type` | `general_hospital`, `specialty_hospital`, `specialty_center`, `clinic`, `medical_center`, `dental_clinic`, `eye_center`, `aesthetic_center`, `rehabilitation_center`, `home_care_provider`, `ambulance_provider` |
+| `pharmacy_type` | `retail_pharmacy`, `hospital_pharmacy`, `specialty_pharmacy`, `compounding_pharmacy`, `online_pharmacy` |
+| `diagnostic_provider_type` | `laboratory`, `imaging_center`, `radiology_center`, `pathology_service`, `mixed_diagnostic_center`, `facility_diagnostic_department`, `home_sample_collection_provider` |
+| `channel_type` | `phone`, `whatsapp`, `telegram`, `website`, `email`, `maps`, `appointment`, `habaridoc`, `emergency`, `social` |
+| `source_type` | `provider_submitted`, `phone_verified`, `official_website`, `social_media`, `public_directory`, `field_visit`, `internal_staff_confirmation`, `government_or_regulator`, `partner_submission`, `unknown` |
 
 ---
 
-## Sheet 10: Instructions
+## Instructions Sheet
 
-The instructions sheet should explain:
+Sheet `10_Instructions` should include plain-language guidance for project-owner data entry.
+
+Recommended instruction topics:
 
 1. Fill one row per provider in the relevant provider sheet.
-2. Use one row per contact method in Contact Channels.
-3. Do not include private contact details unless approved for public display.
-4. Use `active` and `public` only when a row is ready for public display.
-5. Use `pending` or `hidden` for rows still under review.
-6. Use stable slugs.
-7. Do not delete QA/test rows until real data is reviewed and import-ready.
-8. Do not import data until the spreadsheet passes QA.
+2. Use one row per public contact method in `05_Contact_Channels`.
+3. Use `diagnostics` for diagnostics provider rows.
+4. Use `diagnostic` only for diagnostics contact-channel provider type.
+5. Do not include private contact details unless approved for public display.
+6. Use `active` and `public` only when a row is ready for public display.
+7. Use `pending`, `hidden`, or `internal` for rows still under review.
+8. Use stable slugs that follow the slug rules.
+9. Use semicolons for multi-value fields.
+10. Use `unknown` instead of guessing.
+11. Do not delete QA/test rows until real data is reviewed and import-ready.
+12. Do not import data until the spreadsheet passes QA.
+
+Slug reminder for instructions:
+
+```text
+lowercase only; hyphen-separated; no spaces; no underscores; no special characters except hyphen; unique within provider category
+```
 
 ---
 
 ## CSV Export Option
 
-The planning document should recommend also creating CSV versions later:
+Excel should be the primary project-owner entry format, but CSV companion files may be useful for future import workflows.
+
+Recommended future CSV files:
 
 ```text
 facilities.csv
@@ -518,13 +393,19 @@ allowed_values.csv
 instructions.csv
 ```
 
-CSV files can be useful for import workflows, while Excel is easier for project-owner data entry.
+CSV export guidance:
+
+- Use UTF-8.
+- Keep column order identical to the workbook sheets.
+- Do not include real provider data in template CSV files.
+- Keep empty template rows or field-header-only CSVs unless owner approval requests examples.
+- Do not use CSV export as an import approval by itself.
 
 ---
 
 ## File Naming Convention
 
-Recommended names:
+Recommended workbook names:
 
 ```text
 TiruMedicalDirectory_RealProviderDataIntake_Template.xlsx
@@ -532,31 +413,59 @@ TiruMedicalDirectory_RealProviderDataIntake_Template_v1.xlsx
 TiruMedicalDirectory_RealProviderDataIntake_Filled_YYYY-MM-DD.xlsx
 ```
 
-CSV folder recommendation:
+Recommended CSV archive folder name:
 
 ```text
-docs/data-intake/exports/csv/
+TiruMedicalDirectory_RealProviderDataIntake_CSV_Template_v1/
 ```
+
+Recommended CSV file naming:
+
+```text
+01_facilities.csv
+02_doctors.csv
+03_pharmacies.csv
+04_diagnostics.csv
+05_contact_channels.csv
+06_verification_notes.csv
+07_source_tracking.csv
+08_import_qa_checklist.csv
+09_allowed_values.csv
+10_instructions.csv
+```
+
+Versioning guidance:
+
+- Use `_Template_v1` for blank templates.
+- Use `_Filled_YYYY-MM-DD` only for owner-supplied real data files.
+- Never commit filled real-provider spreadsheets unless project ownership and privacy approval explicitly allow it.
 
 ---
 
 ## Data Entry Safety Notes
 
-The plan must clearly state:
-
 ```text
 Do not insert real data yet.
+Do not create Excel files in Task 179.
+Do not create CSV files in Task 179.
 Do not delete diagnostics test rows yet.
 Do not delete fallback data yet.
 Do not remove QA fixtures yet.
 Do not import spreadsheet data until the template is QA-reviewed.
+Do not mark rows active/public until verification and owner approval are complete.
 ```
+
+Private-data warning:
+
+- Do not enter private staff phone numbers unless approved for public listing.
+- Do not enter private addresses, credentials, documents, passwords, API keys, tokens, or internal-only comments in public fields.
+- Keep internal notes in `internal_review_note`, `verification_note`, or `review_note`.
 
 ---
 
 ## Recommended Next Task
 
-The recommended next task should be:
+Recommended next task:
 
 ```text
 Task 180 — Real Provider Data Spreadsheet Template Export
@@ -564,80 +473,37 @@ Task 180 — Real Provider Data Spreadsheet Template Export
 
 Purpose:
 
-* Create the actual Excel workbook.
-* Optionally create CSV-ready companion files.
-* Keep all files template-only.
-* Do not include real provider data.
+- Create the actual Excel workbook.
+- Optionally create CSV-ready companion files.
+- Keep all files template-only.
+- Do not include real provider data.
+
+Task 180 was not created as part of this task.
 
 ---
 
-## Scope
+## Scope Confirmation
 
-Allowed:
+For Task 179:
 
-* Create/update `docs/CodexTask-179-RealProviderDataSpreadsheetExportPlanning.md`.
-* Define workbook structure.
-* Define sheet names.
-* Define column order.
-* Define allowed values.
-* Define CSV export option.
-* Define file naming convention.
-* Recommend next task.
-
-Not allowed:
-
-* Do not create Excel files yet.
-* Do not create CSV files yet.
-* Do not modify source code.
-* Do not modify UI copy.
-* Do not delete test data.
-* Do not insert real data.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not modify static data.
-* Do not change routes.
-* Do not modify probes.
-* Do not modify package scripts.
-* Do not create Task 180.
+- No Excel files were created.
+- No CSV files were created.
+- No source code was modified.
+- No UI copy was modified.
+- No test data was deleted.
+- No real data was inserted.
+- No SQL was modified.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- No static data was modified.
+- No routes were changed.
+- No probes were modified.
+- No package scripts were modified.
+- Task 180 was not created.
 
 ---
 
-## Validation
+## Planning Summary
 
-No code validation is required.
-
-Recommended check:
-
-```bash
-git status
-```
-
-No lint/build is required unless Codex modifies source code, which it must not do.
-
----
-
-## Acceptance Criteria
-
-* Spreadsheet export planning document exists.
-* Workbook name is recommended.
-* Export folder is recommended.
-* Sheet names are defined.
-* Column order is defined for each sheet.
-* Allowed values sheet is planned.
-* Instructions sheet is planned.
-* CSV export option is documented.
-* File naming convention is documented.
-* Data entry safety notes are included.
-* Recommended next task is identified.
-* No Excel or CSV files are created yet.
-* No real provider data is inserted.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* Task 180 is not created.
-
----
-
-## Deliverable
-
-A focused spreadsheet export planning record for the real provider data intake template.
-
-Do not proceed beyond Task 179.
+The recommended export is a single Excel workbook named `TiruMedicalDirectory_RealProviderDataIntake_Template.xlsx` under `docs/data-intake/exports/`, with ten sheets covering provider rows, contact channels, verification, source tracking, QA checks, allowed values, and instructions. CSV companion files can be planned for future import workflows, but no spreadsheet files should be created until Task 180.
