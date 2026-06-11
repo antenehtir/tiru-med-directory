@@ -10,33 +10,50 @@ Create a QA record for the Excel real provider data intake spreadsheet template 
 
 This task verifies that the workbook exists, includes all required sheets, contains required headers, includes allowed values and instructions, and contains template/example rows only with no real provider data.
 
-This is a documentation-only QA task.
-
-Do not insert, delete, import, or modify real provider data in this task.
+This was a documentation-only QA task. No source code, UI copy, SQL, RLS, schema, migrations, static data, routes, probes, package scripts, test data, or real provider data were modified.
 
 ---
 
-## Important Context
+## QA Status
 
-Task 180 created:
+```text
+Passed
+```
+
+All required workbook, sheet, header, allowed-value, instruction, template-row, and safety checks were satisfied.
+
+---
+
+## Workbook Reviewed
+
+Workbook path:
 
 ```text
 docs/data-intake/exports/TiruMedicalDirectory_RealProviderDataIntake_Template.xlsx
 ```
 
-Task 180 also updated:
-
-```text
-docs/CodexTask-180-RealProviderDataSpreadsheetTemplateExport.md
-```
-
-CSV companion files were intentionally skipped to keep Task 180 focused.
+CSV companion files were intentionally skipped in Task 180. This remains acceptable because CSV companions were optional and the Excel workbook is the primary template deliverable.
 
 ---
 
-## Required Workbook QA Checks
+## Sheet Verification
 
-Verify and document that the workbook exists and contains these sheets:
+All 10 required sheets exist.
+
+| Sheet | Exists | Header check | Row/template check |
+| --- | --- | --- | --- |
+| `01_Facilities` | Passed | Passed - 28 required headers present | One example-only row is marked as not real provider data |
+| `02_Doctors` | Passed | Passed - 23 required headers present | One example-only row is marked as not real provider data |
+| `03_Pharmacies` | Passed | Passed - 24 required headers present | One example-only row is marked as not real provider data |
+| `04_Diagnostics` | Passed | Passed - 24 required headers present | One example-only row is marked as not real provider data |
+| `05_Contact_Channels` | Passed | Passed - 13 required headers present | One example-only row is marked as not real contact data |
+| `06_Verification_Notes` | Passed | Passed - 10 required headers present | One example-only row is marked as template guidance |
+| `07_Source_Tracking` | Passed | Passed - 10 required headers present | One example-only row is marked as template guidance |
+| `08_Import_QA_Checklist` | Passed | Passed - 4 required headers present | Required checklist rows are present |
+| `09_Allowed_Values` | Passed | Passed - 4 required headers present | Controlled values reference is present |
+| `10_Instructions` | Passed | Passed - 3 required headers present | Data-entry and safety guidance is present |
+
+Required sheets verified:
 
 ```text
 01_Facilities
@@ -53,162 +70,150 @@ Verify and document that the workbook exists and contains these sheets:
 
 ---
 
-## Required Header QA Checks
+## Allowed Values Verification
 
-Verify and document that each sheet contains the required column headers from Task 180.
+The `09_Allowed_Values` sheet exists and includes controlled values for:
 
-Check at minimum:
+- `provider_category`
+- `listing_status`
+- `visibility_status`
+- `verification_status`
+- `boolean_values`
+- `diagnostic_provider_type`
+- `channel_type`
+- `review_status`
+- `source_type`
 
-* Facilities headers are present.
-* Doctors headers are present.
-* Pharmacies headers are present.
-* Diagnostics headers are present.
-* Contact Channels headers are present.
-* Verification Notes headers are present.
-* Source Tracking headers are present.
-* Import QA Checklist headers are present.
-* Allowed Values sheet exists and includes controlled values.
-* Instructions sheet exists and includes data-entry guidance.
-
----
-
-## Required Safety QA Checks
-
-Verify and document:
-
-1. No real provider data is included.
-2. Example/template rows are clearly marked as example/template guidance.
-3. Do-not-delete/import warning is present.
-4. No source code was modified.
-5. No SQL, RLS, schema, or migration files were modified.
-6. No test data was deleted.
-7. No real data was inserted.
-8. No package scripts or probes were modified.
-9. Task 182 was not created.
-
----
-
-## Usability QA Checks
-
-Document whether the workbook includes:
-
-* Bold header rows.
-* Frozen header rows where possible.
-* Readable column widths.
-* Wrapped text for notes/guidance columns where useful.
-* Clear sheet ordering.
-* Allowed values reference.
-* Instructions for project-owner data entry.
-
----
-
-## QA Status
-
-The QA record should state one of:
-
-```text
-Passed
-Passed with minor follow-up
-Blocked
-```
-
-Expected status:
+Allowed-values QA status:
 
 ```text
 Passed
 ```
 
-if all sheets, headers, instructions, and safety checks are present.
+---
+
+## Instructions Verification
+
+The `10_Instructions` sheet exists and includes data-entry guidance covering:
+
+- Fill one row per provider in the relevant provider sheet.
+- Use one row per contact method in Contact Channels.
+- Do not include private contact details unless approved for public display.
+- Use `active` and `public` only when a row is ready for public display.
+- Use `pending`, `hidden`, or `internal` for rows still under review.
+- Use stable slugs.
+- Do not delete QA/test rows until real data is reviewed and import-ready.
+- Do not import spreadsheet data until the spreadsheet passes QA.
+- Treat examples as template examples only, not real provider data.
+
+Instructions QA status:
+
+```text
+Passed
+```
+
+---
+
+## Safety Verification
+
+| Safety check | Result |
+| --- | --- |
+| Workbook exists | Passed |
+| Example/template rows are clearly marked as template guidance | Passed |
+| No real provider data is included | Passed |
+| Do-not-delete/import warning is present | Passed |
+| No source code was modified | Passed |
+| No UI copy was modified | Passed |
+| No SQL files were modified | Passed |
+| No RLS files were modified | Passed |
+| No schema files were modified | Passed |
+| No migration files were modified | Passed |
+| No static data was modified | Passed |
+| No test data was deleted | Passed |
+| No real data was inserted | Passed |
+| No package scripts were modified | Passed |
+| No probes were modified | Passed |
+| No routes were changed | Passed |
+| Task 182 was not created | Passed |
+
+The instructions sheet includes these required safety notes:
+
+```text
+Do not insert real data yet.
+Do not delete diagnostics test rows yet.
+Do not delete fallback data yet.
+Do not remove QA fixtures yet.
+Do not import spreadsheet data until the template is QA-reviewed.
+```
+
+---
+
+## Usability Verification
+
+| Usability check | Result |
+| --- | --- |
+| Bold header rows | Passed |
+| Frozen header rows where possible | Passed |
+| Readable column widths | Passed |
+| Wrapped text for notes/guidance columns where useful | Passed |
+| Clear sheet ordering | Passed |
+| Allowed values reference | Passed |
+| Instructions for project-owner data entry | Passed |
+| Workbook sheets render for inspection | Passed |
+
+---
+
+## Remaining Issues
+
+```text
+None for Task 181.
+```
+
+Real provider data filling is still pending and should occur only after owner guidance and review.
 
 ---
 
 ## Recommended Next Task
 
-The recommended next task should be:
+Recommended next task:
 
 ```text
-Task 182 — Real Provider Data Filling Guidance
+Task 182 - Real Provider Data Filling Guidance
 ```
 
 Purpose:
 
-* Explain how the project owner should fill the Excel template.
-* Define which provider categories to fill first.
-* Recommend a small first batch for QA before large-scale real data entry.
-* Clarify that real data should still not be imported until reviewed.
+- Explain how the project owner should fill the Excel template.
+- Define which provider categories to fill first.
+- Recommend a small first batch for QA before large-scale real data entry.
+- Clarify that real data should still not be imported until reviewed.
+
+Task 182 was not created as part of this task.
 
 ---
 
-## Scope
+## Scope Confirmation
 
-Allowed:
+For Task 181:
 
-* Create/update `docs/CodexTask-181-RealProviderDataSpreadsheetTemplateQA.md`.
-* Inspect the Excel workbook template.
-* Record QA findings.
-* Recommend next task.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify UI copy.
-* Do not delete test data.
-* Do not insert real data.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not modify static data.
-* Do not change routes.
-* Do not modify probes.
-* Do not modify package scripts.
-* Do not create Task 182.
+- Only `docs/CodexTask-181-RealProviderDataSpreadsheetTemplateQA.md` was updated.
+- The Excel workbook was inspected but not modified.
+- No source code was modified.
+- No UI copy was modified.
+- No test data was deleted.
+- No real provider data was inserted.
+- No SQL was modified.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- No static data was modified.
+- No routes were changed.
+- No probes were modified.
+- No package scripts were modified.
+- Task 182 was not created.
 
 ---
 
-## Validation
+## QA Summary
 
-No code validation is required.
-
-Recommended checks:
-
-```bash
-git status
-```
-
-Workbook QA should confirm:
-
-```text
-Workbook exists
-All 10 required sheets exist
-Required headers are present
-Allowed values sheet exists
-Instructions sheet exists
-No real provider data is included
-```
-
-No lint/build is required unless Codex modifies source code, which it must not do.
-
----
-
-## Acceptance Criteria
-
-* QA markdown record exists.
-* Workbook path is documented.
-* All 10 sheets are verified.
-* Required headers are verified.
-* Allowed Values sheet is verified.
-* Instructions sheet is verified.
-* Safety checks are documented.
-* Usability checks are documented.
-* QA status is clear.
-* Recommended next task is identified.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* No real provider data is inserted.
-* Task 182 is not created.
-
----
-
-## Deliverable
-
-A focused QA record for the real provider data spreadsheet template.
-
-Do not proceed beyond Task 181.
+Task 181 passed. The Task 180 Excel workbook exists, all required sheets and headers are present, controlled values and instructions are included, example rows are marked as template guidance, no real provider data is included, and the workbook is ready for a future filling-guidance task.
