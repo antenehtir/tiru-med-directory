@@ -6,242 +6,136 @@ DigitalDirectory-v2
 
 ## Goal
 
-Create a planning document and data intake format for replacing placeholder, test, demo, fictional, and fallback provider data with real provider information.
+Define the real provider data intake format and staged replacement plan for moving from placeholder, sample, fallback, and QA provider data toward approved real provider records.
 
 This task follows:
 
-* CodexTask-171-PlaceholderAndTestDataInventory.md
-* CodexTask-172-PlaceholderAndTestDataClassificationDecisions.md
-* CodexTask-173-PublicFacingPlaceholderCopyCleanupPlanning.md
-* CodexTask-174-PublicFacingPlaceholderCopyCleanupImplementation.md
-* CodexTask-175-PublicFacingPlaceholderCopyCleanupQA.md
+- `docs/CodexTask-171-PlaceholderAndTestDataInventory.md`
+- `docs/CodexTask-172-PlaceholderAndTestDataClassificationDecisions.md`
+- `docs/CodexTask-175-PublicFacingPlaceholderCopyCleanupQA.md`
 
-This is a planning and data-format task.
-
-Do not insert, delete, or modify provider data in this task.
+This is a planning and data-format task. No source code, UI copy, test data, SQL, RLS, schema, migrations, static data, routes, probes, package scripts, or real provider data were modified for this task.
 
 ---
 
-## Important Context
+## Planning Status
 
-Public-facing placeholder copy has been cleaned.
+```text
+Real provider data intake format and replacement planning complete.
+```
 
-The next MVP step is preparing a clean, structured intake format for real provider data.
-
-The goal is to make sure the project owner can provide real provider information in a format that fits the app, database structure, Supabase public-read helpers, RLS expectations, listing pages, detail pages, and contact channel patterns.
+This document defines the intake format only. It does not approve import, deletion, migration, SQL execution, or replacement of any existing records.
 
 ---
 
-## Main Objective
+## Context Reviewed
 
-Create a planning record that defines:
+Required context reviewed:
 
-1. Real provider data categories.
-2. Required fields.
-3. Optional fields.
-4. Public-safe fields.
-5. Contact channel fields.
-6. Verification fields.
-7. Listing/visibility fields.
-8. Replacement sequence.
-9. QA approach before deleting test/fallback rows.
+- `docs/CodexTask-171-PlaceholderAndTestDataInventory.md`
+- `docs/CodexTask-172-PlaceholderAndTestDataClassificationDecisions.md`
+- `docs/CodexTask-175-PublicFacingPlaceholderCopyCleanupQA.md`
+- `docs/CodexTask-176-RealProviderDataIntakeFormatAndReplacementPlanning.md`
+- existing provider data structures in `src/data`
+- existing Supabase public-read helper patterns in `src/lib/supabase`
+- existing public listing types in `src/types/public-listings.ts`
 
-Recommended target file:
+Relevant current patterns:
 
-```text
-docs/CodexTask-176-RealProviderDataIntakeFormatAndReplacementPlanning.md
-```
-
----
-
-## Provider Categories To Support
-
-The intake format should support at minimum:
-
-```text
-facilities
-doctors
-pharmacies
-diagnostics
-```
-
-Current MVP-stable provider modules include:
-
-```text
-pharmacies
-diagnostics
-```
-
-Facilities and doctors already exist in the app and should be considered for data cleanup/replacement planning.
+- `PublicProviderType` currently supports `facility`, `doctor`, `pharmacy`, and `diagnostics`.
+- Contact channel helper provider types include `facility`, `doctor`, `pharmacy`, and `diagnostic`.
+- Public-read helpers only expose records with `listing_status = active` and `visibility_status = public`.
+- Existing Supabase helper status values include `draft`, `pending`, `active`, `rejected`, `archived`, and `suspended`.
+- Existing visibility values are `public`, `hidden`, and `internal`.
+- Existing verification values include `unverified`, `pending`, `verified`, `disputed`, and `expired`.
+- Current seed metadata includes sample-oriented source, listing, and review statuses that should remain until real replacement data and QA coverage are ready.
 
 ---
 
-## Recommended Intake Structure
+## Provider Categories
 
-The planning document should recommend separating real data into sheets or sections.
+The real provider intake format should support these primary provider categories:
 
-Recommended sections:
+| Intake category | App/public listing type | Contact-channel provider type | Notes |
+| --- | --- | --- | --- |
+| Facilities | `facility` | `facility` | Hospitals, clinics, medical centers, specialty centers, care sites. |
+| Doctors | `doctor` | `doctor` | Individual clinicians or professional profiles. |
+| Pharmacies | `pharmacy` | `pharmacy` | Retail, hospital, specialty, compounding, and online pharmacies. |
+| Diagnostics | `diagnostics` | `diagnostic` | Labs, imaging centers, radiology centers, pathology services, mixed diagnostic centers. |
 
-```text
-1. Facilities
-2. Doctors
-3. Pharmacies
-4. Diagnostics
-5. Contact Channels
-6. Verification Notes
-7. Source Tracking
-```
+Guidance:
 
-Contact channels should be separate because one provider may have multiple phone numbers, WhatsApp numbers, websites, emails, map links, or booking links.
+- Use `diagnostics` for app/public listing category alignment.
+- Use `diagnostic` only where the existing contact-channel helper expects singular provider type.
+- Do not add new provider categories during this planning task.
+
+---
+
+## Intake Sections
+
+The recommended intake workbook or structured file should use separate sheets/sections:
+
+| Section | Purpose |
+| --- | --- |
+| Facilities | Core rows for hospitals, clinics, specialty centers, and care facilities. |
+| Doctors | Core rows for individual clinicians and professional profiles. |
+| Pharmacies | Core rows for pharmacy locations or pharmacy services. |
+| Diagnostics | Core rows for labs, imaging centers, and diagnostic service providers. |
+| Contact Channels | One-to-many public contact rows linked by provider category and slug. |
+| Verification Notes | Review history, verification status, reviewer, and pending issues. |
+| Source Tracking | Source details, collection date, source URL, and review notes. |
+| Import QA Checklist | Pre-import checks and approval sign-off fields. |
+
+Contact channels should stay separate because one provider may have multiple phone numbers, WhatsApp numbers, websites, emails, map links, booking links, or social links.
 
 ---
 
 ## Core Provider Fields
 
-For each provider row, define these core fields:
+Every provider category should include these shared fields.
 
-```text
-provider_category
-provider_subtype
-display_name
-slug
-city
-area
-public_address
-public_landmark
-short_description
-services
-opening_hours
-appointment_required
-walk_in_available
-home_service_available
-verification_status
-last_confirmed_at
-listing_status
-visibility_status
-source_note
-internal_review_note
-```
-
----
-
-## Provider Category Values
-
-Use clear provider category values:
-
-```text
-facility
-doctor
-pharmacy
-diagnostic
-```
-
-Important:
-
-* `diagnostic` should be used for contact-channel provider type.
-* The app may use `diagnostics` as a public listing route/category.
-* `diagnostic_provider_type` is a diagnostics subtype field, not the same as provider category.
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `provider_category` | Yes | `facility`, `doctor`, `pharmacy`, `diagnostics` | Main intake category. |
+| `display_name` | Yes | Public provider name | Must be approved for public display. |
+| `slug` | Yes | Lowercase hyphen slug | Stable public URL key. |
+| `city` | Yes | Text | Example: `Addis Ababa`. |
+| `area` | Recommended | Text | Neighborhood or area. |
+| `public_address` | Recommended | Public-safe text | Do not include private notes. |
+| `public_landmark` | Optional | Public-safe text | Helpful for local discovery. |
+| `short_description` | Recommended | Public-safe summary | Avoid claims that are not verified. |
+| `services_public` | Recommended | Semicolon-separated list | Public service labels only. |
+| `opening_hours_public` | Optional | Text | Use only if verified. |
+| `appointment_required` | Optional | `true`, `false`, `unknown` | Unknown is safer than guessing. |
+| `walk_in_available` | Optional | `true`, `false`, `unknown` | Use only when confirmed. |
+| `home_service_available` | Optional | `true`, `false`, `unknown` | Category-specific meaning. |
+| `listing_status` | Yes | See status guidance below | Public reads require `active`. |
+| `visibility_status` | Yes | See status guidance below | Public reads require `public`. |
+| `verification_status` | Yes | See verification guidance below | Must not default to verified. |
+| `last_confirmed_at` | Recommended | `YYYY-MM-DD` | Date provider information was confirmed. |
+| `source_note` | Recommended | Internal text | Where the data came from. |
+| `internal_review_note` | Optional | Internal text | Must not be displayed publicly. |
 
 ---
 
-## Listing and Visibility Values
+## Facilities Fields
 
-The planning document should define safe values.
+Facilities should extend core fields with:
 
-Recommended `listing_status` values:
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `facility_type` | Yes | Controlled value | Examples below. |
+| `ownership_type` | Optional | `public`, `private`, `ngo`, `faith_based`, `unknown` | Use `unknown` if unclear. |
+| `category` | Recommended | Public label | Example: `Clinic`, `Hospital`, `Medical center`. |
+| `specialties` | Optional | Semicolon-separated list | Public-safe specialty labels. |
+| `emergency_available` | Optional | `true`, `false`, `unknown` | Must be verified before public claim. |
+| `inpatient_available` | Optional | `true`, `false`, `unknown` | Must be verified. |
+| `outpatient_available` | Optional | `true`, `false`, `unknown` | Must be verified. |
+| `diagnostics_available` | Optional | `true`, `false`, `unknown` | Use only if confirmed. |
+| `pharmacy_available` | Optional | `true`, `false`, `unknown` | Use only if confirmed. |
+| `related_service_ids` | Optional | Semicolon-separated ids | For future taxonomy mapping. |
 
-```text
-active
-pending
-inactive
-archived
-```
-
-Recommended `visibility_status` values:
-
-```text
-public
-hidden
-internal
-```
-
-Only rows with:
-
-```text
-listing_status = active
-visibility_status = public
-```
-
-should be publicly readable.
-
----
-
-## Verification Values
-
-Recommended `verification_status` values:
-
-```text
-verified
-unverified
-pending
-disputed
-```
-
-Guidance:
-
-* Use `verified` only when information has been confirmed.
-* Use `unverified` when collected from public sources but not confirmed.
-* Use `pending` when awaiting review.
-* Use `disputed` when there is conflicting information.
-
----
-
-## Slug Rules
-
-Define slug rules:
-
-* lowercase only
-* hyphen-separated
-* no spaces
-* no special characters except hyphen
-* should be stable
-* should not include sensitive or internal notes
-* should be unique within provider category
-
-Example:
-
-```text
-st-paul-general-hospital
-bole-alpha-pharmacy
-addis-diagnostic-imaging-center
-```
-
----
-
-## Facilities Intake Fields
-
-Facilities may include:
-
-```text
-facility_type
-ownership_type
-specialties
-services
-emergency_available
-inpatient_available
-outpatient_available
-diagnostics_available
-pharmacy_available
-city
-area
-public_address
-public_landmark
-opening_hours
-verification_status
-last_confirmed_at
-```
-
-Example facility types:
+Recommended `facility_type` values:
 
 ```text
 general_hospital
@@ -259,49 +153,43 @@ ambulance_provider
 
 ---
 
-## Doctors Intake Fields
+## Doctors Fields
 
-Doctors may include:
+Doctors should extend core fields with:
 
-```text
-doctor_name
-professional_title
-specialty
-subspecialty
-facility_affiliation
-consultation_modes
-languages
-schedule_public
-accepts_online_consultation
-accepts_in_person_consultation
-verification_status
-last_confirmed_at
-```
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `doctor_name` | Yes | Public professional name | Usually same as `display_name`. |
+| `professional_title` | Recommended | Text | Example: `Dr.`, `Prof.`, or approved title. |
+| `specialty` | Yes | Public specialty label | Must be approved. |
+| `subspecialty` | Optional | Text | Public-safe specialty detail. |
+| `facility_affiliation` | Recommended | Public facility name or slug | Link later only after matching facility exists. |
+| `consultation_modes` | Optional | Semicolon list | Example: `in_person; telemedicine`. |
+| `languages` | Optional | Semicolon list | Use public-safe language labels. |
+| `schedule_public` | Optional | Text | Do not invent appointment times. |
+| `accepts_online_consultation` | Optional | `true`, `false`, `unknown` | Verified only. |
+| `accepts_in_person_consultation` | Optional | `true`, `false`, `unknown` | Verified only. |
+| `public_bio` | Optional | Public-safe summary | Avoid private credentials not approved for display. |
 
-Do not include private personal details that are not intended for public display.
+Do not include private personal details, private phone numbers, home addresses, personal documents, or credentials that are not intended for public display.
 
 ---
 
-## Pharmacies Intake Fields
+## Pharmacies Fields
 
-Pharmacies may include:
+Pharmacies should extend core fields with:
 
-```text
-pharmacy_type
-services
-delivery_available
-pickup_available
-prescription_required_note
-opening_hours
-city
-area
-public_address
-public_landmark
-verification_status
-last_confirmed_at
-```
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `pharmacy_type` | Yes | Controlled value | Examples below. |
+| `service_modes` | Optional | Semicolon list | Example: `pickup; delivery; wellness`. |
+| `delivery_available` | Optional | `true`, `false`, `unknown` | Public only after verification. |
+| `pickup_available` | Optional | `true`, `false`, `unknown` | Public only after verification. |
+| `accepts_prescription_upload` | Optional | `true`, `false`, `unknown` | Do not claim unless workflow exists and is approved. |
+| `prescription_required_note` | Optional | Public-safe text | Avoid legal or medical advice. |
+| `medicine_inventory_public` | Optional | Public-safe text/list | Use only if inventory is verified and maintainable. |
 
-Example pharmacy types:
+Recommended `pharmacy_type` values:
 
 ```text
 retail_pharmacy
@@ -313,29 +201,23 @@ online_pharmacy
 
 ---
 
-## Diagnostics Intake Fields
+## Diagnostics Fields
 
-Diagnostics may include:
+Diagnostics should extend core fields with:
 
-```text
-diagnostic_provider_type
-category
-services_public
-sample_collection_modes
-opening_hours_public
-result_turnaround_public
-appointment_required_preview
-walk_in_available
-home_sample_collection_preview
-city
-area
-address_public
-landmark_public
-verification_status
-last_confirmed_at
-```
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `diagnostic_provider_type` | Yes | Controlled value | Examples below. |
+| `category` | Recommended | Public label | Example: `Laboratory`, `Imaging`, `Mixed diagnostics`. |
+| `services_public` | Recommended | Semicolon list | Public diagnostic service labels. |
+| `sample_collection_modes` | Optional | Semicolon list | Use only if confirmed. |
+| `result_turnaround_public` | Optional | Text | Use only if verified. |
+| `appointment_required` | Optional | `true`, `false`, `unknown` | Use current helper-aligned meaning. |
+| `walk_in_available` | Optional | `true`, `false`, `unknown` | Must be verified. |
+| `home_sample_collection` | Optional | `true`, `false`, `unknown` | Must be verified. |
+| `pricing_public` | Optional | Text | Use only if approved and maintainable. |
 
-Recommended diagnostics provider types:
+Recommended `diagnostic_provider_type` values:
 
 ```text
 laboratory
@@ -347,69 +229,100 @@ facility_diagnostic_department
 home_sample_collection_provider
 ```
 
----
-
-## Contact Channels Intake Fields
-
-Contact channels should be recorded separately.
-
-Recommended fields:
+Public-listing type normalization should map diagnostic provider types into:
 
 ```text
-provider_category
-provider_slug
-channel_type
-label
-value
-href
-availability_note
-display_order
-is_public
-verification_status
-last_confirmed_at
-source_note
-internal_review_note
+laboratory
+imaging
+mixed
 ```
+
+---
+
+## Contact Channel Fields
+
+Contact channels should be collected in a separate sheet/section.
+
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `provider_category` | Yes | `facility`, `doctor`, `pharmacy`, `diagnostics` | Intake category. |
+| `contact_provider_type` | Yes | `facility`, `doctor`, `pharmacy`, `diagnostic` | Must match contact-channel helper values. |
+| `provider_slug` | Yes | Existing provider slug | Links channel to provider. |
+| `channel_type` | Yes | Controlled value | See values below. |
+| `label` | Recommended | Public label | Example: `Main phone`, `WhatsApp`, `Website`. |
+| `value_public` | Yes | Public-safe value | Do not include private values. |
+| `url_public` | Optional | URL or link href | Required for websites/maps/social links. |
+| `is_primary` | Optional | `true` or `false` | One primary per provider/channel type if possible. |
+| `display_order` | Optional | Number | Lower numbers display first. |
+| `listing_status` | Yes | See status guidance | Public reads require `active`. |
+| `visibility_status` | Yes | See status guidance | Public reads require `public`. |
+| `verification_status` | Yes | See verification guidance | Contact-specific verification. |
+| `last_confirmed_at` | Recommended | `YYYY-MM-DD` | Date contact was confirmed. |
+| `source_note` | Recommended | Internal text | Where contact came from. |
+| `internal_review_note` | Optional | Internal text | Not public. |
 
 Recommended `channel_type` values:
 
 ```text
 phone
 whatsapp
-email
-website
-map
-booking
 telegram
-facebook
-instagram
-linkedin
+website
+email
+maps
+appointment
+habaridoc
+emergency
+social
 ```
 
-Guidance:
+Contact channel rules:
 
-* Use `is_public = true` only for contact details intended for public display.
-* Do not include private staff numbers unless approved for public listing.
-* Contact channel rows should match provider category and provider slug.
+- Use `visibility_status = public` only for contact details intended for public display.
+- Do not include private staff numbers unless explicitly approved.
+- Do not publish emergency, appointment, upload, or payment links unless workflow ownership is confirmed.
+- Every contact row must match an intake provider category and slug.
+
+---
+
+## Verification Fields
+
+Verification should be tracked at provider and contact-channel level.
+
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `verification_status` | Yes | `unverified`, `pending`, `verified`, `disputed`, `expired` | Matches Supabase helper pattern. |
+| `verification_method` | Recommended | Controlled text | Example: phone, official website, provider submitted. |
+| `verified_by` | Recommended | Reviewer name/id | Internal only. |
+| `verified_at` | Recommended when verified | `YYYY-MM-DD` | Required before using `verified` publicly. |
+| `last_confirmed_at` | Recommended | `YYYY-MM-DD` | May differ from first verification date. |
+| `verification_note_public` | Optional | Public-safe note | Avoid internal or sensitive text. |
+| `verification_note_internal` | Optional | Internal note | Not public. |
+
+Verification guidance:
+
+- Use `verified` only after approved confirmation.
+- Use `pending` when awaiting review.
+- Use `unverified` for collected but unconfirmed data.
+- Use `disputed` when sources conflict.
+- Use `expired` when previously confirmed data is stale and needs reconfirmation.
 
 ---
 
 ## Source Tracking Fields
 
-The planning document should recommend tracking the source of each provider record.
+Every provider and contact channel should have source tracking.
 
-Suggested fields:
-
-```text
-source_type
-source_name
-source_url
-source_date
-collected_by
-reviewed_by
-review_status
-review_note
-```
+| Field | Required | Format / values | Notes |
+| --- | --- | --- | --- |
+| `source_type` | Yes | Controlled value | See list below. |
+| `source_name` | Recommended | Text | Organization, website, person, or process. |
+| `source_url` | Optional | URL | Use for public web sources. |
+| `source_date` | Recommended | `YYYY-MM-DD` | Date source was collected or checked. |
+| `collected_by` | Recommended | Internal name/id | Internal only. |
+| `reviewed_by` | Recommended before import | Internal name/id | Internal only. |
+| `review_status` | Yes | `needs_review`, `approved`, `rejected`, `needs_followup` | Controls readiness. |
+| `review_note` | Optional | Internal text | Not public. |
 
 Recommended `source_type` values:
 
@@ -421,83 +334,181 @@ social_media
 public_directory
 field_visit
 internal_staff_confirmation
+government_or_regulator
+partner_submission
 unknown
 ```
 
 ---
 
-## Replacement Strategy
+## Slug Rules
 
-The planning document should recommend a safe staged replacement process:
+Slug rules:
 
-### Stage 1: Build intake spreadsheet/template
+- lowercase only
+- hyphen-separated
+- ASCII letters and numbers only, plus hyphen
+- no spaces
+- no underscores
+- no special characters except hyphen
+- no leading or trailing hyphen
+- no consecutive hyphens
+- stable after publication
+- unique within provider category
+- should not include sensitive, private, or internal notes
+- should not include verification status or listing status
 
-Create a structured data intake template using the fields above.
-
-### Stage 2: Fill real provider data
-
-Project owner provides real provider rows.
-
-### Stage 3: Validate data quality
-
-Check for:
-
-```text
-duplicate slugs
-missing display names
-missing category
-missing location
-invalid listing_status
-invalid visibility_status
-unsafe private contact information
-unverified source notes
-```
-
-### Stage 4: Import into Supabase or seed structure
-
-Only after review.
-
-### Stage 5: QA public pages
-
-Verify:
+Suggested validation regex:
 
 ```text
-listing pages
-detail pages
-contact panels
-search results
-mobile view
-desktop view
-correction request flow
-add provider flow
+^[a-z0-9]+(?:-[a-z0-9]+)*$
 ```
 
-### Stage 6: Remove or archive placeholder/test rows
+Examples:
 
-Only after real data is verified and public pages are stable.
+```text
+st-paul-general-hospital
+bole-alpha-pharmacy
+addis-diagnostic-imaging-center
+dr-hana-bekele
+```
+
+If two providers would have the same slug, append a stable area or category suffix, such as:
+
+```text
+central-care-pharmacy-bole
+central-care-pharmacy-piassa
+```
 
 ---
 
-## Do Not Delete Yet
+## Listing And Visibility Status Guidance
 
-The document must clearly state:
+Recommended `listing_status` values:
+
+| Value | Meaning | Public readable? |
+| --- | --- | --- |
+| `draft` | Incomplete internal row | No |
+| `pending` | Awaiting review | No |
+| `active` | Approved for public read if visibility is public | Yes, only with `visibility_status = public` |
+| `rejected` | Not approved | No |
+| `archived` | Historical / replaced | No |
+| `suspended` | Temporarily blocked | No |
+
+Recommended `visibility_status` values:
+
+| Value | Meaning | Public readable? |
+| --- | --- | --- |
+| `public` | Intended for public display | Yes, only with `listing_status = active` |
+| `hidden` | Hidden from public UI | No |
+| `internal` | Internal QA/admin only | No |
+
+Public-read rule:
+
+```text
+Only rows with listing_status = active and visibility_status = public should be publicly readable.
+```
+
+Rows must not be marked `active` and `public` until verification and owner approval are complete.
+
+---
+
+## Data Quality Validation Rules
+
+Pre-import validation should check:
+
+- every row has `provider_category`, `display_name`, `slug`, `listing_status`, `visibility_status`, and `verification_status`
+- slugs match `^[a-z0-9]+(?:-[a-z0-9]+)*$`
+- slugs are unique within provider category
+- contact channel provider slugs match provider rows
+- diagnostics contact channels use `contact_provider_type = diagnostic`
+- all controlled values match approved lists
+- dates use `YYYY-MM-DD`
+- boolean fields use `true`, `false`, or `unknown` where applicable
+- semicolon lists do not contain empty items
+- public fields contain no internal notes, private phone numbers, personal addresses, passwords, tokens, or staff-only contacts
+- `verified` rows have `verified_at` or `last_confirmed_at`
+- `active` + `public` rows have enough public information for safe display
+- unverified rows do not claim verified status in public copy
+- duplicate provider names in the same area are reviewed manually
+- URLs begin with `https://` where possible
+- map links are public and safe
+- appointment or booking links are owned/approved before display
+- contact channel `display_order` values are numeric
+- source tracking fields are present before import approval
+
+Manual QA should also review:
+
+- listing page cards
+- detail pages
+- contact panels
+- search results
+- correction request paths
+- mobile layout
+- desktop layout
+- safe empty states for missing data
+
+---
+
+## Staged Replacement Strategy
+
+Stage 1: Create intake template
+
+- Build a spreadsheet-ready template with the sections defined above.
+- Do not insert real data yet.
+
+Stage 2: Project owner fills real provider data
+
+- Collect provider rows, contact channels, verification notes, and source tracking.
+- Keep private/internal notes out of public fields.
+
+Stage 3: Validate intake data
+
+- Run field-level validation, duplicate checks, slug checks, status checks, and privacy review.
+- Keep rows in `draft`, `pending`, `hidden`, or `internal` until approved.
+
+Stage 4: Prepare replacement mapping
+
+- Map each sample/static provider row to either a real replacement, an archive decision, or a keep-for-QA decision.
+- Do not delete QA/test fixtures during mapping.
+
+Stage 5: Import only approved records
+
+- Import to Supabase or approved seed structure only after owner approval.
+- Preserve RLS expectations and public-read filters.
+
+Stage 6: QA public surfaces
+
+- Verify listing pages, detail pages, contact panels, search, correction flows, mobile, and desktop views.
+- Confirm no private data is visible.
+
+Stage 7: Archive or remove placeholder/test/fallback rows later
+
+- Only after real data is stable, public pages pass QA, and replacement QA fixtures exist.
+- Keep diagnostics test rows and probe fixtures until an explicit QA replacement plan exists.
+
+---
+
+## Do Not Delete Yet Warning
 
 ```text
 Do not delete diagnostics test rows yet.
 Do not delete fallback data yet.
 Do not remove QA fixtures yet.
 Do not insert real data until the intake format is approved.
+Do not replace static data until real records and regression QA are ready.
+Do not modify SQL, RLS, schema, or migrations as part of this planning task.
 ```
 
 Reason:
 
-Test/fallback data is still useful for QA until replacement data is ready.
+The current test, fallback, and QA data still protects public-read behavior while real provider intake, validation, import, and regression QA are being planned.
 
 ---
 
 ## Recommended Next Task
 
-The recommended next task should be:
+Recommended next task:
 
 ```text
 Task 177 — Real Provider Data Intake Template Creation
@@ -505,80 +516,35 @@ Task 177 — Real Provider Data Intake Template Creation
 
 Purpose:
 
-Create a spreadsheet-ready intake template with separate sheets/sections for:
+- Create a spreadsheet-ready intake template.
+- Include separate sheets for Facilities, Doctors, Pharmacies, Diagnostics, Contact Channels, Verification Notes, Source Tracking, and Import QA Checklist.
+- Add field descriptions, controlled-value lists, and validation guidance.
+- Keep the task template-only unless owner approval expands scope.
 
-```text
-Facilities
-Doctors
-Pharmacies
-Diagnostics
-Contact Channels
-Source Tracking
-Verification Notes
-```
+Task 177 was not created as part of this task.
 
 ---
 
-## Scope
+## Scope Confirmation
 
-Allowed:
+For Task 176:
 
-* Create/update `docs/CodexTask-176-RealProviderDataIntakeFormatAndReplacementPlanning.md`.
-* Define real provider data intake format.
-* Define replacement strategy.
-* Define validation rules.
-* Recommend the next task.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify UI copy.
-* Do not delete test data.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not insert real data.
-* Do not modify static data.
-* Do not change routes.
-* Do not modify probes.
-* Do not modify package scripts.
-* Do not create Task 177.
+- No source code was modified.
+- No UI copy was modified.
+- No test data was deleted.
+- No SQL was modified.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- No real data was inserted.
+- No static data was modified.
+- No routes were changed.
+- No probes were modified.
+- No package scripts were modified.
+- Task 177 was not created.
 
 ---
 
-## Validation
+## Planning Summary
 
-No code validation is required.
-
-Recommended check:
-
-```bash
-git status
-```
-
-No lint/build is required unless Codex modifies source code, which it must not do.
-
----
-
-## Acceptance Criteria
-
-* Real provider data intake planning document exists.
-* Provider categories are defined.
-* Core provider fields are defined.
-* Category-specific fields are defined.
-* Contact channel fields are defined.
-* Verification fields are defined.
-* Source tracking fields are defined.
-* Replacement strategy is documented.
-* “Do not delete yet” warning is included.
-* Recommended next task is identified.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* No data is deleted or inserted.
-* Task 177 is not created.
-
----
-
-## Deliverable
-
-A focused real provider data intake format and replacement planning record.
-
-Do not proceed beyond Task 176.
+The project should collect real provider data in a structured, category-specific intake template before any replacement begins. Provider rows, contact channels, verification notes, and source tracking should be separated so data can be validated safely. Public reads should continue to require `listing_status = active` and `visibility_status = public`. Test/fallback rows should remain in place until approved real data, replacement mapping, and regression QA are ready.
