@@ -10,162 +10,108 @@ Apply the approved Tiru brand assets to the app header and create a safe first-p
 
 This task follows:
 
-* CodexTask-193-BrandAssetsUploadAndFrontendRefinementPlanning.md
-* CodexTask-194-BrandAssetSourceSetup.md
-* CodexTask-195-BrandAssetIntakeAndFileInventory.md
-* CodexTask-196-BrandAssetReviewAndAppIntegrationPlanning.md
+- `docs/CodexTask-195-BrandAssetIntakeAndFileInventory.md`
+- `docs/CodexTask-196-BrandAssetReviewAndAppIntegrationPlanning.md`
 
-This is the first branding implementation task.
-
-Keep the scope focused. Do not perform a full UI redesign.
+This was the first focused branding implementation task. It did not perform a full UI redesign.
 
 ---
 
-## Important Context
+## Implementation Status
 
-Brand source assets are available in:
+```text
+Brand header and theme foundation implemented.
+```
+
+Completed:
+
+- Created `public/brand/`.
+- Copied selected Tiru SVG brand assets into `public/brand/`.
+- Updated the header/nav brand mark to use `/brand/tiru-primary-logo.svg`.
+- Used alt text `Tiru MedDirectory`.
+- Added a conservative Tiru color foundation in global theme variables.
+- Preserved route/data behavior scope.
+
+---
+
+## Public Brand Assets Copied
+
+Copied from:
 
 ```text
 docs/brand/source/tiru-brand-assets-app-ready/
 ```
 
-Available app-ready assets include:
+Copied to:
 
-```text
-tiru-primary-logo.svg
-tiru-primary-logo-dark.svg
-tiru-icon.svg
-tiru-app-icon.svg
-tiru-brand-tokens.css
-tiru-brand-tokens.json
-source-brand-reference.jpg
-README.md
-```
+| Public asset | Source asset | Status |
+| --- | --- | --- |
+| `public/brand/tiru-primary-logo.svg` | `docs/brand/source/tiru-brand-assets-app-ready/tiru-primary-logo.svg` | Copied |
+| `public/brand/tiru-icon.svg` | `docs/brand/source/tiru-brand-assets-app-ready/tiru-icon.svg` | Copied |
+| `public/brand/tiru-app-icon.svg` | `docs/brand/source/tiru-brand-assets-app-ready/tiru-app-icon.svg` | Copied |
+| `public/brand/tiru-primary-logo-dark.svg` | `docs/brand/source/tiru-brand-assets-app-ready/tiru-primary-logo-dark.svg` | Copied |
 
-Task 196 recommended:
-
-```text
-Use tiru-primary-logo.svg for the main header/nav logo.
-Use tiru-icon.svg for compact/mobile/icon contexts if safe.
-Use tiru-primary-logo-dark.svg only for dark sections later.
-Use brand tokens as the color reference.
-```
-
-Real facility profiles are already visible in the app and must remain stable.
-
----
-
-## Main Objective
-
-Apply a safe brand foundation:
-
-1. Copy selected brand SVG files into a public app asset folder.
-2. Use the primary Tiru logo in the header/nav.
-3. Add or align brand color tokens.
-4. Apply a small first-pass button/link color polish.
-5. Keep all routes and data stable.
-
----
-
-## Brand Assets To Copy
-
-Create this folder if needed:
-
-```text
-public/brand/
-```
-
-Copy these files from:
-
-```text
-docs/brand/source/tiru-brand-assets-app-ready/
-```
-
-to:
-
-```text
-public/brand/tiru-primary-logo.svg
-public/brand/tiru-icon.svg
-public/brand/tiru-app-icon.svg
-public/brand/tiru-primary-logo-dark.svg
-```
-
-Do not copy the ZIP file into `public/`.
-
-Do not copy the source JPG into `public/` unless needed for reference, which it should not be for this task.
+The ZIP file and source JPG reference were not copied into `public/`.
 
 ---
 
 ## Header/Nav Logo Integration
 
-Inspect likely layout/header files, such as:
+Updated:
 
 ```text
-src/components/layout/*
-src/app/layout.tsx
-src/components/*
+src/components/ui/BrandMark.tsx
 ```
 
-Use the primary logo in the public header/navigation.
-
-Expected asset path for app use:
+Result:
 
 ```text
-/brand/tiru-primary-logo.svg
+Header/nav now uses /brand/tiru-primary-logo.svg.
+Logo alt text is Tiru MedDirectory.
+Logo remains linked to / through the existing brand link.
 ```
 
-If using Next Image is straightforward, use it. If a plain `img` is already the pattern in the project, use that safely.
+Implementation notes:
 
-Logo should:
-
-```text
-link to /
-have descriptive alt text
-not break mobile layout
-not stretch or distort
-fit the existing header height
-```
-
-Recommended alt text:
-
-```text
-Tiru MedDirectory
-```
+- Used the existing `BrandMark` component rather than changing layout ownership.
+- Used `next/image` with the SVG asset path.
+- Kept sizing conservative to fit the existing header height and mobile constraints.
 
 ---
 
-## Theme Foundation
+## Theme And Color Foundation
 
-Use these brand colors:
-
-```text
-Deep Ink: #1A2E2A
-Teal: #1D9E75
-Light Teal: #5DCAA5
-Mint: #E1F5EE
-White: #FFFFFF
-```
-
-Apply only a conservative first pass.
-
-Allowed first-pass styling:
+Updated:
 
 ```text
-primary buttons
-active links
-small accents
-focus rings
-selected states
-subtle mint surfaces
+src/app/globals.css
 ```
 
-Avoid major layout redesign.
+Added/aligned Tiru brand variables:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| Deep Ink | `#1A2E2A` | Foreground, dark text, structural color. |
+| Teal | `#1D9E75` | Primary actions, active states, links, focus ring. |
+| Light Teal | `#5DCAA5` | Secondary/accent color. |
+| Mint | `#E1F5EE` | Muted surfaces and soft backgrounds. |
+| White | `#FFFFFF` | App background, cards, primary foreground. |
+
+First-pass styling impact:
+
+- Existing `primary` styling now uses Tiru Teal.
+- Existing `secondary` styling now uses Light Teal.
+- Existing muted surfaces now use Mint.
+- Existing text/background/card variables now align with Deep Ink and White.
+- Focus/selection styling remains conservative and brand-aligned.
+
+No broad UI redesign was performed.
 
 ---
 
-## Do Not Break Real Facility Data
+## Route And Data Stability
 
-Brand integration must not break:
+Preserved by scope:
 
 ```text
 /facilities
@@ -179,112 +125,107 @@ search routes
 correction/contact/register routes
 ```
 
-Do not modify:
+Not modified:
 
 ```text
 docs/data-intake/simple-facility-profiles/tiru-med-directory-facility-profiles.simple.json
 src/data/real-facility-profiles.ts
+Supabase SQL/RLS/schema/migrations
+pharmacy behavior
+diagnostics behavior
+doctor behavior
+package scripts
+probes
 ```
-
-unless absolutely necessary, which it should not be for this task.
 
 ---
 
-## Known Refinement Backlog To Leave For Later
+## Validation Results
 
-Do not fix all of these in this task:
+Requested commands:
 
 ```text
-facility detail tabs/interactions
-facility detail action panels
-contact link behavior
-mobile spacing
-desktop spacing
-card height consistency
-facility category filters
-search/filter behavior
-missing-field display behavior
-legacy sample route behavior
-overall visual polish
-```
-
-Only touch them if required to prevent the logo/theme foundation from breaking layout.
-
----
-
-## Validation
-
-Run:
-
-```bash
 npm.cmd run lint
 npm.cmd run build
 ```
 
-Also verify locally if practical:
+Environment note:
 
 ```text
-/
- /facilities
- /facilities/lancet-general-hospital
+npm.cmd was not available on PATH in the Codex shell.
 ```
 
-Expected:
+Equivalent validation was run with the available bundled/local Node runtime path.
+
+| Validation | Command/result | Status |
+| --- | --- | --- |
+| Lint | ESLint run through bundled Node runtime | Passed |
+| Build | Next build run through bundled Node runtime | Passed |
+
+Build result summary:
 
 ```text
-Tiru logo appears in header/nav.
-Real facilities still appear.
-Facility detail page still builds.
-No Supabase import was created.
-No SQL/RLS/schema/migration files were modified.
+Compiled successfully.
+TypeScript completed.
+Static pages generated successfully.
+/facilities and /facilities/[slug] built as dynamic routes.
 ```
 
 ---
 
-## Scope
+## Files Created
 
-Allowed:
-
-* Create `public/brand/`.
-* Copy selected SVG brand assets into `public/brand/`.
-* Update header/nav logo usage.
-* Add or align brand color tokens/theme variables.
-* Apply conservative first-pass button/link/accent styling.
-* Run lint/build.
-
-Not allowed:
-
-* Do not import to Supabase.
-* Do not create SQL insert scripts.
-* Do not modify RLS, schema, or migrations.
-* Do not modify extracted facility JSON.
-* Do not modify real facility data.
-* Do not redesign the full UI.
-* Do not fix all facility tab/interactions yet.
-* Do not modify pharmacy, diagnostics, or doctors behavior unless unavoidable.
-* Do not create Task 198.
+```text
+public/brand/tiru-primary-logo.svg
+public/brand/tiru-icon.svg
+public/brand/tiru-app-icon.svg
+public/brand/tiru-primary-logo-dark.svg
+```
 
 ---
 
-## Acceptance Criteria
+## Files Modified
 
-* `public/brand/` exists.
-* Selected SVG brand assets exist in `public/brand/`.
-* Header/nav uses the Tiru primary logo.
-* Brand color foundation is present.
-* First-pass button/link/accent styling is safely aligned with brand colors.
-* Real facilities remain visible.
-* Facility detail route still works.
-* `npm.cmd run lint` passes.
-* `npm.cmd run build` passes.
-* No Supabase import is created.
-* No SQL/RLS/schema/migration files are modified.
-* Task 198 is not created.
+```text
+src/components/ui/BrandMark.tsx
+src/app/globals.css
+docs/CodexTask-197-ApplyBrandAssetsToHeaderAndThemeFoundation.md
+```
 
 ---
 
-## Deliverable
+## Remaining Issues
 
-A safe first-pass Tiru brand foundation applied to the app header/nav and theme.
+Deferred from earlier refinement backlog:
 
-Do not proceed beyond Task 197.
+- Facility detail tabs/interactions are not fully addressed in this task.
+- Facility detail action panels still need focused review.
+- Contact link behavior still needs focused review.
+- Mobile/desktop spacing and full visual polish remain future work.
+
+No new implementation blockers were found during lint/build.
+
+---
+
+## Scope Confirmation
+
+For Task 197:
+
+- No Supabase import was performed.
+- No SQL insert scripts were created.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- Extracted facility JSON was not modified.
+- Real facility data was not modified.
+- Facility detail tabs/interactions were not broadly fixed.
+- Pharmacy behavior was not modified.
+- Diagnostics behavior was not modified.
+- Doctors behavior was not modified.
+- Task 198 was not created.
+
+---
+
+## Completion Summary
+
+Task 197 copied the approved Tiru SVG assets into `public/brand/`, integrated the primary logo into the header/nav with `Tiru MedDirectory` alt text, and aligned the global theme foundation to the Tiru palette. Lint and build passed using the available bundled Node runtime because `npm.cmd` was not available on PATH in the Codex shell.

@@ -1,23 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function BrandMark() {
   return (
     <Link
-      className="flex min-w-0 items-center gap-3"
+      className="flex min-w-0 items-center"
       href="/"
-      aria-label="DigitalDirectory-v2 home"
+      aria-label="Tiru MedDirectory home"
     >
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground shadow-sm">
-        DD
-      </span>
-      <span className="min-w-0 leading-tight">
-        <span className="block truncate text-base font-semibold text-foreground">
-          DigitalDirectory-v2
-        </span>
-        <span className="block truncate text-sm text-muted-foreground">
-          Healthcare discovery
-        </span>
-      </span>
+      <Image
+        src="/brand/tiru-primary-logo.svg"
+        alt="Tiru MedDirectory"
+        width={1200}
+        height={420}
+        priority
+        className="h-12 w-auto max-w-[180px] sm:max-w-[220px]"
+      />
     </Link>
   );
 }

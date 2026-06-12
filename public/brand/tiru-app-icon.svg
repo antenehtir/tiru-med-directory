@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tiru app icon">
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="#FFFFFF" stroke="#D9DEE2" stroke-width="8"/>
+  <path d="M139 132 H338" stroke="#5DCAA5" stroke-width="28" stroke-linecap="round"/>
+  <path d="M139 132 C139 187 139 208 181 208 H207 C237 208 254 225 254 255 V368" stroke="#1A2E2A" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="139" cy="132" r="34" fill="#FFFFFF" stroke="#5DCAA5" stroke-width="18"/>
+  <circle cx="338" cy="132" r="34" fill="#FFFFFF" stroke="#5DCAA5" stroke-width="18"/>
+  <circle cx="254" cy="368" r="34" fill="#FFFFFF" stroke="#1D9E75" stroke-width="18"/>
+</svg>
