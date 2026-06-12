@@ -10,188 +10,167 @@ Create a QA record for the first live app preview of real facility profiles afte
 
 This task follows:
 
-* CodexTask-189-SimpleFacilityProfilesJSONExtraction.md
-* CodexTask-190-SimpleFacilityProfilesJSONExtractionQA.md
-* CodexTask-191-WireSimpleFacilityProfilesJSONIntoFacilitiesUI.md
+- `docs/CodexTask-189-SimpleFacilityProfilesJSONExtraction.md`
+- `docs/CodexTask-190-SimpleFacilityProfilesJSONExtractionQA.md`
+- `docs/CodexTask-191-WireSimpleFacilityProfilesJSONIntoFacilitiesUI.md`
 
-This is a QA and refinement-backlog documentation task.
-
-Do not modify source code in this task.
+This is a documentation-only QA and refinement-backlog task. No source code, UI copy, branding, extracted JSON, `src/data`, SQL, RLS, schema, migrations, probes, package scripts, or Supabase data were modified.
 
 ---
 
-## Important Context
+## QA Status
 
-Task 191 wired the extracted real facility profiles into the Facilities UI.
+```text
+Passed with known frontend/UI refinement backlog.
+```
 
-The local app was started with:
+Real facility data is now visible in the app preview, and the remaining issues are recorded for the frontend/UI refinement phase.
+
+---
+
+## Local Preview Record
+
+Local development server:
 
 ```text
 npm.cmd run dev
 ```
 
-The app became available at:
+Local app URL:
 
 ```text
 http://localhost:3000
 ```
 
-The facilities page was checked at:
+Facilities page checked:
 
 ```text
 http://localhost:3000/facilities
 ```
 
-The project owner confirmed that real facilities are now visible in the app.
-
-Known example real facilities represented include:
-
-```text
-Lancet General Hospital
-Silkroad General Hospital
-American Medical & MCH Center
-HabariDOC
-RANK Specialized Dermatology Clinic
-```
-
----
-
-## Main Objective
-
-Record that real facility data is now visible in the app and document known UI/refinement issues before moving to the branding and frontend refinement phase.
-
-Recommended target file:
-
-```text
-docs/CodexTask-192-RealFacilitiesUIQAAndRefinementBacklog.md
-```
-
----
-
-## QA Findings To Record
-
-Record the following:
+Observed result:
 
 ```text
 Real facilities are visible on /facilities.
-The app runs locally with npm.cmd run dev.
-Real facility names from the extracted JSON are displayed.
+Real facility names are displayed from the extracted facility profiles JSON.
 Facility detail routes are available by slug.
-No Supabase import was performed.
-No SQL/RLS/schema/migration changes were made.
-No branding/logo/color refinement was performed yet.
 ```
 
 ---
 
-## Known Refinement Issue
+## Data And Database Scope Confirmation
 
-The project owner reported:
+| Check | Result |
+| --- | --- |
+| No Supabase import was performed | Confirmed |
+| No SQL changes were made | Confirmed |
+| No RLS changes were made | Confirmed |
+| No schema changes were made | Confirmed |
+| No migration changes were made | Confirmed |
+| Extracted JSON was not modified | Confirmed |
+| `src/data` was not modified in Task 192 | Confirmed |
+| No probes were modified | Confirmed |
+| No package scripts were modified | Confirmed |
+| No branding/logo/color changes were made | Confirmed |
+| Task 193 was not created | Confirmed |
+
+---
+
+## Known Issue Recorded
+
+Known issue:
 
 ```text
-Some tabs or interactive sections under facility profiles are not working correctly.
+Some facility detail tabs or interactive sections are not working correctly.
 ```
 
-Record this as a known UI refinement backlog item.
-
-Do not fix this issue in Task 192.
-
-The issue should be addressed during the upcoming frontend/UI refinement phase.
-
----
-
-## Areas To Revisit Later
-
-Add these to the refinement backlog:
+Disposition:
 
 ```text
-Facility detail tabs/interactions
-Facility detail action panels
-Contact link behavior
-Mobile spacing
-Desktop spacing
-Card height consistency
-Facility category filters
-Search/filter behavior
-Missing-field display behavior
-Legacy sample route behavior
-Overall visual polish
+Deferred to the frontend/UI refinement phase.
 ```
+
+Task 192 does not fix this issue. It records the issue so it can be planned alongside brand assets, layout polish, and interaction QA.
 
 ---
 
-## Recommended Next Phase
+## Refinement Backlog
 
-After Task 192, the project should move to the branding and UI refinement phase.
+| Backlog area | Status | Notes |
+| --- | --- | --- |
+| Facility detail tabs/interactions | Deferred | Review tab behavior, active states, section switching, and broken interactions. |
+| Facility detail action panels | Deferred | Review action layout, missing data behavior, and call-to-action consistency. |
+| Contact link behavior | Deferred | Check phone, email, web, map, and social/booking links for safe behavior. |
+| Mobile spacing | Deferred | Review real-data cards/detail pages on narrow screens. |
+| Desktop spacing | Deferred | Review page density, section rhythm, and detail layout alignment. |
+| Card height consistency | Deferred | Normalize listing-card height and content overflow where real data varies. |
+| Facility category filters | Deferred | Review category filter values and filtering behavior with real facility categories. |
+| Search/filter behavior | Deferred | Confirm search and filters work with real facility names, categories, areas, and services. |
+| Missing-field display behavior | Deferred | Hide missing fields or show production-safe wording consistently. |
+| Legacy sample route behavior | Deferred | Review how legacy/sample routes behave after real facility wiring. |
+| Overall visual polish | Deferred | Address brand, spacing, alignment, visual hierarchy, and interaction polish. |
+
+---
+
+## Frontend Refinement Notes
+
+The refinement phase should preserve the real facility data wiring and avoid database/import changes unless a later task explicitly authorizes them.
+
+Recommended review surfaces:
+
+- `/facilities`
+- facility detail routes by slug
+- facility listing cards
+- facility detail tabs and interactive sections
+- action/contact panels
+- mobile viewport
+- desktop viewport
+- search and filtering controls
+- missing-field states
+- legacy/sample route behavior
+
+---
+
+## Recommended Next Task
 
 Recommended next task:
 
 ```text
-Task 193 — Brand Assets Upload and Frontend Refinement Planning
+Task 193 - Brand Assets Upload and Frontend Refinement Planning
 ```
 
 Purpose:
 
-* Bring in the project owner’s logo and brand guideline.
-* Align colors, typography, spacing, cards, buttons, and navigation with the Tiru MedDirectory brand.
-* Review the real facilities UI using the actual brand.
-* Prepare focused tasks to fix broken tabs and improve frontend polish.
+- Bring in the project owner's logo and brand guideline.
+- Plan frontend refinement without changing source code during Task 192.
+- Review colors, typography, spacing, cards, buttons, navigation, and facility UI polish in a dedicated planning task.
+- Plan fixes for facility detail tabs/interactions and other deferred UI issues.
+
+Task 193 was not created as part of this task.
 
 ---
 
-## Scope
+## Scope Confirmation
 
-Allowed:
+For Task 192:
 
-* Create/update `docs/CodexTask-192-RealFacilitiesUIQAAndRefinementBacklog.md`.
-* Record local UI QA results.
-* Record known broken tab/interaction issue.
-* Record frontend refinement backlog.
-* Recommend next task.
-
-Not allowed:
-
-* Do not modify source code.
-* Do not modify UI copy.
-* Do not modify branding/logo/colors.
-* Do not modify SQL, RLS, schema, or migrations.
-* Do not import to Supabase.
-* Do not modify extracted JSON.
-* Do not modify `src/data`.
-* Do not modify probes or package scripts.
-* Do not create Task 193.
+- Only `docs/CodexTask-192-RealFacilitiesUIQAAndRefinementBacklog.md` was updated.
+- No source code was modified.
+- No UI copy was modified.
+- No branding, logo, or colors were modified.
+- No SQL was modified.
+- No RLS was modified.
+- No schema was modified.
+- No migrations were modified.
+- No Supabase import was performed.
+- Extracted JSON was not modified.
+- `src/data` was not modified.
+- Probes were not modified.
+- Package scripts were not modified.
+- Task 193 was not created.
 
 ---
 
-## Validation
+## QA Summary
 
-No code validation is required for this documentation-only QA task.
-
-Recommended check:
-
-```bash
-git status
-```
-
----
-
-## Acceptance Criteria
-
-* QA markdown record exists.
-* Real facilities live preview is documented.
-* Known broken tabs/interactions are documented.
-* Refinement backlog is documented.
-* Branding phase readiness is documented.
-* Recommended next task is identified.
-* No source code is modified.
-* No SQL/RLS/migration/schema files are modified.
-* No data import is performed.
-* Task 193 is not created.
-
----
-
-## Deliverable
-
-A focused QA and refinement-backlog record confirming that real facilities are visible and that UI refinements will proceed in the branding/frontend phase.
-
-Do not proceed beyond Task 192.
+Real facilities are visible on `/facilities`, real facility names are displayed, and facility detail routes are available by slug. The known facility detail tab/interaction issue is recorded and deferred to frontend/UI refinement. The refinement backlog is ready for the branding and frontend refinement planning phase.
