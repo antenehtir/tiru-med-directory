@@ -6,8 +6,8 @@ export function PharmacySearchPreview({
   query = "",
 }: PharmacySearchPreviewProps) {
   return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-      <p className="text-sm font-semibold uppercase tracking-normal text-primary">
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-[0_12px_30px_rgba(17,24,39,0.035)] sm:p-6">
+      <p className="text-sm font-semibold text-muted-foreground">
         Pharmacy search
       </p>
       <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
@@ -18,11 +18,11 @@ export function PharmacySearchPreview({
         after verification.
       </p>
 
-      <div className="mt-5 grid gap-3 rounded-md border border-border bg-background p-4">
-        <div className="rounded-md border border-border bg-input px-4 py-3 text-sm font-medium text-muted-foreground shadow-sm">
+      <div className="mt-5 grid gap-3 rounded-xl border border-border bg-background p-4">
+        <div className="rounded-lg border border-border bg-input px-4 py-3 text-sm font-medium text-muted-foreground">
           {query || "Search pharmacy name, area, or medicine category"}
         </div>
-        <div className="rounded-md bg-muted px-4 py-3 text-sm font-semibold text-primary">
+        <div className="rounded-lg bg-muted px-4 py-3 text-sm font-semibold text-muted-foreground">
           Location: Addis Ababa
         </div>
       </div>

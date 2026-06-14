@@ -1,54 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  --tiru-deep-ink: #171717;
-  --tiru-teal: #2F2F2F;
-  --tiru-light-teal: #E5E5E5;
-  --tiru-mint: #F5F5F5;
+  --tiru-deep-ink: #111827;
+  --tiru-accent: #0F766E;
+  --tiru-soft-accent: #ECFDF5;
   --tiru-white: #FFFFFF;
 
-  --background: #F7F7F7;
+  --background: #F7F7F4;
   --foreground: var(--tiru-deep-ink);
 
-  --primary: #111111;
+  --primary: #111827;
   --primary-foreground: var(--tiru-white);
 
   --secondary: #4B5563;
   --secondary-foreground: var(--tiru-white);
 
-  --success: #166534;
-  --warning: #92400E;
-  --error: #DC2626;
+  --success: var(--tiru-accent);
+  --warning: #B45309;
+  --error: #B91C1C;
 
   --card: var(--tiru-white);
   --card-foreground: var(--tiru-deep-ink);
 
   --muted: #F3F4F6;
-  --muted-foreground: #525252;
+  --muted-foreground: #6B7280;
 
-  --border: #E2E2E2;
+  --border: #E5E7EB;
+  --strong-border: #D1D5DB;
   --input: var(--tiru-white);
-  --ring: #111111;
+  --ring: #111827;
 }
 
 [data-theme="dark"] {
-  --background: #111111;
+  --background: #0F1115;
   --foreground: #F5F5F5;
 
   --primary: #F5F5F5;
-  --primary-foreground: #111111;
+  --primary-foreground: #111827;
 
   --secondary: #D4D4D4;
-  --secondary-foreground: var(--tiru-white);
+  --secondary-foreground: #111827;
 
-  --card: #1A1A1A;
+  --card: #171A20;
   --card-foreground: #F5F5F5;
 
-  --muted: #262626;
-  --muted-foreground: #C7C7C7;
+  --muted: #20242C;
+  --muted-foreground: #D1D5DB;
 
-  --border: #333333;
-  --input: #202020;
+  --border: #2B3038;
+  --strong-border: #3A414C;
+  --input: #151820;
   --ring: #E5E5E5;
 }
 
@@ -67,6 +68,7 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-strong-border: var(--strong-border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --font-sans: Arial, Helvetica, sans-serif;
@@ -86,6 +88,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

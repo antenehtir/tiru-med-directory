@@ -33,7 +33,7 @@ export function FacilityCategoryFilters({
   activeCategory,
 }: FacilityCategoryFiltersProps) {
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.025)]">
       <p className="text-sm font-semibold text-foreground">
         Facility categories
       </p>
@@ -49,7 +49,7 @@ export function FacilityCategoryFilters({
               className={`flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold ${
                 isActive
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-foreground"
+                : "border-border bg-card text-foreground hover:border-strong-border"
               }`}
               href={category.href}
               aria-current={isActive ? "page" : undefined}

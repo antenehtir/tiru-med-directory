@@ -100,7 +100,7 @@ export function NearbyPage({
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-5 px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">
-      <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_24px_70px_rgba(0,0,0,0.06)]">
+      <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_24px_70px_rgba(17,24,39,0.06)]">
         <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
           <div className="flex flex-col justify-between gap-5">
             <div>
@@ -115,7 +115,7 @@ export function NearbyPage({
                 with available coordinates nearest first.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-2xl border border-[#A7F3D0] bg-[#ECFDF5] p-4 text-sm leading-6 text-[#0F766E]">
               Distance is available for facilities with coordinates. Other
               facilities remain available through area browsing and search.
             </div>
@@ -135,7 +135,7 @@ export function NearbyPage({
                 className={`min-h-11 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
                   isActive
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-foreground hover:border-foreground"
+                    : "border-border bg-card text-foreground hover:border-strong-border"
                 }`}
                 key={category.value}
                 onClick={() => setSelectedCategory(category.value)}
@@ -151,7 +151,7 @@ export function NearbyPage({
               2. Share location
             </p>
         <button
-          className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+          className="mt-5 flex min-h-12 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
           disabled={locationState === "loading"}
           onClick={requestLocation}
           type="button"
@@ -227,7 +227,7 @@ export function NearbyPage({
             </p>
           </div>
           <button
-            className="min-h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground"
+            className="min-h-11 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
             onClick={() => setIsAreaBrowseOpen((current) => !current)}
             type="button"
           >
@@ -251,7 +251,7 @@ export function NearbyPage({
                     className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
                       isActive
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-foreground hover:border-foreground"
+                        : "border-border bg-card text-foreground hover:border-strong-border"
                     }`}
                     href={href}
                     key={area}
@@ -309,7 +309,7 @@ function NearbyFacilityCard({
   const mapAction = contactActions.find((action) => action.kind === "maps");
 
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(0,0,0,0.035)]">
+    <article className="flex min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.035)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
@@ -322,7 +322,7 @@ function NearbyFacilityCard({
         <VerificationBadge status={facility.verificationStatus} />
       </div>
 
-      <p className="mt-3 text-sm font-semibold text-foreground">
+      <p className="mt-3 text-sm font-semibold text-[#0F766E]">
         {distanceLabel}
       </p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -331,7 +331,7 @@ function NearbyFacilityCard({
 
       <div className="mt-auto grid gap-2 pt-4">
         <Link
-          className="flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+          className="flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           href={facility.detailHref ?? `/facilities/${facility.slug}`}
         >
           View details
@@ -339,7 +339,7 @@ function NearbyFacilityCard({
         <div className="grid gap-2 min-[420px]:grid-cols-2">
           {callAction ? (
             <a
-              className="flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground"
+              className="flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
               href={callAction.href}
               {...getExternalLinkProps(callAction)}
             >
@@ -348,7 +348,7 @@ function NearbyFacilityCard({
           ) : null}
           {mapAction ? (
             <a
-              className="flex min-h-11 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground"
+              className="flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
               href={mapAction.href}
               {...getExternalLinkProps(mapAction)}
             >

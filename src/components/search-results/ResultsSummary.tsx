@@ -15,7 +15,7 @@ export function ResultsSummary({
   const hasQuery = query.length > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.025)]">
       <p className="text-sm font-semibold text-foreground">
         {totalCount} {hasQuery ? "matching" : "available"} results
       </p>

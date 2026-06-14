@@ -11,7 +11,7 @@ export function DiagnosticsResultsSection({
   return (
     <section>
       <div className="mb-4">
-        <p className="text-sm font-semibold uppercase tracking-normal text-primary">
+        <p className="text-sm font-semibold text-muted-foreground">
           Diagnostics results
         </p>
         <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
@@ -24,7 +24,7 @@ export function DiagnosticsResultsSection({
       {diagnostics.length > 0 ? (
         <FacilityCardGrid facilities={diagnostics} />
       ) : (
-        <section className="rounded-lg border border-dashed border-border bg-card p-5 text-center">
+        <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center">
           <h3 className="text-lg font-semibold text-foreground">
             Diagnostics listings will be added soon.
           </h3>

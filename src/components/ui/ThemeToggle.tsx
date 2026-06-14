@@ -70,7 +70,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="flex h-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:px-3"
+      className="flex h-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:px-3"
       onClick={toggleTheme}
       aria-label={`Switch to ${nextThemeLabel.toLowerCase()} mode`}
       suppressHydrationWarning

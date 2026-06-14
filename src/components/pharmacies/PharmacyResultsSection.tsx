@@ -15,7 +15,7 @@ export function PharmacyResultsSection({
   return (
     <section>
       <div className="mb-4">
-        <p className="text-sm font-semibold uppercase tracking-normal text-primary">
+        <p className="text-sm font-semibold text-muted-foreground">
           Pharmacy results
         </p>
         <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
@@ -30,8 +30,8 @@ export function PharmacyResultsSection({
       {pharmacies.length > 0 ? (
         <FacilityCardGrid facilities={pharmacies} />
       ) : (
-        <section className="rounded-lg border border-dashed border-border bg-card p-5 text-center shadow-sm">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-lg bg-muted text-sm font-bold text-primary">
+        <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center">
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl border border-border bg-muted text-sm font-bold text-muted-foreground">
             0
           </div>
           <h3 className="text-lg font-semibold text-foreground">

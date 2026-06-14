@@ -16,8 +16,8 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
   );
 
   return (
-    <aside className="rounded-2xl border border-border bg-card p-5 shadow-[0_12px_30px_rgba(0,0,0,0.035)] sm:p-6">
-      <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
+    <aside className="rounded-2xl border border-border bg-card p-5 shadow-[0_12px_30px_rgba(17,24,39,0.035)] sm:p-6">
+      <h2 className="text-2xl font-semibold leading-tight text-foreground">
         Contact options
       </h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -32,7 +32,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
               className={`flex min-h-12 items-center justify-center rounded-md px-5 text-center text-sm font-semibold shadow-sm ${
                 index === 0
                   ? "bg-primary text-primary-foreground"
-                  : "border border-border bg-background text-foreground"
+                  : "border border-border bg-card text-foreground"
               }`}
               href={action.href}
               key={action.id}
@@ -43,7 +43,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
           ))}
         </div>
       ) : (
-        <p className="mt-5 rounded-xl border border-border bg-background p-4 text-sm leading-6 text-muted-foreground">
+        <p className="mt-5 rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
           Contact details are being verified.
         </p>
       )}
@@ -63,7 +63,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
 
               return (
               <div
-                className="rounded-xl border border-border bg-background p-3 text-sm leading-6"
+                className="rounded-xl border border-border bg-muted p-3 text-sm leading-6"
                 key={channel.id}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -77,7 +77,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   {channelActions.map((action) => (
                     <a
-                      className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground"
+                      className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:border-strong-border"
                       href={action.href}
                       key={action.id}
                       {...getExternalLinkProps(action)}

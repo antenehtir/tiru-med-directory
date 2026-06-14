@@ -24,7 +24,7 @@ export function CategoryChips() {
             className={`flex min-h-10 items-center rounded-full border px-3 text-sm font-semibold transition sm:px-4 ${
               index === 0
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-foreground hover:border-foreground"
+                : "border-border bg-card text-foreground hover:border-strong-border"
             }`}
             href={categoryRoutes[category]}
             aria-current={index === 0 ? "page" : undefined}

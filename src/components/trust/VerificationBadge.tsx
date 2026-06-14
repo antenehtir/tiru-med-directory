@@ -11,15 +11,15 @@ const badgeContent: Record<
 > = {
   verified: {
     label: "Verified",
-    className: "bg-foreground text-background",
+    className: "border border-[#A7F3D0] bg-[#ECFDF5] text-[#0F766E]",
   },
   pending: {
     label: "Pending",
-    className: "bg-muted text-foreground",
+    className: "border border-border bg-muted text-muted-foreground",
   },
   "community-submitted": {
     label: "Community",
-    className: "bg-muted text-muted-foreground",
+    className: "border border-border bg-muted text-muted-foreground",
   },
 };
 
