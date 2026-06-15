@@ -26,18 +26,44 @@ export function Header() {
 
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 lg:hidden">
           <Link
-            className="flex h-9 shrink-0 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground min-[380px]:h-10 min-[380px]:px-3 min-[380px]:text-sm"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted min-[380px]:size-10"
             href="/search"
-            aria-label="Open search"
+            aria-label="Search"
           >
-            Search
+            <svg
+              aria-hidden="true"
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="m20 20-4.2-4.2m1.2-5.3a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              />
+            </svg>
           </Link>
           <Link
-            className="flex h-9 shrink-0 items-center justify-center rounded-full border border-border bg-card px-2.5 text-xs font-semibold text-foreground min-[380px]:h-10 min-[380px]:px-3 min-[380px]:text-sm"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted min-[380px]:size-10"
             href="/register"
-            aria-label="Open register"
+            aria-label="Add provider"
           >
-            Add
+            <svg
+              aria-hidden="true"
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 5v14m-7-7h14"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              />
+            </svg>
           </Link>
         </div>
       </div>

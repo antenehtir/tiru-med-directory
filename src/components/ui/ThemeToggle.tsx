@@ -66,16 +66,56 @@ export function ThemeToggle() {
   }
 
   const nextThemeLabel = theme === "dark" ? "Light" : "Dark";
+  const Icon = theme === "dark" ? SunIcon : MoonIcon;
 
   return (
     <button
       type="button"
-      className="flex h-9 shrink-0 items-center justify-center rounded-full border border-border bg-card px-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted min-[380px]:px-2.5 sm:h-10 sm:px-3"
+      className="flex size-9 shrink-0 items-center justify-center gap-2 rounded-full border border-border bg-card text-xs font-semibold text-foreground transition-colors hover:bg-muted min-[380px]:size-10 lg:w-auto lg:px-3"
       onClick={toggleTheme}
-      aria-label={`Switch to ${nextThemeLabel.toLowerCase()} mode`}
+      aria-label="Toggle theme"
       suppressHydrationWarning
     >
-      {nextThemeLabel}
+      <Icon />
+      <span className="hidden lg:inline">{nextThemeLabel}</span>
     </button>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M20.2 14.8A7.5 7.5 0 0 1 9.2 3.8 8.5 8.5 0 1 0 20.2 14.8Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12 4V2m0 20v-2m8-8h2M2 12h2m14.4-6.4 1.4-1.4M4.2 19.8l1.4-1.4m12.8 0 1.4 1.4M4.2 4.2l1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
   );
 }
