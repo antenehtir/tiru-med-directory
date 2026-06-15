@@ -3,6 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { realFacilities } from "@/data/real-facility-profiles";
 
 const showcasedFacilities = realFacilities.slice(0, 10);
+const mobileShowcaseFacilities = showcasedFacilities.slice(0, 3);
 
 export function FeaturedFacilityStrip() {
   if (showcasedFacilities.length === 0) {
@@ -29,11 +30,37 @@ export function FeaturedFacilityStrip() {
           </Link>
         </div>
 
-        <div className="mt-5 overflow-hidden">
-          <div className="homepage-facility-strip flex gap-3 overflow-x-auto pb-2 sm:gap-4 lg:w-max lg:overflow-visible">
+        <div className="mt-5 grid gap-3 lg:hidden">
+          {mobileShowcaseFacilities.map((facility) => (
+            <Link
+              className="flex min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition hover:border-strong-border"
+              href={facility.detailHref ?? `/facilities/${facility.slug}`}
+              key={facility.id}
+            >
+              <p className="text-xs font-semibold text-primary">
+                {facility.category}
+              </p>
+              <h3 className="mt-2 break-words text-base font-semibold leading-snug text-foreground">
+                {facility.name}
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {facility.location}
+              </p>
+              <p className="mt-3 text-sm leading-5 text-muted-foreground">
+                {facility.services[0] ?? facility.subcategory}
+              </p>
+              <span className="mt-3 text-sm font-semibold text-primary">
+                View details
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-5 hidden overflow-hidden lg:block">
+          <div className="homepage-facility-strip flex w-max gap-4 pb-2">
             {showcasedFacilities.map((facility) => (
               <Link
-                className="flex min-h-44 w-[17rem] shrink-0 snap-start flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition hover:border-strong-border"
+                className="flex min-h-44 w-[17rem] shrink-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition hover:border-strong-border"
                 href={facility.detailHref ?? `/facilities/${facility.slug}`}
                 key={facility.id}
               >

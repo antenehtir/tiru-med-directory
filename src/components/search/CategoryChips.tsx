@@ -21,7 +21,7 @@ export function CategoryChips() {
         {healthcareCategories.map((category, index) => (
           <Link
             key={category}
-            className={`inline-flex h-10 max-w-full items-center justify-center rounded-full border px-4 text-center text-sm font-semibold leading-none transition sm:px-5 ${
+            className={`inline-flex h-11 max-w-full items-center justify-center rounded-full border px-4 text-center text-sm font-semibold leading-none transition sm:px-5 ${
               index === 0
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-foreground hover:border-strong-border"

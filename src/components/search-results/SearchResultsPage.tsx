@@ -9,10 +9,14 @@ import { SearchResultsEmptyState } from "./SearchResultsEmptyState";
 import { SearchResultsHeader } from "./SearchResultsHeader";
 
 type SearchResultsPageProps = {
+  focusSearch?: boolean;
   query?: string;
 };
 
-export function SearchResultsPage({ query = "" }: SearchResultsPageProps) {
+export function SearchResultsPage({
+  focusSearch = false,
+  query = "",
+}: SearchResultsPageProps) {
   const filteredRealFacilities = filterFacilitiesByQuery(realFacilities, query);
   const filteredPharmacies = filteredRealFacilities.filter((facility) =>
     [facility.category, facility.subcategory, facility.name, ...facility.services]
@@ -30,7 +34,7 @@ export function SearchResultsPage({ query = "" }: SearchResultsPageProps) {
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
         <SearchResultsHeader />
-        <SearchInputPreview query={query} />
+        <SearchInputPreview focusSearch={focusSearch} query={query} />
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:items-start">
           <SearchFilterControls />

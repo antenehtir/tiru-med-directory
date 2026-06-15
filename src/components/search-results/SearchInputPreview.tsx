@@ -1,14 +1,19 @@
 import { SearchAutocompleteInput } from "@/components/search/SearchAutocompleteInput";
 
 type SearchInputPreviewProps = {
+  focusSearch?: boolean;
   query?: string;
 };
 
-export function SearchInputPreview({ query = "" }: SearchInputPreviewProps) {
+export function SearchInputPreview({
+  focusSearch = false,
+  query = "",
+}: SearchInputPreviewProps) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.035)] sm:p-5">
       <SearchAutocompleteInput
         id="search-results-preview-input"
+        autoFocus={focusSearch}
         initialQuery={query}
         label="Search healthcare"
         placeholder="Doctors, facilities, pharmacies, specialties"

@@ -100,98 +100,79 @@ export function NearbyPage({
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">
-      <section className="w-full min-w-0 overflow-hidden rounded-3xl border border-border bg-card shadow-[0_18px_46px_rgba(31,41,55,0.06)]">
-        <div className="grid min-w-0 gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-8">
-          <div className="flex flex-col justify-between gap-5">
-            <div>
-              <p className="text-sm font-semibold text-primary">
-                Care near you
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
-                Trace the nearest care pathway.
-              </h1>
-              <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-                Choose a care type, use your location, and see nearest real
-                options when coordinates are available.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border bg-soft-accent p-4 text-sm leading-6 text-primary">
-              Distance is available for facilities with coordinates. Other
-              facilities remain available through area browsing and search.
+      <section className="w-full min-w-0 rounded-3xl border border-border bg-card p-5 shadow-[0_18px_46px_rgba(31,41,55,0.06)] sm:p-7 lg:p-8">
+        <div className="max-w-3xl">
+          <p className="text-sm font-semibold text-primary">Care near you</p>
+          <h1 className="mt-2 text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
+            Find nearby care
+          </h1>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">
+            Which nearest facility are you looking for?
+          </p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Distance is shown for facilities with coordinates.
+          </p>
+        </div>
+
+        <div className="mt-6 grid gap-5">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              Choose category
+            </p>
+            <div className="mt-3 flex max-w-full flex-wrap gap-2">
+              {categoryOptions.map((category) => {
+                const isActive = category.value === selectedCategory;
+
+                return (
+                  <button
+                    aria-pressed={isActive}
+                    className={`inline-flex h-11 max-w-full items-center justify-center rounded-full border px-4 text-center text-sm font-semibold leading-none transition ${
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-card text-foreground hover:border-strong-border"
+                    }`}
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
+                    type="button"
+                  >
+                    {category.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="min-w-0 rounded-2xl border border-border bg-background p-4 sm:p-5">
-            <div className="mb-5 grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
-              {["Choose", "Locate", "Review"].map((step, index) => (
-                <div
-                  className="rounded-2xl border border-border bg-card p-3 text-center"
-                  key={step}
-                >
-                  <span className="mx-auto flex size-7 items-center justify-center rounded-full bg-soft-accent text-xs font-bold text-primary">
-                    {index + 1}
-                  </span>
-                  <p className="mt-2 text-xs font-semibold text-foreground">
-                    {step}
-                  </p>
-                </div>
-              ))}
-            </div>
+          <div>
             <p className="text-sm font-semibold text-foreground">
-              1. Choose category
+              Share location
             </p>
-        <div className="mt-3 flex max-w-full flex-wrap gap-2 pb-1">
-          {categoryOptions.map((category) => {
-            const isActive = category.value === selectedCategory;
-
-            return (
-              <button
-                aria-pressed={isActive}
-                className={`min-h-11 max-w-full rounded-full border px-4 text-left text-sm font-semibold leading-5 transition ${
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-strong-border"
-                }`}
-                key={category.value}
-                onClick={() => setSelectedCategory(category.value)}
-                type="button"
-              >
-                {category.label}
-              </button>
-            );
-          })}
-        </div>
-
-            <p className="mt-5 text-sm font-semibold text-foreground">
-              2. Share location
-            </p>
-        <button
-          className="mt-5 flex min-h-12 w-full max-w-full items-center justify-center rounded-2xl bg-primary px-5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70 sm:w-auto"
-          disabled={locationState === "loading"}
-          onClick={requestLocation}
-          type="button"
-        >
-          {locationState === "loading" ? "Finding nearby care..." : "Use my location"}
-        </button>
+            <button
+              className="mt-3 flex min-h-12 w-full max-w-full items-center justify-center rounded-2xl bg-primary px-5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+              disabled={locationState === "loading"}
+              onClick={requestLocation}
+              type="button"
+            >
+              {locationState === "loading" ? "Finding nearby care..." : "Use my location"}
+            </button>
             <p className="mt-3 text-xs leading-5 text-muted-foreground">
               {coordinateBackedCount} matching facilities currently have
               distance-ready coordinates.
             </p>
-
-        {locationState === "denied" ? (
-          <p className="mt-4 rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
-            Location access was not shared. You can still browse by Sub-city /
-            Area below.
-          </p>
-        ) : null}
-
-        {locationState === "unsupported" ? (
-          <p className="mt-4 rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
-            Location is not available in this browser. Browse by Sub-city / Area
-            below.
-          </p>
-        ) : null}
           </div>
+
+          {locationState === "denied" ? (
+            <p className="rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
+              Location access was not shared. You can still browse by Sub-city /
+              Area below.
+            </p>
+          ) : null}
+
+          {locationState === "unsupported" ? (
+            <p className="rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
+              Location is not available in this browser. Browse by Sub-city / Area
+              below.
+            </p>
+          ) : null}
         </div>
       </section>
 

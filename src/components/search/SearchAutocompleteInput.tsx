@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useMemo, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { realFacilities } from "@/data/real-facility-profiles";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/lib/search-suggestions";
 
 type SearchAutocompleteInputProps = {
+  autoFocus?: boolean;
   buttonClassName: string;
   formClassName: string;
   id: string;
@@ -19,6 +20,7 @@ type SearchAutocompleteInputProps = {
 };
 
 export function SearchAutocompleteInput({
+  autoFocus = false,
   buttonClassName,
   formClassName,
   id,
@@ -28,8 +30,24 @@ export function SearchAutocompleteInput({
   placeholder,
 }: SearchAutocompleteInputProps) {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!autoFocus) {
+      return;
+    }
+
+    const input = inputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    input.scrollIntoView({ block: "center", behavior: "smooth" });
+    input.focus({ preventScroll: true });
+  }, [autoFocus]);
 
   const suggestions = useMemo(
     () => getProviderSearchSuggestions(realFacilities, query),
@@ -81,6 +99,7 @@ export function SearchAutocompleteInput({
         </label>
         <input
           id={id}
+          ref={inputRef}
           autoComplete="off"
           className={inputClassName}
           placeholder={placeholder}

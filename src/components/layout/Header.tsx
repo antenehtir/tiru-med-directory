@@ -21,7 +21,7 @@ export function Header() {
           <ThemeToggle />
           <Link
             className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 min-[380px]:size-10"
-            href="/search"
+            href="/search?focus=1"
             aria-label="Search"
           >
             <svg

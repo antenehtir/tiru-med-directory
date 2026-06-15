@@ -15,19 +15,18 @@ export function HealthcareSearchBox() {
       />
 
       <div className="mt-4 grid gap-4 sm:mt-5 sm:gap-5">
-        <CategoryChips />
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Prefer care near you? Use location-based discovery for facilities
-            with coordinates.
+        <div className="flex flex-col gap-3 rounded-2xl border border-primary/25 bg-soft-accent p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <p className="text-sm font-medium leading-6 text-foreground">
+            Use your location to find nearby care.
           </p>
           <Link
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
             href="/nearby"
           >
             Find nearby care
           </Link>
         </div>
+        <CategoryChips />
       </div>
     </div>
   );
