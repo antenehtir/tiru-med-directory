@@ -42,9 +42,9 @@ const categories = [
 
 export function QuickCategoriesSection() {
   return (
-    <section className="bg-background">
+    <section className="bg-transparent">
       <PageContainer className="py-7 sm:py-10 lg:py-12">
-        <div className="mx-auto max-w-4xl">
+        <div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-[#0F766E]">

@@ -116,3 +116,40 @@ a {
   outline: 3px solid color-mix(in srgb, var(--ring) 32%, transparent);
   outline-offset: 3px;
 }
+
+.homepage-clinical-bg {
+  background:
+    radial-gradient(circle at 16% 6%, rgba(236, 254, 255, 0.92), transparent 28rem),
+    radial-gradient(circle at 88% 22%, rgba(230, 244, 239, 0.72), transparent 26rem),
+    linear-gradient(180deg, #F7F9FC 0%, #FFFFFF 46%, #F7F9FC 100%);
+}
+
+.homepage-facility-strip {
+  scroll-snap-type: x mandatory;
+}
+
+@media (min-width: 1024px) {
+  .homepage-facility-strip {
+    animation: homepage-facility-marquee 44s linear infinite;
+  }
+
+  .homepage-facility-strip:hover {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-facility-strip {
+    animation: none;
+  }
+}
+
+@keyframes homepage-facility-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-34%);
+  }
+}
