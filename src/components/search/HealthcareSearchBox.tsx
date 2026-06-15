@@ -11,7 +11,7 @@ export function HealthcareSearchBox() {
         placeholder="Search doctors, facilities, specialties, pharmacies"
         formClassName="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_auto]"
         inputClassName="min-h-13 w-full min-w-0 rounded-2xl border border-border bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-primary sm:min-h-14 sm:px-4"
-        buttonClassName="min-h-12 rounded-2xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-[#0B5E58] lg:min-h-14 lg:self-end"
+        buttonClassName="min-h-12 rounded-2xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover lg:min-h-14 lg:self-end"
       />
 
       <div className="mt-4 grid gap-4 sm:mt-5 sm:gap-5">

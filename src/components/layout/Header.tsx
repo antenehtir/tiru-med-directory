@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DesktopNavigation } from "@/components/navigation/DesktopNavigation";
 import { BrandMark } from "@/components/ui/BrandMark";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { HeaderSearchForm } from "./HeaderSearchForm";
 
 export function Header() {
@@ -15,9 +16,11 @@ export function Header() {
 
         <DesktopNavigation />
 
+        <ThemeToggle />
+
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 lg:hidden">
           <Link
-            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/30 min-[380px]:size-10"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 min-[380px]:size-10"
             href="/search"
             aria-label="Search"
           >
@@ -37,7 +40,7 @@ export function Header() {
             </svg>
           </Link>
           <Link
-            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/30 min-[380px]:size-10"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 min-[380px]:size-10"
             href="/register"
             aria-label="Add provider"
           >

@@ -20,7 +20,7 @@ export function DesktopNavigation() {
           <Link
             key={item.href}
             className={`rounded-full px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground xl:px-3 ${
-              isActive ? "bg-[#ECFEFF] text-primary" : "text-muted-foreground"
+              isActive ? "bg-soft-accent text-primary" : "text-muted-foreground"
             }`}
             href={item.href}
             aria-current={isActive ? "page" : undefined}

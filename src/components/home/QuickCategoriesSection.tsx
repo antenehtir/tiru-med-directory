@@ -47,7 +47,7 @@ export function QuickCategoriesSection() {
         <div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-[#0F766E]">
+              <p className="text-sm font-semibold text-primary">
                 Care wayfinding
               </p>
               <h2 className="text-2xl font-semibold leading-tight text-foreground">
@@ -68,7 +68,7 @@ export function QuickCategoriesSection() {
               className="group flex min-h-24 min-w-0 items-center gap-3 rounded-3xl border border-border bg-card p-4 shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition-colors hover:border-strong-border"
               href={category.href}
             >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#ECFEFF] text-sm font-bold text-[#0F766E]">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-sm font-bold text-primary">
                 {category.marker}
               </span>
               <span className="min-w-0 flex-1">

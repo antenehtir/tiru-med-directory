@@ -6,7 +6,7 @@ export function HeroSearchSection() {
     <section className="bg-transparent">
       <PageContainer className="pb-6 pt-8 sm:pb-8 sm:pt-14 lg:pb-10 lg:pt-16">
         <div className="min-w-0">
-          <p className="mb-4 inline-flex max-w-full rounded-full border border-border bg-[#ECFEFF] px-3 py-2 text-sm font-medium text-[#0F766E] sm:px-4">
+          <p className="mb-4 inline-flex max-w-full rounded-full border border-border bg-soft-accent px-3 py-2 text-sm font-medium text-primary sm:px-4">
             Private healthcare discovery for Addis Ababa
           </p>
           <h1 className="max-w-3xl text-[2.15rem] font-semibold leading-[1.04] text-foreground sm:text-5xl sm:leading-[1.02]">

@@ -10,7 +10,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
     <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
         <div className="min-w-0">
-          <p className="mb-3 inline-flex rounded-full border border-border bg-[#ECFEFF] px-3 py-2 text-sm font-medium text-[#0F766E]">
+          <p className="mb-3 inline-flex rounded-full border border-border bg-soft-accent px-3 py-2 text-sm font-medium text-primary">
             Facility details
           </p>
           <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">

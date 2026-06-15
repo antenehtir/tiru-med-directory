@@ -31,7 +31,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
             <a
               className={`flex min-h-12 items-center justify-center rounded-2xl px-5 text-center text-sm font-semibold transition ${
                 index === 0
-                  ? "bg-primary text-primary-foreground hover:bg-[#0B5E58]"
+                  ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                   : "border border-border bg-card text-foreground"
               }`}
               href={action.href}

@@ -14,7 +14,7 @@ export function FeaturedFacilityStrip() {
       <PageContainer className="py-6 sm:py-8 lg:py-10">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#0F766E]">
+            <p className="text-sm font-semibold text-primary">
               Real providers on Tiru
             </p>
             <h2 className="text-2xl font-semibold leading-tight text-foreground">
@@ -37,7 +37,7 @@ export function FeaturedFacilityStrip() {
                 href={facility.detailHref ?? `/facilities/${facility.slug}`}
                 key={facility.id}
               >
-                <p className="text-xs font-semibold text-[#0F766E]">
+                <p className="text-xs font-semibold text-primary">
                   {facility.category}
                 </p>
                 <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-snug text-foreground">

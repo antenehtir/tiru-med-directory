@@ -23,7 +23,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
     <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-5">
       <div className="flex flex-col items-start gap-3 min-[720px]:flex-row min-[720px]:justify-between">
         <div className="flex min-w-0 items-center gap-3 self-stretch">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-[#ECFEFF] text-sm font-bold text-[#0F766E]">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-soft-accent text-sm font-bold text-primary">
             {doctor.profileInitials}
           </div>
           <div className="min-w-0 flex-1">
@@ -59,7 +59,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
           {doctor.bookingActionLabel}
         </button>
         <Link
-          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-[#0B5E58]"
+          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}
         >
           {doctor.profileActionLabel}

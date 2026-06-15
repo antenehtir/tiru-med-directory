@@ -104,7 +104,7 @@ export function NearbyPage({
         <div className="grid min-w-0 gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-8">
           <div className="flex flex-col justify-between gap-5">
             <div>
-              <p className="text-sm font-semibold text-[#0F766E]">
+              <p className="text-sm font-semibold text-primary">
                 Care near you
               </p>
               <h1 className="mt-2 text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
@@ -115,7 +115,7 @@ export function NearbyPage({
                 options when coordinates are available.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-[#ECFEFF] p-4 text-sm leading-6 text-[#0F766E]">
+            <div className="rounded-2xl border border-border bg-soft-accent p-4 text-sm leading-6 text-primary">
               Distance is available for facilities with coordinates. Other
               facilities remain available through area browsing and search.
             </div>
@@ -128,7 +128,7 @@ export function NearbyPage({
                   className="rounded-2xl border border-border bg-card p-3 text-center"
                   key={step}
                 >
-                  <span className="mx-auto flex size-7 items-center justify-center rounded-full bg-[#ECFEFF] text-xs font-bold text-[#0F766E]">
+                  <span className="mx-auto flex size-7 items-center justify-center rounded-full bg-soft-accent text-xs font-bold text-primary">
                     {index + 1}
                   </span>
                   <p className="mt-2 text-xs font-semibold text-foreground">
@@ -166,7 +166,7 @@ export function NearbyPage({
               2. Share location
             </p>
         <button
-          className="mt-5 flex min-h-12 w-full max-w-full items-center justify-center rounded-2xl bg-primary px-5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-[#0B5E58] disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+          className="mt-5 flex min-h-12 w-full max-w-full items-center justify-center rounded-2xl bg-primary px-5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70 sm:w-auto"
           disabled={locationState === "loading"}
           onClick={requestLocation}
           type="button"
@@ -337,7 +337,7 @@ function NearbyFacilityCard({
         <VerificationBadge status={facility.verificationStatus} />
       </div>
 
-      <p className="mt-3 text-sm font-semibold text-[#0F766E]">
+      <p className="mt-3 text-sm font-semibold text-primary">
         {distanceLabel}
       </p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -346,7 +346,7 @@ function NearbyFacilityCard({
 
       <div className="mt-auto grid gap-2 pt-4">
         <Link
-          className="flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-[#0B5E58]"
+          className="flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={facility.detailHref ?? `/facilities/${facility.slug}`}
         >
           View details

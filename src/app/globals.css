@@ -12,6 +12,7 @@
   --foreground: var(--tiru-deep-ink);
 
   --primary: #0F766E;
+  --primary-hover: #0B5E58;
   --primary-foreground: var(--tiru-white);
 
   --secondary: #14B8A6;
@@ -26,17 +27,55 @@
 
   --muted: #F3F4F6;
   --muted-foreground: #6B7280;
+  --soft-accent: #ECFEFF;
 
   --border: #E5E7EB;
   --strong-border: #D1D5DB;
   --input: var(--tiru-white);
   --ring: #0F766E;
+  --homepage-background:
+    radial-gradient(circle at 16% 6%, rgba(236, 254, 255, 0.92), transparent 28rem),
+    radial-gradient(circle at 88% 22%, rgba(230, 244, 239, 0.72), transparent 26rem),
+    linear-gradient(180deg, #F7F9FC 0%, #FFFFFF 46%, #F7F9FC 100%);
+}
+
+[data-theme="dark"] {
+  --background: #0F172A;
+  --foreground: #F9FAFB;
+
+  --primary: #14B8A6;
+  --primary-hover: #0D9488;
+  --primary-foreground: #042F2E;
+
+  --secondary: #14B8A6;
+  --secondary-foreground: #042F2E;
+
+  --success: #14B8A6;
+  --warning: #FBBF24;
+  --error: #FCA5A5;
+
+  --card: #111827;
+  --card-foreground: #F9FAFB;
+
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;
+  --soft-accent: rgba(20, 184, 166, 0.12);
+
+  --border: #374151;
+  --strong-border: #4B5563;
+  --input: #111827;
+  --ring: #14B8A6;
+  --homepage-background:
+    radial-gradient(circle at 18% 8%, rgba(20, 184, 166, 0.13), transparent 28rem),
+    radial-gradient(circle at 88% 20%, rgba(31, 41, 55, 0.92), transparent 26rem),
+    linear-gradient(180deg, #0F172A 0%, #111827 48%, #0F172A 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -47,6 +86,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-soft-accent: var(--soft-accent);
   --color-border: var(--border);
   --color-strong-border: var(--strong-border);
   --color-input: var(--input);
@@ -63,6 +103,10 @@ html {
   min-width: 320px;
   background: var(--background);
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
@@ -97,10 +141,7 @@ a {
 }
 
 .homepage-clinical-bg {
-  background:
-    radial-gradient(circle at 16% 6%, rgba(236, 254, 255, 0.92), transparent 28rem),
-    radial-gradient(circle at 88% 22%, rgba(230, 244, 239, 0.72), transparent 26rem),
-    linear-gradient(180deg, #F7F9FC 0%, #FFFFFF 46%, #F7F9FC 100%);
+  background: var(--homepage-background);
 }
 
 .homepage-facility-strip {

@@ -28,12 +28,11 @@ export function FeedbackCtaSection() {
             <Link
               className={`inline-flex min-h-12 w-full items-center justify-center rounded-md px-5 text-center text-sm font-semibold sm:w-auto ${
                 index === 0
-                  ? "bg-card text-[#0F172A]"
+                  ? "bg-card text-foreground"
                   : "border border-primary-foreground/40 text-primary-foreground"
               }`}
               href={link.href}
               key={link.href}
-              style={index === 0 ? { color: "#0F172A" } : undefined}
             >
               {link.label}
             </Link>

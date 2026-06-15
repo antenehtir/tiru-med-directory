@@ -25,7 +25,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
       <div className="flex flex-col items-start gap-3 min-[420px]:flex-row min-[420px]:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-[#14B8A6]" />
+            <span className="size-2 shrink-0 rounded-full bg-secondary" />
           <p className="text-sm font-semibold leading-5 text-muted-foreground">
             {facility.category}
           </p>
@@ -87,7 +87,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
           </a>
         ) : null}
         <Link
-          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-[#0B5E58]"
+          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}
         >
           View details
