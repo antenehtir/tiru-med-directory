@@ -70,7 +70,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted min-[380px]:size-10"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/30 min-[380px]:size-10"
       onClick={toggleTheme}
       aria-label="Toggle theme"
       suppressHydrationWarning

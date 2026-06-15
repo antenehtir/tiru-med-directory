@@ -22,20 +22,20 @@ export function HeaderSearchForm() {
 
   return (
     <form
-      className="hidden min-w-64 flex-1 items-center rounded-full border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors focus-within:border-primary md:flex lg:max-w-sm"
+      className="hidden h-10 min-w-0 flex-1 items-center rounded-full border border-border bg-background px-2.5 text-sm text-muted-foreground transition-[border-color,box-shadow,background-color] focus-within:border-[#0F766E] focus-within:bg-card focus-within:shadow-[0_0_0_3px_rgba(20,184,166,0.12)] lg:flex lg:max-w-[18rem] xl:max-w-sm"
       onSubmit={submitSearch}
       role="search"
     >
       <input
         aria-label="Search providers"
-        className="min-h-8 min-w-0 flex-1 bg-transparent px-1 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+        className="h-full min-w-0 flex-1 rounded-full bg-transparent px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:outline-none"
         placeholder="Search hospitals, clinics, diagnostics"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
       <button
         aria-label="Search"
-        className="ml-2 flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/30"
         type="submit"
       >
         <svg
