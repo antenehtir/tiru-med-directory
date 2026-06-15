@@ -11,35 +11,29 @@ const badgeContent: Record<
 > = {
   verified: {
     label: "Verified",
-    className: "border border-border bg-soft-accent text-primary",
+    className:
+      "border border-emerald-200 bg-[#ECFDF5] text-[#0F766E] dark:border-emerald-300/40 dark:bg-emerald-300/15 dark:text-emerald-200",
   },
   pending: {
     label: "Pending",
-    className: "border border-border bg-muted text-muted-foreground",
+    className:
+      "border border-amber-300 bg-[#FEF3C7] text-[#B45309] dark:border-amber-300/40 dark:bg-amber-300/15 dark:text-amber-200",
   },
   "community-submitted": {
-    label: "Community",
-    className: "border border-border bg-muted text-muted-foreground",
+    label: "Community submitted",
+    className:
+      "border border-amber-300 bg-[#FEF3C7] text-[#B45309] dark:border-amber-300/40 dark:bg-amber-300/15 dark:text-amber-200",
   },
 };
 
-export function VerificationBadge({
-  status,
-  entityType,
-}: VerificationBadgeProps) {
+export function VerificationBadge({ status }: VerificationBadgeProps) {
   const badge = badgeContent[status];
-  const label =
-    status === "verified" && entityType === "doctor"
-      ? "Verified Doctor"
-      : status === "verified" && entityType === "facility"
-        ? "Verified Facility"
-        : badge.label;
 
   return (
     <span
       className={`inline-flex max-w-full shrink-0 items-center rounded-full px-3 py-1 text-center text-xs font-semibold leading-4 ${badge.className}`}
     >
-      {label}
+      {badge.label}
     </span>
   );
 }

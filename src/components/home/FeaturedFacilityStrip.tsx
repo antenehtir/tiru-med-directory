@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { realFacilities } from "@/data/real-facility-profiles";
 
 const showcasedFacilities = realFacilities.slice(0, 10);
@@ -75,9 +76,7 @@ function FeaturedFacilityCard({
       href={facility.detailHref ?? `/facilities/${facility.slug}`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-primary/25 bg-soft-accent px-2.5 py-1 text-xs font-semibold text-primary">
-          Community submitted
-        </span>
+        <VerificationBadge status={facility.verificationStatus} />
         <span className="text-xs font-semibold text-muted-foreground">
           {facility.category}
         </span>

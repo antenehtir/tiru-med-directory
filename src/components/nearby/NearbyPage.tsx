@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
@@ -47,6 +47,7 @@ export function NearbyPage({
   const [locationState, setLocationState] = useState<LocationState>("idle");
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [isAreaBrowseOpen, setIsAreaBrowseOpen] = useState(Boolean(selectedArea));
+  const hasRequestedLocationRef = useRef(false);
 
   const categoryFacilities = useMemo(
     () => filterFacilitiesByCategory(facilities, selectedCategory),
@@ -70,12 +71,13 @@ export function NearbyPage({
   const unavailableDistanceFacilities = categoryFacilities.filter(
     (facility) => !facility.coordinates,
   );
-  const coordinateBackedCount = categoryFacilities.length - unavailableDistanceFacilities.length;
+  const coordinateBackedCount =
+    categoryFacilities.length - unavailableDistanceFacilities.length;
   const areaFacilities = selectedArea
     ? categoryFacilities.filter((facility) => facility.location === selectedArea)
     : [];
 
-  function requestLocation() {
+  const requestLocation = useCallback(() => {
     if (!("geolocation" in navigator)) {
       setLocationState("unsupported");
       return;
@@ -96,7 +98,39 @@ export function NearbyPage({
       },
       { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 },
     );
-  }
+  }, []);
+
+  useEffect(() => {
+    if (hasRequestedLocationRef.current) {
+      return;
+    }
+
+    hasRequestedLocationRef.current = true;
+
+    async function requestInitialLocation() {
+      if (!("geolocation" in navigator)) {
+        setLocationState("unsupported");
+        return;
+      }
+
+      try {
+        const permission = await navigator.permissions?.query({
+          name: "geolocation" as PermissionName,
+        });
+
+        if (permission?.state === "denied") {
+          setLocationState("denied");
+          return;
+        }
+      } catch {
+        // Some browsers do not expose geolocation permission state before prompt.
+      }
+
+      requestLocation();
+    }
+
+    void requestInitialLocation();
+  }, [requestLocation]);
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">
@@ -114,19 +148,19 @@ export function NearbyPage({
           </p>
         </div>
 
-        <div className="mt-6 grid gap-5">
+        <div className="mt-6 grid gap-4">
           <div>
             <p className="text-sm font-semibold text-foreground">
-              Choose category
+              Facility type
             </p>
-            <div className="mt-3 flex max-w-full flex-wrap gap-2">
+            <div className="mt-3 flex max-w-full flex-wrap justify-center gap-2 sm:justify-start">
               {categoryOptions.map((category) => {
                 const isActive = category.value === selectedCategory;
 
                 return (
                   <button
                     aria-pressed={isActive}
-                    className={`inline-flex h-11 max-w-full items-center justify-center rounded-full border px-4 text-center text-sm font-semibold leading-none transition ${
+                    className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-full border px-4 py-2.5 text-center text-sm font-semibold leading-tight transition ${
                       isActive
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-card text-foreground hover:border-strong-border"
@@ -142,35 +176,39 @@ export function NearbyPage({
             </div>
           </div>
 
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Share location
-            </p>
-            <button
-              className="mt-3 flex min-h-12 w-full max-w-full items-center justify-center rounded-2xl bg-primary px-5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70 sm:w-auto"
-              disabled={locationState === "loading"}
-              onClick={requestLocation}
-              type="button"
-            >
-              {locationState === "loading" ? "Finding nearby care..." : "Use my location"}
-            </button>
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">
-              {coordinateBackedCount} matching facilities currently have
-              distance-ready coordinates.
-            </p>
-          </div>
-
-          {locationState === "denied" ? (
-            <p className="rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
-              Location access was not shared. You can still browse by Sub-city /
-              Area below.
+          {locationState === "loading" || locationState === "idle" ? (
+            <p className="rounded-2xl border border-primary/20 bg-soft-accent p-3 text-sm font-medium leading-6 text-primary">
+              Finding nearest matching facilities...
             </p>
           ) : null}
 
+          {locationState === "denied" ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted p-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm leading-6 text-muted-foreground">
+                Location access is needed to sort nearby facilities by distance.
+              </p>
+              <button
+                className="inline-flex min-h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+                onClick={requestLocation}
+                type="button"
+              >
+                Allow location access
+              </button>
+            </div>
+          ) : null}
+
           {locationState === "unsupported" ? (
-            <p className="rounded-xl border border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
+            <p className="rounded-2xl border border-border bg-muted p-3 text-sm leading-6 text-muted-foreground">
               Location is not available in this browser. Browse by Sub-city / Area
               below.
+            </p>
+          ) : null}
+
+          {locationState === "ready" ? (
+            <p className="text-xs leading-5 text-muted-foreground">
+              Distance is shown for facilities with coordinates.{" "}
+              {coordinateBackedCount} matching facilities currently have
+              distance-ready coordinates.
             </p>
           ) : null}
         </div>
@@ -276,7 +314,7 @@ export function NearbyPage({
                 <NearbyFacilityCard
                   distanceLabel={
                     facility.coordinates
-                      ? "Use my location for distance"
+                      ? "Location needed for distance"
                       : "Distance unavailable"
                   }
                   facility={facility}

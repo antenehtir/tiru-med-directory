@@ -17,7 +17,7 @@ export function CategoryChips() {
       <p className="mb-2 text-xs font-semibold text-muted-foreground">
         Search by category
       </p>
-      <div className="flex max-w-full flex-wrap items-center gap-2">
+      <div className="flex max-w-full flex-wrap items-center justify-center gap-2 sm:justify-start">
         {healthcareCategories.map((category, index) => (
           <Link
             key={category}

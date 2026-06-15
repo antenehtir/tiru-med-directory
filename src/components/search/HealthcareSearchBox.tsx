@@ -18,7 +18,7 @@ export function HealthcareSearchBox() {
 
       <div className="mt-3 grid gap-3 sm:mt-4">
         <Link
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-primary/25 bg-soft-accent px-4 text-center text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary hover:text-primary-foreground"
+          className="mx-auto inline-flex min-h-11 w-full max-w-[21rem] items-center justify-center rounded-2xl border border-primary/30 bg-soft-accent px-4 text-center text-sm font-semibold text-primary shadow-[0_0_0_1px_rgba(20,184,166,0.06),0_10px_26px_rgba(15,118,110,0.10)] transition hover:border-primary/50 hover:bg-primary hover:text-primary-foreground sm:w-auto sm:min-w-64"
           href="/nearby"
         >
           Find nearby care
