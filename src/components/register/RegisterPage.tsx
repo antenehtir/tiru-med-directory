@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
@@ -13,6 +14,10 @@ const labelClassName = "mb-1.5 block text-sm font-semibold text-foreground";
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
 export function RegisterPage() {
+  const searchParams = useSearchParams();
+  const isUpdate = searchParams.get("update") === "true";
+  const updateName = searchParams.get("name") ?? "";
+
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -81,6 +86,12 @@ export function RegisterPage() {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="mx-auto max-w-2xl">
+        {isUpdate ? (
+          <div className="mb-4 rounded-lg border border-[#FCD34D] bg-[#FEF3C7] p-3 text-sm font-semibold text-[#92400E] dark:border-[#B45309] dark:bg-[#451A03] dark:text-[#FCD34D]">
+            Updating existing listing{updateName ? `: ${updateName}` : ""}
+          </div>
+        ) : null}
+
         <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
           List a provider
         </h1>
@@ -113,6 +124,7 @@ export function RegisterPage() {
             </label>
             <input
               className={inputClassName}
+              defaultValue={updateName}
               id="provider_name"
               name="provider_name"
               required
