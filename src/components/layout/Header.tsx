@@ -13,6 +13,13 @@ export function Header() {
 
         <DesktopNavigation />
 
+        <Link
+          className="ml-2 hidden min-h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover lg:inline-flex"
+          href="/register"
+        >
+          + List a provider
+        </Link>
+
         <div className="hidden lg:flex">
           <ThemeToggle />
         </div>

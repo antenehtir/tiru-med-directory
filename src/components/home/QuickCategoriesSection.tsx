@@ -1,42 +1,94 @@
 import Link from "next/link";
+import type { SVGProps } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+
+function CategoryIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      strokeWidth={1.75}
+      stroke="currentColor"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    />
+  );
+}
 
 const categories = [
   {
     label: "General Hospitals",
     description: "Full-service private hospitals",
-    marker: "H",
     href: "/facilities?category=hospital",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <path d="M4 21V8a1 1 0 011-1h4V4a1 1 0 011-1h4a1 1 0 011 1v3h4a1 1 0 011 1v13" />
+        <path d="M4 21h16" />
+        <path d="M12 8v4M10 10h4" />
+        <path d="M9 21v-3h6v3" />
+      </CategoryIcon>
+    ),
   },
   {
     label: "Specialty Centers",
     description: "Focused care and specialist units",
-    marker: "S",
     href: "/facilities?category=specialty",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <path d="M3 12h4l2-5 4 10 2-5h6" />
+      </CategoryIcon>
+    ),
   },
   {
     label: "Clinics",
     description: "Primary and outpatient care",
-    marker: "C",
     href: "/facilities?category=clinic",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <path d="M4 11l8-7 8 7" />
+        <path d="M6 10v10h12V10" />
+        <path d="M12 13v4M10 15h4" />
+      </CategoryIcon>
+    ),
   },
   {
     label: "Doctors",
     description: "Doctor profiles and specialties",
-    marker: "D",
     href: "/doctors",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <path d="M6 3v6a6 6 0 006 6 6 6 0 006-6V3" />
+        <path d="M6 3H4M18 3h2M18 15a4 4 0 01-4 4H10" />
+        <circle cx="18" cy="19" r="2" />
+      </CategoryIcon>
+    ),
   },
   {
     label: "Diagnostics",
     description: "Labs, imaging, and tests",
-    marker: "L",
     href: "/diagnostics",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <path d="M9 2v6.5L4.5 19a2 2 0 001.8 3h11.4a2 2 0 001.8-3L15 8.5V2" />
+        <path d="M9 2h6" />
+        <path d="M7 16h10" />
+      </CategoryIcon>
+    ),
   },
   {
     label: "Pharmacies",
     description: "Medicine access points",
-    marker: "P",
     href: "/pharmacies",
+    icon: (props: SVGProps<SVGSVGElement>) => (
+      <CategoryIcon {...props}>
+        <rect x="2" y="7" width="20" height="10" rx="5" />
+        <path d="M12 7v10" />
+      </CategoryIcon>
+    ),
   },
 ];
 
@@ -45,45 +97,36 @@ export function QuickCategoriesSection() {
     <section className="bg-transparent">
       <PageContainer className="py-7 sm:py-10 lg:py-12">
         <div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-primary">
-                Care wayfinding
-              </p>
-              <h2 className="text-2xl font-semibold leading-tight text-foreground">
-                Choose the care path you need.
-              </h2>
-            </div>
-            <Link
-              className="hidden min-h-10 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border sm:inline-flex"
-              href="/nearby"
-            >
-              Find nearby care
-            </Link>
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
-            <Link
-              key={category.label}
-              className="group flex min-h-24 min-w-0 items-center gap-3 rounded-3xl border border-border bg-card p-4 shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition-colors hover:border-strong-border"
-              href={category.href}
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-sm font-bold text-primary">
-                {category.marker}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block break-words text-sm font-semibold text-foreground">
-                  {category.label}
-                </span>
-                <span className="mt-1 block text-sm leading-5 text-muted-foreground">
-                  {category.description}
-                </span>
-              </span>
-              <span className="shrink-0 text-lg text-muted-foreground transition group-hover:text-foreground">
-                &rarr;
-              </span>
-            </Link>
-          ))}
+          <h2 className="text-2xl font-semibold leading-tight text-foreground">
+            Browse by category
+          </h2>
+          <div className="mt-5 grid gap-3 grid-cols-2 lg:grid-cols-3">
+            {categories.map((category) => {
+              const Icon = category.icon;
+
+              return (
+                <Link
+                  key={category.label}
+                  className="group flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-strong-border"
+                  href={category.href}
+                >
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-primary">
+                    <Icon />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block break-words text-sm font-semibold text-foreground">
+                      {category.label}
+                    </span>
+                    <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                      {category.description}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-lg text-muted-foreground transition group-hover:text-foreground">
+                    &rarr;
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </PageContainer>

@@ -1,11 +1,10 @@
+import Link from "next/link";
 import { FacilityCardGrid } from "@/components/cards/FacilityCardGrid";
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { Facility } from "@/types/facility";
 import { FacilitiesHero } from "./FacilitiesHero";
 import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
 import { FacilitySearchPreview } from "./FacilitySearchPreview";
-import { FacilityTrustBlock } from "./FacilityTrustBlock";
-import { RequestFacilityAdditionCta } from "./RequestFacilityAdditionCta";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 
 type FacilitiesPageProps = {
@@ -58,10 +57,12 @@ export function FacilitiesPage({
           )}
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <FacilityTrustBlock />
-          <RequestFacilityAdditionCta />
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Is your facility missing?{" "}
+          <Link className="font-semibold text-primary" href="/register">
+            Register it here &rarr;
+          </Link>
+        </p>
       </div>
     </PageContainer>
   );

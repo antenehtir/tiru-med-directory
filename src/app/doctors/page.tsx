@@ -1,7 +1,6 @@
 import { DoctorsPage } from "@/components/doctors/DoctorsPage";
 import { PageShell } from "@/components/layout/PageShell";
 import {
-  filterDoctorsByQuery,
   filterDoctorsBySpecialty,
   normalizeSearchParam,
 } from "@/lib/frontend-search-filters";
@@ -13,28 +12,19 @@ export const dynamic = "force-dynamic";
 
 type DoctorsRouteProps = {
   searchParams?: Promise<{
-    q?: string | string[];
     specialty?: string | string[];
   }>;
 };
 
 export default async function DoctorsRoute({ searchParams }: DoctorsRouteProps) {
   const params = await searchParams;
-  const query = normalizeSearchParam(params?.q);
   const specialty = normalizeSearchParam(params?.specialty);
   const doctors = await getDoctorsForRoute();
-  const filteredDoctors = filterDoctorsByQuery(
-    filterDoctorsBySpecialty(doctors, specialty),
-    query,
-  );
+  const filteredDoctors = filterDoctorsBySpecialty(doctors, specialty);
 
   return (
     <PageShell>
-      <DoctorsPage
-        activeQuery={query}
-        activeSpecialty={specialty}
-        doctors={filteredDoctors}
-      />
+      <DoctorsPage activeSpecialty={specialty} doctors={filteredDoctors} />
     </PageShell>
   );
 }

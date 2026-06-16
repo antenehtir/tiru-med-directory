@@ -4,7 +4,6 @@ export const mainNavigationItems = [
   { label: "Nearby", href: "/nearby" },
   { label: "Doctors", href: "/doctors" },
   { label: "Facilities", href: "/facilities" },
-  { label: "Register", href: "/register" },
 ];
 
 export const mobileNavigationItems = [

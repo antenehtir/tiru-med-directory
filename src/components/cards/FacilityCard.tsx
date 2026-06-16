@@ -11,40 +11,30 @@ type FacilityCardProps = {
 };
 
 export function FacilityCard({ facility }: FacilityCardProps) {
-  const detailHref =
-    facility.detailHref ??
-    (facility.slug === "addis-health-center"
-      ? "/facilities/addis-health-center"
-      : "/facilities");
+  const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const contactActions = createPublicContactActions(facility.contactChannels);
   const callAction = contactActions.find((action) => action.kind === "phone");
   const mapAction = contactActions.find((action) => action.kind === "maps");
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-5">
-      <div className="flex flex-col items-start gap-3 min-[420px]:flex-row min-[420px]:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-secondary" />
-          <p className="text-sm font-semibold leading-5 text-muted-foreground">
-            {facility.category}
-          </p>
-          </div>
-          <h3 className="mt-2 break-words text-lg font-semibold leading-snug text-foreground sm:text-xl">
-            {facility.name}
-          </h3>
-        </div>
+    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-semibold leading-5 text-muted-foreground">
+          {facility.category}
+        </p>
         <VerificationBadge status={facility.verificationStatus} />
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm leading-6">
-        <div>
-          <p className="font-medium text-card-foreground">
-            {facility.subcategory}
-          </p>
-          <p className="mt-1 text-muted-foreground">{facility.address}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <h3 className="mt-2 break-words text-lg font-semibold leading-snug text-foreground">
+        {facility.name}
+      </h3>
+
+      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+        {facility.location}
+      </p>
+
+      {facility.services.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
           {facility.services.slice(0, 3).map((service) => (
             <span
               key={service}
@@ -54,40 +44,33 @@ export function FacilityCard({ facility }: FacilityCardProps) {
             </span>
           ))}
         </div>
-        <div className="grid gap-2 rounded-2xl border border-border bg-muted p-3">
-          <p className="text-muted-foreground">{facility.location}</p>
-          <p className="text-muted-foreground">{facility.workingHours}</p>
-          <p
-            className={`font-semibold ${
-              facility.isOpen ? "text-success" : "text-warning"
-            }`}
-          >
-            {facility.availabilityNote}
-          </p>
-        </div>
+      ) : null}
+
+      <div className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
+        {facility.workingHours}
       </div>
 
-      <div className="mt-auto grid gap-2 pt-5 min-[520px]:grid-cols-3">
+      <div className="mt-3 grid gap-2 min-[520px]:grid-cols-3">
         {callAction ? (
           <a
-            className="flex min-h-12 items-center justify-center rounded-2xl border border-border bg-card px-3 text-center text-sm font-semibold text-foreground transition hover:border-strong-border"
+            className="flex min-h-10 items-center justify-center rounded-full border border-border bg-transparent px-3 text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
             href={callAction.href}
             {...getExternalLinkProps(callAction)}
           >
-            {callAction.label}
+            Call
           </a>
         ) : null}
         {mapAction ? (
           <a
-            className="flex min-h-12 items-center justify-center rounded-2xl border border-border bg-card px-3 text-center text-sm font-semibold text-foreground transition hover:border-strong-border"
+            className="flex min-h-10 items-center justify-center rounded-full border border-border bg-transparent px-3 text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
             href={mapAction.href}
             {...getExternalLinkProps(mapAction)}
           >
-            {mapAction.label}
+            Map
           </a>
         ) : null}
         <Link
-          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          className="flex min-h-10 items-center justify-center rounded-full bg-primary px-3 text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}
         >
           View details

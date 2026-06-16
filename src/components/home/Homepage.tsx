@@ -6,8 +6,8 @@ export function Homepage() {
   return (
     <div className="homepage-clinical-bg">
       <HeroSearchSection />
-      <FeaturedFacilityStrip />
       <QuickCategoriesSection />
+      <FeaturedFacilityStrip />
     </div>
   );
 }

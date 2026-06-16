@@ -25,14 +25,6 @@ const DEFAULT_HOURS = "Hours not listed";
 const DEFAULT_PRIMARY_ACTION = "View details";
 const DEFAULT_SECONDARY_ACTION = "More information";
 
-const knownDetailSlugs: Partial<Record<PublicProviderType, Record<string, string>>> =
-  {
-    doctor: {
-      "doctor-hana-bekele": "dr-hana-bekele",
-      "hana-bekele": "dr-hana-bekele",
-    },
-  };
-
 const providerBasePaths: Record<PublicProviderType, string> = {
   facility: "/facilities",
   doctor: "/doctors",
@@ -127,12 +119,7 @@ export function getPublicProviderDetailPath(input: {
   slug?: string | null;
   providerType: PublicProviderType;
 }): string {
-  const sourceSlug = normalizePublicSlug(input.slug, input.id);
-  const knownSlug =
-    knownDetailSlugs[input.providerType]?.[input.id] ??
-    knownDetailSlugs[input.providerType]?.[sourceSlug];
-
-  const routeSlug = knownSlug ?? sourceSlug;
+  const routeSlug = normalizePublicSlug(input.slug, input.id);
 
   if (
     input.providerType === "facility" ||

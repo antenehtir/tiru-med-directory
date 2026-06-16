@@ -12,17 +12,17 @@ const badgeContent: Record<
   verified: {
     label: "Verified",
     className:
-      "border border-emerald-200 bg-[#ECFDF5] text-[#0F766E] dark:border-emerald-300/40 dark:bg-emerald-300/15 dark:text-emerald-200",
+      "border border-[#A7F3D0] bg-[#ECFDF5] text-[#0F766E] dark:border-[#0F766E] dark:bg-[#064E3B] dark:text-[#A7F3D0]",
   },
   pending: {
     label: "Pending",
     className:
-      "border border-amber-300 bg-[#FEF3C7] text-[#B45309] dark:border-amber-300/40 dark:bg-amber-300/15 dark:text-amber-200",
+      "border border-[#FCD34D] bg-[#FEF3C7] text-[#92400E] dark:border-[#B45309] dark:bg-[#451A03] dark:text-[#FCD34D]",
   },
   "community-submitted": {
     label: "Community submitted",
     className:
-      "border border-amber-300 bg-[#FEF3C7] text-[#B45309] dark:border-amber-300/40 dark:bg-amber-300/15 dark:text-amber-200",
+      "border border-[#FCD34D] bg-[#FEF3C7] text-[#92400E] dark:border-[#B45309] dark:bg-[#451A03] dark:text-[#FCD34D]",
   },
 };
 

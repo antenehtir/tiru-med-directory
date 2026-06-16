@@ -1,27 +1,24 @@
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PharmacyFilterChips } from "./PharmacyFilterChips";
 import { PharmacyHero } from "./PharmacyHero";
 import { PharmacyResultsSection } from "./PharmacyResultsSection";
-import { PharmacySearchPreview } from "./PharmacySearchPreview";
-import { RequestPharmacyAdditionCta } from "./RequestPharmacyAdditionCta";
 import type { Facility } from "@/types/facility";
 
 type PharmaciesPageProps = {
-  activeQuery?: string;
+  activeStatus?: string;
   pharmacies?: Facility[];
 };
 
 export function PharmaciesPage({
-  activeQuery = "",
+  activeStatus,
   pharmacies,
 }: PharmaciesPageProps) {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
         <PharmacyHero />
-
-        <PharmacySearchPreview query={activeQuery} />
-        <PharmacyResultsSection query={activeQuery} pharmacies={pharmacies} />
-        <RequestPharmacyAdditionCta />
+        <PharmacyFilterChips activeStatus={activeStatus} />
+        <PharmacyResultsSection pharmacies={pharmacies} />
       </div>
     </PageContainer>
   );

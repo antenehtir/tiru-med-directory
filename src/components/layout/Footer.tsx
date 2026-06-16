@@ -56,6 +56,9 @@ export function Footer() {
           </div>
         </nav>
       </div>
+      <div className="mx-auto w-full max-w-6xl px-4 pb-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
+        © 2025 Tiru &middot; Addis Ababa
+      </div>
     </footer>
   );
 }
