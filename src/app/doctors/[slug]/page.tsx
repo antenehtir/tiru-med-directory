@@ -52,7 +52,7 @@ export async function generateMetadata({
   const doctor = result.status === "success" ? result.detail : null;
 
   return {
-    title: doctor ? `${doctor.name} — Tiru` : "Doctor — Tiru",
+    title: doctor ? `${doctor.name} — Tiru` : "Specialist — Tiru",
     description: doctor ? `${doctor.categoryLabel} in Addis Ababa.` : "",
   };
 }
@@ -93,7 +93,7 @@ async function getSafeDoctorDetail(
       fallbackRecommended: true,
       reason: "query-failed",
       errorCode: "DOCTORS_PUBLIC_READ_FAILED",
-      message: "Doctor detail public read failed.",
+      message: "Specialist detail public read failed.",
     };
   }
 }
@@ -149,7 +149,7 @@ function DoctorPublicDetailPage({
               <div className="min-w-0 space-y-3">
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-primary">
-                    Doctor detail
+                    Specialist detail
                   </p>
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     {doctor.name}
@@ -238,7 +238,7 @@ function DoctorPublicDetailPage({
                   href="/doctors"
                   className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
                 >
-                  Back to doctors
+                  Back to specialists
                 </Link>
                 <Link
                   href={doctor.correctionHref}

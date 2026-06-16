@@ -11,7 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Tiru — Healthcare in Addis Ababa",
   description:
-    "Find hospitals, clinics, doctors, diagnostics and pharmacies across Addis Ababa.",
+    "Find hospitals, clinics, specialists, diagnostics and pharmacies across Addis Ababa.",
 };
 
 export default function RootLayout({

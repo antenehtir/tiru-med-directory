@@ -24,7 +24,7 @@ export function DoctorsPage({
           <DoctorCardGrid doctors={doctors} />
         ) : (
           <p className="text-sm leading-6 text-muted-foreground">
-            Doctor profiles coming soon.{" "}
+            Specialist profiles coming soon.{" "}
             <Link className="font-semibold text-primary" href="/register">
               Register your practice &rarr;
             </Link>

@@ -34,7 +34,7 @@ const providerBasePaths: Record<PublicProviderType, string> = {
 
 const providerDefaultCategoryLabels: Record<PublicProviderType, string> = {
   facility: "Facility",
-  doctor: "Doctor",
+  doctor: "Specialist",
   pharmacy: "Pharmacy",
   diagnostics: "Diagnostics provider",
 };
@@ -237,7 +237,7 @@ export function mapSeedDoctorToPublicCard(
   return {
     id: doctor.id,
     slug: normalizePublicSlug(doctor.slug, doctor.id),
-    name: coercePublicText(doctor.name, "Doctor name not listed"),
+    name: coercePublicText(doctor.name, "Specialist name not listed"),
     providerType,
     categoryLabel: specialty,
     summary: facility

@@ -19,11 +19,8 @@ export function FacilityInformationSection({
       <p className="text-sm font-semibold text-primary">
         Facility information
       </p>
-      <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
-        Details patients can scan quickly.
-      </h2>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-4 grid gap-3">
         {informationRows.map((row) => (
           <div
             className="rounded-2xl border border-border bg-background p-4"

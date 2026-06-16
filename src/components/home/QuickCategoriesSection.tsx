@@ -56,8 +56,8 @@ const categories = [
     ),
   },
   {
-    label: "Doctors",
-    description: "Doctor profiles and specialties",
+    label: "Specialists",
+    description: "Specialist profiles and specialties",
     href: "/doctors",
     icon: (props: SVGProps<SVGSVGElement>) => (
       <CategoryIcon {...props}>

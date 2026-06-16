@@ -33,7 +33,7 @@ export function SearchResultsPage({ doctors = [] }: SearchResultsPageProps) {
   if (isAllCategory) {
     visibleFacilities = matchingFacilities;
     visibleDoctors = matchingDoctors;
-  } else if (normalizedCategory === "doctors") {
+  } else if (normalizedCategory === "specialists") {
     visibleDoctors = matchingDoctors;
   } else {
     visibleFacilities = matchingFacilities.filter((facility) =>
@@ -62,7 +62,7 @@ export function SearchResultsPage({ doctors = [] }: SearchResultsPageProps) {
           autoFocus={focusSearch}
           initialQuery={query}
           label="Search healthcare"
-          placeholder="Doctors, facilities, pharmacies, specialties"
+          placeholder="Specialists, facilities, pharmacies, specialties"
           formClassName="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
           inputClassName="min-h-13 w-full min-w-0 rounded-lg border border-border bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-primary sm:min-h-14 sm:px-4"
           buttonClassName="min-h-12 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover md:min-h-14"

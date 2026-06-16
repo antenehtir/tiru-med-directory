@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
-const providerTypeOptions = ["Doctor", "Facility", "Pharmacy", "Diagnostics"];
+const providerTypeOptions = ["Specialist", "Facility", "Pharmacy", "Diagnostics"];
 
 const inputClassName =
   "min-h-11 w-full rounded-lg border border-border bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-primary";

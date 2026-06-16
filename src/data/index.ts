@@ -1,7 +1,5 @@
 export * from "./seed-community-channels";
 export * from "./seed-diagnostics";
-export * from "./seed-doctors";
-export * from "./seed-facilities";
 export * from "./seed-locations";
 export * from "./seed-pharmacies";
 export * from "./seed-services";

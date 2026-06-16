@@ -3,7 +3,7 @@ export const healthcareCategories = [
   "General Hospitals",
   "Specialty Centers",
   "Clinics",
-  "Doctors",
+  "Specialists",
   "Diagnostics",
   "Pharmacies",
 ];

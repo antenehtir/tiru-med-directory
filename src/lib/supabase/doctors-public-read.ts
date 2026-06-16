@@ -356,7 +356,7 @@ function mapSupabaseDoctorRowToPublicDetail(
 }
 
 function createDoctorDisplayName(row: SupabaseDoctorPublicRow): string {
-  const displayName = coercePublicText(row.display_name, "Doctor name not listed");
+  const displayName = coercePublicText(row.display_name, "Specialist name not listed");
   const title = coercePublicText(row.title, "");
 
   if (!title) {

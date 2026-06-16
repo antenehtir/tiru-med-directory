@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const specialties = [
-  { label: "All doctors", href: "/doctors" },
+  { label: "All specialists", href: "/doctors" },
   { label: "Pediatrics", href: "/doctors?specialty=Pediatrics" },
   { label: "Cardiology", href: "/doctors?specialty=Cardiology" },
   { label: "Dermatology", href: "/doctors?specialty=Dermatology" },
@@ -29,7 +29,7 @@ export function SpecialtyFilterChips({
         {specialties.map((specialty) => {
           const isActive = activeSpecialty
             ? specialty.label.toLowerCase() === activeSpecialty.toLowerCase()
-            : specialty.label === "All doctors";
+            : specialty.label === "All specialists";
 
           return (
             <Link

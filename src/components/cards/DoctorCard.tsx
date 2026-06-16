@@ -47,13 +47,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
         </div>
       </div>
 
-      <div className="mt-auto grid gap-2 pt-5 min-[420px]:grid-cols-2">
-        <button
-          className="min-h-12 rounded-2xl border border-border bg-card px-3 text-center text-sm font-semibold text-foreground transition hover:border-strong-border"
-          type="button"
-        >
-          {doctor.bookingActionLabel}
-        </button>
+      <div className="mt-auto pt-5">
         <Link
           className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}

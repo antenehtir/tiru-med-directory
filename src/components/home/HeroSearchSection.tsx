@@ -14,7 +14,7 @@ export function HeroSearchSection() {
             Find the care you need.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Search hospitals, clinics, doctors, diagnostics and pharmacies
+            Search hospitals, clinics, specialists, diagnostics and pharmacies
             across Addis Ababa.
           </p>
 

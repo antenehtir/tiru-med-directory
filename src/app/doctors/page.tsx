@@ -12,8 +12,8 @@ import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Doctors — Tiru",
-  description: "Find specialist doctors and physicians in Addis Ababa.",
+  title: "Specialists — Tiru",
+  description: "Find specialists and physicians in Addis Ababa.",
 };
 
 type DoctorsRouteProps = {

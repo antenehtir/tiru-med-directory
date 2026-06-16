@@ -24,9 +24,6 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
         >
           {facility.availabilityNote}
         </p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Hours will be updated after verification.
-        </p>
       </div>
     </section>
   );
