@@ -107,22 +107,19 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className="group flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-strong-border"
+                  className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-strong-border"
                   href={category.href}
                 >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-primary">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-primary">
                     <Icon />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words text-sm font-semibold text-foreground">
+                    <span className="block break-words hyphens-auto text-sm font-semibold leading-tight text-foreground">
                       {category.label}
                     </span>
-                    <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                    <span className="mt-0.5 block line-clamp-2 text-xs leading-snug text-muted-foreground">
                       {category.description}
                     </span>
-                  </span>
-                  <span className="shrink-0 text-lg text-muted-foreground transition group-hover:text-foreground">
-                    &rarr;
                   </span>
                 </Link>
               );

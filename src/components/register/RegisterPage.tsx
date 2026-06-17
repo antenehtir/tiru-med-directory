@@ -28,6 +28,7 @@ type BranchEntry = {
   address: string;
   subCity: string;
   phone: string;
+  googleMapsUrl: string;
 };
 
 type FormState = {
@@ -43,6 +44,7 @@ type FormState = {
   telemedicineAvailable: boolean;
   telemedicineDetails: string;
   bookingLink: string;
+  linkedin: string;
 
   category: string;
   categoryOther: string;
@@ -58,6 +60,9 @@ type FormState = {
   address: string;
   website: string;
   telegram: string;
+  facebook: string;
+  instagram: string;
+  tiktok: string;
   googleMapsUrl: string;
 
   testTypes: string;
@@ -84,16 +89,15 @@ type FormState = {
 };
 
 type Updater = <K extends keyof FormState>(key: K, value: FormState[K]) => void;
-
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-const PROVIDER_TYPES: ProviderType[] = [
-  "Specialist",
-  "Healthcare Facility",
-  "Diagnostic Center",
-  "Pharmacy",
-  "Ambulance Service",
-  "Other",
+const PROVIDER_TYPE_OPTIONS: { value: ProviderType; label: string }[] = [
+  { value: "Specialist", label: "Specialist" },
+  { value: "Healthcare Facility", label: "Healthcare Facility" },
+  { value: "Diagnostic Center", label: "Diagnostic Center (Lab / Imaging)" },
+  { value: "Pharmacy", label: "Pharmacy" },
+  { value: "Ambulance Service", label: "Ambulance Service" },
+  { value: "Other", label: "Other (Telemedicine, Home Care, etc.)" },
 ];
 
 const SPECIALTY_OPTIONS = [
@@ -145,7 +149,7 @@ function createFacilityEntry(id: string): FacilityEntry {
 }
 
 function createBranchEntry(id: string): BranchEntry {
-  return { id, name: "", address: "", subCity: "", phone: "" };
+  return { id, name: "", address: "", subCity: "", phone: "", googleMapsUrl: "" };
 }
 
 function createInitialState(name: string): FormState {
@@ -161,6 +165,7 @@ function createInitialState(name: string): FormState {
     telemedicineAvailable: false,
     telemedicineDetails: "",
     bookingLink: "",
+    linkedin: "",
     category: "",
     categoryOther: "",
     majorServices: "",
@@ -175,6 +180,9 @@ function createInitialState(name: string): FormState {
     address: "",
     website: "",
     telegram: "",
+    facebook: "",
+    instagram: "",
+    tiktok: "",
     googleMapsUrl: "",
     testTypes: "",
     sampleCollectionAvailable: false,
@@ -200,6 +208,7 @@ const inputBaseClassName =
   "w-full min-h-12 rounded-xl border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 const labelClassName = "text-sm font-semibold text-foreground mb-1 block";
 const privateNoteClassName = "text-xs text-amber-600 mt-1";
+const phoneHintClassName = "mt-1 text-xs text-muted-foreground";
 const errorClassName = "text-xs text-red-500 mt-1";
 const toggleBaseClassName = "px-4 py-2 rounded-full text-sm font-medium border";
 const toggleActiveClassName = "bg-primary text-primary-foreground border-primary";
@@ -209,13 +218,7 @@ function fieldClassName(hasError: boolean) {
   return `${inputBaseClassName} ${hasError ? "border-red-500" : "border-border"}`;
 }
 
-function YesNoToggle({
-  value,
-  onChange,
-}: {
-  value: boolean;
-  onChange: (value: boolean) => void;
-}) {
+function YesNoToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex gap-2">
       <button
@@ -256,6 +259,131 @@ function DayPills({ days, onToggle }: { days: string[]; onToggle: (day: string) 
   );
 }
 
+type BranchSectionProps = {
+  branches: BranchEntry[];
+  updateBranch: (id: string, patch: Partial<BranchEntry>) => void;
+  addBranch: () => void;
+  removeBranch: (id: string) => void;
+};
+
+function BranchSection({ branches, updateBranch, addBranch, removeBranch }: BranchSectionProps) {
+  return (
+    <div className="mt-3 grid gap-4">
+      {branches.map((branch, index) => (
+        <div className="rounded-xl border border-border p-4" key={branch.id}>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">Branch {index + 1}</p>
+            <button
+              className="text-xs font-semibold text-muted-foreground underline"
+              onClick={() => removeBranch(branch.id)}
+              type="button"
+            >
+              Remove
+            </button>
+          </div>
+          <div className="mt-3 grid gap-3">
+            <input
+              className={fieldClassName(false)}
+              onChange={(e) => updateBranch(branch.id, { name: e.target.value })}
+              placeholder="Branch name"
+              type="text"
+              value={branch.name}
+            />
+            <input
+              className={fieldClassName(false)}
+              onChange={(e) => updateBranch(branch.id, { address: e.target.value })}
+              placeholder="Address"
+              type="text"
+              value={branch.address}
+            />
+            <input
+              className={fieldClassName(false)}
+              onChange={(e) => updateBranch(branch.id, { subCity: e.target.value })}
+              placeholder="Sub-city / Area"
+              type="text"
+              value={branch.subCity}
+            />
+            <div>
+              <input
+                className={fieldClassName(false)}
+                onChange={(e) => updateBranch(branch.id, { phone: e.target.value })}
+                placeholder="Phone"
+                type="tel"
+                value={branch.phone}
+              />
+              <p className={phoneHintClassName}>Separate multiple numbers with /</p>
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`branch-maps-${branch.id}`}>
+                Google Maps link for this branch
+              </label>
+              <input
+                className={fieldClassName(false)}
+                id={`branch-maps-${branch.id}`}
+                onChange={(e) => updateBranch(branch.id, { googleMapsUrl: e.target.value })}
+                type="url"
+                value={branch.googleMapsUrl}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button className="text-sm font-semibold text-primary" onClick={addBranch} type="button">
+        + Add branch
+      </button>
+    </div>
+  );
+}
+
+function SocialMediaFields({ form, update }: { form: FormState; update: Updater }) {
+  return (
+    <div>
+      <p className="mb-3 text-sm font-semibold text-muted-foreground">Social media (optional)</p>
+      <div className="grid gap-4">
+        <div>
+          <label className={labelClassName} htmlFor="facebook">
+            Facebook
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="facebook"
+            onChange={(e) => update("facebook", e.target.value)}
+            placeholder="https://facebook.com/yourpage"
+            type="url"
+            value={form.facebook}
+          />
+        </div>
+        <div>
+          <label className={labelClassName} htmlFor="instagram">
+            Instagram
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="instagram"
+            onChange={(e) => update("instagram", e.target.value)}
+            placeholder="https://instagram.com/yourpage"
+            type="url"
+            value={form.instagram}
+          />
+        </div>
+        <div>
+          <label className={labelClassName} htmlFor="tiktok">
+            TikTok
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="tiktok"
+            onChange={(e) => update("tiktok", e.target.value)}
+            placeholder="https://tiktok.com/@yourpage"
+            type="url"
+            value={form.tiktok}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type SpecialistFieldsProps = {
   form: FormState;
   errors: Record<string, string>;
@@ -284,15 +412,15 @@ function SpecialistFields({
         <select
           className={fieldClassName(Boolean(errors.specialty))}
           id="specialty"
-          onChange={(event) => update("specialty", event.target.value)}
+          onChange={(e) => update("specialty", e.target.value)}
           value={form.specialty}
         >
           <option disabled value="">
             Select a specialty
           </option>
-          {SPECIALTY_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
+          {SPECIALTY_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
             </option>
           ))}
         </select>
@@ -301,7 +429,7 @@ function SpecialistFields({
           <div className="mt-2">
             <input
               className={fieldClassName(Boolean(errors.specialtyOther))}
-              onChange={(event) => update("specialtyOther", event.target.value)}
+              onChange={(e) => update("specialtyOther", e.target.value)}
               placeholder="Enter specialty"
               type="text"
               value={form.specialtyOther}
@@ -320,7 +448,7 @@ function SpecialistFields({
         <input
           className={fieldClassName(false)}
           id="subSpecialty"
-          onChange={(event) => update("subSpecialty", event.target.value)}
+          onChange={(e) => update("subSpecialty", e.target.value)}
           placeholder="e.g. Pediatric Cardiology"
           type="text"
           value={form.subSpecialty}
@@ -329,10 +457,7 @@ function SpecialistFields({
 
       <div>
         <label className={labelClassName}>Practice at multiple facilities?</label>
-        <YesNoToggle
-          onChange={(value) => update("multipleFacilities", value)}
-          value={form.multipleFacilities}
-        />
+        <YesNoToggle onChange={(v) => update("multipleFacilities", v)} value={form.multipleFacilities} />
       </div>
 
       <div className="grid gap-4">
@@ -344,9 +469,7 @@ function SpecialistFields({
         {form.facilityEntries.map((entry, index) => (
           <div className="rounded-xl border border-border p-4" key={entry.id}>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-foreground">
-                Practice location {index + 1}
-              </p>
+              <p className="text-sm font-semibold text-foreground">Practice location {index + 1}</p>
               {index > 0 ? (
                 <button
                   className="text-xs font-semibold text-muted-foreground underline"
@@ -365,9 +488,7 @@ function SpecialistFields({
               <input
                 className={fieldClassName(false)}
                 id={`search-facility-${entry.id}`}
-                onChange={(event) =>
-                  updateFacilityEntry(entry.id, { searchFacility: event.target.value })
-                }
+                onChange={(e) => updateFacilityEntry(entry.id, { searchFacility: e.target.value })}
                 placeholder="Type facility name on Tiru"
                 type="text"
                 value={entry.searchFacility}
@@ -381,9 +502,7 @@ function SpecialistFields({
               <input
                 className={fieldClassName(false)}
                 id={`manual-facility-${entry.id}`}
-                onChange={(event) =>
-                  updateFacilityEntry(entry.id, { manualFacility: event.target.value })
-                }
+                onChange={(e) => updateFacilityEntry(entry.id, { manualFacility: e.target.value })}
                 placeholder="If not yet on Tiru"
                 type="text"
                 value={entry.manualFacility}
@@ -394,10 +513,7 @@ function SpecialistFields({
               <label className={labelClassName}>
                 Consultation days <span className="text-error">*</span>
               </label>
-              <DayPills
-                days={entry.days}
-                onToggle={(day) => toggleFacilityDay(entry.id, day)}
-              />
+              <DayPills days={entry.days} onToggle={(day) => toggleFacilityDay(entry.id, day)} />
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-3">
@@ -408,9 +524,7 @@ function SpecialistFields({
                 <input
                   className={fieldClassName(false)}
                   id={`start-time-${entry.id}`}
-                  onChange={(event) =>
-                    updateFacilityEntry(entry.id, { startTime: event.target.value })
-                  }
+                  onChange={(e) => updateFacilityEntry(entry.id, { startTime: e.target.value })}
                   type="time"
                   value={entry.startTime}
                 />
@@ -422,9 +536,7 @@ function SpecialistFields({
                 <input
                   className={fieldClassName(false)}
                   id={`end-time-${entry.id}`}
-                  onChange={(event) =>
-                    updateFacilityEntry(entry.id, { endTime: event.target.value })
-                  }
+                  onChange={(e) => updateFacilityEntry(entry.id, { endTime: e.target.value })}
                   type="time"
                   value={entry.endTime}
                 />
@@ -450,13 +562,13 @@ function SpecialistFields({
       <div>
         <label className={labelClassName}>Telemedicine available?</label>
         <YesNoToggle
-          onChange={(value) => update("telemedicineAvailable", value)}
+          onChange={(v) => update("telemedicineAvailable", v)}
           value={form.telemedicineAvailable}
         />
         {form.telemedicineAvailable ? (
           <textarea
             className={`${fieldClassName(false)} mt-3 min-h-28 py-2`}
-            onChange={(event) => update("telemedicineDetails", event.target.value)}
+            onChange={(e) => update("telemedicineDetails", e.target.value)}
             placeholder="Telemedicine details (platform, link, notes)"
             rows={4}
             value={form.telemedicineDetails}
@@ -471,7 +583,7 @@ function SpecialistFields({
         <input
           className={fieldClassName(false)}
           id="bookingLink"
-          onChange={(event) => update("bookingLink", event.target.value)}
+          onChange={(e) => update("bookingLink", e.target.value)}
           type="url"
           value={form.bookingLink}
         />
@@ -484,11 +596,12 @@ function SpecialistFields({
         <input
           className={fieldClassName(Boolean(errors.phone))}
           id="phone"
-          onChange={(event) => update("phone", event.target.value)}
+          onChange={(e) => update("phone", e.target.value)}
           type="tel"
           value={form.phone}
         />
         {errors.phone ? <p className={errorClassName}>{errors.phone}</p> : null}
+        <p className={phoneHintClassName}>Separate multiple numbers with /</p>
         <p className={privateNoteClassName}>⚠ Not visible to public — for Tiru staff only</p>
       </div>
 
@@ -499,9 +612,24 @@ function SpecialistFields({
         <input
           className={fieldClassName(false)}
           id="email"
-          onChange={(event) => update("email", event.target.value)}
+          onChange={(e) => update("email", e.target.value)}
           type="email"
           value={form.email}
+        />
+        <p className={privateNoteClassName}>⚠ Not visible to public — for Tiru staff only</p>
+      </div>
+
+      <div>
+        <label className={labelClassName} htmlFor="linkedin">
+          LinkedIn profile
+        </label>
+        <input
+          className={fieldClassName(false)}
+          id="linkedin"
+          onChange={(e) => update("linkedin", e.target.value)}
+          placeholder="https://linkedin.com/in/yourname"
+          type="url"
+          value={form.linkedin}
         />
         <p className={privateNoteClassName}>⚠ Not visible to public — for Tiru staff only</p>
       </div>
@@ -537,15 +665,15 @@ function FacilityLikeFields({
         <select
           className={fieldClassName(Boolean(errors.category))}
           id="category"
-          onChange={(event) => update("category", event.target.value)}
+          onChange={(e) => update("category", e.target.value)}
           value={form.category}
         >
           <option disabled value="">
             Select a category
           </option>
-          {FACILITY_CATEGORY_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
+          {FACILITY_CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
             </option>
           ))}
         </select>
@@ -554,7 +682,7 @@ function FacilityLikeFields({
           <div className="mt-2">
             <input
               className={fieldClassName(Boolean(errors.categoryOther))}
-              onChange={(event) => update("categoryOther", event.target.value)}
+              onChange={(e) => update("categoryOther", e.target.value)}
               placeholder="Enter category"
               type="text"
               value={form.categoryOther}
@@ -573,7 +701,7 @@ function FacilityLikeFields({
         <textarea
           className={`${fieldClassName(Boolean(errors.majorServices))} min-h-28 py-2`}
           id="majorServices"
-          onChange={(event) => update("majorServices", event.target.value)}
+          onChange={(e) => update("majorServices", e.target.value)}
           placeholder="e.g. General Medicine, Surgery, ICU, Maternity"
           rows={4}
           value={form.majorServices}
@@ -590,25 +718,23 @@ function FacilityLikeFields({
             <textarea
               className={`${fieldClassName(false)} min-h-28 py-2`}
               id="testTypes"
-              onChange={(event) => update("testTypes", event.target.value)}
+              onChange={(e) => update("testTypes", e.target.value)}
               placeholder="e.g. Blood tests, MRI, CT Scan, Ultrasound, X-ray"
               rows={4}
               value={form.testTypes}
             />
           </div>
-
           <div>
             <label className={labelClassName}>Sample collection available?</label>
             <YesNoToggle
-              onChange={(value) => update("sampleCollectionAvailable", value)}
+              onChange={(v) => update("sampleCollectionAvailable", v)}
               value={form.sampleCollectionAvailable}
             />
           </div>
-
           <div>
             <label className={labelClassName}>Home sample collection?</label>
             <YesNoToggle
-              onChange={(value) => update("homeSampleCollection", value)}
+              onChange={(v) => update("homeSampleCollection", v)}
               value={form.homeSampleCollection}
             />
           </div>
@@ -621,7 +747,7 @@ function FacilityLikeFields({
           <textarea
             className={`${fieldClassName(false)} min-h-28 py-2`}
             id="specialtiesAvailable"
-            onChange={(event) => update("specialtiesAvailable", event.target.value)}
+            onChange={(e) => update("specialtiesAvailable", e.target.value)}
             placeholder="e.g. Cardiology, Neurology, Orthopedics"
             rows={4}
             value={form.specialtiesAvailable}
@@ -631,64 +757,14 @@ function FacilityLikeFields({
 
       <div>
         <label className={labelClassName}>Branches?</label>
-        <YesNoToggle onChange={(value) => update("hasBranches", value)} value={form.hasBranches} />
-
+        <YesNoToggle onChange={(v) => update("hasBranches", v)} value={form.hasBranches} />
         {form.hasBranches ? (
-          <div className="mt-3 grid gap-4">
-            {form.branches.map((branch, index) => (
-              <div className="rounded-xl border border-border p-4" key={branch.id}>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">Branch {index + 1}</p>
-                  <button
-                    className="text-xs font-semibold text-muted-foreground underline"
-                    onClick={() => removeBranch(branch.id)}
-                    type="button"
-                  >
-                    Remove
-                  </button>
-                </div>
-
-                <div className="mt-3 grid gap-3">
-                  <input
-                    className={fieldClassName(false)}
-                    onChange={(event) => updateBranch(branch.id, { name: event.target.value })}
-                    placeholder="Branch name"
-                    type="text"
-                    value={branch.name}
-                  />
-                  <input
-                    className={fieldClassName(false)}
-                    onChange={(event) => updateBranch(branch.id, { address: event.target.value })}
-                    placeholder="Address"
-                    type="text"
-                    value={branch.address}
-                  />
-                  <input
-                    className={fieldClassName(false)}
-                    onChange={(event) => updateBranch(branch.id, { subCity: event.target.value })}
-                    placeholder="Sub-city"
-                    type="text"
-                    value={branch.subCity}
-                  />
-                  <input
-                    className={fieldClassName(false)}
-                    onChange={(event) => updateBranch(branch.id, { phone: event.target.value })}
-                    placeholder="Phone"
-                    type="tel"
-                    value={branch.phone}
-                  />
-                </div>
-              </div>
-            ))}
-
-            <button
-              className="text-sm font-semibold text-primary"
-              onClick={addBranch}
-              type="button"
-            >
-              + Add branch
-            </button>
-          </div>
+          <BranchSection
+            addBranch={addBranch}
+            branches={form.branches}
+            removeBranch={removeBranch}
+            updateBranch={updateBranch}
+          />
         ) : null}
       </div>
 
@@ -699,7 +775,7 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(Boolean(errors.opdHours))}
           id="opdHours"
-          onChange={(event) => update("opdHours", event.target.value)}
+          onChange={(e) => update("opdHours", e.target.value)}
           placeholder="e.g. Mon–Sat 8am–6pm"
           type="text"
           value={form.opdHours}
@@ -709,16 +785,12 @@ function FacilityLikeFields({
 
       <div>
         <label className={labelClassName}>Emergency service?</label>
-        <YesNoToggle
-          onChange={(value) => update("hasEmergency", value)}
-          value={form.hasEmergency}
-        />
-
+        <YesNoToggle onChange={(v) => update("hasEmergency", v)} value={form.hasEmergency} />
         {form.hasEmergency ? (
           <div className="mt-3">
             <select
               className={fieldClassName(Boolean(errors.emergencyType))}
-              onChange={(event) => update("emergencyType", event.target.value)}
+              onChange={(e) => update("emergencyType", e.target.value)}
               value={form.emergencyType}
             >
               <option disabled value="">
@@ -730,12 +802,11 @@ function FacilityLikeFields({
             {errors.emergencyType ? (
               <p className={errorClassName}>{errors.emergencyType}</p>
             ) : null}
-
             {form.emergencyType === "Limited hours" ? (
               <div className="mt-2">
                 <input
                   className={fieldClassName(Boolean(errors.emergencyHours))}
-                  onChange={(event) => update("emergencyHours", event.target.value)}
+                  onChange={(e) => update("emergencyHours", e.target.value)}
                   placeholder="Emergency hours"
                   type="text"
                   value={form.emergencyHours}
@@ -749,19 +820,21 @@ function FacilityLikeFields({
         ) : null}
       </div>
 
-      <div>
-        <label className={labelClassName} htmlFor="subCity">
-          Sub-city / Area <span className="text-error">*</span>
-        </label>
-        <input
-          className={fieldClassName(Boolean(errors.subCity))}
-          id="subCity"
-          onChange={(event) => update("subCity", event.target.value)}
-          type="text"
-          value={form.subCity}
-        />
-        {errors.subCity ? <p className={errorClassName}>{errors.subCity}</p> : null}
-      </div>
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="subCity">
+            Sub-city / Area <span className="text-error">*</span>
+          </label>
+          <input
+            className={fieldClassName(Boolean(errors.subCity))}
+            id="subCity"
+            onChange={(e) => update("subCity", e.target.value)}
+            type="text"
+            value={form.subCity}
+          />
+          {errors.subCity ? <p className={errorClassName}>{errors.subCity}</p> : null}
+        </div>
+      ) : null}
 
       <div>
         <label className={labelClassName} htmlFor="address">
@@ -770,7 +843,7 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(false)}
           id="address"
-          onChange={(event) => update("address", event.target.value)}
+          onChange={(e) => update("address", e.target.value)}
           type="text"
           value={form.address}
         />
@@ -783,11 +856,12 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(Boolean(errors.phone))}
           id="phone"
-          onChange={(event) => update("phone", event.target.value)}
+          onChange={(e) => update("phone", e.target.value)}
           type="tel"
           value={form.phone}
         />
         {errors.phone ? <p className={errorClassName}>{errors.phone}</p> : null}
+        <p className={phoneHintClassName}>Separate multiple numbers with /</p>
       </div>
 
       <div>
@@ -797,7 +871,7 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(false)}
           id="email"
-          onChange={(event) => update("email", event.target.value)}
+          onChange={(e) => update("email", e.target.value)}
           type="email"
           value={form.email}
         />
@@ -810,7 +884,7 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(false)}
           id="website"
-          onChange={(event) => update("website", event.target.value)}
+          onChange={(e) => update("website", e.target.value)}
           type="url"
           value={form.website}
         />
@@ -823,27 +897,31 @@ function FacilityLikeFields({
         <input
           className={fieldClassName(false)}
           id="telegram"
-          onChange={(event) => update("telegram", event.target.value)}
+          onChange={(e) => update("telegram", e.target.value)}
           type="text"
           value={form.telegram}
         />
       </div>
 
-      <div>
-        <label className={labelClassName} htmlFor="googleMapsUrl">
-          Google Maps link
-        </label>
-        <input
-          className={fieldClassName(false)}
-          id="googleMapsUrl"
-          onChange={(event) => update("googleMapsUrl", event.target.value)}
-          type="url"
-          value={form.googleMapsUrl}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Used for Nearby search — paste your Google Maps share link
-        </p>
-      </div>
+      <SocialMediaFields form={form} update={update} />
+
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="googleMapsUrl">
+            Google Maps link
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="googleMapsUrl"
+            onChange={(e) => update("googleMapsUrl", e.target.value)}
+            type="url"
+            value={form.googleMapsUrl}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Used for Nearby search — paste your Google Maps share link
+          </p>
+        </div>
+      ) : null}
     </>
   );
 }
@@ -852,9 +930,19 @@ type PharmacyFieldsProps = {
   form: FormState;
   errors: Record<string, string>;
   update: Updater;
+  updateBranch: (id: string, patch: Partial<BranchEntry>) => void;
+  addBranch: () => void;
+  removeBranch: (id: string) => void;
 };
 
-function PharmacyFields({ form, errors, update }: PharmacyFieldsProps) {
+function PharmacyFields({
+  form,
+  errors,
+  update,
+  updateBranch,
+  addBranch,
+  removeBranch,
+}: PharmacyFieldsProps) {
   return (
     <>
       <div>
@@ -864,7 +952,7 @@ function PharmacyFields({ form, errors, update }: PharmacyFieldsProps) {
         <textarea
           className={`${fieldClassName(false)} min-h-28 py-2`}
           id="pharmacyServices"
-          onChange={(event) => update("pharmacyServices", event.target.value)}
+          onChange={(e) => update("pharmacyServices", e.target.value)}
           placeholder="e.g. Prescription dispensing, Compounding"
           rows={4}
           value={form.pharmacyServices}
@@ -873,25 +961,37 @@ function PharmacyFields({ form, errors, update }: PharmacyFieldsProps) {
 
       <div>
         <label className={labelClassName}>Delivery available?</label>
-        <YesNoToggle
-          onChange={(value) => update("deliveryAvailable", value)}
-          value={form.deliveryAvailable}
-        />
+        <YesNoToggle onChange={(v) => update("deliveryAvailable", v)} value={form.deliveryAvailable} />
       </div>
 
       <div>
-        <label className={labelClassName} htmlFor="subCity">
-          Sub-city / Area <span className="text-error">*</span>
-        </label>
-        <input
-          className={fieldClassName(Boolean(errors.subCity))}
-          id="subCity"
-          onChange={(event) => update("subCity", event.target.value)}
-          type="text"
-          value={form.subCity}
-        />
-        {errors.subCity ? <p className={errorClassName}>{errors.subCity}</p> : null}
+        <label className={labelClassName}>Branches?</label>
+        <YesNoToggle onChange={(v) => update("hasBranches", v)} value={form.hasBranches} />
+        {form.hasBranches ? (
+          <BranchSection
+            addBranch={addBranch}
+            branches={form.branches}
+            removeBranch={removeBranch}
+            updateBranch={updateBranch}
+          />
+        ) : null}
       </div>
+
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="subCity">
+            Sub-city / Area <span className="text-error">*</span>
+          </label>
+          <input
+            className={fieldClassName(Boolean(errors.subCity))}
+            id="subCity"
+            onChange={(e) => update("subCity", e.target.value)}
+            type="text"
+            value={form.subCity}
+          />
+          {errors.subCity ? <p className={errorClassName}>{errors.subCity}</p> : null}
+        </div>
+      ) : null}
 
       <div>
         <label className={labelClassName} htmlFor="phone">
@@ -900,25 +1000,30 @@ function PharmacyFields({ form, errors, update }: PharmacyFieldsProps) {
         <input
           className={fieldClassName(Boolean(errors.phone))}
           id="phone"
-          onChange={(event) => update("phone", event.target.value)}
+          onChange={(e) => update("phone", e.target.value)}
           type="tel"
           value={form.phone}
         />
         {errors.phone ? <p className={errorClassName}>{errors.phone}</p> : null}
+        <p className={phoneHintClassName}>Separate multiple numbers with /</p>
       </div>
 
-      <div>
-        <label className={labelClassName} htmlFor="googleMapsUrl">
-          Google Maps link
-        </label>
-        <input
-          className={fieldClassName(false)}
-          id="googleMapsUrl"
-          onChange={(event) => update("googleMapsUrl", event.target.value)}
-          type="url"
-          value={form.googleMapsUrl}
-        />
-      </div>
+      <SocialMediaFields form={form} update={update} />
+
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="googleMapsUrl">
+            Google Maps link
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="googleMapsUrl"
+            onChange={(e) => update("googleMapsUrl", e.target.value)}
+            type="url"
+            value={form.googleMapsUrl}
+          />
+        </div>
+      ) : null}
     </>
   );
 }
@@ -927,9 +1032,19 @@ type AmbulanceServiceFieldsProps = {
   form: FormState;
   errors: Record<string, string>;
   update: Updater;
+  updateBranch: (id: string, patch: Partial<BranchEntry>) => void;
+  addBranch: () => void;
+  removeBranch: (id: string) => void;
 };
 
-function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFieldsProps) {
+function AmbulanceServiceFields({
+  form,
+  errors,
+  update,
+  updateBranch,
+  addBranch,
+  removeBranch,
+}: AmbulanceServiceFieldsProps) {
   function toggleServiceType(type: string) {
     const next = form.ambulanceServiceTypes.includes(type)
       ? form.ambulanceServiceTypes.filter((t) => t !== type)
@@ -946,7 +1061,7 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
         <input
           className={fieldClassName(Boolean(errors.ambulanceCoverageArea))}
           id="ambulanceCoverageArea"
-          onChange={(event) => update("ambulanceCoverageArea", event.target.value)}
+          onChange={(e) => update("ambulanceCoverageArea", e.target.value)}
           placeholder="e.g. Bole, Kirkos, Yeka — or All Addis Ababa"
           type="text"
           value={form.ambulanceCoverageArea}
@@ -964,7 +1079,7 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
           className={fieldClassName(false)}
           id="ambulanceFleetSize"
           min="1"
-          onChange={(event) => update("ambulanceFleetSize", event.target.value)}
+          onChange={(e) => update("ambulanceFleetSize", e.target.value)}
           type="number"
           value={form.ambulanceFleetSize}
         />
@@ -973,7 +1088,7 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
       <div>
         <label className={labelClassName}>Available 24/7?</label>
         <YesNoToggle
-          onChange={(value) => update("ambulanceAvailable247", value)}
+          onChange={(v) => update("ambulanceAvailable247", v)}
           value={form.ambulanceAvailable247}
         />
         {!form.ambulanceAvailable247 ? (
@@ -984,7 +1099,7 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
             <input
               className={fieldClassName(false)}
               id="ambulanceAvailableHours"
-              onChange={(event) => update("ambulanceAvailableHours", event.target.value)}
+              onChange={(e) => update("ambulanceAvailableHours", e.target.value)}
               placeholder="e.g. Mon–Sat 7am–10pm"
               type="text"
               value={form.ambulanceAvailableHours}
@@ -1019,7 +1134,7 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
         <textarea
           className={`${fieldClassName(false)} min-h-28 py-2`}
           id="ambulanceEquipment"
-          onChange={(event) => update("ambulanceEquipment", event.target.value)}
+          onChange={(e) => update("ambulanceEquipment", e.target.value)}
           placeholder="e.g. Oxygen, Defibrillator, Stretcher, Paramedic staff"
           rows={4}
           value={form.ambulanceEquipment}
@@ -1033,12 +1148,40 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
         <input
           className={fieldClassName(false)}
           id="ambulanceResponseTime"
-          onChange={(event) => update("ambulanceResponseTime", event.target.value)}
+          onChange={(e) => update("ambulanceResponseTime", e.target.value)}
           placeholder="e.g. 10–15 minutes within Bole"
           type="text"
           value={form.ambulanceResponseTime}
         />
       </div>
+
+      <div>
+        <label className={labelClassName}>Branches?</label>
+        <YesNoToggle onChange={(v) => update("hasBranches", v)} value={form.hasBranches} />
+        {form.hasBranches ? (
+          <BranchSection
+            addBranch={addBranch}
+            branches={form.branches}
+            removeBranch={removeBranch}
+            updateBranch={updateBranch}
+          />
+        ) : null}
+      </div>
+
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="subCity">
+            Sub-city / Area
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="subCity"
+            onChange={(e) => update("subCity", e.target.value)}
+            type="text"
+            value={form.subCity}
+          />
+        </div>
+      ) : null}
 
       <div>
         <label className={labelClassName} htmlFor="phone">
@@ -1047,11 +1190,12 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
         <input
           className={fieldClassName(Boolean(errors.phone))}
           id="phone"
-          onChange={(event) => update("phone", event.target.value)}
+          onChange={(e) => update("phone", e.target.value)}
           type="tel"
           value={form.phone}
         />
         {errors.phone ? <p className={errorClassName}>{errors.phone}</p> : null}
+        <p className={phoneHintClassName}>Separate multiple numbers with /</p>
       </div>
 
       <div>
@@ -1061,24 +1205,28 @@ function AmbulanceServiceFields({ form, errors, update }: AmbulanceServiceFields
         <input
           className={fieldClassName(false)}
           id="email"
-          onChange={(event) => update("email", event.target.value)}
+          onChange={(e) => update("email", e.target.value)}
           type="email"
           value={form.email}
         />
       </div>
 
-      <div>
-        <label className={labelClassName} htmlFor="ambulanceBaseLocation">
-          Base location (Google Maps link)
-        </label>
-        <input
-          className={fieldClassName(false)}
-          id="ambulanceBaseLocation"
-          onChange={(event) => update("ambulanceBaseLocation", event.target.value)}
-          type="url"
-          value={form.ambulanceBaseLocation}
-        />
-      </div>
+      <SocialMediaFields form={form} update={update} />
+
+      {!form.hasBranches ? (
+        <div>
+          <label className={labelClassName} htmlFor="ambulanceBaseLocation">
+            Base location (Google Maps link)
+          </label>
+          <input
+            className={fieldClassName(false)}
+            id="ambulanceBaseLocation"
+            onChange={(e) => update("ambulanceBaseLocation", e.target.value)}
+            type="url"
+            value={form.ambulanceBaseLocation}
+          />
+        </div>
+      ) : null}
     </>
   );
 }
@@ -1099,7 +1247,7 @@ function OtherFields({ form, errors, update }: OtherFieldsProps) {
         <textarea
           className={`${fieldClassName(Boolean(errors.otherDescription))} min-h-28 py-2`}
           id="otherDescription"
-          onChange={(event) => update("otherDescription", event.target.value)}
+          onChange={(e) => update("otherDescription", e.target.value)}
           rows={4}
           value={form.otherDescription}
         />
@@ -1115,11 +1263,12 @@ function OtherFields({ form, errors, update }: OtherFieldsProps) {
         <input
           className={fieldClassName(Boolean(errors.phone))}
           id="phone"
-          onChange={(event) => update("phone", event.target.value)}
+          onChange={(e) => update("phone", e.target.value)}
           type="tel"
           value={form.phone}
         />
         {errors.phone ? <p className={errorClassName}>{errors.phone}</p> : null}
+        <p className={phoneHintClassName}>Separate multiple numbers with /</p>
       </div>
 
       <div>
@@ -1129,7 +1278,7 @@ function OtherFields({ form, errors, update }: OtherFieldsProps) {
         <input
           className={fieldClassName(Boolean(errors.subCity))}
           id="subCity"
-          onChange={(event) => update("subCity", event.target.value)}
+          onChange={(e) => update("subCity", e.target.value)}
           type="text"
           value={form.subCity}
         />
@@ -1178,21 +1327,17 @@ export function RegisterPage() {
   function updateFacilityEntry(id: string, patch: Partial<FacilityEntry>) {
     setForm((prev) => ({
       ...prev,
-      facilityEntries: prev.facilityEntries.map((entry) =>
-        entry.id === id ? { ...entry, ...patch } : entry,
-      ),
+      facilityEntries: prev.facilityEntries.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     }));
   }
 
   function toggleFacilityDay(id: string, day: string) {
     setForm((prev) => ({
       ...prev,
-      facilityEntries: prev.facilityEntries.map((entry) => {
-        if (entry.id !== id) return entry;
-        const days = entry.days.includes(day)
-          ? entry.days.filter((d) => d !== day)
-          : [...entry.days, day];
-        return { ...entry, days };
+      facilityEntries: prev.facilityEntries.map((e) => {
+        if (e.id !== id) return e;
+        const days = e.days.includes(day) ? e.days.filter((d) => d !== day) : [...e.days, day];
+        return { ...e, days };
       }),
     }));
   }
@@ -1207,7 +1352,7 @@ export function RegisterPage() {
   function removeFacilityEntry(id: string) {
     setForm((prev) => ({
       ...prev,
-      facilityEntries: prev.facilityEntries.filter((entry) => entry.id !== id),
+      facilityEntries: prev.facilityEntries.filter((e) => e.id !== id),
     }));
   }
 
@@ -1233,67 +1378,69 @@ export function RegisterPage() {
   }
 
   function validate(): Record<string, string> {
-    const nextErrors: Record<string, string> = {};
+    const errs: Record<string, string> = {};
 
-    if (!form.name.trim()) nextErrors.name = "This field is required.";
-    if (!form.phone.trim()) nextErrors.phone = "Phone is required.";
-    if (!form.submitterName.trim()) nextErrors.submitterName = "Your name is required.";
-    if (!form.submitterContact.trim()) nextErrors.submitterContact = "Your contact is required.";
+    if (!form.name.trim()) errs.name = "This field is required.";
+    if (!form.phone.trim()) errs.phone = "Phone is required.";
+    if (!form.submitterName.trim()) errs.submitterName = "Your name is required.";
+    if (!form.submitterContact.trim()) errs.submitterContact = "Your contact is required.";
 
     if (providerType === "Specialist") {
       if (!form.specialty.trim()) {
-        nextErrors.specialty = "Please select a specialty.";
+        errs.specialty = "Please select a specialty.";
       } else if (form.specialty === "Other" && !form.specialtyOther.trim()) {
-        nextErrors.specialtyOther = "Please enter the specialty.";
+        errs.specialtyOther = "Please enter the specialty.";
       }
-
       const hasPractice = form.facilityEntries.some(
         (e) => e.searchFacility.trim() || e.manualFacility.trim(),
       );
-      if (!hasPractice) nextErrors.facilities = "Please tell us where you practice.";
-
+      if (!hasPractice) errs.facilities = "Please tell us where you practice.";
       form.facilityEntries.forEach((entry) => {
         if (!entry.searchFacility.trim() && !entry.manualFacility.trim()) return;
         if (entry.days.length === 0 || !entry.startTime || !entry.endTime) {
-          nextErrors[`schedule-${entry.id}`] = "Please add consultation days and times.";
+          errs[`schedule-${entry.id}`] = "Please add consultation days and times.";
         }
       });
     }
 
     if (providerType === "Healthcare Facility" || providerType === "Diagnostic Center") {
       if (!form.category.trim()) {
-        nextErrors.category = "Please select a category.";
+        errs.category = "Please select a category.";
       } else if (form.category === "Other" && !form.categoryOther.trim()) {
-        nextErrors.categoryOther = "Please enter the category.";
+        errs.categoryOther = "Please enter the category.";
       }
-      if (!form.majorServices.trim()) nextErrors.majorServices = "Please list major services.";
-      if (!form.opdHours.trim()) nextErrors.opdHours = "OPD hours are required.";
-      if (!form.subCity.trim()) nextErrors.subCity = "Sub-city / area is required.";
+      if (!form.majorServices.trim()) errs.majorServices = "Please list major services.";
+      if (!form.opdHours.trim()) errs.opdHours = "OPD hours are required.";
+      if (!form.hasBranches && !form.subCity.trim()) {
+        errs.subCity = "Sub-city / area is required.";
+      }
       if (form.hasEmergency) {
         if (!form.emergencyType.trim()) {
-          nextErrors.emergencyType = "Please select emergency availability.";
+          errs.emergencyType = "Please select emergency availability.";
         } else if (form.emergencyType === "Limited hours" && !form.emergencyHours.trim()) {
-          nextErrors.emergencyHours = "Please enter emergency hours.";
+          errs.emergencyHours = "Please enter emergency hours.";
         }
       }
     }
 
     if (providerType === "Pharmacy") {
-      if (!form.subCity.trim()) nextErrors.subCity = "Sub-city / area is required.";
+      if (!form.hasBranches && !form.subCity.trim()) {
+        errs.subCity = "Sub-city / area is required.";
+      }
     }
 
     if (providerType === "Ambulance Service") {
       if (!form.ambulanceCoverageArea.trim()) {
-        nextErrors.ambulanceCoverageArea = "Coverage area is required.";
+        errs.ambulanceCoverageArea = "Coverage area is required.";
       }
     }
 
     if (providerType === "Other") {
-      if (!form.otherDescription.trim()) nextErrors.otherDescription = "Please add a description.";
-      if (!form.subCity.trim()) nextErrors.subCity = "Sub-city is required.";
+      if (!form.otherDescription.trim()) errs.otherDescription = "Please add a description.";
+      if (!form.subCity.trim()) errs.subCity = "Sub-city is required.";
     }
 
-    return nextErrors;
+    return errs;
   }
 
   function buildNotes(): Record<string, unknown> {
@@ -1314,6 +1461,7 @@ export function RegisterPage() {
         telemedicineAvailable: form.telemedicineAvailable,
         telemedicineDetails: form.telemedicineAvailable ? form.telemedicineDetails || null : null,
         bookingLink: form.bookingLink || null,
+        linkedin: form.linkedin || null,
       };
     }
 
@@ -1330,11 +1478,14 @@ export function RegisterPage() {
           form.hasEmergency && form.emergencyType === "Limited hours"
             ? form.emergencyHours
             : null,
-        subCity: form.subCity,
+        subCity: form.hasBranches ? null : form.subCity || null,
         address: form.address || null,
         website: form.website || null,
         telegram: form.telegram || null,
-        googleMapsUrl: form.googleMapsUrl || null,
+        facebook: form.facebook || null,
+        instagram: form.instagram || null,
+        tiktok: form.tiktok || null,
+        googleMapsUrl: form.hasBranches ? null : form.googleMapsUrl || null,
         submitterRole: form.submitterRole || null,
       };
 
@@ -1353,8 +1504,13 @@ export function RegisterPage() {
       return {
         services: form.pharmacyServices || null,
         deliveryAvailable: form.deliveryAvailable,
-        subCity: form.subCity,
-        googleMapsUrl: form.googleMapsUrl || null,
+        hasBranches: form.hasBranches,
+        branches: form.hasBranches ? form.branches : [],
+        subCity: form.hasBranches ? null : form.subCity || null,
+        googleMapsUrl: form.hasBranches ? null : form.googleMapsUrl || null,
+        facebook: form.facebook || null,
+        instagram: form.instagram || null,
+        tiktok: form.tiktok || null,
       };
     }
 
@@ -1367,26 +1523,26 @@ export function RegisterPage() {
         serviceTypes: form.ambulanceServiceTypes,
         equipment: form.ambulanceEquipment || null,
         responseTime: form.ambulanceResponseTime || null,
-        baseLocation: form.ambulanceBaseLocation || null,
+        hasBranches: form.hasBranches,
+        branches: form.hasBranches ? form.branches : [],
+        subCity: form.hasBranches ? null : form.subCity || null,
+        baseLocation: form.hasBranches ? null : form.ambulanceBaseLocation || null,
+        facebook: form.facebook || null,
+        instagram: form.instagram || null,
+        tiktok: form.tiktok || null,
       };
     }
 
-    return {
-      description: form.otherDescription,
-      subCity: form.subCity,
-    };
+    return { description: form.otherDescription, subCity: form.subCity };
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const nextErrors = validate();
     setErrors(nextErrors);
-
     if (Object.keys(nextErrors).length > 0) return;
 
     const supabase = getSupabaseBrowserClient();
-
     if (!supabase) {
       setSubmitState("error");
       setSubmitError("Registration is unavailable right now. Please try again later.");
@@ -1428,10 +1584,7 @@ export function RegisterPage() {
             Our team will review your information and contact you at the details you provided
             before your listing goes live. This usually takes 24–48 hours.
           </p>
-          <Link
-            className="mt-5 inline-flex text-sm font-semibold text-green-800 underline"
-            href="/"
-          >
+          <Link className="mt-5 inline-flex text-sm font-semibold text-green-800 underline" href="/">
             ← Back to home
           </Link>
         </div>
@@ -1462,12 +1615,12 @@ export function RegisterPage() {
           <select
             className={fieldClassName(false)}
             id="providerType"
-            onChange={(event) => handleProviderTypeChange(event.target.value as ProviderType)}
+            onChange={(e) => handleProviderTypeChange(e.target.value as ProviderType)}
             value={providerType}
           >
-            {PROVIDER_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
+            {PROVIDER_TYPE_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
               </option>
             ))}
           </select>
@@ -1480,7 +1633,7 @@ export function RegisterPage() {
           <input
             className={fieldClassName(Boolean(errors.name))}
             id="name"
-            onChange={(event) => update("name", event.target.value)}
+            onChange={(e) => update("name", e.target.value)}
             type="text"
             value={form.name}
           />
@@ -1512,11 +1665,25 @@ export function RegisterPage() {
         ) : null}
 
         {providerType === "Pharmacy" ? (
-          <PharmacyFields errors={errors} form={form} update={update} />
+          <PharmacyFields
+            addBranch={addBranch}
+            errors={errors}
+            form={form}
+            removeBranch={removeBranch}
+            update={update}
+            updateBranch={updateBranch}
+          />
         ) : null}
 
         {providerType === "Ambulance Service" ? (
-          <AmbulanceServiceFields errors={errors} form={form} update={update} />
+          <AmbulanceServiceFields
+            addBranch={addBranch}
+            errors={errors}
+            form={form}
+            removeBranch={removeBranch}
+            update={update}
+            updateBranch={updateBranch}
+          />
         ) : null}
 
         {providerType === "Other" ? (
@@ -1534,13 +1701,11 @@ export function RegisterPage() {
           <input
             className={fieldClassName(Boolean(errors.submitterName))}
             id="submitterName"
-            onChange={(event) => update("submitterName", event.target.value)}
+            onChange={(e) => update("submitterName", e.target.value)}
             type="text"
             value={form.submitterName}
           />
-          {errors.submitterName ? (
-            <p className={errorClassName}>{errors.submitterName}</p>
-          ) : null}
+          {errors.submitterName ? <p className={errorClassName}>{errors.submitterName}</p> : null}
         </div>
 
         {providerType === "Healthcare Facility" || providerType === "Diagnostic Center" ? (
@@ -1551,7 +1716,7 @@ export function RegisterPage() {
             <input
               className={fieldClassName(false)}
               id="submitterRole"
-              onChange={(event) => update("submitterRole", event.target.value)}
+              onChange={(e) => update("submitterRole", e.target.value)}
               placeholder="e.g. Manager, Owner, Admin"
               type="text"
               value={form.submitterRole}
@@ -1566,7 +1731,7 @@ export function RegisterPage() {
           <input
             className={fieldClassName(Boolean(errors.submitterContact))}
             id="submitterContact"
-            onChange={(event) => update("submitterContact", event.target.value)}
+            onChange={(e) => update("submitterContact", e.target.value)}
             placeholder="Phone or email"
             type="text"
             value={form.submitterContact}
