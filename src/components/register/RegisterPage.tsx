@@ -1557,6 +1557,19 @@ function getNameLabel(providerType: ProviderType) {
   return "Provider/service name";
 }
 
+const validProviderTypes: ProviderType[] = [
+  "Specialist",
+  "Healthcare Facility",
+  "Diagnostic Center",
+  "Pharmacy",
+  "Ambulance Service",
+  "Other",
+];
+
+function getProviderTypeFromParam(value: string | null): ProviderType {
+  return validProviderTypes.find((type) => type === value) ?? "";
+}
+
 export function RegisterPage() {
   const searchParams = useSearchParams();
   const isUpdate = searchParams.get("update") === "true";
@@ -1568,7 +1581,9 @@ export function RegisterPage() {
     return `${prefix}-${idCounterRef.current}`;
   }
 
-  const [providerType, setProviderType] = useState<ProviderType>("");
+  const [providerType, setProviderType] = useState<ProviderType>(() =>
+    getProviderTypeFromParam(searchParams.get("type")),
+  );
   const [form, setForm] = useState<FormState>(() => createInitialState(updateName));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitState, setSubmitState] = useState<SubmitState>("idle");

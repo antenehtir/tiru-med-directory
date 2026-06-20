@@ -38,7 +38,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
   const detailHref = doctor.detailHref ?? `/doctors/${doctor.slug}`;
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-5">
+    <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition active:scale-[0.98] sm:p-5">
       <div className="flex flex-col items-start gap-3 min-[720px]:flex-row min-[720px]:justify-between">
         <div className="flex min-w-0 items-center gap-3 self-stretch">
           <DoctorPhoto doctor={doctor} />

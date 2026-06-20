@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
@@ -17,7 +18,7 @@ function FacilityLogo({ facility }: { facility: Facility }) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         alt=""
-        className="size-10 shrink-0 rounded-xl border border-border bg-muted object-cover"
+        className="size-12 shrink-0 rounded-xl border border-border bg-muted object-cover"
         src={facility.logoUrl}
       />
     );
@@ -25,7 +26,7 @@ function FacilityLogo({ facility }: { facility: Facility }) {
 
   return (
     <div
-      className={`flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-sm font-bold ${getAvatarColorClasses(facility.name)}`}
+      className={`flex size-12 shrink-0 items-center justify-center rounded-xl border border-border text-sm font-bold ${getAvatarColorClasses(facility.name)}`}
     >
       {facility.name.charAt(0).toUpperCase()}
     </div>
@@ -39,7 +40,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
   const mapAction = contactActions.find((action) => action.kind === "maps");
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md">
+    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md active:scale-[0.98]">
       <div className="flex items-center gap-3">
         <FacilityLogo facility={facility} />
         <div className="min-w-0 flex-1">
@@ -75,27 +76,29 @@ export function FacilityCard({ facility }: FacilityCardProps) {
         {facility.workingHours}
       </div>
 
-      <div className="mt-3 grid gap-2 min-[520px]:grid-cols-3">
+      <div className="mt-3 flex gap-2">
         {callAction ? (
           <a
-            className="flex min-h-10 items-center justify-center rounded-full border border-border bg-transparent px-3 text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
+            className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
             href={callAction.href}
             {...getExternalLinkProps(callAction)}
           >
+            <PhoneIcon className="size-4 shrink-0" />
             Call
           </a>
         ) : null}
         {mapAction ? (
           <a
-            className="flex min-h-10 items-center justify-center rounded-full border border-border bg-transparent px-3 text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
+            className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
             href={mapAction.href}
             {...getExternalLinkProps(mapAction)}
           >
+            <MapPinIcon className="size-4 shrink-0" />
             Map
           </a>
         ) : null}
         <Link
-          className="flex min-h-10 items-center justify-center rounded-full bg-primary px-3 text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}
         >
           View details

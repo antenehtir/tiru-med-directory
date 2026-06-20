@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  specialtySubFilters,
-  type FacilityCategoryFilter,
-} from "@/lib/frontend-search-filters";
+import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 
 const facilityCategories: {
   label: string;
@@ -45,15 +42,11 @@ const facilityCategories: {
 
 type FacilityCategoryFiltersProps = {
   activeCategory?: FacilityCategoryFilter;
-  activeSpecialty?: string;
 };
 
 export function FacilityCategoryFilters({
   activeCategory,
-  activeSpecialty = "",
 }: FacilityCategoryFiltersProps) {
-  const normalizedSpecialty = activeSpecialty.trim().toLowerCase();
-
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.025)]">
       <p className="text-sm font-semibold text-foreground">
@@ -81,36 +74,6 @@ export function FacilityCategoryFilters({
           );
         })}
       </div>
-
-      {activeCategory === "specialty" ? (
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
-          {specialtySubFilters.map((sub) => {
-            const isAll = sub === "All specialties";
-            const subKey = sub.toLowerCase();
-            const isActive = isAll
-              ? !normalizedSpecialty
-              : normalizedSpecialty === subKey;
-            const href = isAll
-              ? "/facilities?category=specialty"
-              : `/facilities?category=specialty&specialty=${encodeURIComponent(sub)}`;
-
-            return (
-              <Link
-                key={sub}
-                className={`flex min-h-8 items-center rounded-full border px-3 text-xs font-semibold ${
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-strong-border"
-                }`}
-                href={href}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {sub}
-              </Link>
-            );
-          })}
-        </div>
-      ) : null}
     </section>
   );
 }

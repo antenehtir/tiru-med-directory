@@ -11,6 +11,7 @@ import { SearchAutocompleteInput } from "@/components/search/SearchAutocompleteI
 import { healthcareCategories, searchAreaOptions } from "@/components/search/search-options";
 import { realFacilities } from "@/data/real-facility-profiles";
 import {
+  extractSpecialtyMatchKeyword,
   filterDoctorsByQuery,
   filterFacilitiesByQuery,
   specialtySubFilters,
@@ -115,7 +116,7 @@ export function SearchResultsPage({ doctors = [] }: SearchResultsPageProps) {
   }
 
   if (isSpecialtyCenters && specialtySubFilter !== "All specialties") {
-    const keyword = specialtySubFilter.toLowerCase();
+    const keyword = extractSpecialtyMatchKeyword(specialtySubFilter).toLowerCase();
     visibleFacilities = visibleFacilities.filter((f) => {
       const text = [f.name, f.category, f.subcategory ?? "", ...f.services]
         .join(" ")

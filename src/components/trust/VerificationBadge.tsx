@@ -31,7 +31,7 @@ export function VerificationBadge({ status }: VerificationBadgeProps) {
 
   return (
     <span
-      className={`inline-flex max-w-full shrink-0 items-center rounded-full px-3 py-1 text-center text-xs font-semibold leading-4 ${badge.className}`}
+      className={`inline-flex max-w-full shrink-0 items-center rounded-full px-2.5 py-1 text-center text-xs font-medium leading-4 ${badge.className}`}
     >
       {badge.label}
     </span>

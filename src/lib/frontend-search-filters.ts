@@ -13,21 +13,29 @@ export type FacilityCategoryFilter =
 export const specialtySubFilters = [
   "All specialties",
   "Internal Medicine",
-  "Pediatrics",
-  "Gynecology",
+  "Pediatrics & Maternal-Child Health",
+  "Gynecology & Obstetrics",
   "General Surgery",
   "Cardiology",
   "Orthopedics",
-  "ENT",
+  "ENT (Ear, Nose, Throat)",
   "Dermatology",
-  "Psychiatry",
-  "Ophthalmology",
+  "Psychiatry & Mental Health",
+  "Ophthalmology (Eye Care)",
   "Physiotherapy",
   "Dental",
   "Neurology",
   "Oncology",
   "Gastroenterology",
+  "Other",
 ];
+
+export function extractSpecialtyMatchKeyword(label: string): string {
+  return label
+    .replace(/\s*\([^)]*\)/g, "")
+    .split("&")[0]
+    .trim();
+}
 
 export function normalizeSearchParam(
   value: string | string[] | undefined,
@@ -41,7 +49,7 @@ export function filterFacilitiesBySpecialtyKeyword(
   facilities: Facility[],
   specialty: string,
 ): Facility[] {
-  const keyword = normalizeQuery(specialty);
+  const keyword = normalizeQuery(extractSpecialtyMatchKeyword(specialty));
 
   if (!keyword || keyword === "all specialties") {
     return facilities;

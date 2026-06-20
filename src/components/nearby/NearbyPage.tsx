@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
+import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
   getExternalLinkProps,
@@ -371,8 +373,9 @@ function NearbyFacilityCard({
   const mapAction = contactActions.find((action) => action.kind === "maps");
 
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)]">
-      <p className="text-xs font-semibold text-muted-foreground">
+    <article className="flex min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition active:scale-[0.98]">
+      <VerificationBadge status={facility.verificationStatus} />
+      <p className="mt-2 text-xs font-semibold text-muted-foreground">
         {facility.category}
       </p>
       <h3 className="mt-2 break-words text-lg font-semibold leading-snug text-foreground">
@@ -386,33 +389,33 @@ function NearbyFacilityCard({
         {facility.location || facility.address}
       </p>
 
-      <div className="mt-auto grid gap-2 pt-4">
+      <div className="mt-4 flex gap-2 pt-1">
+        {callAction ? (
+          <a
+            className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
+            href={callAction.href}
+            {...getExternalLinkProps(callAction)}
+          >
+            <PhoneIcon className="size-4 shrink-0" />
+            Call
+          </a>
+        ) : null}
+        {mapAction ? (
+          <a
+            className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-semibold text-foreground transition hover:border-strong-border"
+            href={mapAction.href}
+            {...getExternalLinkProps(mapAction)}
+          >
+            <MapPinIcon className="size-4 shrink-0" />
+            Map
+          </a>
+        ) : null}
         <Link
-          className="flex min-h-11 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={facility.detailHref ?? `/facilities/${facility.slug}`}
         >
           View details
         </Link>
-        <div className="grid gap-2 min-[420px]:grid-cols-2">
-          {callAction ? (
-            <a
-              className="flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
-              href={callAction.href}
-              {...getExternalLinkProps(callAction)}
-            >
-              {callAction.label}
-            </a>
-          ) : null}
-          {mapAction ? (
-            <a
-              className="flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
-              href={mapAction.href}
-              {...getExternalLinkProps(mapAction)}
-            >
-              Open map
-            </a>
-          ) : null}
-        </div>
       </div>
     </article>
   );
