@@ -7,6 +7,7 @@ import { FacilityHoursSection } from "./FacilityHoursSection";
 import { FacilityInformationSection } from "./FacilityInformationSection";
 import { FacilityServicesSection } from "./FacilityServicesSection";
 import { SimilarFacilitiesSection } from "./SimilarFacilitiesSection";
+import { TrustExplainerStrip } from "./TrustExplainerStrip";
 
 type FacilityDetailPageProps = {
   facility?: Facility;
@@ -30,6 +31,8 @@ export function FacilityDetailPage({
           <FacilityDetailHeader facility={facility} />
           <FacilityActionPanel facility={facility} />
         </div>
+
+        <TrustExplainerStrip status={facility.verificationStatus} />
 
         <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <div className="grid gap-6">

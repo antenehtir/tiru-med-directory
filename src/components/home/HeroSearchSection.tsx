@@ -41,56 +41,6 @@ export function HeroSearchSection() {
               Browse with filter
             </Link>
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700 sm:hidden">
-              <svg
-                aria-hidden="true"
-                className="size-3.5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                viewBox="0 0 24 24"
-              >
-                <path d="M9 6h10M9 12h10M9 18h10M4 6h.01M4 12h.01M4 18h.01" />
-              </svg>
-              100+ Listings &middot; Citywide Coverage
-            </span>
-
-            <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-700 sm:inline-flex">
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                viewBox="0 0 24 24"
-              >
-                <path d="M9 6h10M9 12h10M9 18h10M4 6h.01M4 12h.01M4 18h.01" />
-              </svg>
-              100+ Healthcare Listings
-            </span>
-            <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-700 sm:inline-flex">
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.75}
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2a6 6 0 016 6c0 5-6 12-6 12S6 13 6 8a6 6 0 016-6z" />
-                <circle cx="12" cy="8" r="2" />
-              </svg>
-              Citywide Addis Coverage
-            </span>
-          </div>
         </div>
       </PageContainer>
     </section>

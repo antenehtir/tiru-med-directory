@@ -33,10 +33,7 @@
   --strong-border: #D1D5DB;
   --input: var(--tiru-white);
   --ring: #0F766E;
-  --homepage-background:
-    radial-gradient(circle at 16% 6%, rgba(236, 254, 255, 0.92), transparent 28rem),
-    radial-gradient(circle at 88% 22%, rgba(230, 244, 239, 0.72), transparent 26rem),
-    linear-gradient(180deg, #F7F9FC 0%, #FFFFFF 46%, #F7F9FC 100%);
+  --homepage-background: linear-gradient(180deg, #F7FBFA 0%, #FFFFFF 60%);
 }
 
 [data-theme="dark"] {
@@ -65,10 +62,7 @@
   --strong-border: #4B5563;
   --input: #111827;
   --ring: #14B8A6;
-  --homepage-background:
-    radial-gradient(circle at 18% 8%, rgba(20, 184, 166, 0.13), transparent 28rem),
-    radial-gradient(circle at 88% 20%, rgba(31, 41, 55, 0.92), transparent 26rem),
-    linear-gradient(180deg, #0F172A 0%, #111827 48%, #0F172A 100%);
+  --homepage-background: linear-gradient(180deg, #0F172A 0%, #111827 60%);
 }
 
 @theme inline {
