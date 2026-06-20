@@ -5,27 +5,28 @@ export type FacilityCategoryFilter =
   | "hospital"
   | "specialty"
   | "clinic"
-  | "diagnostics";
+  | "diagnostics"
+  | "pharmacy"
+  | "ambulance"
+  | "home-care";
 
 export const specialtySubFilters = [
   "All specialties",
-  "Cardiology",
-  "Neurology",
-  "Orthopedics",
-  "Ophthalmology",
-  "Dermatology",
-  "Gynecology",
+  "Internal Medicine",
   "Pediatrics",
+  "Gynecology",
+  "General Surgery",
+  "Cardiology",
+  "Orthopedics",
   "ENT",
+  "Dermatology",
   "Psychiatry",
-  "Gastroenterology",
-  "Urology",
-  "Oncology",
-  "Dental",
+  "Ophthalmology",
   "Physiotherapy",
-  "Diabetes",
-  "Nephrology",
-  "Pulmonology",
+  "Dental",
+  "Neurology",
+  "Oncology",
+  "Gastroenterology",
 ];
 
 export function normalizeSearchParam(
@@ -64,7 +65,10 @@ export function normalizeFacilityCategoryParam(
     normalized === "specialty" ||
     normalized === "clinic" ||
     normalized === "diagnostics" ||
-    normalized === "laboratory"
+    normalized === "laboratory" ||
+    normalized === "pharmacy" ||
+    normalized === "ambulance" ||
+    normalized === "home-care"
   ) {
     return normalized === "laboratory" ? "diagnostics" : normalized;
   }
@@ -166,6 +170,18 @@ export function filterFacilitiesByCategory(
       );
     }
 
+    if (category === "pharmacy") {
+      return searchableText.includes("pharmacy");
+    }
+
+    if (category === "ambulance") {
+      return searchableText.includes("ambulance");
+    }
+
+    if (category === "home-care") {
+      return searchableText.includes("home care");
+    }
+
     return (
       searchableText.includes("laboratory") ||
       searchableText.includes("diagnostic") ||
@@ -208,6 +224,18 @@ export function getFacilityCategoryLabel(
 
   if (category === "diagnostics") {
     return "Diagnostics";
+  }
+
+  if (category === "pharmacy") {
+    return "Pharmacies";
+  }
+
+  if (category === "ambulance") {
+    return "Ambulance";
+  }
+
+  if (category === "home-care") {
+    return "Home Care";
   }
 
   return undefined;

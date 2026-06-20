@@ -6,6 +6,7 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 type ProviderType =
+  | ""
   | "Specialist"
   | "Healthcare Facility"
   | "Diagnostic Center"
@@ -71,6 +72,7 @@ type FormState = {
   tiktok: string;
   googleMapsUrl: string;
 
+  diagnosticSubType: string;
   testTypes: string;
   sampleCollectionAvailable: boolean;
   homeSampleCollection: boolean;
@@ -109,23 +111,21 @@ const PROVIDER_TYPE_OPTIONS: { value: ProviderType; label: string }[] = [
 ];
 
 const SPECIALTY_OPTIONS = [
-  "Cardiology",
-  "Neurology",
-  "Orthopedics",
-  "Pediatrics",
-  "Gynecology & Obstetrics",
-  "Dermatology",
-  "Ophthalmology",
-  "ENT",
-  "Psychiatry",
   "Internal Medicine",
+  "Pediatrics & Maternal-Child Health",
+  "Gynecology & Obstetrics",
   "General Surgery",
-  "Urology",
+  "Cardiology",
+  "Orthopedics",
+  "ENT (Ear, Nose, Throat)",
+  "Dermatology",
+  "Psychiatry & Mental Health",
+  "Ophthalmology (Eye Care)",
+  "Physiotherapy",
+  "Dental",
+  "Neurology",
   "Oncology",
-  "Radiology",
-  "Anesthesiology",
-  "Dentistry",
-  "Physical Therapy",
+  "Gastroenterology",
   "Other",
 ];
 
@@ -142,28 +142,23 @@ const FACILITY_CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const SPECIALTY_CENTER_TYPES = [
-  "Cardiology",
-  "Neurology",
-  "Orthopedics",
-  "Ophthalmology",
-  "Dermatology",
-  "Gynecology & Women's Health",
-  "Pediatrics",
-  "ENT",
-  "Psychiatry & Mental Health",
-  "Gastroenterology",
-  "Urology",
-  "Oncology",
-  "Dental & Oral Health",
-  "Physiotherapy & Rehabilitation",
-  "Cosmetic & Plastic Surgery",
-  "Diabetes & Endocrinology",
-  "Kidney & Nephrology",
-  "Pulmonology & Respiratory",
-  "Multiple specialties",
-  "Other",
+const SPECIALTY_CENTER_TYPES = SPECIALTY_OPTIONS;
+
+const DIAGNOSTIC_SUB_TYPES = [
+  "Laboratory only",
+  "Imaging only",
+  "Laboratory & Imaging (both)",
 ];
+
+function isDiagnosticLabIncluded(subType: string) {
+  return subType === "Laboratory only" || subType === "Laboratory & Imaging (both)";
+}
+
+function getTestTypesPlaceholder(subType: string) {
+  if (subType === "Laboratory only") return "e.g. Blood tests, Urine tests, Pathology";
+  if (subType === "Imaging only") return "e.g. MRI, CT Scan, Ultrasound, X-ray";
+  return "e.g. Blood tests, MRI, CT Scan, Ultrasound, X-ray";
+}
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
@@ -231,6 +226,7 @@ function createInitialState(name: string): FormState {
     instagram: "",
     tiktok: "",
     googleMapsUrl: "",
+    diagnosticSubType: "",
     testTypes: "",
     sampleCollectionAvailable: false,
     homeSampleCollection: false,
@@ -818,41 +814,67 @@ function FacilityLikeFields({
 }: FacilityLikeFieldsProps) {
   return (
     <>
-      <div>
-        <label className={labelClassName} htmlFor="category">
-          Category <span className="text-error">*</span>
-        </label>
-        <select
-          className={fieldClassName(Boolean(errors.category))}
-          id="category"
-          onChange={(e) => update("category", e.target.value)}
-          value={form.category}
-        >
-          <option disabled value="">
-            Select a category
-          </option>
-          {FACILITY_CATEGORY_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
+      {!isDiagnostic ? (
+        <div>
+          <label className={labelClassName} htmlFor="category">
+            Category <span className="text-error">*</span>
+          </label>
+          <select
+            className={fieldClassName(Boolean(errors.category))}
+            id="category"
+            onChange={(e) => update("category", e.target.value)}
+            value={form.category}
+          >
+            <option disabled value="">
+              Select a category
             </option>
-          ))}
-        </select>
-        {errors.category ? <p className={errorClassName}>{errors.category}</p> : null}
-        {form.category === "Other" ? (
-          <div className="mt-2">
-            <input
-              className={fieldClassName(Boolean(errors.categoryOther))}
-              onChange={(e) => update("categoryOther", e.target.value)}
-              placeholder="Enter category"
-              type="text"
-              value={form.categoryOther}
-            />
-            {errors.categoryOther ? (
-              <p className={errorClassName}>{errors.categoryOther}</p>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+            {FACILITY_CATEGORY_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+          {errors.category ? <p className={errorClassName}>{errors.category}</p> : null}
+          {form.category === "Other" ? (
+            <div className="mt-2">
+              <input
+                className={fieldClassName(Boolean(errors.categoryOther))}
+                onChange={(e) => update("categoryOther", e.target.value)}
+                placeholder="Enter category"
+                type="text"
+                value={form.categoryOther}
+              />
+              {errors.categoryOther ? (
+                <p className={errorClassName}>{errors.categoryOther}</p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div>
+          <label className={labelClassName} htmlFor="diagnosticSubType">
+            Service type <span className="text-error">*</span>
+          </label>
+          <select
+            className={fieldClassName(Boolean(errors.diagnosticSubType))}
+            id="diagnosticSubType"
+            onChange={(e) => update("diagnosticSubType", e.target.value)}
+            value={form.diagnosticSubType}
+          >
+            <option disabled value="">
+              Select a service type
+            </option>
+            {DIAGNOSTIC_SUB_TYPES.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+          {errors.diagnosticSubType ? (
+            <p className={errorClassName}>{errors.diagnosticSubType}</p>
+          ) : null}
+        </div>
+      )}
 
       {!isDiagnostic && form.category === "Specialty Center" ? (
         <div>
@@ -921,25 +943,29 @@ function FacilityLikeFields({
               className={`${fieldClassName(false)} min-h-28 py-2`}
               id="testTypes"
               onChange={(e) => update("testTypes", e.target.value)}
-              placeholder="e.g. Blood tests, MRI, CT Scan, Ultrasound, X-ray"
+              placeholder={getTestTypesPlaceholder(form.diagnosticSubType)}
               rows={4}
               value={form.testTypes}
             />
           </div>
-          <div>
-            <label className={labelClassName}>Sample collection available?</label>
-            <YesNoToggle
-              onChange={(v) => update("sampleCollectionAvailable", v)}
-              value={form.sampleCollectionAvailable}
-            />
-          </div>
-          <div>
-            <label className={labelClassName}>Home sample collection?</label>
-            <YesNoToggle
-              onChange={(v) => update("homeSampleCollection", v)}
-              value={form.homeSampleCollection}
-            />
-          </div>
+          {isDiagnosticLabIncluded(form.diagnosticSubType) ? (
+            <>
+              <div>
+                <label className={labelClassName}>Sample collection available?</label>
+                <YesNoToggle
+                  onChange={(v) => update("sampleCollectionAvailable", v)}
+                  value={form.sampleCollectionAvailable}
+                />
+              </div>
+              <div>
+                <label className={labelClassName}>Home sample collection?</label>
+                <YesNoToggle
+                  onChange={(v) => update("homeSampleCollection", v)}
+                  value={form.homeSampleCollection}
+                />
+              </div>
+            </>
+          ) : null}
           <div>
             <label className={labelClassName}>Ambulance service available?</label>
             <YesNoToggle
@@ -1542,7 +1568,7 @@ export function RegisterPage() {
     return `${prefix}-${idCounterRef.current}`;
   }
 
-  const [providerType, setProviderType] = useState<ProviderType>("Specialist");
+  const [providerType, setProviderType] = useState<ProviderType>("");
   const [form, setForm] = useState<FormState>(() => createInitialState(updateName));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
@@ -1613,10 +1639,17 @@ export function RegisterPage() {
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {};
 
+    if (!providerType) {
+      errs.providerType = "Please select a provider type";
+      return errs;
+    }
+
     if (!form.name.trim()) errs.name = "This field is required.";
     if (!form.phone.trim()) errs.phone = "Phone is required.";
-    if (!form.submitterName.trim()) errs.submitterName = "Your name is required.";
-    if (!form.submitterContact.trim()) errs.submitterContact = "Your contact is required.";
+    if (providerType !== "Specialist") {
+      if (!form.submitterName.trim()) errs.submitterName = "Your name is required.";
+      if (!form.submitterContact.trim()) errs.submitterContact = "Your contact is required.";
+    }
 
     if (providerType === "Specialist") {
       if (!form.specialty.trim()) {
@@ -1637,23 +1670,28 @@ export function RegisterPage() {
     }
 
     if (providerType === "Healthcare Facility" || providerType === "Diagnostic Center") {
-      if (!form.category.trim()) {
-        errs.category = "Please select a category.";
-      } else if (form.category === "Other" && !form.categoryOther.trim()) {
-        errs.categoryOther = "Please enter the category.";
-      }
-      if (providerType === "Healthcare Facility" && form.category === "Specialty Center") {
-        if (!form.specialtyCenterType.trim()) {
-          errs.specialtyCenterType = "Please select a specialty type.";
-        } else if (
-          form.specialtyCenterType === "Other" &&
-          !form.specialtyCenterTypeOther.trim()
-        ) {
-          errs.specialtyCenterTypeOther = "Please enter the specialty type.";
+      if (providerType === "Healthcare Facility") {
+        if (!form.category.trim()) {
+          errs.category = "Please select a category.";
+        } else if (form.category === "Other" && !form.categoryOther.trim()) {
+          errs.categoryOther = "Please enter the category.";
+        }
+        if (form.category === "Specialty Center") {
+          if (!form.specialtyCenterType.trim()) {
+            errs.specialtyCenterType = "Please select a specialty type.";
+          } else if (
+            form.specialtyCenterType === "Other" &&
+            !form.specialtyCenterTypeOther.trim()
+          ) {
+            errs.specialtyCenterTypeOther = "Please enter the specialty type.";
+          }
+        }
+        if (!form.majorServices.trim()) {
+          errs.majorServices = "Please list major services.";
         }
       }
-      if (providerType === "Healthcare Facility" && !form.majorServices.trim()) {
-        errs.majorServices = "Please list major services.";
+      if (providerType === "Diagnostic Center" && !form.diagnosticSubType.trim()) {
+        errs.diagnosticSubType = "Please select a service type.";
       }
       if (!form.opdHours.trim()) errs.opdHours = "OPD hours are required.";
       if (!form.hasBranches && !form.subCity.trim()) {
@@ -1724,7 +1762,12 @@ export function RegisterPage() {
 
     if (providerType === "Healthcare Facility" || providerType === "Diagnostic Center") {
       const base: Record<string, unknown> = {
-        category: form.category === "Other" ? form.categoryOther : form.category,
+        category:
+          providerType === "Diagnostic Center"
+            ? "Diagnostic Center"
+            : form.category === "Other"
+              ? form.categoryOther
+              : form.category,
         hasBranches: form.hasBranches,
         branches: form.hasBranches ? form.branches : [],
         opdHours: form.opdHours,
@@ -1755,9 +1798,11 @@ export function RegisterPage() {
               : form.specialtyCenterType;
         }
       } else {
+        const labIncluded = isDiagnosticLabIncluded(form.diagnosticSubType);
+        base.diagnosticSubType = form.diagnosticSubType;
         base.testTypes = form.testTypes || null;
-        base.sampleCollectionAvailable = form.sampleCollectionAvailable;
-        base.homeSampleCollection = form.homeSampleCollection;
+        base.sampleCollectionAvailable = labIncluded ? form.sampleCollectionAvailable : false;
+        base.homeSampleCollection = labIncluded ? form.homeSampleCollection : false;
         base.ambulanceAvailable = form.diagnosticAmbulanceAvailable;
         base.ambulanceContact = form.diagnosticAmbulanceAvailable
           ? form.diagnosticAmbulanceContact || null
@@ -1888,140 +1933,158 @@ export function RegisterPage() {
             onChange={(e) => handleProviderTypeChange(e.target.value as ProviderType)}
             value={providerType}
           >
+            <option disabled value="">
+              Select provider type
+            </option>
             {PROVIDER_TYPE_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
           </select>
+          {errors.providerType ? <p className={errorClassName}>{errors.providerType}</p> : null}
         </div>
 
-        <MediaUploadFields form={form} update={update} />
+        {providerType ? (
+          <>
+            {providerType !== "Specialist" ? (
+              <MediaUploadFields form={form} update={update} />
+            ) : null}
 
-        <div>
-          <label className={labelClassName} htmlFor="name">
-            {getNameLabel(providerType)} <span className="text-error">*</span>
-          </label>
-          <input
-            className={fieldClassName(Boolean(errors.name))}
-            id="name"
-            onChange={(e) => update("name", e.target.value)}
-            type="text"
-            value={form.name}
-          />
-          {errors.name ? <p className={errorClassName}>{errors.name}</p> : null}
-        </div>
+            <div>
+              <label className={labelClassName} htmlFor="name">
+                {getNameLabel(providerType)} <span className="text-error">*</span>
+              </label>
+              <input
+                className={fieldClassName(Boolean(errors.name))}
+                id="name"
+                onChange={(e) => update("name", e.target.value)}
+                type="text"
+                value={form.name}
+              />
+              {errors.name ? <p className={errorClassName}>{errors.name}</p> : null}
+            </div>
 
-        {providerType === "Specialist" ? (
-          <SpecialistFields
-            addFacilityEntry={addFacilityEntry}
-            errors={errors}
-            form={form}
-            removeFacilityEntry={removeFacilityEntry}
-            toggleFacilityDay={toggleFacilityDay}
-            update={update}
-            updateFacilityEntry={updateFacilityEntry}
-          />
+            {providerType === "Specialist" ? (
+              <SpecialistFields
+                addFacilityEntry={addFacilityEntry}
+                errors={errors}
+                form={form}
+                removeFacilityEntry={removeFacilityEntry}
+                toggleFacilityDay={toggleFacilityDay}
+                update={update}
+                updateFacilityEntry={updateFacilityEntry}
+              />
+            ) : null}
+
+            {providerType === "Healthcare Facility" || providerType === "Diagnostic Center" ? (
+              <FacilityLikeFields
+                addBranch={addBranch}
+                errors={errors}
+                form={form}
+                isDiagnostic={providerType === "Diagnostic Center"}
+                removeBranch={removeBranch}
+                update={update}
+                updateBranch={updateBranch}
+              />
+            ) : null}
+
+            {providerType === "Pharmacy" ? (
+              <PharmacyFields
+                addBranch={addBranch}
+                errors={errors}
+                form={form}
+                removeBranch={removeBranch}
+                update={update}
+                updateBranch={updateBranch}
+              />
+            ) : null}
+
+            {providerType === "Ambulance Service" ? (
+              <AmbulanceServiceFields
+                addBranch={addBranch}
+                errors={errors}
+                form={form}
+                removeBranch={removeBranch}
+                update={update}
+                updateBranch={updateBranch}
+              />
+            ) : null}
+
+            {providerType === "Other" ? (
+              <OtherFields errors={errors} form={form} update={update} />
+            ) : null}
+
+            {providerType !== "Specialist" ? (
+              <>
+                <div className="my-8 border-t border-border pt-6">
+                  <p className="text-sm font-semibold uppercase text-muted-foreground">
+                    Your details
+                  </p>
+                </div>
+
+                <div>
+                  <label className={labelClassName} htmlFor="submitterName">
+                    Submitter name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    className={fieldClassName(Boolean(errors.submitterName))}
+                    id="submitterName"
+                    onChange={(e) => update("submitterName", e.target.value)}
+                    type="text"
+                    value={form.submitterName}
+                  />
+                  {errors.submitterName ? (
+                    <p className={errorClassName}>{errors.submitterName}</p>
+                  ) : null}
+                </div>
+
+                {providerType === "Healthcare Facility" || providerType === "Diagnostic Center" ? (
+                  <div>
+                    <label className={labelClassName} htmlFor="submitterRole">
+                      Submitter role
+                    </label>
+                    <input
+                      className={fieldClassName(false)}
+                      id="submitterRole"
+                      onChange={(e) => update("submitterRole", e.target.value)}
+                      placeholder="e.g. Manager, Owner, Admin"
+                      type="text"
+                      value={form.submitterRole}
+                    />
+                  </div>
+                ) : null}
+
+                <div>
+                  <label className={labelClassName} htmlFor="submitterContact">
+                    Submitter contact <span className="text-error">*</span>
+                  </label>
+                  <input
+                    className={fieldClassName(Boolean(errors.submitterContact))}
+                    id="submitterContact"
+                    onChange={(e) => update("submitterContact", e.target.value)}
+                    placeholder="Phone or email"
+                    type="text"
+                    value={form.submitterContact}
+                  />
+                  {errors.submitterContact ? (
+                    <p className={errorClassName}>{errors.submitterContact}</p>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+
+            {submitState === "error" ? <p className={errorClassName}>{submitError}</p> : null}
+
+            <button
+              className="mt-8 w-full min-h-12 rounded-xl bg-primary font-semibold text-primary-foreground disabled:opacity-60"
+              disabled={submitState === "submitting"}
+              type="submit"
+            >
+              {submitState === "submitting" ? "Submitting..." : "Submit"}
+            </button>
+          </>
         ) : null}
-
-        {providerType === "Healthcare Facility" || providerType === "Diagnostic Center" ? (
-          <FacilityLikeFields
-            addBranch={addBranch}
-            errors={errors}
-            form={form}
-            isDiagnostic={providerType === "Diagnostic Center"}
-            removeBranch={removeBranch}
-            update={update}
-            updateBranch={updateBranch}
-          />
-        ) : null}
-
-        {providerType === "Pharmacy" ? (
-          <PharmacyFields
-            addBranch={addBranch}
-            errors={errors}
-            form={form}
-            removeBranch={removeBranch}
-            update={update}
-            updateBranch={updateBranch}
-          />
-        ) : null}
-
-        {providerType === "Ambulance Service" ? (
-          <AmbulanceServiceFields
-            addBranch={addBranch}
-            errors={errors}
-            form={form}
-            removeBranch={removeBranch}
-            update={update}
-            updateBranch={updateBranch}
-          />
-        ) : null}
-
-        {providerType === "Other" ? (
-          <OtherFields errors={errors} form={form} update={update} />
-        ) : null}
-
-        <div className="my-8 border-t border-border pt-6">
-          <p className="text-sm font-semibold uppercase text-muted-foreground">Your details</p>
-        </div>
-
-        <div>
-          <label className={labelClassName} htmlFor="submitterName">
-            Submitter name <span className="text-error">*</span>
-          </label>
-          <input
-            className={fieldClassName(Boolean(errors.submitterName))}
-            id="submitterName"
-            onChange={(e) => update("submitterName", e.target.value)}
-            type="text"
-            value={form.submitterName}
-          />
-          {errors.submitterName ? <p className={errorClassName}>{errors.submitterName}</p> : null}
-        </div>
-
-        {providerType === "Healthcare Facility" || providerType === "Diagnostic Center" ? (
-          <div>
-            <label className={labelClassName} htmlFor="submitterRole">
-              Submitter role
-            </label>
-            <input
-              className={fieldClassName(false)}
-              id="submitterRole"
-              onChange={(e) => update("submitterRole", e.target.value)}
-              placeholder="e.g. Manager, Owner, Admin"
-              type="text"
-              value={form.submitterRole}
-            />
-          </div>
-        ) : null}
-
-        <div>
-          <label className={labelClassName} htmlFor="submitterContact">
-            Submitter contact <span className="text-error">*</span>
-          </label>
-          <input
-            className={fieldClassName(Boolean(errors.submitterContact))}
-            id="submitterContact"
-            onChange={(e) => update("submitterContact", e.target.value)}
-            placeholder="Phone or email"
-            type="text"
-            value={form.submitterContact}
-          />
-          {errors.submitterContact ? (
-            <p className={errorClassName}>{errors.submitterContact}</p>
-          ) : null}
-        </div>
-
-        {submitState === "error" ? <p className={errorClassName}>{submitError}</p> : null}
-
-        <button
-          className="mt-8 w-full min-h-12 rounded-xl bg-primary font-semibold text-primary-foreground disabled:opacity-60"
-          disabled={submitState === "submitting"}
-          type="submit"
-        >
-          {submitState === "submitting" ? "Submitting..." : "Submit"}
-        </button>
       </form>
     </div>
   );

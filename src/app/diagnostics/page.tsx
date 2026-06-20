@@ -33,8 +33,16 @@ export default async function DiagnosticsRoute({
 }
 
 async function getDiagnosticsForRoute(): Promise<Facility[]> {
-  return realFacilities.filter((facility) =>
-    facility.category.toLowerCase().includes("diagnostic"),
+  const exactMatches = realFacilities.filter(
+    (facility) => facility.category === "Diagnostic Center",
+  );
+
+  if (exactMatches.length > 0) {
+    return exactMatches;
+  }
+
+  return realFacilities.filter(
+    (facility) => facility.category.toLowerCase() === "diagnostic center",
   );
 }
 

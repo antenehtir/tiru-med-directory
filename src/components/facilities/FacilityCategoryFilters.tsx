@@ -26,6 +26,21 @@ const facilityCategories: {
     href: "/facilities?category=diagnostics",
     value: "diagnostics",
   },
+  {
+    label: "Pharmacies",
+    href: "/facilities?category=pharmacy",
+    value: "pharmacy",
+  },
+  {
+    label: "Ambulance",
+    href: "/facilities?category=ambulance",
+    value: "ambulance",
+  },
+  {
+    label: "Home Care",
+    href: "/facilities?category=home-care",
+    value: "home-care",
+  },
 ];
 
 type FacilityCategoryFiltersProps = {
