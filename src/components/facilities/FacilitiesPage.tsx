@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { Facility } from "@/types/facility";
 import { FacilitiesHero } from "./FacilitiesHero";
 import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
+import { FacilityCategoryHero } from "./FacilityCategoryHero";
 import { FacilitySearchPreview } from "./FacilitySearchPreview";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 
@@ -22,7 +23,44 @@ export function FacilitiesPage({
   activeSpecialty = "",
   facilities = [],
 }: FacilitiesPageProps) {
-  const isFiltered = Boolean(activeCategory || activeQuery);
+  if (activeCategory) {
+    const categoryLabel = activeCategoryLabel ?? activeCategory;
+
+    return (
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
+        <div className="grid gap-6">
+          <FacilityCategoryHero
+            category={activeCategory}
+            categoryLabel={categoryLabel}
+            count={facilities.length}
+          />
+          {facilities.length > 0 ? (
+            <FacilityCardGrid facilities={facilities} />
+          ) : (
+            <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center">
+              <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl border border-border bg-muted text-sm font-bold text-muted-foreground">
+                0
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                No providers listed yet
+              </h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                Try another category or browse all facilities.
+              </p>
+            </section>
+          )}
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t see your {categoryLabel.toLowerCase()}?{" "}
+            <Link className="font-semibold text-primary" href="/register">
+              List it here &rarr;
+            </Link>
+          </p>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const isFiltered = Boolean(activeQuery);
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
@@ -41,7 +79,7 @@ export function FacilitiesPage({
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               {isFiltered
-                ? `Showing facility matches${activeCategoryLabel ? ` for ${activeCategoryLabel.toLowerCase()}` : ""}${activeQuery ? ` matching "${activeQuery}"` : ""}.`
+                ? `Showing facility matches matching "${activeQuery}".`
                 : "Reviewed facility information."}
             </p>
           </div>

@@ -39,4 +39,5 @@ export type Facility = {
   latitude?: number;
   longitude?: number;
   onlineOnly?: boolean;
+  logoUrl?: string;
 };

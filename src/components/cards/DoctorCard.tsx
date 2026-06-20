@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
+import { getAvatarColorClasses } from "@/lib/avatar-color";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 
 type DoctorCardProps = {
@@ -12,6 +13,27 @@ const telemedicineLabels: Record<DoctorTelemedicineStatus, string> = {
   "not-available": "In-person care",
 };
 
+function DoctorPhoto({ doctor }: { doctor: Doctor }) {
+  if (doctor.photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        alt=""
+        className="size-10 shrink-0 rounded-full border border-border bg-muted object-cover"
+        src={doctor.photoUrl}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-sm font-bold ${getAvatarColorClasses(doctor.name)}`}
+    >
+      {doctor.profileInitials}
+    </div>
+  );
+}
+
 export function DoctorCard({ doctor }: DoctorCardProps) {
   const detailHref = doctor.detailHref ?? `/doctors/${doctor.slug}`;
 
@@ -19,9 +41,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
     <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-5">
       <div className="flex flex-col items-start gap-3 min-[720px]:flex-row min-[720px]:justify-between">
         <div className="flex min-w-0 items-center gap-3 self-stretch">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-soft-accent text-sm font-bold text-primary">
-            {doctor.profileInitials}
-          </div>
+          <DoctorPhoto doctor={doctor} />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-muted-foreground">
               {doctor.specialty}

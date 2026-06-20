@@ -4,11 +4,33 @@ import {
   createPublicContactActions,
   getExternalLinkProps,
 } from "@/lib/contact-actions";
+import { getAvatarColorClasses } from "@/lib/avatar-color";
 import type { Facility } from "@/types/facility";
 
 type FacilityCardProps = {
   facility: Facility;
 };
+
+function FacilityLogo({ facility }: { facility: Facility }) {
+  if (facility.logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        alt=""
+        className="size-10 shrink-0 rounded-xl border border-border bg-muted object-cover"
+        src={facility.logoUrl}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-sm font-bold ${getAvatarColorClasses(facility.name)}`}
+    >
+      {facility.name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
 
 export function FacilityCard({ facility }: FacilityCardProps) {
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
@@ -18,13 +40,17 @@ export function FacilityCard({ facility }: FacilityCardProps) {
 
   return (
     <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md">
-      <VerificationBadge status={facility.verificationStatus} />
+      <div className="flex items-center gap-3">
+        <FacilityLogo facility={facility} />
+        <div className="min-w-0 flex-1">
+          <VerificationBadge status={facility.verificationStatus} />
+          <p className="mt-1 text-xs font-semibold leading-5 text-muted-foreground">
+            {facility.category}
+          </p>
+        </div>
+      </div>
 
-      <p className="mt-2 text-xs font-semibold leading-5 text-muted-foreground">
-        {facility.category}
-      </p>
-
-      <h3 className="mt-1 break-words text-lg font-semibold leading-snug text-foreground">
+      <h3 className="mt-2 break-words text-lg font-semibold leading-snug text-foreground">
         {facility.name}
       </h3>
 
