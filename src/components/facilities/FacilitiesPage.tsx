@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { Facility } from "@/types/facility";
 import { facilityCategoryIcons } from "./category-icons";
 import { FacilitiesHero } from "./FacilitiesHero";
+import { FacilityAreaFilteredGrid } from "./FacilityAreaFilteredGrid";
 import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
 import { FacilityCategoryHero } from "./FacilityCategoryHero";
 import { FacilitySearchPreview } from "./FacilitySearchPreview";
@@ -51,7 +52,7 @@ export function FacilitiesPage({
             <SpecialtyFilterDropdown activeSpecialty={activeSpecialty} />
           ) : null}
           {facilities.length > 0 ? (
-            <FacilityCardGrid facilities={facilities} />
+            <FacilityAreaFilteredGrid facilities={facilities} />
           ) : (
             <section className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
               <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground">

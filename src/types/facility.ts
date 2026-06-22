@@ -40,4 +40,5 @@ export type Facility = {
   longitude?: number;
   onlineOnly?: boolean;
   logoUrl?: string;
+  subCity?: string;
 };

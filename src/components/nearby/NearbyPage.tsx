@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
 import { ShareButton } from "@/components/cards/ShareButton";
+import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
@@ -389,6 +390,12 @@ function NearbyFacilityCard({
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {facility.location || facility.address}
       </p>
+
+      {facility.workingHours?.trim() ? (
+        <div className="mt-2">
+          <WorkingHoursIndicator hours={facility.workingHours} />
+        </div>
+      ) : null}
 
       <div className="mt-4 flex gap-2 pt-1">
         {callAction ? (

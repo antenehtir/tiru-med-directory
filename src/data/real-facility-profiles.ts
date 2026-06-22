@@ -187,6 +187,7 @@ function mapRealFacilityProfileToFacility(
     latitude: coordinates?.latitude,
     longitude: coordinates?.longitude,
     onlineOnly: isOnlineOnly ? true : undefined,
+    subCity: profile.sub_city || undefined,
   };
 }
 
