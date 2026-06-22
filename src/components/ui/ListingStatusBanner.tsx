@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 
-const STORAGE_KEY = "tiru-listing-status-banner-dismissed";
-const DISMISS_EVENT = "tiru-listing-status-banner-dismiss";
+const STORAGE_KEY = "tiru-status-banner-dismissed";
+const DISMISS_EVENT = "tiru-status-banner-dismiss";
 
 function readIsDismissed(): boolean {
   try {
@@ -49,10 +49,23 @@ export function ListingStatusBanner() {
   }
 
   return (
-    <div className="relative grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 sm:gap-4">
+    <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <VerificationBadge status="community-submitted" />
+          <span className="text-xs text-muted-foreground">
+            Community sourced — verify with provider
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <VerificationBadge status="verified" />
+          <span className="text-xs text-muted-foreground">Verified by Tiru team</span>
+        </div>
+      </div>
+
       <button
         aria-label="Dismiss"
-        className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         onClick={dismiss}
         type="button"
       >
@@ -71,26 +84,6 @@ export function ListingStatusBanner() {
           />
         </svg>
       </button>
-
-      <div className="flex gap-2 pr-6">
-        <VerificationBadge status="community-submitted" />
-        <p className="text-sm leading-6 text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            CS — Community Submitted:
-          </span>{" "}
-          Information sourced from public social media and community
-          platforms. Verify details directly with the provider.
-        </p>
-      </div>
-
-      <div className="flex gap-2 pr-6">
-        <VerificationBadge status="verified" />
-        <p className="text-sm leading-6 text-muted-foreground">
-          <span className="font-semibold text-foreground">✓ Verified:</span>{" "}
-          Confirmed accurate by the Tiru team following direct communication
-          with the provider.
-        </p>
-      </div>
     </div>
   );
 }
