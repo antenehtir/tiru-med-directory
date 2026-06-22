@@ -15,13 +15,17 @@ type ProviderType =
   | "Ambulance Service"
   | "Other";
 
+type DaySchedule = {
+  day: string;
+  start: string;
+  end: string;
+};
+
 type FacilityEntry = {
   id: string;
   searchFacility: string;
   manualFacility: string;
-  days: string[];
-  startTime: string;
-  endTime: string;
+  schedule: DaySchedule[];
 };
 
 type BranchEntry = {
@@ -166,7 +170,7 @@ const AMBULANCE_SERVICE_TYPES = [
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function createFacilityEntry(id: string): FacilityEntry {
-  return { id, searchFacility: "", manualFacility: "", days: [], startTime: "", endTime: "" };
+  return { id, searchFacility: "", manualFacility: "", schedule: [] };
 }
 
 function createBranchEntry(id: string): BranchEntry {
@@ -270,22 +274,96 @@ function YesNoToggle({ value, onChange }: { value: boolean; onChange: (v: boolea
   );
 }
 
-function DayPills({ days, onToggle }: { days: string[]; onToggle: (day: string) => void }) {
+const timeInputClassName =
+  "min-h-9 w-28 rounded-lg border border-border px-2 text-sm";
+
+type ScheduleGridProps = {
+  entryId: string;
+  schedule: DaySchedule[];
+  onToggleDay: (day: string) => void;
+  onChangeTime: (day: string, field: "start" | "end", value: string) => void;
+  onApplyAll: (start: string, end: string) => void;
+};
+
+function ScheduleGrid({
+  entryId,
+  schedule,
+  onToggleDay,
+  onChangeTime,
+  onApplyAll,
+}: ScheduleGridProps) {
+  const [applyStart, setApplyStart] = useState("");
+  const [applyEnd, setApplyEnd] = useState("");
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {DAYS.map((day) => {
-        const active = days.includes(day);
-        return (
-          <button
-            className={`${toggleBaseClassName} ${active ? toggleActiveClassName : toggleInactiveClassName}`}
-            key={day}
-            onClick={() => onToggle(day)}
-            type="button"
-          >
-            {day}
-          </button>
-        );
-      })}
+    <div>
+      <div className="grid gap-2">
+        {DAYS.map((day) => {
+          const daySchedule = schedule.find((s) => s.day === day);
+          const checked = Boolean(daySchedule);
+
+          return (
+            <div
+              className={`flex items-center gap-3 ${checked ? "" : "opacity-50"}`}
+              key={day}
+            >
+              <input
+                checked={checked}
+                id={`schedule-${entryId}-${day}`}
+                onChange={() => onToggleDay(day)}
+                type="checkbox"
+              />
+              <label className="text-sm font-medium w-10" htmlFor={`schedule-${entryId}-${day}`}>
+                {day}
+              </label>
+              {checked ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    aria-label={`${day} start time`}
+                    className={timeInputClassName}
+                    onChange={(e) => onChangeTime(day, "start", e.target.value)}
+                    type="time"
+                    value={daySchedule?.start ?? ""}
+                  />
+                  <span className="text-xs text-muted-foreground">to</span>
+                  <input
+                    aria-label={`${day} end time`}
+                    className={timeInputClassName}
+                    onChange={(e) => onChangeTime(day, "end", e.target.value)}
+                    type="time"
+                    value={daySchedule?.end ?? ""}
+                  />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-muted/50 p-3">
+        <input
+          aria-label="Time to apply to all active days - start"
+          className={timeInputClassName}
+          onChange={(e) => setApplyStart(e.target.value)}
+          type="time"
+          value={applyStart}
+        />
+        <span className="text-xs text-muted-foreground">to</span>
+        <input
+          aria-label="Time to apply to all active days - end"
+          className={timeInputClassName}
+          onChange={(e) => setApplyEnd(e.target.value)}
+          type="time"
+          value={applyEnd}
+        />
+        <button
+          className="text-xs font-medium text-primary"
+          onClick={() => onApplyAll(applyStart, applyEnd)}
+          type="button"
+        >
+          Apply to all
+        </button>
+      </div>
     </div>
   );
 }
@@ -530,7 +608,9 @@ type SpecialistFieldsProps = {
   form: FormState;
   errors: Record<string, string>;
   update: Updater;
-  toggleFacilityDay: (id: string, day: string) => void;
+  toggleScheduleDay: (id: string, day: string) => void;
+  updateScheduleDayTime: (id: string, day: string, field: "start" | "end", value: string) => void;
+  applyScheduleToAllDays: (id: string, start: string, end: string) => void;
   updateFacilityEntry: (id: string, patch: Partial<FacilityEntry>) => void;
   addFacilityEntry: () => void;
   removeFacilityEntry: (id: string) => void;
@@ -540,7 +620,9 @@ function SpecialistFields({
   form,
   errors,
   update,
-  toggleFacilityDay,
+  toggleScheduleDay,
+  updateScheduleDayTime,
+  applyScheduleToAllDays,
   updateFacilityEntry,
   addFacilityEntry,
   removeFacilityEntry,
@@ -667,40 +749,21 @@ function SpecialistFields({
 
             <div className="mt-3">
               <label className={labelClassName}>
-                Consultation days <span className="text-error">*</span>
+                Consultation schedule <span className="text-error">*</span>
               </label>
-              <DayPills days={entry.days} onToggle={(day) => toggleFacilityDay(entry.id, day)} />
+              <ScheduleGrid
+                entryId={entry.id}
+                onApplyAll={(start, end) => applyScheduleToAllDays(entry.id, start, end)}
+                onChangeTime={(day, field, value) =>
+                  updateScheduleDayTime(entry.id, day, field, value)
+                }
+                onToggleDay={(day) => toggleScheduleDay(entry.id, day)}
+                schedule={entry.schedule}
+              />
+              {errors[`schedule-${entry.id}`] ? (
+                <p className={errorClassName}>{errors[`schedule-${entry.id}`]}</p>
+              ) : null}
             </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClassName} htmlFor={`start-time-${entry.id}`}>
-                  Start time
-                </label>
-                <input
-                  className={fieldClassName(false)}
-                  id={`start-time-${entry.id}`}
-                  onChange={(e) => updateFacilityEntry(entry.id, { startTime: e.target.value })}
-                  type="time"
-                  value={entry.startTime}
-                />
-              </div>
-              <div>
-                <label className={labelClassName} htmlFor={`end-time-${entry.id}`}>
-                  End time
-                </label>
-                <input
-                  className={fieldClassName(false)}
-                  id={`end-time-${entry.id}`}
-                  onChange={(e) => updateFacilityEntry(entry.id, { endTime: e.target.value })}
-                  type="time"
-                  value={entry.endTime}
-                />
-              </div>
-            </div>
-            {errors[`schedule-${entry.id}`] ? (
-              <p className={errorClassName}>{errors[`schedule-${entry.id}`]}</p>
-            ) : null}
           </div>
         ))}
 
@@ -1619,13 +1682,43 @@ export function RegisterPage() {
     }));
   }
 
-  function toggleFacilityDay(id: string, day: string) {
+  function toggleScheduleDay(id: string, day: string) {
     setForm((prev) => ({
       ...prev,
       facilityEntries: prev.facilityEntries.map((e) => {
         if (e.id !== id) return e;
-        const days = e.days.includes(day) ? e.days.filter((d) => d !== day) : [...e.days, day];
-        return { ...e, days };
+        const exists = e.schedule.some((s) => s.day === day);
+        const schedule = exists
+          ? e.schedule.filter((s) => s.day !== day)
+          : [...e.schedule, { day, start: "", end: "" }];
+        return { ...e, schedule };
+      }),
+    }));
+  }
+
+  function updateScheduleDayTime(
+    id: string,
+    day: string,
+    field: "start" | "end",
+    value: string,
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      facilityEntries: prev.facilityEntries.map((e) => {
+        if (e.id !== id) return e;
+        const schedule = e.schedule.map((s) => (s.day === day ? { ...s, [field]: value } : s));
+        return { ...e, schedule };
+      }),
+    }));
+  }
+
+  function applyScheduleToAllDays(id: string, start: string, end: string) {
+    setForm((prev) => ({
+      ...prev,
+      facilityEntries: prev.facilityEntries.map((e) => {
+        if (e.id !== id) return e;
+        const schedule = e.schedule.map((s) => ({ ...s, start, end }));
+        return { ...e, schedule };
       }),
     }));
   }
@@ -1697,8 +1790,9 @@ export function RegisterPage() {
       if (!hasPractice) errs.facilities = "Please tell us where you practice.";
       form.facilityEntries.forEach((entry) => {
         if (!entry.searchFacility.trim() && !entry.manualFacility.trim()) return;
-        if (entry.days.length === 0 || !entry.startTime || !entry.endTime) {
-          errs[`schedule-${entry.id}`] = "Please add consultation days and times.";
+        const hasValidDay = entry.schedule.some((s) => s.start && s.end);
+        if (!hasValidDay) {
+          errs[`schedule-${entry.id}`] = "Please add at least one day with start and end time.";
         }
       });
     }
@@ -1793,9 +1887,9 @@ export function RegisterPage() {
           .map((e) => ({
             tiruFacility: e.searchFacility || null,
             manualFacility: e.manualFacility || null,
-            days: e.days,
-            startTime: e.startTime || null,
-            endTime: e.endTime || null,
+            schedule: e.schedule
+              .filter((s) => s.start && s.end)
+              .map((s) => ({ day: s.day, start: s.start, end: s.end })),
           })),
         telemedicineAvailable: form.telemedicineAvailable,
         telemedicineDetails: form.telemedicineAvailable ? form.telemedicineDetails || null : null,
@@ -2015,12 +2109,14 @@ export function RegisterPage() {
             {providerType === "Specialist" ? (
               <SpecialistFields
                 addFacilityEntry={addFacilityEntry}
+                applyScheduleToAllDays={applyScheduleToAllDays}
                 errors={errors}
                 form={form}
                 removeFacilityEntry={removeFacilityEntry}
-                toggleFacilityDay={toggleFacilityDay}
+                toggleScheduleDay={toggleScheduleDay}
                 update={update}
                 updateFacilityEntry={updateFacilityEntry}
+                updateScheduleDayTime={updateScheduleDayTime}
               />
             ) : null}
 
