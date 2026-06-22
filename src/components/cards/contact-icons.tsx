@@ -38,3 +38,23 @@ export function MapPinIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
+      <path d="M5 13v5a2 2 0 002 2h10a2 2 0 002-2v-5" />
+    </svg>
+  );
+}

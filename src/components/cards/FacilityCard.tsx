@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
+import { ShareButton } from "@/components/cards/ShareButton";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
@@ -12,7 +13,7 @@ type FacilityCardProps = {
   facility: Facility;
 };
 
-function FacilityLogo({ facility }: { facility: Facility }) {
+export function FacilityLogo({ facility }: { facility: Facility }) {
   if (facility.logoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -97,6 +98,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
             Map
           </a>
         ) : null}
+        <ShareButton name={facility.name} slug={facility.slug} />
         <Link
           className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}

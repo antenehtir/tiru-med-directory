@@ -1,4 +1,4 @@
-import { FeaturedFacilityStrip } from "./FeaturedFacilityStrip";
+import { CategoryShowcaseSection } from "./CategoryShowcaseSection";
 import { HeroSearchSection } from "./HeroSearchSection";
 import { PromoBanner } from "./PromoBanner";
 import { QuickCategoriesSection } from "./QuickCategoriesSection";
@@ -10,7 +10,7 @@ export function Homepage() {
       <HeroSearchSection />
       <QuickCategoriesSection />
       <PromoBanner />
-      <FeaturedFacilityStrip />
+      <CategoryShowcaseSection />
       <TrustStatsSection />
     </div>
   );

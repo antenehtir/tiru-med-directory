@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
+import { ShareButton } from "@/components/cards/ShareButton";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import {
   createPublicContactActions,
@@ -410,6 +411,7 @@ function NearbyFacilityCard({
             Map
           </a>
         ) : null}
+        <ShareButton name={facility.name} slug={facility.slug} />
         <Link
           className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={facility.detailHref ?? `/facilities/${facility.slug}`}
