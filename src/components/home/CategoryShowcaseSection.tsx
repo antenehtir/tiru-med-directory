@@ -74,6 +74,40 @@ function AmbulanceIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+function HeartPulseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+    </svg>
+  );
+}
+
+function FlaskIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11l-4 4h14l-4-4V3" />
+    </svg>
+  );
+}
+
 const showcaseCategories = [
   {
     cta: "Browse specialists →",
@@ -99,6 +133,22 @@ const showcaseCategories = [
     subtitle: "Ambulance providers across Addis Ababa",
     title: "Emergency Services",
   },
+  {
+    cta: "Browse specialty centers →",
+    gradient: "from-violet-500 to-violet-700",
+    href: "/facilities?category=specialty",
+    icon: HeartPulseIcon,
+    subtitle: "Focused specialist units across Addis Ababa",
+    title: "Specialty Centers",
+  },
+  {
+    cta: "Find diagnostics →",
+    gradient: "from-blue-500 to-blue-700",
+    href: "/diagnostics",
+    icon: FlaskIcon,
+    subtitle: "Labs, imaging and diagnostic centers",
+    title: "Diagnostics",
+  },
 ];
 
 export function CategoryShowcaseSection() {
@@ -108,13 +158,13 @@ export function CategoryShowcaseSection() {
         <h2 className="mb-4 text-xl font-semibold text-foreground">
           Quick access
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {showcaseCategories.map((category) => {
             const Icon = category.icon;
 
             return (
               <Link
-                className={`relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 transition-transform hover:scale-[1.02] ${category.gradient}`}
+                className={`relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 transition-transform hover:scale-[1.02] lg:min-h-48 ${category.gradient}`}
                 href={category.href}
                 key={category.title}
               >

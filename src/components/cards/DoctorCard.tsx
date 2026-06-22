@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { ShareButton } from "@/components/cards/ShareButton";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
-import { getAvatarColorClasses } from "@/lib/avatar-color";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 
 type DoctorCardProps = {
@@ -19,16 +19,14 @@ function DoctorPhoto({ doctor }: { doctor: Doctor }) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         alt=""
-        className="size-10 shrink-0 rounded-full border border-border bg-muted object-cover"
+        className="size-10 shrink-0 rounded-full border border-border bg-primary/10 object-cover"
         src={doctor.photoUrl}
       />
     );
   }
 
   return (
-    <div
-      className={`flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-sm font-bold ${getAvatarColorClasses(doctor.name)}`}
-    >
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-primary/10 text-sm font-bold text-primary">
       {doctor.profileInitials}
     </div>
   );
@@ -38,7 +36,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
   const detailHref = doctor.detailHref ?? `/doctors/${doctor.slug}`;
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition active:scale-[0.98] sm:p-5">
+    <article className="flex h-full min-w-0 flex-col rounded-3xl border border-border border-l-4 border-l-primary/40 bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition hover:border-l-primary active:scale-[0.98] sm:p-5">
       <div className="flex flex-col items-start gap-3 min-[720px]:flex-row min-[720px]:justify-between">
         <div className="flex min-w-0 items-center gap-3 self-stretch">
           <DoctorPhoto doctor={doctor} />
@@ -49,6 +47,14 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
             <h3 className="mt-1 whitespace-normal text-lg font-semibold leading-snug text-card-foreground">
               {doctor.name}
             </h3>
+            {doctor.facility ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {doctor.facility}
+              </p>
+            ) : null}
+            <span className="mt-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              {doctor.availability || "Schedule available on request"}
+            </span>
           </div>
         </div>
         <VerificationBadge status={doctor.verificationStatus} entityType="doctor" />
@@ -67,9 +73,15 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
         </div>
       </div>
 
-      <div className="mt-auto pt-5">
+      <div className="mt-auto flex gap-2 pt-5">
+        <ShareButton
+          ariaLabel="Share this specialist"
+          name={doctor.name}
+          path="/doctors"
+          slug={doctor.slug}
+        />
         <Link
-          className="flex min-h-12 items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          className="flex min-h-12 flex-[2] items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
           href={detailHref}
         >
           {doctor.profileActionLabel}

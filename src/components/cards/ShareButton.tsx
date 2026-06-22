@@ -4,15 +4,22 @@ import { useState } from "react";
 import { ShareIcon } from "@/components/cards/contact-icons";
 
 type ShareButtonProps = {
+  ariaLabel?: string;
   name: string;
+  path?: string;
   slug: string;
 };
 
 const SITE_URL = "https://tiru-med-directory.vercel.app";
 
-export function ShareButton({ name, slug }: ShareButtonProps) {
+export function ShareButton({
+  ariaLabel = "Share this facility",
+  name,
+  path = "/facilities",
+  slug,
+}: ShareButtonProps) {
   const [showCopied, setShowCopied] = useState(false);
-  const url = `${SITE_URL}/facilities/${slug}`;
+  const url = `${SITE_URL}${path}/${slug}`;
 
   async function handleShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -40,7 +47,7 @@ export function ShareButton({ name, slug }: ShareButtonProps) {
   return (
     <div className="relative flex-1">
       <button
-        aria-label="Share this facility"
+        aria-label={ariaLabel}
         className="flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-medium text-foreground transition hover:border-strong-border"
         onClick={handleShare}
         type="button"

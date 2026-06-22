@@ -53,8 +53,9 @@ export function ShareIcon(props: SVGProps<SVGSVGElement>) {
       aria-hidden="true"
       {...props}
     >
-      <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
-      <path d="M5 13v5a2 2 0 002 2h10a2 2 0 002-2v-5" />
+      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
     </svg>
   );
 }

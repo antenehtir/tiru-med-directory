@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { FacilityLogo } from "@/components/cards/FacilityCard";
-import { PageContainer } from "@/components/layout/PageContainer";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { realFacilities } from "@/data/real-facility-profiles";
 
@@ -13,45 +12,31 @@ export function FeaturedFacilityStrip() {
   }
 
   return (
-    <section className="bg-transparent">
-      <PageContainer className="py-6 sm:py-8 lg:py-10">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-2xl font-semibold leading-tight text-foreground">
-            Providers on Tiru
-          </h2>
-          <Link
-            className="inline-flex min-h-10 w-fit items-center rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border"
-            href="/facilities"
-          >
-            Browse all facilities
-          </Link>
+    <>
+      <div className="-mx-4 snap-x snap-mandatory overflow-x-auto scroll-smooth px-4 pb-2 lg:hidden">
+        <div className="flex gap-3">
+          {showcasedFacilities.map((facility) => (
+            <FeaturedFacilityCard
+              className="w-[84vw] max-w-[22rem] snap-start"
+              facility={facility}
+              key={facility.id}
+            />
+          ))}
         </div>
+      </div>
 
-        <div className="-mx-4 mt-5 snap-x snap-mandatory overflow-x-auto scroll-smooth px-4 pb-2 lg:hidden">
-          <div className="flex gap-3">
-            {showcasedFacilities.map((facility) => (
-              <FeaturedFacilityCard
-                className="w-[84vw] max-w-[22rem] snap-start"
-                facility={facility}
-                key={facility.id}
-              />
-            ))}
-          </div>
+      <div className="hidden overflow-hidden lg:block">
+        <div className="homepage-facility-strip flex w-max gap-4 pb-2">
+          {marqueeFacilities.map((facility, index) => (
+            <FeaturedFacilityCard
+              className="w-[17rem]"
+              facility={facility}
+              key={`${facility.slug}-${index}`}
+            />
+          ))}
         </div>
-
-        <div className="mt-5 hidden overflow-hidden lg:block">
-          <div className="homepage-facility-strip flex w-max gap-4 pb-2">
-            {marqueeFacilities.map((facility, index) => (
-              <FeaturedFacilityCard
-                className="w-[17rem]"
-                facility={facility}
-                key={`${facility.slug}-${index}`}
-              />
-            ))}
-          </div>
-        </div>
-      </PageContainer>
-    </section>
+      </div>
+    </>
   );
 }
 

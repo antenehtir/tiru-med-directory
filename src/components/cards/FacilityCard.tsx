@@ -6,7 +6,6 @@ import {
   createPublicContactActions,
   getExternalLinkProps,
 } from "@/lib/contact-actions";
-import { getAvatarColorClasses } from "@/lib/avatar-color";
 import type { Facility } from "@/types/facility";
 
 type FacilityCardProps = {
@@ -19,16 +18,14 @@ export function FacilityLogo({ facility }: { facility: Facility }) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         alt=""
-        className="size-12 shrink-0 rounded-xl border border-border bg-muted object-cover"
+        className="size-12 shrink-0 rounded-xl border border-border bg-primary/10 object-cover"
         src={facility.logoUrl}
       />
     );
   }
 
   return (
-    <div
-      className={`flex size-12 shrink-0 items-center justify-center rounded-xl border border-border text-sm font-bold ${getAvatarColorClasses(facility.name)}`}
-    >
+    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-primary/10 text-sm font-bold text-primary">
       {facility.name.charAt(0).toUpperCase()}
     </div>
   );
@@ -41,7 +38,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
   const mapAction = contactActions.find((action) => action.kind === "maps");
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:shadow-md active:scale-[0.98]">
+    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border border-l-4 border-l-primary/40 bg-card p-4 shadow-sm transition hover:border-l-primary hover:shadow-md active:scale-[0.98]">
       <div className="flex items-center gap-3">
         <FacilityLogo facility={facility} />
         <div className="min-w-0 flex-1">

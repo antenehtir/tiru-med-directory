@@ -22,7 +22,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    value: "10",
+    value: "12",
     label: "Sub-cities Covered",
     icon: (
       <svg
@@ -42,7 +42,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
   },
   {
     value: "24/7",
-    label: "Ambulance Listed",
+    label: "Ambulance Service Available",
     icon: (
       <svg
         aria-hidden="true"
