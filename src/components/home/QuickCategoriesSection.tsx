@@ -26,18 +26,21 @@ const categories = [
     description: "Full-service private hospitals",
     href: "/facilities?category=hospital",
     icon: facilityCategoryIcons.hospital,
+    borderTopClass: "border-t-blue-400",
   },
   {
     label: "Specialty Centers",
     description: "Focused care and specialist units",
     href: "/facilities?category=specialty",
     icon: facilityCategoryIcons.specialty,
+    borderTopClass: "border-t-violet-400",
   },
   {
     label: "Clinics",
     description: "Primary and outpatient care",
     href: "/facilities?category=clinic",
     icon: facilityCategoryIcons.clinic,
+    borderTopClass: "border-t-teal-400",
   },
   {
     label: "Specialists",
@@ -50,30 +53,35 @@ const categories = [
         <circle cx="18" cy="19" r="2" />
       </CategoryIcon>
     ),
+    borderTopClass: "border-t-teal-600",
   },
   {
     label: "Diagnostics",
     description: "Labs, imaging, and tests",
     href: "/diagnostics",
     icon: facilityCategoryIcons.diagnostics,
+    borderTopClass: "border-t-blue-500",
   },
   {
     label: "Pharmacies",
     description: "Medicine access points",
     href: "/pharmacies",
     icon: facilityCategoryIcons.pharmacy,
+    borderTopClass: "border-t-green-400",
   },
   {
     label: "Ambulance",
     description: "Emergency transport",
     href: "/facilities?category=ambulance",
     icon: facilityCategoryIcons.ambulance,
+    borderTopClass: "border-t-red-400",
   },
   {
     label: "Home Care",
     description: "Care at your home",
     href: "/facilities?category=home-care",
     icon: facilityCategoryIcons["home-care"],
+    borderTopClass: "border-t-orange-400",
   },
 ];
 
@@ -92,7 +100,7 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-strong-border"
+                  className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border border-t-2 bg-card p-3 transition hover:border-strong-border hover:shadow-md ${category.borderTopClass}`}
                   href={category.href}
                 >
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-soft-accent text-primary">

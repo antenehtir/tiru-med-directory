@@ -48,7 +48,7 @@ export function ShareButton({
     <div className="relative flex-1">
       <button
         aria-label={ariaLabel}
-        className="flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card text-center text-xs font-medium text-foreground transition hover:border-strong-border"
+        className="flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-medium text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
         onClick={handleShare}
         type="button"
       >
