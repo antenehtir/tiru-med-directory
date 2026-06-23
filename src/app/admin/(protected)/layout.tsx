@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminUser } from "@/lib/supabase/admin-client";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
 
 export const metadata = {
   title: "Tiru Admin",
@@ -46,10 +46,12 @@ export default async function AdminLayout({
         <AdminSidebar />
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:ml-56">
+        <main className="min-w-0 flex-1 px-4 py-8 pb-20 sm:px-8 lg:ml-56 lg:pb-8">
           {children}
         </main>
       </div>
+
+      <AdminBottomNav />
     </div>
   );
 }
