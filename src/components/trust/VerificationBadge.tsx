@@ -3,6 +3,7 @@ import type { VerificationStatus } from "@/types/verification";
 type VerificationBadgeProps = {
   status: VerificationStatus;
   entityType?: "facility" | "doctor";
+  size?: "sm" | "lg";
 };
 
 const badgeContent: Record<
@@ -35,12 +36,14 @@ const badgeContent: Record<
   },
 };
 
-export function VerificationBadge({ status }: VerificationBadgeProps) {
+export function VerificationBadge({ status, size = "sm" }: VerificationBadgeProps) {
   const badge = badgeContent[status];
 
   return (
     <span
-      className={`inline-flex max-w-full shrink-0 items-center rounded-full px-2 py-0.5 text-center text-xs font-bold leading-4 ${badge.className}`}
+      className={`inline-flex max-w-full shrink-0 items-center rounded-full border text-center font-bold leading-4 ${badge.className} ${
+        size === "lg" ? "px-3 py-1.5 text-sm" : "px-2 py-0.5 text-xs"
+      }`}
       title={badge.title}
     >
       {badge.label}

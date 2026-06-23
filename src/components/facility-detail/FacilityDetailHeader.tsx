@@ -16,11 +16,20 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
             {facility.name}
           </h1>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">
-            {facility.subcategory} in {facility.address}
-          </p>
+          {(facility.subcategory || facility.address) ? (
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {facility.subcategory}
+              {facility.subcategory && facility.address ? " in " : ""}
+              {facility.address}
+            </p>
+          ) : null}
         </div>
-        <VerificationBadge status={facility.verificationStatus} />
+        <div className="shrink-0">
+          <VerificationBadge
+            size="lg"
+            status={facility.verificationStatus}
+          />
+        </div>
       </div>
 
       <div
