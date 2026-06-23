@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { DiagnosticsPage } from "@/components/diagnostics/DiagnosticsPage";
 import { PageShell } from "@/components/layout/PageShell";
-import { realFacilities } from "@/data/real-facility-profiles";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { normalizeSearchParam } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Diagnostics — Tiru",
@@ -33,7 +33,8 @@ export default async function DiagnosticsRoute({
 }
 
 async function getDiagnosticsForRoute(): Promise<Facility[]> {
-  const exactMatches = realFacilities.filter(
+  const allFacilities = await getFacilitiesFromDB();
+  const exactMatches = allFacilities.filter(
     (facility) => facility.category === "Diagnostic Center",
   );
 
@@ -41,7 +42,7 @@ async function getDiagnosticsForRoute(): Promise<Facility[]> {
     return exactMatches;
   }
 
-  return realFacilities.filter(
+  return allFacilities.filter(
     (facility) => facility.category.toLowerCase() === "diagnostic center",
   );
 }

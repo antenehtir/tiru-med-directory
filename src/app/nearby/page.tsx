@@ -4,11 +4,11 @@ import {
   NearbyPage,
   type NearbyFacility,
 } from "@/components/nearby/NearbyPage";
-import { realFacilities } from "@/data/real-facility-profiles";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { resolveFacilityCoordinates } from "@/lib/nearby-distance";
 import type { Facility, FacilityContactChannel } from "@/types/facility";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Nearby Care — Tiru",
@@ -25,11 +25,12 @@ type NearbyRouteProps = {
 export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
   const params = await searchParams;
   const selectedCategory = normalizeCategoryParam(params?.category);
+  const allFacilities = await getFacilitiesFromDB();
 
   return (
     <PageShell>
       <NearbyPage
-        facilities={realFacilities.map(mapFacilityToNearbyFacility)}
+        facilities={allFacilities.map(mapFacilityToNearbyFacility)}
         initialCategory={selectedCategory}
       />
     </PageShell>

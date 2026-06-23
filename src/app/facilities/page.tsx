@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FacilitiesPage } from "@/components/facilities/FacilitiesPage";
 import { PageShell } from "@/components/layout/PageShell";
-import { realFacilities } from "@/data/real-facility-profiles";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import {
   filterFacilitiesByCategory,
   filterFacilitiesByQuery,
@@ -11,7 +11,7 @@ import {
   normalizeSearchParam,
 } from "@/lib/frontend-search-filters";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Facilities — Tiru",
@@ -35,9 +35,10 @@ export default async function FacilitiesRoute({
   const query = normalizeSearchParam(params?.q);
   const specialty =
     category === "specialty" ? normalizeSearchParam(params?.specialty) : "";
+  const allFacilities = await getFacilitiesFromDB();
   const facilities = filterFacilitiesBySpecialtyKeyword(
     filterFacilitiesByQuery(
-      filterFacilitiesByCategory(realFacilities, category),
+      filterFacilitiesByCategory(allFacilities, category),
       query,
     ),
     specialty,
