@@ -5,11 +5,11 @@ import { FacilityDetailPage } from "@/components/facility-detail/FacilityDetailP
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageShell } from "@/components/layout/PageShell";
 import {
-  getRealFacilityBySlug,
-  getSimilarRealFacilities,
-} from "@/data/real-facility-profiles";
+  getFacilityBySlug,
+  getSimilarFacilities,
+} from "@/lib/supabase/get-facilities";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type FacilityDetailRouteProps = {
   params: Promise<{
@@ -21,7 +21,7 @@ export async function generateMetadata({
   params,
 }: FacilityDetailRouteProps): Promise<Metadata> {
   const { slug } = await params;
-  const facility = getRealFacilityBySlug(slug);
+  const facility = await getFacilityBySlug(slug);
 
   return {
     title: facility ? `${facility.name} — Tiru` : "Facility — Tiru",
@@ -35,7 +35,7 @@ export default async function FacilityDetailRoute({
   params,
 }: FacilityDetailRouteProps) {
   const { slug } = await params;
-  const facility = getRealFacilityBySlug(slug);
+  const facility = await getFacilityBySlug(slug);
 
   if (!facility) {
     return (
@@ -56,7 +56,7 @@ export default async function FacilityDetailRoute({
     <PageShell>
       <FacilityDetailPage
         facility={facility}
-        similarFacilities={getSimilarRealFacilities(facility)}
+        similarFacilities={await getSimilarFacilities(facility)}
       />
     </PageShell>
   );

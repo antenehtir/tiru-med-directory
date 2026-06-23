@@ -122,6 +122,58 @@ function mapDBRowToFacility(row: DBFacility): Facility {
   };
 }
 
+export async function getFacilityBySlug(slug: string): Promise<Facility | null> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data, error } = await supabase
+      .from("facilities")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (error || !data) {
+      const { getRealFacilityBySlug } = await import("@/data/real-facility-profiles");
+      return getRealFacilityBySlug(slug) ?? null;
+    }
+
+    return mapDBRowToFacility(data as DBFacility);
+  } catch {
+    const { getRealFacilityBySlug } = await import("@/data/real-facility-profiles");
+    return getRealFacilityBySlug(slug) ?? null;
+  }
+}
+
+export async function getSimilarFacilities(
+  facility: Facility,
+  limit = 3,
+): Promise<Facility[]> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data, error } = await supabase
+      .from("facilities")
+      .select("*")
+      .eq("category", facility.category)
+      .neq("slug", facility.slug)
+      .limit(limit);
+
+    if (error || !data || data.length === 0) {
+      const { getSimilarRealFacilities } = await import("@/data/real-facility-profiles");
+      return getSimilarRealFacilities(facility);
+    }
+
+    return data.map((row) => mapDBRowToFacility(row as DBFacility));
+  } catch {
+    const { getSimilarRealFacilities } = await import("@/data/real-facility-profiles");
+    return getSimilarRealFacilities(facility);
+  }
+}
+
 let cachedFacilities: Facility[] | null = null;
 let cacheTime = 0;
 const CACHE_TTL = 60 * 60 * 1000;
