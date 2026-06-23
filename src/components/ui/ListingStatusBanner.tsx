@@ -60,7 +60,7 @@ export function ListingStatusBanner() {
         <div className="flex items-center gap-2">
           <VerificationBadge status="facility-owned" />
           <span className="text-xs text-muted-foreground">
-            Managed by the facility
+            Official — managed directly by the facility
           </span>
         </div>
       </div>

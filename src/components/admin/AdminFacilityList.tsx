@@ -19,7 +19,7 @@ type Facility = {
 
 const BADGE_LABELS: Record<string, string> = {
   "community-submitted": "CS",
-  "facility-owned": "Owned",
+  "facility-owned": "Official",
   "verified": "✓",
 };
 

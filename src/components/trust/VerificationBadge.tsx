@@ -16,7 +16,7 @@ const badgeContent: Record<
     title: "Community submitted — verify details with provider",
   },
   "facility-owned": {
-    label: "Owned",
+    label: "Official",
     className:
       "border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300",
     title: "Managed by the facility — information is provider-maintained",
