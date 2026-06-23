@@ -170,7 +170,10 @@ function mapRealFacilityProfileToFacility(
     ? []
     : normalizedSubCity
         .split("/")
-        .map((s) => s.trim())
+        .map((s) => {
+          const trimmed = s.trim();
+          return subCityAliases[trimmed] ?? trimmed;
+        })
         .filter(Boolean);
 
   return {

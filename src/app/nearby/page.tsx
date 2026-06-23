@@ -18,33 +18,22 @@ export const metadata: Metadata = {
 
 type NearbyRouteProps = {
   searchParams?: Promise<{
-    area?: string | string[];
     category?: string | string[];
   }>;
 };
 
 export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
   const params = await searchParams;
-  const selectedArea = normalizeAreaParam(params?.area);
   const selectedCategory = normalizeCategoryParam(params?.category);
-  const areaOptions = getAreaOptions();
 
   return (
     <PageShell>
       <NearbyPage
-        areaOptions={areaOptions}
         facilities={realFacilities.map(mapFacilityToNearbyFacility)}
         initialCategory={selectedCategory}
-        selectedArea={selectedArea}
       />
     </PageShell>
   );
-}
-
-function normalizeAreaParam(value: string | string[] | undefined): string {
-  const source = Array.isArray(value) ? value[0] : value;
-
-  return source?.trim() ?? "";
 }
 
 function normalizeCategoryParam(value: string | string[] | undefined): string {
@@ -62,14 +51,6 @@ function normalizeCategoryParam(value: string | string[] | undefined): string {
   ].includes(normalized)
     ? normalized
     : "all";
-}
-
-function getAreaOptions(): string[] {
-  return Array.from(
-    new Set(
-      realFacilities.map((facility) => facility.location).filter(Boolean),
-    ),
-  ).sort((left, right) => left.localeCompare(right));
 }
 
 function mapFacilityToNearbyFacility(facility: Facility): NearbyFacility {

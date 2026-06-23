@@ -77,7 +77,11 @@ export function facilityMatchesListingFilters(
     // — always include it regardless of sub-city filter
     const matchesSubCity =
       facility.subCities.length === 0 ||
-      facility.subCities.some((sc) => normalize(sc).includes(needle));
+      facility.subCities.some((sc) => {
+        const normSc = normalize(sc);
+        // Match if either contains the other (handles "kolfe" <-> "kolfe keranio")
+        return normSc.includes(needle) || needle.includes(normSc);
+      });
 
     if (!matchesSubCity) {
       return false;

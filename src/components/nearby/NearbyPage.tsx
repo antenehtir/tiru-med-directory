@@ -10,8 +10,6 @@ import {
 } from "@/components/cards/facility-category-style";
 import { ShareButton } from "@/components/cards/ShareButton";
 import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
-import { FilterModal } from "@/components/search/FilterModal";
-import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import {
   createPublicContactActions,
@@ -20,15 +18,8 @@ import {
 import { SPECIALTY_OPTIONS } from "@/lib/constants/specialty-options";
 import {
   extractSpecialtyMatchKeyword,
-  filterFacilitiesByQuery,
   specialtyMatchesAliases,
 } from "@/lib/frontend-search-filters";
-import {
-  countActiveListingFilters,
-  EMPTY_LISTING_FILTERS,
-  facilityMatchesListingFilters,
-  type ListingFilters,
-} from "@/lib/listing-filters";
 import {
   calculateDistanceKm,
   formatDistanceKm,
@@ -41,10 +32,8 @@ export type NearbyFacility = Facility & {
 };
 
 type NearbyPageProps = {
-  areaOptions: string[];
   facilities: NearbyFacility[];
   initialCategory: string;
-  selectedArea: string;
 };
 
 type LocationState =
@@ -75,31 +64,18 @@ const nearbySpecialtyOptions = SPECIALTY_OPTIONS.filter(
 }));
 
 export function NearbyPage({
-  areaOptions,
   facilities,
   initialCategory,
-  selectedArea,
 }: NearbyPageProps) {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedNearbySpecialty, setSelectedNearbySpecialty] = useState("");
   const [locationState, setLocationState] = useState<LocationState>("idle");
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
-  const [areaBrowseOverride, setAreaBrowseOverride] = useState<boolean | null>(null);
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<ListingFilters>(EMPTY_LISTING_FILTERS);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const hasRequestedLocationRef = useRef(false);
   const locationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const areaBrowseSectionRef = useRef<HTMLElement>(null);
 
-  const searchedFacilities = useMemo(
-    () =>
-      filterFacilitiesByQuery(facilities, query).filter((facility) =>
-        facilityMatchesListingFilters(facility, filters),
-      ),
-    [facilities, query, filters],
-  );
+  const searchedFacilities = facilities;
 
   const categoryFacilities = useMemo(
     () => filterFacilitiesByCategory(searchedFacilities, selectedCategory),
@@ -137,20 +113,11 @@ export function NearbyPage({
       .sort((left, right) => left.distanceKm - right.distanceKm);
   }, [specialtyFilteredFacilities, userLocation]);
 
-  const areaFacilities = selectedArea
-    ? specialtyFilteredFacilities.filter((facility) => facility.location === selectedArea)
-    : [];
-
   const activeCategoryLabel =
     selectedCategory === "all"
       ? "healthcare"
       : categoryOptions.find((category) => category.value === selectedCategory)
           ?.label ?? "healthcare";
-
-  const shouldAutoOpenAreaBrowse =
-    Boolean(selectedArea) ||
-    (locationState === "ready" && rankedFacilities.length === 0);
-  const isAreaBrowseOpen = areaBrowseOverride ?? shouldAutoOpenAreaBrowse;
 
   const clearLocationTimeout = useCallback(() => {
     if (locationTimeoutRef.current) {
@@ -188,14 +155,6 @@ export function NearbyPage({
       { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 },
     );
   }, [clearLocationTimeout]);
-
-  const scrollToAreaBrowse = useCallback(() => {
-    setAreaBrowseOverride(true);
-    areaBrowseSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, []);
 
   useEffect(() => {
     if (hasRequestedLocationRef.current) {
@@ -243,21 +202,6 @@ export function NearbyPage({
       </header>
 
       <ListingStatusBanner />
-
-      <ListingSearchBar
-        activeFilterCount={countActiveListingFilters(filters)}
-        onOpenFilters={() => setIsFilterModalOpen(true)}
-        onSearchChange={setQuery}
-        searchValue={query}
-      />
-
-      <FilterModal
-        filters={filters}
-        isOpen={isFilterModalOpen}
-        onApply={setFilters}
-        onClose={() => setIsFilterModalOpen(false)}
-        onReset={() => setFilters(EMPTY_LISTING_FILTERS)}
-      />
 
       <div className="flex max-w-full flex-wrap gap-2">
         {categoryOptions.map((category) => {
@@ -329,13 +273,6 @@ export function NearbyPage({
           >
             Try again
           </button>
-          <button
-            className="inline-flex min-h-9 items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:border-strong-border"
-            onClick={scrollToAreaBrowse}
-            type="button"
-          >
-            Browse by sub-city &rarr;
-          </button>
         </div>
       ) : null}
 
@@ -392,10 +329,9 @@ export function NearbyPage({
                     🏥 Pharmacies are being onboarded to Tiru.
                   </p>
                   <p className="mt-1 text-sm leading-6 text-primary">
-                    We&apos;re actively adding pharmacies across Addis Ababa. In the
-                    meantime, use the sub-city browser below or{" "}
+                    We&apos;re actively adding pharmacies across Addis Ababa.{" "}
                     <Link className="underline underline-offset-2" href="/register">
-                      list your pharmacy here
+                      List your pharmacy here
                     </Link>
                     .
                   </p>
@@ -407,75 +343,11 @@ export function NearbyPage({
                     added.
                   </p>
                   <p className="mt-1 text-sm leading-6 text-primary">
-                    Browse by sub-city below to find care near you.
+                    Check back soon as we add more providers in your area.
                   </p>
                 </>
               )}
             </div>
-          )}
-        </section>
-      ) : null}
-
-      <section
-        className="rounded-2xl border border-border bg-card p-4 sm:p-5"
-        ref={areaBrowseSectionRef}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold leading-tight text-foreground">
-            Browse by sub-city
-          </h2>
-          <button
-            className="min-h-11 w-full rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-strong-border sm:w-auto"
-            onClick={() => setAreaBrowseOverride(!isAreaBrowseOpen)}
-            type="button"
-          >
-            {isAreaBrowseOpen ? "Hide areas" : "Browse by sub-city"}
-          </button>
-        </div>
-
-        {isAreaBrowseOpen && areaOptions.length > 0 ? (
-          <div className="mt-4 grid max-h-64 min-w-0 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
-            {areaOptions.map((area) => {
-              const isActive = area === selectedArea;
-              const href =
-                selectedCategory === "all"
-                  ? `/nearby?area=${encodeURIComponent(area)}`
-                  : `/nearby?area=${encodeURIComponent(area)}&category=${selectedCategory}`;
-
-              return (
-                <Link
-                  aria-current={isActive ? "page" : undefined}
-                  className={`min-w-0 break-words rounded-xl border px-3 py-2 text-sm font-semibold ${
-                    isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card text-foreground hover:border-strong-border"
-                  }`}
-                  href={href}
-                  key={area}
-                >
-                  {area}
-                </Link>
-              );
-            })}
-          </div>
-        ) : null}
-      </section>
-
-      {selectedArea ? (
-        <section className="grid gap-4">
-          <h2 className="text-2xl font-semibold text-foreground">
-            Facilities in {selectedArea}
-          </h2>
-          {areaFacilities.length > 0 ? (
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {areaFacilities.map((facility) => (
-                <NearbyFacilityCard facility={facility} key={facility.id} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm leading-6 text-muted-foreground">
-              No matching facilities found for this area yet.
-            </p>
           )}
         </section>
       ) : null}
