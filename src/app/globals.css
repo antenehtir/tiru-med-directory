@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:is([data-theme=dark] *));
 
 :root {
   --tiru-deep-ink: #1F2937;
