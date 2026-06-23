@@ -9,6 +9,19 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1);
 }
 
+// Node 20 has no native WebSocket; polyfill so the Supabase realtime init
+// doesn't crash. The seed script never actually uses realtime.
+if (!globalThis.WebSocket) {
+  // @ts-ignore
+  globalThis.WebSocket = class {
+    constructor() {}
+    send() {}
+    close() {}
+    addEventListener() {}
+    removeEventListener() {}
+  };
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { persistSession: false },
 });
@@ -39,7 +52,6 @@ async function seed() {
       || null;
 
     return {
-      id:                  `real-facility-${profile.record_number}`,
       slug:                profile.slug,
       name:                profile.name,
       category:            profile.category,

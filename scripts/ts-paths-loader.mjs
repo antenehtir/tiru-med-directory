@@ -63,6 +63,17 @@ export async function load(url, context, defaultLoad) {
         source: transpiled.outputText,
       };
     }
+
+    // Node 20 ESM requires `assert { type: 'json' }` which TypeScript doesn't
+    // emit. Serve JSON files as plain ESM modules with a default export instead.
+    if (extension === ".json") {
+      const source = await readFile(filePath, "utf8");
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `export default ${source};`,
+      };
+    }
   }
 
   return defaultLoad(url, context, defaultLoad);
