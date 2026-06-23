@@ -386,13 +386,31 @@ export function NearbyPage({
             </>
           ) : (
             <div className="rounded-2xl border border-primary/30 bg-soft-accent p-4">
-              <p className="text-sm font-semibold leading-6 text-primary">
-                📍 Coordinate data for {activeCategoryLabel} providers is being
-                added.
-              </p>
-              <p className="mt-1 text-sm leading-6 text-primary">
-                Browse by sub-city below to find care near you.
-              </p>
+              {selectedCategory === "pharmacies" ? (
+                <>
+                  <p className="text-sm font-semibold leading-6 text-primary">
+                    🏥 Pharmacies are being onboarded to Tiru.
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-primary">
+                    We&apos;re actively adding pharmacies across Addis Ababa. In the
+                    meantime, use the sub-city browser below or{" "}
+                    <Link className="underline underline-offset-2" href="/register">
+                      list your pharmacy here
+                    </Link>
+                    .
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold leading-6 text-primary">
+                    📍 Coordinate data for {activeCategoryLabel} providers is being
+                    added.
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-primary">
+                    Browse by sub-city below to find care near you.
+                  </p>
+                </>
+              )}
             </div>
           )}
         </section>
