@@ -11,8 +11,6 @@ import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 type FacilitiesPageProps = {
   activeCategory?: FacilityCategoryFilter;
   activeCategoryLabel?: string;
-  activeQuery?: string;
-  activeSpecialty?: string;
   facilities?: Facility[];
 };
 
