@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { WHATSAPP_HREF } from "@/lib/whatsapp";
 
-const EXCLUDED_PATH_PREFIXES = ["/register", "/corrections"];
+const EXCLUDED_PATH_PREFIXES = ["/register", "/corrections", "/admin"];
 
 export function TalkToUsButton() {
   const pathname = usePathname();
