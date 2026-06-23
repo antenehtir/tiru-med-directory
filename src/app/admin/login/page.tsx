@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 
 export const metadata = { title: "Admin Login — Tiru" };
@@ -12,7 +13,9 @@ export default function AdminLoginPage() {
             Sign in to manage the directory
           </p>
         </div>
-        <AdminLoginForm />
+        <Suspense>
+          <AdminLoginForm />
+        </Suspense>
       </div>
     </div>
   );
