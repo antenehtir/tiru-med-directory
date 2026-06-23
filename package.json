@@ -13,6 +13,7 @@
     "probe:diagnostics-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-diagnostics-detail.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.106.2",
     "next": "16.2.6",
     "react": "19.2.4",
