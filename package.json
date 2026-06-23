@@ -10,7 +10,8 @@
     "probe:pharmacies": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-pharmacies-public-read.ts",
     "probe:pharmacy-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-pharmacy-detail-read.ts",
     "probe:diagnostics": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-diagnostics.ts",
-    "probe:diagnostics-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-diagnostics-detail.ts"
+    "probe:diagnostics-detail": "node --no-warnings --loader ./scripts/ts-paths-loader.mjs scripts/probe-diagnostics-detail.ts",
+    "seed:facilities": "node --no-warnings --experimental-json-modules --loader ./scripts/ts-paths-loader.mjs scripts/seed-facilities.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
