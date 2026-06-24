@@ -16,11 +16,8 @@ import {
   createPublicContactActions,
   getExternalLinkProps,
 } from "@/lib/contact-actions";
-import { SPECIALTY_OPTIONS } from "@/lib/constants/specialty-options";
-import {
-  extractSpecialtyMatchKeyword,
-  specialtyMatchesAliases,
-} from "@/lib/frontend-search-filters";
+import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
+import { matchesAnyAlias } from "@/lib/frontend-search-filters";
 import {
   calculateDistanceKm,
   formatDistanceKm,
@@ -57,13 +54,6 @@ const categoryOptions = [
   { label: "Pharmacies", value: "pharmacies" },
 ];
 
-const nearbySpecialtyOptions = SPECIALTY_OPTIONS.filter(
-  (option) => option !== "Multiple specialties" && option !== "Other",
-).map((option) => ({
-  value: option,
-  label: option === "General Surgery" ? "Surgery" : extractSpecialtyMatchKeyword(option),
-}));
-
 export function NearbyPage({
   facilities,
   initialCategory,
@@ -89,6 +79,12 @@ export function NearbyPage({
       return categoryFacilities;
     }
 
+    const selectedPill = NEARBY_SPECIALTY_PILLS.find(
+      (pill) => pill.display === selectedNearbySpecialty,
+    );
+
+    if (!selectedPill) return categoryFacilities;
+
     return categoryFacilities.filter((facility) => {
       const specialtyText = [
         facility.category,
@@ -97,7 +93,7 @@ export function NearbyPage({
         ...facility.services,
       ].join(" ");
 
-      return specialtyMatchesAliases(specialtyText, selectedNearbySpecialty);
+      return matchesAnyAlias(specialtyText, selectedPill.aliases);
     });
   }, [categoryFacilities, selectedCategory, selectedNearbySpecialty]);
 
@@ -256,8 +252,11 @@ export function NearbyPage({
 
       {selectedCategory === "specialty" ? (
         <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
-          {[{ value: "", label: "All" }, ...nearbySpecialtyOptions].map((option) => {
-            const isActive = selectedNearbySpecialty === option.value;
+          {[{ display: "All", aliases: [] }, ...NEARBY_SPECIALTY_PILLS].map((pill) => {
+            const isActive =
+              pill.display === "All"
+                ? selectedNearbySpecialty === ""
+                : selectedNearbySpecialty === pill.display;
 
             return (
               <button
@@ -267,11 +266,13 @@ export function NearbyPage({
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card text-foreground hover:border-strong-border"
                 }`}
-                key={option.value || "all"}
-                onClick={() => setSelectedNearbySpecialty(option.value)}
+                key={pill.display}
+                onClick={() =>
+                  setSelectedNearbySpecialty(pill.display === "All" ? "" : pill.display)
+                }
                 type="button"
               >
-                {option.label}
+                {pill.display}
               </button>
             );
           })}

@@ -47,11 +47,18 @@ function buildAliasPattern(alias: string): RegExp {
   return new RegExp(`\\b${escaped}${suffix}\\b`, "i");
 }
 
+// Shared by specialtyMatchesAliases and any other alias-list-based matcher
+// (e.g. NearbyPage's specialty pills) so they all get the same stem-length
+// safety logic in buildAliasPattern instead of re-implementing it.
+export function matchesAnyAlias(text: string, aliases: string[]): boolean {
+  return aliases.some((alias) => buildAliasPattern(alias).test(text));
+}
+
 export function specialtyMatchesAliases(text: string, label: string): boolean {
   const aliases = SPECIALTY_ALIAS_MAP[label];
   if (!aliases || aliases.length === 0) return false;
 
-  return aliases.some((alias) => buildAliasPattern(alias).test(text));
+  return matchesAnyAlias(text, aliases);
 }
 
 // Kept for backward compatibility — still used to derive short display labels (e.g. NearbyPage pills).
