@@ -75,6 +75,7 @@ export function NearbyPage({
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
   const hasRequestedLocationRef = useRef(false);
   const locationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locationWatchRef = useRef<number | null>(null);
 
   const searchedFacilities = facilities;
 
@@ -139,22 +140,39 @@ export function NearbyPage({
       setLocationState((current) => (current === "loading" ? "timeout" : current));
     }, LOCATION_TIMEOUT_MS);
 
-    navigator.geolocation.getCurrentPosition(
+    let bestAccuracy = Infinity;
+
+    const watchId = navigator.geolocation.watchPosition(
       (position) => {
         clearLocationTimeout();
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
+
+        // Only update if this reading is more accurate than the last
+        if (position.coords.accuracy < bestAccuracy) {
+          bestAccuracy = position.coords.accuracy;
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        }
         setLocationState("ready");
+
+        // Once we have a good fix (under 50m), stop refining
+        if (position.coords.accuracy <= 50) {
+          navigator.geolocation.clearWatch(watchId);
+        }
       },
       () => {
         clearLocationTimeout();
         setLocationState("denied");
         setUserLocation(null);
       },
-      { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
     );
+
+    locationWatchRef.current = watchId;
+    setTimeout(() => {
+      navigator.geolocation.clearWatch(watchId);
+    }, 20000);
   }, [clearLocationTimeout]);
 
   useEffect(() => {
@@ -190,6 +208,10 @@ export function NearbyPage({
 
     return () => {
       clearLocationTimeout();
+
+      if (locationWatchRef.current !== null) {
+        navigator.geolocation.clearWatch(locationWatchRef.current);
+      }
     };
   }, [clearLocationTimeout, requestLocation]);
 
