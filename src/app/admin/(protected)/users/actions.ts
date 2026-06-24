@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 
+// displayName/role are accepted now and wired up by AdminUserList's form, but
+// unused until inviting via Supabase Auth is implemented here.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function addAdminUser(email: string, displayName: string, role: string) {
   const currentAdmin = await getAdminUser();
   if (!currentAdmin || currentAdmin.role !== "super_admin") {

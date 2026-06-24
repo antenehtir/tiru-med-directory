@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 // Node 20 has no native WebSocket; polyfill so the Supabase realtime init
 // doesn't crash. The seed script never actually uses realtime.
 if (!globalThis.WebSocket) {
-  // @ts-ignore
+  // @ts-expect-error - minimal polyfill does not implement the full WebSocket interface
   globalThis.WebSocket = class {
     constructor() {}
     send() {}
