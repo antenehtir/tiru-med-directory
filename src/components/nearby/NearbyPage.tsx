@@ -85,7 +85,24 @@ export function NearbyPage({
 
     if (!selectedPill) return categoryFacilities;
 
+    // The "Medical Plaza" pill is the one place broad multi-specialty
+    // facilities should surface, so it's exempt from the dilution check below.
+    const isMedicalPlazaPill = selectedPill.display === "Medical Plaza";
+
     return categoryFacilities.filter((facility) => {
+      // Broad multi-specialty facilities (Medical Plaza category, or a
+      // services list spanning many unrelated specialty domains) dilute
+      // focused pills with unrelated results — they still show under "All".
+      const isBroadMultispecialty =
+        facility.category === "Medical Plaza" ||
+        facility.subcategory?.toLowerCase().includes("multispecialt") ||
+        facility.services.some((s) => s.toLowerCase().includes("multispecialt")) ||
+        facility.services.length >= 15;
+
+      if (isBroadMultispecialty && !isMedicalPlazaPill) {
+        return false;
+      }
+
       const specialtyText = [
         facility.category,
         facility.subcategory,

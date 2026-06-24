@@ -95,6 +95,10 @@ export const NEARBY_SPECIALTY_PILLS: {
     display: "Nutrition",
     aliases: ["nutrition", "nutritional", "dietitian", "dietary"],
   },
+  {
+    display: "Medical Plaza",
+    aliases: ["medical plaza", "multispecialt", "multiple specialt"],
+  },
 ];
 
 export const SUB_CITIES = [
