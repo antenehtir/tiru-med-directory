@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminUser } from "@/lib/supabase/admin-client";
 import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
@@ -29,9 +30,12 @@ export default async function AdminLayout({
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="hidden text-sm text-muted-foreground sm:block">
+          <Link
+            className="hidden text-sm text-muted-foreground hover:text-foreground sm:block"
+            href="/admin/account"
+          >
             {adminUser.display_name ?? adminUser.email}
-          </span>
+          </Link>
           <a
             className="text-sm text-muted-foreground hover:text-foreground"
             href="/admin/logout"
