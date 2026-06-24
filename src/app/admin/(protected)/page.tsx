@@ -9,6 +9,7 @@ async function getDashboardStats() {
     { count: correctionRequests },
     { count: listingRequests },
     { count: csCount },
+    { count: officialCount },
   ] = await Promise.all([
     supabase.from("facilities").select("*", { count: "exact", head: true }),
     supabase.from("correction_requests").select("*", { count: "exact", head: true }),
@@ -17,6 +18,10 @@ async function getDashboardStats() {
       .from("facilities")
       .select("*", { count: "exact", head: true })
       .eq("verification_status", "community-submitted"),
+    supabase
+      .from("facilities")
+      .select("*", { count: "exact", head: true })
+      .eq("verification_status", "facility-owned"),
   ]);
 
   return {
@@ -24,6 +29,7 @@ async function getDashboardStats() {
     correctionRequests: correctionRequests ?? 0,
     listingRequests: listingRequests ?? 0,
     csCount: csCount ?? 0,
+    officialCount: officialCount ?? 0,
   };
 }
 
@@ -62,6 +68,13 @@ export default async function AdminDashboardPage() {
       color: "text-violet-600 dark:text-violet-400",
       bg: "bg-violet-50 dark:bg-violet-950",
     },
+    {
+      label: "Official Facilities",
+      value: stats.officialCount,
+      description: "Facility-owned listings",
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-950",
+    },
   ];
 
   const quickLinks = [
@@ -96,7 +109,7 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {statCards.map((card) => (
           <div
             key={card.label}

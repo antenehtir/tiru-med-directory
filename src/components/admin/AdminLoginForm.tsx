@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { adminSignIn } from "@/app/admin/login/actions";
+import { adminSignIn, requestPasswordReset } from "@/app/admin/login/actions";
 
 export function AdminLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [mode, setMode] = useState<"login" | "forgot">("login");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
@@ -15,6 +20,65 @@ export function AdminLoginForm() {
       : errorParam === "invalid"
         ? "Invalid email or password."
         : null;
+
+  async function handleForgotPassword() {
+    setResetLoading(true);
+    setResetError(null);
+    const result = await requestPasswordReset(resetEmail);
+    setResetLoading(false);
+    if (result.error) {
+      setResetError(result.error);
+    } else {
+      setResetSent(true);
+    }
+  }
+
+  if (mode === "forgot") {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <h2 className="mb-1 font-semibold text-foreground">Reset password</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Enter your admin email and we&apos;ll send a reset link.
+        </p>
+        {resetSent ? (
+          <p className="text-sm text-teal-600">
+            ✓ Reset link sent. Check your inbox.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <input
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setResetEmail(e.target.value)}
+              placeholder="your@email.com"
+              type="email"
+              value={resetEmail}
+            />
+            {resetError && (
+              <p className="text-sm text-red-500">{resetError}</p>
+            )}
+            <button
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+              disabled={!resetEmail || resetLoading}
+              onClick={handleForgotPassword}
+              type="button"
+            >
+              {resetLoading ? "Sending..." : "Send reset link"}
+            </button>
+            <button
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setMode("login");
+                setResetError(null);
+              }}
+              type="button"
+            >
+              ← Back to sign in
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -66,6 +130,15 @@ export function AdminLoginForm() {
                   <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               )}
+            </button>
+          </div>
+          <div className="text-right">
+            <button
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setMode("forgot")}
+              type="button"
+            >
+              Forgot password?
             </button>
           </div>
         </div>

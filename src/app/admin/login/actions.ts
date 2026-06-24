@@ -50,3 +50,35 @@ export async function adminSignIn(formData: FormData) {
 
   redirect("/admin");
 }
+
+export async function requestPasswordReset(
+  email: string,
+): Promise<{ error?: string; success?: boolean }> {
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/admin/reset-password`,
+  });
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
