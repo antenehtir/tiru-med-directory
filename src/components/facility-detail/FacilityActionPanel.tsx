@@ -145,6 +145,65 @@ function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function ShareFacilityButton({ facility }: { facility: Facility }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    const url = `${window.location.origin}/facilities/${facility.slug}`;
+    const shareData = {
+      title: facility.name,
+      text: `Find ${facility.name} on Tiru — Trace the right care.`,
+      url,
+    };
+
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
+    // Clipboard fallback
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Silent fail
+    }
+  }
+
+  return (
+    <button
+      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted active:scale-95"
+      onClick={handleShare}
+      type="button"
+    >
+      {copied ? (
+        <>
+          <svg className="size-4 text-teal-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span className="text-teal-600">Link copied!</span>
+        </>
+      ) : (
+        <>
+          <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="6" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="18" cy="19" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <line strokeLinecap="round" strokeLinejoin="round" x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+            <line strokeLinecap="round" strokeLinejoin="round" x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+          </svg>
+          Share this facility
+        </>
+      )}
+    </button>
+  );
+}
+
 export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
   const [showMoreNumbers, setShowMoreNumbers] = useState(false);
   const contactChannels = facility.contactChannels ?? [];
@@ -190,6 +249,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
             📍 Get Directions
           </a>
         ) : null}
+        <ShareFacilityButton facility={facility} />
       </div>
 
       {secondaryPhones.length > 0 ? (

@@ -5,15 +5,20 @@ type FacilityInformationSectionProps = {
 };
 
 const informationRows = [
-  { label: "Facility category", key: "category" },
   { label: "Care focus", key: "subcategory" },
-  { label: "Area", key: "location" },
   { label: "Address", key: "address" },
 ] as const;
 
 export function FacilityInformationSection({
   facility,
 }: FacilityInformationSectionProps) {
+  const visibleRows = informationRows.filter((row) => {
+    const val = facility[row.key];
+    return val && String(val).trim().length > 0;
+  });
+
+  if (visibleRows.length === 0) return null;
+
   return (
     <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <p className="text-sm font-semibold text-primary">
@@ -21,7 +26,7 @@ export function FacilityInformationSection({
       </p>
 
       <div className="mt-4 grid gap-3">
-        {informationRows.map((row) => (
+        {visibleRows.map((row) => (
           <div
             className="rounded-2xl border border-border bg-background p-4"
             key={row.label}
