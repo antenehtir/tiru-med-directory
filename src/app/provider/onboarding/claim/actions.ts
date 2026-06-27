@@ -18,12 +18,12 @@ export async function claimExistingFacility(facilityId: string) {
     })
     .eq("id", provider.id);
 
-  redirect("/provider/onboarding/phase-1");
+  redirect("/provider/onboarding/identity");
 }
 
 export async function startNewListing() {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
-  redirect("/provider/onboarding/phase-1");
+  redirect("/provider/onboarding/identity");
 }
