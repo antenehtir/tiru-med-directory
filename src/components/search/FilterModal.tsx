@@ -173,9 +173,11 @@ export function FilterModal({
                 Neighbourhood / Area
               </label>
               <input
+                autoComplete="on"
                 className={selectClassName}
                 id="filter-area"
                 list="filter-area-options"
+                name="area"
                 onChange={(event) =>
                   setDraft((current) => ({ ...current, area: event.target.value }))
                 }

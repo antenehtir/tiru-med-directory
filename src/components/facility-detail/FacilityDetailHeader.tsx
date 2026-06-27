@@ -15,6 +15,21 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
 
+  const isMultiBranch =
+    facility.subCity?.toLowerCase() === "multiple" ||
+    (facility.location?.includes("/") ?? false);
+
+  const branchLocations = isMultiBranch && facility.location
+    ? facility.location
+        .split("/")
+        .map((branch) => branch.trim())
+        .filter(Boolean)
+    : null;
+
+  const mapsHref = facility.contactChannels?.find(
+    (channel) => channel.channelType === "maps",
+  )?.href;
+
   return (
     <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
       {/* Rich banner — taller on detail page */}
@@ -71,12 +86,38 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">Facility type</p>
         </div>
-        <div className="rounded-2xl border border-border bg-background p-4">
-          <p className="text-sm font-semibold text-foreground">
-            {facility.location}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">Location</p>
-        </div>
+        {isMultiBranch && branchLocations ? (
+          <div className="rounded-2xl border border-border bg-background p-4">
+            <p className="mb-2 text-sm font-semibold text-foreground">
+              Multiple branches
+            </p>
+            <div className="flex flex-col gap-2">
+              {branchLocations.map((branch, index) => (
+                <div className="flex items-center justify-between gap-2" key={index}>
+                  <p className="text-sm text-muted-foreground">{branch}</p>
+                  {mapsHref ? (
+                    <a
+                      className="shrink-0 text-xs font-medium text-primary hover:underline"
+                      href={mapsHref}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Map →
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Location</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border bg-background p-4">
+            <p className="text-sm font-semibold text-foreground">
+              {facility.location}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Location</p>
+          </div>
+        )}
         {facility.availabilityNote ? (
           <div className="rounded-2xl border border-border bg-background p-4">
             <p

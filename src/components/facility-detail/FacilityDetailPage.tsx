@@ -25,23 +25,30 @@ export function FacilityDetailPage({
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
-      <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
-        {/* LEFT COLUMN — main content */}
-        <div className="grid gap-6 lg:order-1">
+      <div className="grid gap-6">
+        {/* Top section: header + desktop sidebar */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
           <FacilityDetailHeader facility={facility} />
+          {/* Desktop sidebar — hidden on mobile */}
+          <div className="hidden lg:block lg:sticky lg:top-24">
+            <FacilityActionPanel facility={facility} />
+          </div>
+        </div>
+
+        {/* Content sections */}
+        <div className="grid gap-6">
           <FacilityInformationSection facility={facility} />
           <FacilityServicesSection facility={facility} />
           <FacilityHoursSection facility={facility} />
-          <FacilityCorrectionCta facility={facility} />
-          <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
         </div>
 
-        {/* RIGHT COLUMN / MOBILE BOTTOM — action panel */}
-        {/* order-last on mobile pushes it below all content */}
-        {/* lg:order-2 restores it to the right sidebar on desktop */}
-        <div className="order-last lg:order-2 lg:sticky lg:top-24">
+        {/* Mobile action panel — shown only on mobile, after content */}
+        <div className="lg:hidden">
           <FacilityActionPanel facility={facility} />
         </div>
+
+        <FacilityCorrectionCta facility={facility} />
+        <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
       </div>
     </PageContainer>
   );
