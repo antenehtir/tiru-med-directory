@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
-import { claimExistingFacility, startNewListing } from "@/app/provider/onboarding/claim/actions";
+import { selectFacilityToClaim, startNewListing } from "@/app/provider/onboarding/claim/actions";
 
 type SearchResult = {
   id: string;
@@ -80,7 +80,7 @@ export function ClaimFacilityForm({ providerId }: { providerId: string }) {
 
   function handleClaim() {
     if (!selected) return;
-    startTransition(() => claimExistingFacility(selected.id));
+    startTransition(() => selectFacilityToClaim(selected.id));
   }
 
   function handleNewListing() {

@@ -50,6 +50,17 @@ export const PATIENT_GROUPS = [
   "Chronic disease patients",
 ] as const;
 
+export const CLAIMANT_ROLES = [
+  "Owner",
+  "Medical Director",
+  "Manager",
+  "Administrator",
+  "Marketing Officer",
+  "Executive",
+  "Reception",
+  "Other",
+] as const;
+
 export const ADDIS_SUB_CITIES = [
   "Addis Ketema",
   "Akaki Kaliti",

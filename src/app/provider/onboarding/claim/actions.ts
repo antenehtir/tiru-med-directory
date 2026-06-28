@@ -3,23 +3,24 @@
 import { redirect } from "next/navigation";
 import { getProviderAccount, createProviderSupabaseClient } from "@/lib/supabase/provider-client";
 
-export async function claimExistingFacility(facilityId: string) {
+export async function selectFacilityToClaim(facilityId: string) {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
   const supabase = await createProviderSupabaseClient();
 
-  // phase 1 = identity (the step they land on next), matching login's phaseToSlug map
+  // Store the selected facility but DON'T mark as owned yet
   await supabase
     .from("provider_accounts")
     .update({
       facility_id: facilityId,
-      onboarding_phase: 1,
+      onboarding_phase: 0,
+      verification_status_internal: "unverified",
       last_active_at: new Date().toISOString(),
     })
     .eq("id", provider.id);
 
-  redirect("/provider/onboarding/identity");
+  redirect("/provider/onboarding/verify");
 }
 
 export async function startNewListing() {
@@ -31,10 +32,11 @@ export async function startNewListing() {
   await supabase
     .from("provider_accounts")
     .update({
-      onboarding_phase: 1,
+      onboarding_phase: 0,
+      verification_status_internal: "unverified",
       last_active_at: new Date().toISOString(),
     })
     .eq("id", provider.id);
 
-  redirect("/provider/onboarding/identity");
+  redirect("/provider/onboarding/verify");
 }

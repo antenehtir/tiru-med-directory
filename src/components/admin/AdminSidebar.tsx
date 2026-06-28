@@ -39,6 +39,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Claim Verification",
+    href: "/admin/claims",
+    icon: (
+      <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3-1-3-3-3-3 2-3 3-2-1-3-1-3 1-3 3 2 3 3 3-2 1-3 3 1 3 3 3 3-2 3-3 2 1 3 1z" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     label: "Audit Log",
     href: "/admin/audit-log",
     icon: (
