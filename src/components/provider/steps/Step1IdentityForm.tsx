@@ -21,31 +21,20 @@ export function Step1IdentityForm({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const [name, setName] = useState((claim.proposed_name as string) ?? facilityName ?? "");
-  const [altName, setAltName] = useState((claim.proposed_alt_name as string) ?? "");
-  const [ownershipType, setOwnershipType] = useState(
-    (claim.proposed_ownership_type as string) ?? "",
-  );
-  const [branchCount, setBranchCount] = useState(
-    claim.proposed_branch_count != null ? String(claim.proposed_branch_count) : "",
-  );
-  const [description, setDescription] = useState((claim.proposed_description as string) ?? "");
+  // These are for auto-save and toggle logic only — NOT used as
+  // controlled input values for the text/select fields below.
   const [languages, setLanguages] = useState<string[]>(
     (claim.proposed_languages as string[]) ?? [],
   );
   const [patientGroups, setPatientGroups] = useState<string[]>(
     (claim.proposed_patient_groups as string[]) ?? [],
   );
-
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    setValidationError(null);
-
-    if (!name.trim()) {
-      e.preventDefault();
-      setValidationError("Official facility name is required.");
-      document.getElementById("name")?.focus();
-    }
-  }
+  const [hasBranches, setHasBranches] = useState<boolean>(
+    ((claim.proposed_branch_count as number) ?? 1) > 1,
+  );
+  const [branchCount, setBranchCount] = useState<number>(
+    (claim.proposed_branch_count as number) ?? 1,
+  );
 
   function autoSave(partial: Parameters<typeof autoSaveStep1>[0]) {
     startTransition(async () => {
@@ -70,12 +59,31 @@ export function Step1IdentityForm({
     autoSave({ patient_groups: next });
   }
 
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    setValidationError(null);
+    const form = e.currentTarget;
+    const nameInput = form.elements.namedItem("name") as HTMLInputElement;
+    if (!nameInput?.value?.trim()) {
+      e.preventDefault();
+      setValidationError("Official facility name is required.");
+      nameInput?.focus();
+      return;
+    }
+  }
+
+  const defaultName = (claim.proposed_name as string) ?? facilityName ?? "";
+  const defaultAltName = (claim.proposed_alt_name as string) ?? "";
+  const defaultOwnership = (claim.proposed_ownership_type as string) ?? "";
+  const defaultDescription = (claim.proposed_description as string) ?? "";
+
   return (
     <form action={saveStep1} className="space-y-6" onSubmit={handleSubmit}>
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
-            <h2 className="mb-1 text-lg font-bold text-foreground">Basic Identity</h2>
+            <h2 className="mb-1 text-lg font-bold text-foreground">
+              Basic Identity
+            </h2>
             <p className="text-sm text-muted-foreground">
               Tell patients who you are. Fields marked * are required.
             </p>
@@ -88,53 +96,48 @@ export function Step1IdentityForm({
         </div>
 
         <div className="space-y-4">
-          {/* Official name */}
+          {/* Official name — UNCONTROLLED, uses defaultValue */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="name">
               Official facility name *
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue={defaultName}
               id="name"
               name="name"
-              onBlur={() => autoSave({ name })}
-              onChange={(e) => setName(e.target.value)}
+              onBlur={(e) => autoSave({ name: e.target.value })}
               required
               type="text"
-              value={name}
             />
           </div>
 
-          {/* Alt name */}
+          {/* Alt name — UNCONTROLLED */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="alt_name">
               Common or alternative name
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue={defaultAltName}
               id="alt_name"
               name="alt_name"
-              onBlur={() => autoSave({ alt_name: altName })}
-              onChange={(e) => setAltName(e.target.value)}
+              onBlur={(e) => autoSave({ alt_name: e.target.value })}
               type="text"
-              value={altName}
             />
           </div>
 
-          {/* Ownership type */}
+          {/* Ownership type — UNCONTROLLED */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="ownership_type">
               Ownership type
             </label>
             <select
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue={defaultOwnership}
               id="ownership_type"
               name="ownership_type"
-              onChange={(e) => {
-                setOwnershipType(e.target.value);
-                autoSave({ ownership_type: e.target.value });
-              }}
-              value={ownershipType}
+              onBlur={(e) => autoSave({ ownership_type: e.target.value })}
             >
               <option value="">Select…</option>
               {OWNERSHIP_TYPES.map((t) => (
@@ -143,38 +146,81 @@ export function Step1IdentityForm({
             </select>
           </div>
 
-          {/* Branch count */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="branch_count">
-              Number of branches
+          {/* Branches — Yes/No then count */}
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-medium text-foreground">
+              Does your facility have multiple branches?
             </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="branch_count"
-              min="1"
-              name="branch_count"
-              onBlur={() =>
-                autoSave({ branch_count: branchCount ? parseInt(branchCount, 10) : null })
-              }
-              onChange={(e) => setBranchCount(e.target.value)}
-              type="number"
-              value={branchCount}
-            />
+            <div className="flex gap-3">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  checked={!hasBranches}
+                  name="_has_branches"
+                  onChange={() => {
+                    setHasBranches(false);
+                    setBranchCount(1);
+                    autoSave({ branch_count: 1 });
+                  }}
+                  type="radio"
+                  value="no"
+                />
+                No, single location
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  checked={hasBranches}
+                  name="_has_branches"
+                  onChange={() => setHasBranches(true)}
+                  type="radio"
+                  value="yes"
+                />
+                Yes, multiple branches
+              </label>
+            </div>
+
+            {hasBranches && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="branch_count">
+                  How many additional branches?
+                </label>
+                <select
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  defaultValue={branchCount > 1 ? String(branchCount - 1) : "1"}
+                  id="branch_count"
+                  name="branch_count"
+                  onChange={(e) => {
+                    const total = parseInt(e.target.value, 10) + 1;
+                    setBranchCount(total);
+                    autoSave({ branch_count: total });
+                  }}
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <option key={n} value={String(n)}>
+                      {n} additional {n === 1 ? "branch" : "branches"} ({n + 1} total)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Hidden field — sends branch_count=1 when single location */}
+            {!hasBranches && (
+              <input name="branch_count" type="hidden" value="1" />
+            )}
           </div>
 
-          {/* Description */}
+          {/* Description — UNCONTROLLED */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="description">
               Short public description
             </label>
             <textarea
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue={defaultDescription}
               id="description"
               name="description"
-              onBlur={() => autoSave({ description })}
-              onChange={(e) => setDescription(e.target.value)}
+              onBlur={(e) => autoSave({ description: e.target.value })}
               rows={3}
-              value={description}
             />
             <p className="text-xs text-muted-foreground">
               1-2 sentences patients read first. E.g. &quot;A family clinic offering
@@ -182,7 +228,7 @@ export function Step1IdentityForm({
             </p>
           </div>
 
-          {/* Languages */}
+          {/* Languages — checkboxes stay controlled (needed for toggle logic) */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">
@@ -220,7 +266,7 @@ export function Step1IdentityForm({
             </div>
           </div>
 
-          {/* Patient groups */}
+          {/* Patient groups — same pattern */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">
