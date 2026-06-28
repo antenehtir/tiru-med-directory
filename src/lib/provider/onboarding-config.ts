@@ -76,6 +76,97 @@ export const ADDIS_SUB_CITIES = [
   "Multiple",
 ] as const;
 
+export const MAIN_SERVICES = [
+  "General OPD / Outpatient consultation",
+  "Specialist consultation",
+  "Emergency care",
+  "Inpatient admission",
+  "ICU",
+  "NICU",
+  "Delivery / Maternity care",
+  "Minor surgery",
+  "Major surgery",
+  "Endoscopy",
+  "Dialysis",
+  "Physiotherapy",
+  "Dental procedure",
+  "Eye care procedure",
+  "Vaccination",
+  "Travel medicine",
+  "Chronic disease follow-up",
+  "Executive / Comprehensive check-up",
+  "Home visit",
+  "Telemedicine consultation",
+  "Medical certificate",
+  "Laboratory service",
+  "Imaging / Radiology",
+  "Pharmacy service",
+  "Blood bank",
+  "Ambulance service",
+] as const;
+
+export const SPECIALTIES = [
+  "Internal Medicine",
+  "Pediatrics",
+  "Obstetrics and Gynecology",
+  "General Surgery",
+  "Orthopedics",
+  "Cardiology",
+  "Gastroenterology",
+  "Neurology",
+  "Neurosurgery",
+  "Psychiatry",
+  "Dermatology",
+  "ENT",
+  "Ophthalmology",
+  "Dental",
+  "Urology",
+  "Nephrology",
+  "Pulmonology",
+  "Endocrinology",
+  "Rheumatology",
+  "Oncology",
+  "Hematology",
+  "Radiology",
+  "Pathology",
+  "Emergency Medicine",
+  "Family Medicine",
+  "Physiotherapy",
+  "Nutrition and Dietetics",
+  "Psychology / Counseling",
+  "MCH (Maternal and Child Health)",
+] as const;
+
+export const PAYMENT_METHODS = [
+  "Cash",
+  "Bank transfer (CBE, Awash, etc.)",
+  "CBE Birr",
+  "Telebirr",
+  "POS / Card",
+  "Insurance",
+  "Corporate credit agreement",
+] as const;
+
+export const WORKING_DAYS_OPTIONS = [
+  "Monday – Friday",
+  "Monday – Saturday",
+  "Monday – Sunday (7 days)",
+  "Custom schedule",
+] as const;
+
+export const EMERGENCY_TYPES = [
+  "24/7 emergency",
+  "Daytime emergency only",
+  "No emergency service",
+] as const;
+
+export const WALKIN_APPOINTMENT_OPTIONS = [
+  "Walk-in only",
+  "Appointment required",
+  "Both walk-in and appointment",
+  "Walk-in preferred, appointment available",
+] as const;
+
 // Completion scoring — given a facility_claims row, returns 0-100
 export function calculateCompletion(claim: Record<string, unknown>): number {
   let pct = 0;
