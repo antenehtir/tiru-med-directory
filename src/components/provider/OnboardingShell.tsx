@@ -11,6 +11,7 @@ export function OnboardingShell({
   children: React.ReactNode;
 }) {
   const step = ONBOARDING_STEPS.find((s) => s.num === currentStep);
+  const prevStep = ONBOARDING_STEPS.find((s) => s.num === currentStep - 1);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -53,33 +54,49 @@ export function OnboardingShell({
             {ONBOARDING_STEPS.map((s) => {
               const isComplete = s.num < currentStep;
               const isCurrent = s.num === currentStep;
+              const isAccessible = s.num <= currentStep;
+
               return (
-                <Link
-                  key={s.num}
-                  className={`flex flex-col items-center gap-1 ${
-                    s.num <= currentStep ? "cursor-pointer" : "cursor-not-allowed opacity-40"
-                  }`}
-                  href={s.num <= currentStep ? `/provider/onboarding/${s.slug}` : "#"}
-                >
-                  <span
-                    className={`flex size-7 items-center justify-center rounded-full text-xs font-bold ${
-                      isCurrent
-                        ? "bg-primary text-primary-foreground"
-                        : isComplete
-                          ? "bg-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {isComplete ? "✓" : s.num}
-                  </span>
+                <div key={s.num} className="flex flex-col items-center gap-1">
+                  {isAccessible ? (
+                    <Link
+                      className={`flex size-8 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                        isCurrent
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                          : isComplete
+                            ? "bg-primary/20 text-primary hover:bg-primary/30"
+                            : "bg-muted text-muted-foreground"
+                      }`}
+                      href={`/provider/onboarding/${s.slug}`}
+                      title={isComplete ? `Go back to ${s.label}` : s.label}
+                    >
+                      {isComplete ? "✓" : s.num}
+                    </Link>
+                  ) : (
+                    <span className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground opacity-40">
+                      {s.num}
+                    </span>
+                  )}
                   <span className="hidden text-[10px] text-muted-foreground sm:block">
                     {s.label.split(" ")[0]}
                   </span>
-                </Link>
+                </div>
               );
             })}
           </div>
         </div>
+
+        {/* Back link — shown on steps 2+ */}
+        {prevStep && (
+          <div className="mb-4">
+            <Link
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              href={`/provider/onboarding/${prevStep.slug}`}
+            >
+              ← Back to {prevStep.label}
+            </Link>
+          </div>
+        )}
 
         {children}
       </main>
