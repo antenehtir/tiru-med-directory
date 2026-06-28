@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
-import { findPendingClaimId } from "@/lib/provider/get-claim";
+import { ensureClaimId } from "@/lib/provider/get-claim";
 
 export async function saveStep2(formData: FormData) {
   const provider = await getProviderAccount();
@@ -10,8 +10,11 @@ export async function saveStep2(formData: FormData) {
 
   const supabase = await createProviderSupabaseClient();
 
-  const claimId = await findPendingClaimId(supabase, provider.id);
-  if (!claimId) redirect("/provider/onboarding/location");
+  const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
+  if (!claimId) {
+    console.error("saveStep2: could not find or create claim for provider", provider.id);
+    redirect("/provider/onboarding/location");
+  }
 
   const subCity = formData.get("sub_city") as string;
   const area = formData.get("area") as string;
@@ -29,7 +32,7 @@ export async function saveStep2(formData: FormData) {
   const website = formData.get("website") as string;
   const bookingLink = formData.get("booking_link") as string;
 
-  await supabase
+  const { error: updateError } = await supabase
     .from("facility_claims")
     .update({
       proposed_sub_city: subCity || null,
@@ -50,6 +53,11 @@ export async function saveStep2(formData: FormData) {
       submission_step: 3,
     })
     .eq("id", claimId);
+
+  if (updateError) {
+    console.error("saveStep2 update failed:", updateError.message);
+    redirect("/provider/onboarding/location");
+  }
 
   // phase 3 = services (the step they land on next), matching login's phaseToSlug map
   await supabase
@@ -93,7 +101,7 @@ export async function autoSaveStep2(data: {
 
   const supabase = await createProviderSupabaseClient();
 
-  const claimId = await findPendingClaimId(supabase, provider.id);
+  const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
   if (!claimId) return;
 
   const updates: Record<string, unknown> = {};
@@ -116,8 +124,12 @@ export async function autoSaveStep2(data: {
 
   if (Object.keys(updates).length === 0) return;
 
-  await supabase
+  const { error } = await supabase
     .from("facility_claims")
     .update(updates)
     .eq("id", claimId);
+
+  if (error) {
+    console.error("autoSaveStep2 failed:", error.message);
+  }
 }

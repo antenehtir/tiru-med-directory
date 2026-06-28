@@ -72,3 +72,34 @@ export async function findPendingClaimId(
   }
   return data?.id ?? null;
 }
+
+// Guarantees a pending claim row exists before a step action reads/writes
+// it — the identity/location steps render from getOrCreateClaim, but
+// auto-save calls can race ahead of that initial insert, so they fall
+// back to creating (or re-fetching, if a concurrent request won the
+// unique partial index) the row themselves.
+export async function ensureClaimId(
+  supabase: Awaited<ReturnType<typeof createProviderSupabaseClient>>,
+  providerId: string,
+  facilityId: string | null,
+): Promise<string | null> {
+  const existing = await findPendingClaimId(supabase, providerId);
+  if (existing) return existing;
+
+  const { data: created, error } = await supabase
+    .from("facility_claims")
+    .insert({
+      provider_id: providerId,
+      facility_id: facilityId,
+      status: "pending",
+      submission_step: 1,
+      completion_pct: 0,
+    })
+    .select("id")
+    .single();
+
+  if (!error) return created?.id ?? null;
+
+  // Unique-index conflict from a race — fetch the winner
+  return findPendingClaimId(supabase, providerId);
+}

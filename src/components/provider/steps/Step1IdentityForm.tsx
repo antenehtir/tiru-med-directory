@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { saveStep1, autoSaveStep1 } from "@/app/provider/onboarding/identity/actions";
 import {
   OWNERSHIP_TYPES,
@@ -19,6 +19,7 @@ export function Step1IdentityForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const [name, setName] = useState((claim.proposed_name as string) ?? facilityName ?? "");
   const [altName, setAltName] = useState((claim.proposed_alt_name as string) ?? "");
@@ -35,6 +36,16 @@ export function Step1IdentityForm({
   const [patientGroups, setPatientGroups] = useState<string[]>(
     (claim.proposed_patient_groups as string[]) ?? [],
   );
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    setValidationError(null);
+
+    if (!name.trim()) {
+      e.preventDefault();
+      setValidationError("Official facility name is required.");
+      document.getElementById("name")?.focus();
+    }
+  }
 
   function autoSave(partial: Parameters<typeof autoSaveStep1>[0]) {
     startTransition(async () => {
@@ -60,7 +71,7 @@ export function Step1IdentityForm({
   }
 
   return (
-    <form action={saveStep1} className="space-y-6">
+    <form action={saveStep1} className="space-y-6" onSubmit={handleSubmit}>
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
@@ -248,6 +259,12 @@ export function Step1IdentityForm({
           </div>
         </div>
       </div>
+
+      {validationError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {validationError}
+        </p>
+      )}
 
       <div className="flex items-center justify-end gap-3">
         {isPending && (
