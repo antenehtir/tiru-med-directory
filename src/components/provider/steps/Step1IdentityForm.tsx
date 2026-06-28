@@ -191,7 +191,7 @@ export function Step1IdentityForm({
                 </label>
                 <select
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={String(branchCount >= 2 ? branchCount : 2)}
+                  defaultValue={String(branchCount >= 2 ? Math.min(branchCount, 99) : 2)}
                   id="branch_count"
                   name="branch_count"
                   onChange={(e) => {
@@ -205,6 +205,7 @@ export function Step1IdentityForm({
                       {total} total locations
                     </option>
                   ))}
+                  <option value="99">More than 6 branches</option>
                 </select>
               </div>
             )}

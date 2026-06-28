@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { saveStep2, autoSaveStep2 } from "@/app/provider/onboarding/location/actions";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 
@@ -46,6 +46,25 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [branches, setBranches] = useState<Branch[]>(
     (claim.proposed_branches as Branch[]) ?? [],
   );
+
+  // Pre-populate empty branch blocks for fixed counts (2-6) so they appear
+  // immediately, without waiting for the user to click "Add branch".
+  // Unbounded counts (99) start empty since there's no fixed number to fill.
+  useEffect(() => {
+    if (branchCount > 1 && branchCount !== 99 && branches.length === 0) {
+      const initial = Array.from({ length: branchCount - 1 }, () => ({
+        name: "",
+        area: "",
+        landmark: "",
+        latitude: null,
+        longitude: null,
+        maps_link: "",
+      }));
+      setBranches(initial);
+      autoSave({ branches: initial });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function autoSave(partial: Parameters<typeof autoSaveStep2>[0]) {
     startTransition(async () => {
@@ -104,7 +123,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
         });
       },
       () => {
-        // Geolocation denied or unavailable — leave the branch pin unset.
+        alert("Could not get location. Please paste a Google Maps link instead.");
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
     );
@@ -267,88 +286,154 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
 
       {branchCount > 1 && (
         <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <div className="mb-4">
-            <h2 className="mb-1 text-lg font-bold text-foreground">Branch locations</h2>
-            <p className="text-sm text-muted-foreground">
-              You told us you have {branchCount} branches. Add their locations below.
-            </p>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">
+                Branch Locations
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {branchCount === 99
+                  ? "Add each branch location below"
+                  : `Add details for your ${branchCount - 1} additional ${branchCount - 1 === 1 ? "branch" : "branches"}`}
+              </p>
+            </div>
+            {(branchCount === 99 || branches.length < branchCount - 1) && (
+              <button
+                className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/10"
+                onClick={addBranch}
+                type="button"
+              >
+                + Add branch
+              </button>
+            )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {branches.map((branch, i) => (
-              <div key={i} className="space-y-3 rounded-xl border border-border p-4">
-                <p className="text-xs font-semibold text-muted-foreground">
-                  Branch {i + 1} of {branchCount}
-                </p>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-foreground">Branch name</label>
-                  <input
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    onBlur={(e) => updateBranch(i, { name: e.target.value })}
-                    onChange={(e) => {
-                      const next = [...branches];
-                      next[i] = { ...next[i], name: e.target.value };
+              <div key={i} className="rounded-xl border border-border bg-background p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">
+                    Branch {i + 2}
+                    {branch.name ? ` — ${branch.name}` : ""}
+                  </p>
+                  <button
+                    className="text-xs text-red-500 hover:text-red-600"
+                    onClick={() => {
+                      const next = branches.filter((_, idx) => idx !== i);
                       setBranches(next);
+                      autoSave({ branches: next });
                     }}
-                    type="text"
-                    value={branch.name}
-                  />
+                    type="button"
+                  >
+                    Remove
+                  </button>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-foreground">Area</label>
-                  <input
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    onBlur={(e) => updateBranch(i, { area: e.target.value })}
-                    onChange={(e) => {
-                      const next = [...branches];
-                      next[i] = { ...next[i], area: e.target.value };
-                      setBranches(next);
-                    }}
-                    type="text"
-                    value={branch.area}
-                  />
-                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Branch name or identifier
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => updateBranch(i, { name: e.target.value })}
+                      onChange={(e) => {
+                        const next = [...branches];
+                        next[i] = { ...next[i], name: e.target.value };
+                        setBranches(next);
+                      }}
+                      placeholder="e.g. Bole Branch, Main Branch"
+                      type="text"
+                      value={branch.name}
+                    />
+                  </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-foreground">Landmark</label>
-                  <input
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    onBlur={(e) => updateBranch(i, { landmark: e.target.value })}
-                    onChange={(e) => {
-                      const next = [...branches];
-                      next[i] = { ...next[i], landmark: e.target.value };
-                      setBranches(next);
-                    }}
-                    type="text"
-                    value={branch.landmark}
-                  />
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Area / neighborhood *
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => updateBranch(i, { area: e.target.value })}
+                      onChange={(e) => {
+                        const next = [...branches];
+                        next[i] = { ...next[i], area: e.target.value };
+                        setBranches(next);
+                      }}
+                      placeholder="e.g. Bole Medhanialem"
+                      type="text"
+                      value={branch.area}
+                    />
+                  </div>
 
-                <button
-                  className="text-sm font-medium text-primary hover:underline"
-                  onClick={() => useBranchLocation(i)}
-                  type="button"
-                >
-                  📍{" "}
-                  {branch.latitude != null && branch.longitude != null
-                    ? "Pin captured — update location"
-                    : "Use my location for this branch"}
-                </button>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Nearby landmark *
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => updateBranch(i, { landmark: e.target.value })}
+                      onChange={(e) => {
+                        const next = [...branches];
+                        next[i] = { ...next[i], landmark: e.target.value };
+                        setBranches(next);
+                      }}
+                      placeholder="e.g. next to Edna Mall"
+                      type="text"
+                      value={branch.landmark}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Google Maps link
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => updateBranch(i, { maps_link: e.target.value })}
+                      onChange={(e) => {
+                        const next = [...branches];
+                        next[i] = { ...next[i], maps_link: e.target.value };
+                        setBranches(next);
+                      }}
+                      placeholder="https://maps.app.goo.gl/..."
+                      type="url"
+                      value={branch.maps_link}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Paste the Google Maps link for this branch entrance
+                    </p>
+                  </div>
+
+                  <button
+                    className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                    onClick={() => useBranchLocation(i)}
+                    type="button"
+                  >
+                    📍{" "}
+                    {branch.latitude != null && branch.longitude != null
+                      ? "Pin captured — update location"
+                      : "Use my current location for this branch"}
+                  </button>
+                </div>
               </div>
             ))}
-          </div>
 
-          {branches.length < branchCount && (
-            <button
-              className="mt-4 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
-              onClick={addBranch}
-              type="button"
-            >
-              + Add branch {branches.length + 1} of {branchCount}
-            </button>
-          )}
+            {branchCount !== 99 && branches.length < branchCount - 1 && (
+              <p className="text-center text-sm text-muted-foreground">
+                {branchCount - 1 - branches.length} more{" "}
+                {branchCount - 1 - branches.length === 1 ? "branch" : "branches"} to add
+              </p>
+            )}
+
+            {branchCount === 99 && branches.length === 0 && (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Click &quot;+ Add branch&quot; to add your first additional branch
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
