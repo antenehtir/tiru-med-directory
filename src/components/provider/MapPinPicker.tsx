@@ -1,29 +1,37 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import "leaflet/dist/leaflet.css";
 
-const ADDIS_ABABA_CENTER = { lat: 9.0192, lng: 38.7525 };
+type LocationOption = "none" | "gps" | "maps_link" | "confirmed";
 
-export function MapPinPicker({
+type MapPinPickerProps = {
+  initialLat?: number | null;
+  initialLng?: number | null;
+  initialMapsLink?: string;
+  onChange: (lat: number, lng: number, mapsLink?: string) => void;
+};
+
+function ConfirmationMap({
   lat,
   lng,
-  onChange,
+  onConfirm,
+  onRetry,
 }: {
-  lat: number | null;
-  lng: number | null;
-  onChange: (lat: number, lng: number, fromCurrentLocation?: boolean) => void;
+  lat: number;
+  lng: number;
+  onConfirm: () => void;
+  onRetry: () => void;
 }) {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<import("leaflet").Map | null>(null);
-  const markerRef = useRef<import("leaflet").Marker | null>(null);
-  const [locating, setLocating] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<unknown>(null);
 
   useEffect(() => {
-    let map: import("leaflet").Map | null = null;
+    let mounted = true;
 
-    import("leaflet").then((L) => {
-      if (!mapRef.current || mapInstanceRef.current) return;
+    async function initMap() {
+      const L = (await import("leaflet")).default;
+      await import("leaflet/dist/leaflet.css");
+      if (!mounted || !mapContainerRef.current || mapRef.current) return;
 
       const icon = L.icon({
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -35,85 +43,323 @@ export function MapPinPicker({
         shadowSize: [41, 41],
       });
 
-      const start = lat != null && lng != null ? { lat, lng } : ADDIS_ABABA_CENTER;
+      const map = L.map(mapContainerRef.current, {
+        dragging: false,
+        zoomControl: true,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+      }).setView([lat, lng], 17);
 
-      map = L.map(mapRef.current).setView([start.lat, start.lng], 15);
-      mapInstanceRef.current = map;
+      mapRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: "© OpenStreetMap contributors",
+        maxZoom: 19,
       }).addTo(map);
 
-      const marker = L.marker([start.lat, start.lng], { icon, draggable: true }).addTo(map);
-      markerRef.current = marker;
+      L.marker([lat, lng], { icon }).addTo(map);
+    }
 
-      marker.on("dragend", () => {
-        const pos = marker.getLatLng();
-        onChange(pos.lat, pos.lng);
-      });
-
-      map.on("click", (e: import("leaflet").LeafletMouseEvent) => {
-        marker.setLatLng(e.latlng);
-        onChange(e.latlng.lat, e.latlng.lng);
-      });
-    });
+    initMap();
 
     return () => {
-      map?.remove();
-      mapInstanceRef.current = null;
-      markerRef.current = null;
+      mounted = false;
+      if (mapRef.current) {
+        (mapRef.current as { remove: () => void }).remove();
+        mapRef.current = null;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lat, lng]);
 
-  function handleUseMyLocation() {
-    if (!("geolocation" in navigator)) return;
+  return (
+    <div className="space-y-3">
+      <div
+        className="h-52 w-full overflow-hidden rounded-xl border border-border"
+        ref={mapContainerRef}
+        style={{ zIndex: 0 }}
+      />
+      <p className="text-xs text-muted-foreground text-center">
+        This is where patients will be directed. Does it look correct?
+      </p>
+      <div className="flex gap-2">
+        <button
+          className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+          onClick={onConfirm}
+          type="button"
+        >
+          ✓ Yes, this is correct
+        </button>
+        <button
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted"
+          onClick={onRetry}
+          type="button"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
 
+export function MapPinPicker({
+  initialLat,
+  initialLng,
+  initialMapsLink,
+  onChange,
+}: MapPinPickerProps) {
+  const hasInitial = !!(initialLat && initialLng);
+  const [option, setOption] = useState<LocationOption>(
+    hasInitial ? "confirmed" : "none",
+  );
+  const [pendingLat, setPendingLat] = useState<number | null>(null);
+  const [pendingLng, setPendingLng] = useState<number | null>(null);
+  const [confirmedLat, setConfirmedLat] = useState<number | null>(
+    initialLat ?? null,
+  );
+  const [confirmedLng, setConfirmedLng] = useState<number | null>(
+    initialLng ?? null,
+  );
+  const [mapsLinkInput, setMapsLinkInput] = useState(initialMapsLink ?? "");
+  const [locating, setLocating] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  function extractCoordsFromMapsLink(url: string): {
+    lat: number;
+    lng: number;
+  } | null {
+    // !3d!4d format (pin coords — most accurate)
+    const dataMatch = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    if (dataMatch) {
+      return { lat: parseFloat(dataMatch[1]), lng: parseFloat(dataMatch[2]) };
+    }
+    // @lat,lng format (viewport center — fallback)
+    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+    // q=lat,lng format
+    const qMatch = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) {
+      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+    }
+    return null;
+  }
+
+  function isValidAddisCoords(lat: number, lng: number) {
+    return lat >= 8.7 && lat <= 9.3 && lng >= 38.5 && lng <= 39.0;
+  }
+
+  function handleGPS() {
+    if (!("geolocation" in navigator)) {
+      setGpsError("Your browser does not support location access.");
+      return;
+    }
     const confirmed = window.confirm(
-      "Only use this if you are physically standing at your facility's entrance right now. Continue?",
+      "Only use this if you are physically standing at your facility's main entrance right now. Continue?",
     );
     if (!confirmed) return;
 
     setLocating(true);
+    setGpsError(null);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        onChange(latitude, longitude, true);
-
-        const map = mapInstanceRef.current;
-        const marker = markerRef.current;
-        if (map && marker) {
-          marker.setLatLng([latitude, longitude]);
-          map.setView([latitude, longitude], 16);
+        if (!isValidAddisCoords(latitude, longitude)) {
+          setGpsError(
+            "Your location appears to be outside Addis Ababa. Please use a Google Maps link instead.",
+          );
+          setLocating(false);
+          return;
         }
+        setPendingLat(latitude);
+        setPendingLng(longitude);
+        setOption("gps");
         setLocating(false);
       },
       () => {
-        // Geolocation denied or unavailable — leave the pin where it is.
+        setGpsError(
+          "Could not access your location. Please check your browser permissions and try again.",
+        );
         setLocating(false);
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
     );
   }
 
+  function handleMapsLinkExtract() {
+    setLinkError(null);
+    const coords = extractCoordsFromMapsLink(mapsLinkInput);
+    if (!coords) {
+      setLinkError(
+        "Could not extract coordinates from this link. Make sure you copied a full Google Maps link (not a search result).",
+      );
+      return;
+    }
+    if (!isValidAddisCoords(coords.lat, coords.lng)) {
+      setLinkError(
+        "The coordinates in this link appear to be outside Addis Ababa. Please check the link.",
+      );
+      return;
+    }
+    setPendingLat(coords.lat);
+    setPendingLng(coords.lng);
+    setOption("maps_link");
+  }
+
+  function handleConfirm() {
+    if (pendingLat && pendingLng) {
+      setConfirmedLat(pendingLat);
+      setConfirmedLng(pendingLng);
+      setOption("confirmed");
+      const mapsLink =
+        option === "maps_link" && mapsLinkInput
+          ? mapsLinkInput
+          : `https://www.google.com/maps?q=${pendingLat},${pendingLng}`;
+      onChange(pendingLat, pendingLng, mapsLink);
+    }
+  }
+
+  function handleRetry() {
+    setPendingLat(null);
+    setPendingLng(null);
+    setOption("none");
+    setGpsError(null);
+    setLinkError(null);
+  }
+
+  function handleChangeConfirmed() {
+    setConfirmedLat(null);
+    setConfirmedLng(null);
+    setOption("none");
+    setGpsError(null);
+    setLinkError(null);
+  }
+
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
-        <p className="text-xs text-blue-700 dark:text-blue-300">
-          <strong>How to pin your location:</strong> Drag the blue marker to your
-          facility&apos;s main entrance, or tap anywhere on the map to place it.
-          Patients use this exact point for directions — accuracy matters.
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-foreground">
+          Pin your facility location *
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Choose the method that works best for you
         </p>
       </div>
-      <div ref={mapRef} className="h-64 w-full overflow-hidden rounded-xl border border-border" />
-      <button
-        className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-        disabled={locating}
-        onClick={handleUseMyLocation}
-        type="button"
-      >
-        📍 {locating ? "Locating…" : "Use my current location"}
-      </button>
+
+      {/* Already confirmed */}
+      {option === "confirmed" && confirmedLat && confirmedLng && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 dark:bg-teal-950/30">
+            <span className="text-teal-600">✓</span>
+            <p className="text-sm font-medium text-teal-700 dark:text-teal-400">
+              Location confirmed
+            </p>
+            <button
+              className="ml-auto text-xs text-teal-600 hover:underline"
+              onClick={handleChangeConfirmed}
+              type="button"
+            >
+              Change
+            </button>
+          </div>
+          <ConfirmationMap
+            lat={confirmedLat}
+            lng={confirmedLng}
+            onConfirm={() => {}}
+            onRetry={handleChangeConfirmed}
+          />
+        </div>
+      )}
+
+      {/* Pending GPS confirmation */}
+      {(option === "gps" || option === "maps_link") &&
+        pendingLat &&
+        pendingLng && (
+          <ConfirmationMap
+            lat={pendingLat}
+            lng={pendingLng}
+            onConfirm={handleConfirm}
+            onRetry={handleRetry}
+          />
+        )}
+
+      {/* Options — shown when no location yet */}
+      {option === "none" && (
+        <div className="space-y-3">
+          {/* Option 1: GPS */}
+          <div className="rounded-xl border border-border bg-background p-4">
+            <p className="mb-1 text-sm font-semibold text-foreground">
+              Option 1 — I am at the facility right now
+            </p>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Stand at the main entrance and tap the button below.
+              We will capture your exact GPS location.
+            </p>
+            <button
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+              disabled={locating}
+              onClick={handleGPS}
+              type="button"
+            >
+              {locating ? (
+                <>
+                  <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Getting your location...
+                </>
+              ) : (
+                <>📍 Confirm I&apos;m at the entrance</>
+              )}
+            </button>
+            {gpsError && (
+              <p className="mt-2 text-xs text-red-500">{gpsError}</p>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          {/* Option 2: Google Maps link */}
+          <div className="rounded-xl border border-border bg-background p-4">
+            <p className="mb-1 text-sm font-semibold text-foreground">
+              Option 2 — Paste a Google Maps link
+            </p>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Open Google Maps, search for your facility, tap Share →
+              Copy link, then paste it here.
+            </p>
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => setMapsLinkInput(e.target.value)}
+                placeholder="https://maps.app.goo.gl/..."
+                type="url"
+                value={mapsLinkInput}
+              />
+              <button
+                className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                disabled={!mapsLinkInput.trim()}
+                onClick={handleMapsLinkExtract}
+                type="button"
+              >
+                Confirm
+              </button>
+            </div>
+            {linkError && (
+              <p className="mt-2 text-xs text-red-500">{linkError}</p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">
+              💡 Tip: In Google Maps, search your facility name,
+              tap the share icon, then &quot;Copy link&quot;
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

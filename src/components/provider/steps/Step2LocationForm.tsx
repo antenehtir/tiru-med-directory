@@ -74,16 +74,13 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   }
 
   const handleMapChange = useCallback(
-    (newLat: number, newLng: number, fromCurrentLocation?: boolean) => {
+    (newLat: number, newLng: number, mapsLinkFromPicker?: string) => {
       setLat(newLat);
       setLng(newLng);
-      // Auto-generate a Google Maps link from the pin
-      const generatedLink = `https://www.google.com/maps?q=${newLat},${newLng}`;
+      const generatedLink =
+        mapsLinkFromPicker ?? `https://www.google.com/maps?q=${newLat},${newLng}`;
       setMapsLink(generatedLink);
       autoSave({ lat: newLat, lng: newLng, maps_link: generatedLink });
-      if (fromCurrentLocation) {
-        // soft note could be shown; data already saved
-      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -259,27 +256,15 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
 
           {/* Map pin */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Pin your location *</label>
-            <MapPinPicker lat={lat} lng={lng} onChange={handleMapChange} />
+            <MapPinPicker
+              initialLat={lat}
+              initialLng={lng}
+              initialMapsLink={mapsLink}
+              onChange={handleMapChange}
+            />
             <input name="lat" type="hidden" value={lat ?? ""} />
             <input name="lng" type="hidden" value={lng ?? ""} />
-          </div>
-
-          {/* Maps link */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="maps_link">
-              Google Maps link
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="maps_link"
-              name="maps_link"
-              onBlur={(e) => autoSave({ maps_link: e.target.value })}
-              onChange={(e) => setMapsLink(e.target.value)}
-              placeholder="https://maps.app.goo.gl/..."
-              type="url"
-              value={mapsLink}
-            />
+            <input name="maps_link" type="hidden" value={mapsLink} />
           </div>
         </div>
       </div>
