@@ -41,11 +41,54 @@ export async function saveStep1(formData: FormData) {
     })
     .eq("id", claim.id);
 
-  // Update last active
+  // phase 2 = location (the step they land on next), matching login's phaseToSlug map
   await supabase
     .from("provider_accounts")
-    .update({ last_active_at: new Date().toISOString() })
+    .update({
+      onboarding_phase: 2,
+      last_active_at: new Date().toISOString(),
+    })
     .eq("id", provider.id);
 
   redirect("/provider/onboarding/location");
+}
+
+export async function autoSaveStep1(data: {
+  name?: string;
+  alt_name?: string;
+  ownership_type?: string;
+  branch_count?: number | null;
+  description?: string;
+  languages?: string[];
+  patient_groups?: string[];
+}) {
+  const provider = await getProviderAccount();
+  if (!provider) return;
+
+  const supabase = await createProviderSupabaseClient();
+
+  const { data: claim } = await supabase
+    .from("facility_claims")
+    .select("id")
+    .eq("provider_id", provider.id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (!claim) return;
+
+  const updates: Record<string, unknown> = {};
+  if (data.name !== undefined) updates.proposed_name = data.name;
+  if (data.alt_name !== undefined) updates.proposed_alt_name = data.alt_name || null;
+  if (data.ownership_type !== undefined) updates.proposed_ownership_type = data.ownership_type || null;
+  if (data.branch_count !== undefined) updates.proposed_branch_count = data.branch_count;
+  if (data.description !== undefined) updates.proposed_description = data.description || null;
+  if (data.languages !== undefined) updates.proposed_languages = data.languages.length > 0 ? data.languages : null;
+  if (data.patient_groups !== undefined) updates.proposed_patient_groups = data.patient_groups.length > 0 ? data.patient_groups : null;
+
+  if (Object.keys(updates).length === 0) return;
+
+  await supabase
+    .from("facility_claims")
+    .update(updates)
+    .eq("id", claim.id);
 }

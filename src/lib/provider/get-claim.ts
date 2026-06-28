@@ -1,4 +1,7 @@
-import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
+import {
+  createProviderSupabaseClient,
+  getProviderAccount,
+} from "@/lib/supabase/provider-client";
 
 export async function getOrCreateClaim() {
   const provider = await getProviderAccount();
@@ -6,22 +9,24 @@ export async function getOrCreateClaim() {
 
   const supabase = await createProviderSupabaseClient();
 
-  // Find existing draft claim for this provider
+  // Look for ANY pending claim for this provider
   const { data: existing } = await supabase
     .from("facility_claims")
     .select("*")
     .eq("provider_id", provider.id)
-    .eq("status", "pending")
+    .in("status", ["pending"])
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (existing) return { provider, claim: existing };
 
-  // Create a new draft claim
+  // Create a new draft claim — facility_id may be null for new listings
   const { data: created, error } = await supabase
     .from("facility_claims")
     .insert({
       provider_id: provider.id,
-      facility_id: provider.facility_id,
+      facility_id: provider.facility_id ?? null,
       status: "pending",
       submission_step: 1,
       completion_pct: 0,

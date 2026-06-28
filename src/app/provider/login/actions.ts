@@ -48,13 +48,17 @@ export async function providerSignIn(formData: FormData) {
   }
 
   // Route based on onboarding phase
-  if (provider.onboarding_phase < 1) {
-    redirect("/provider/onboarding/phase-1");
-  } else if (provider.onboarding_phase < 2) {
-    redirect("/provider/onboarding/phase-2");
-  } else if (provider.onboarding_phase < 3) {
-    redirect("/provider/onboarding/phase-3");
-  } else {
-    redirect("/provider/dashboard");
-  }
+  const phaseToSlug: Record<number, string> = {
+    0: "/provider/onboarding/claim",
+    1: "/provider/onboarding/identity",
+    2: "/provider/onboarding/location",
+    3: "/provider/onboarding/services",
+    4: "/provider/onboarding/doctors",
+    5: "/provider/onboarding/media",
+    6: "/provider/onboarding/review",
+  };
+
+  const destination =
+    phaseToSlug[provider.onboarding_phase ?? 0] ?? "/provider/dashboard";
+  redirect(destination);
 }
