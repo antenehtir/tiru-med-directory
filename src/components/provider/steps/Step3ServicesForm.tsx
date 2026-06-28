@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { useState, useTransition } from "react";
 import { saveStep3, autoSaveStep3 } from "@/app/provider/onboarding/services/actions";
 import {
   MAIN_SERVICES,
@@ -15,6 +14,10 @@ import {
   scheduleToText,
   type ScheduleRow,
 } from "@/components/provider/ScheduleBuilder";
+import {
+  CheckupPackageUploader,
+  type CheckupPackage,
+} from "@/components/provider/CheckupPackageUploader";
 
 type Claim = Record<string, unknown>;
 
@@ -45,11 +48,9 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     (claim.proposed_payment_methods as string[]) ?? [],
   );
 
-  const [uploading, setUploading] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState(
-    (claim.proposed_checkup_pdf_url as string) ?? "",
+  const [checkupPackages, setCheckupPackages] = useState<CheckupPackage[]>(
+    (claim.proposed_checkup_packages as CheckupPackage[]) ?? [],
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function autoSave(partial: Record<string, unknown>) {
     startTransition(async () => {
@@ -72,52 +73,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       : [...paymentMethods, method];
     setPaymentMethods(next);
     autoSave({ proposed_payment_methods: next });
-  }
-
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Must match the facility-packages bucket's allowed_mime_types exactly —
-    // webp would pass this check but get rejected by Supabase Storage.
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload a PDF or image file (JPG or PNG).");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File must be under 10MB.");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-
-      const ext = file.name.split(".").pop();
-      const fileName = `checkup-packages/${Date.now()}.${ext}`;
-
-      const { error } = await supabase.storage
-        .from("facility-packages")
-        .upload(fileName, file, { upsert: true });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from("facility-packages")
-        .getPublicUrl(fileName);
-
-      setUploadedUrl(urlData.publicUrl);
-      autoSave({ proposed_checkup_pdf_url: urlData.publicUrl });
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -157,7 +112,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       {/* Hidden fields for checkboxes/toggles */}
       <input name="checkup_offered" type="hidden" value={checkupOffered ? "yes" : "no"} />
       <input name="insurance_accepted" type="hidden" value={insuranceAccepted ? "yes" : "no"} />
-      <input name="checkup_pdf_url" type="hidden" value={uploadedUrl} />
+      <input
+        name="checkup_packages_json"
+        type="hidden"
+        value={JSON.stringify(checkupPackages)}
+      />
       <input name="working_hours" type="hidden" value={scheduleToText(schedule)} />
       <input name="schedule_json" type="hidden" value={JSON.stringify(schedule)} />
       {services.map((svc) => (
@@ -490,69 +449,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
           {checkupOffered && (
             <div className="space-y-3">
-              {/* File upload */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  Upload package list (PDF or image)
-                </label>
-                <div
-                  className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-6 transition hover:border-primary/40"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {uploading ? (
-                    <p className="text-sm text-muted-foreground">
-                      Uploading...
-                    </p>
-                  ) : uploadedUrl ? (
-                    <>
-                      <p className="text-sm font-medium text-teal-600">
-                        ✓ File uploaded
-                      </p>
-                      <a
-                        className="text-xs text-primary hover:underline"
-                        href={uploadedUrl}
-                        onClick={(e) => e.stopPropagation()}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        View uploaded file ↗
-                      </a>
-                      <p className="text-xs text-muted-foreground">
-                        Click to replace
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="size-8 text-muted-foreground"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload PDF or image
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Max 10MB · PDF, JPG, PNG
-                      </p>
-                    </>
-                  )}
-                </div>
-                <input
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  ref={fileInputRef}
-                  type="file"
-                />
-              </div>
+              <CheckupPackageUploader
+                onChange={(pkgs) => {
+                  setCheckupPackages(pkgs);
+                  autoSave({ proposed_checkup_packages: pkgs });
+                }}
+                value={checkupPackages}
+              />
 
               {/* Optional note */}
               <div className="flex flex-col gap-1.5">

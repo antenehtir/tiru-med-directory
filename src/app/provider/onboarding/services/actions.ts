@@ -26,6 +26,10 @@ export async function saveStep3(formData: FormData) {
   const walkinAppointment = formData.get("walkin_appointment") as string;
   const checkupOffered = formData.get("checkup_offered") === "yes";
   const checkupPdfUrl = formData.get("checkup_pdf_url") as string;
+  const checkupPackagesJson = formData.get("checkup_packages_json") as string;
+  const checkupPackages = checkupPackagesJson
+    ? JSON.parse(checkupPackagesJson)
+    : null;
   const checkupNote = formData.get("checkup_note") as string;
   const paymentMethods = formData.getAll("payment_methods") as string[];
   const insuranceAccepted = formData.get("insurance_accepted") === "yes";
@@ -44,6 +48,7 @@ export async function saveStep3(formData: FormData) {
       proposed_walkin_appointment: walkinAppointment || null,
       proposed_checkup_offered: checkupOffered,
       proposed_checkup_pdf_url: checkupPdfUrl || null,
+      proposed_checkup_packages: checkupPackages,
       proposed_checkup_note: checkupNote || null,
       proposed_payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       proposed_insurance_accepted: insuranceAccepted,
@@ -85,6 +90,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_walkin_appointment",
     "proposed_checkup_offered",
     "proposed_checkup_pdf_url",
+    "proposed_checkup_packages",
     "proposed_checkup_note",
     "proposed_payment_methods",
     "proposed_insurance_accepted",
