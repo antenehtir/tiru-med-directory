@@ -165,6 +165,10 @@ export function Step1IdentityForm({
               rows={3}
               value={description}
             />
+            <p className="text-xs text-muted-foreground">
+              1-2 sentences patients read first. E.g. &quot;A family clinic offering
+              pediatric and maternal care with same-day appointments.&quot;
+            </p>
           </div>
 
           {/* Languages */}

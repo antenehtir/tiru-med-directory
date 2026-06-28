@@ -2,27 +2,16 @@
 
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
-
-async function getClaimId(providerId: string) {
-  const supabase = await createProviderSupabaseClient();
-  const { data: claim } = await supabase
-    .from("facility_claims")
-    .select("id")
-    .eq("provider_id", providerId)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  return claim?.id ?? null;
-}
+import { findPendingClaimId } from "@/lib/provider/get-claim";
 
 export async function saveStep2(formData: FormData) {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
-  const claimId = await getClaimId(provider.id);
-  if (!claimId) redirect("/provider/onboarding/location");
-
   const supabase = await createProviderSupabaseClient();
+
+  const claimId = await findPendingClaimId(supabase, provider.id);
+  if (!claimId) redirect("/provider/onboarding/location");
 
   const subCity = formData.get("sub_city") as string;
   const area = formData.get("area") as string;
@@ -90,14 +79,22 @@ export async function autoSaveStep2(data: {
   email?: string;
   website?: string;
   booking_link?: string;
+  branches?: Array<{
+    name: string;
+    area: string;
+    landmark: string;
+    latitude: number | null;
+    longitude: number | null;
+    maps_link: string;
+  }>;
 }) {
   const provider = await getProviderAccount();
   if (!provider) return;
 
-  const claimId = await getClaimId(provider.id);
-  if (!claimId) return;
-
   const supabase = await createProviderSupabaseClient();
+
+  const claimId = await findPendingClaimId(supabase, provider.id);
+  if (!claimId) return;
 
   const updates: Record<string, unknown> = {};
   if (data.sub_city !== undefined) updates.proposed_sub_city = data.sub_city || null;
@@ -115,6 +112,7 @@ export async function autoSaveStep2(data: {
   if (data.email !== undefined) updates.proposed_email = data.email || null;
   if (data.website !== undefined) updates.proposed_website = data.website || null;
   if (data.booking_link !== undefined) updates.proposed_booking_link = data.booking_link || null;
+  if (data.branches !== undefined) updates.proposed_branches = data.branches;
 
   if (Object.keys(updates).length === 0) return;
 

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
+import { findPendingClaimId } from "@/lib/provider/get-claim";
 
 export async function saveStep1(formData: FormData) {
   const provider = await getProviderAccount();
@@ -17,15 +18,8 @@ export async function saveStep1(formData: FormData) {
   const languages = formData.getAll("languages") as string[];
   const patientGroups = formData.getAll("patient_groups") as string[];
 
-  // Find the draft claim
-  const { data: claim } = await supabase
-    .from("facility_claims")
-    .select("id")
-    .eq("provider_id", provider.id)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  if (!claim) redirect("/provider/onboarding/identity");
+  const claimId = await findPendingClaimId(supabase, provider.id);
+  if (!claimId) redirect("/provider/onboarding/identity");
 
   await supabase
     .from("facility_claims")
@@ -39,7 +33,7 @@ export async function saveStep1(formData: FormData) {
       proposed_patient_groups: patientGroups.length > 0 ? patientGroups : null,
       submission_step: 2,
     })
-    .eq("id", claim.id);
+    .eq("id", claimId);
 
   // phase 2 = location (the step they land on next), matching login's phaseToSlug map
   await supabase
@@ -67,14 +61,8 @@ export async function autoSaveStep1(data: {
 
   const supabase = await createProviderSupabaseClient();
 
-  const { data: claim } = await supabase
-    .from("facility_claims")
-    .select("id")
-    .eq("provider_id", provider.id)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  if (!claim) return;
+  const claimId = await findPendingClaimId(supabase, provider.id);
+  if (!claimId) return;
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.proposed_name = data.name;
@@ -90,5 +78,5 @@ export async function autoSaveStep1(data: {
   await supabase
     .from("facility_claims")
     .update(updates)
-    .eq("id", claim.id);
+    .eq("id", claimId);
 }

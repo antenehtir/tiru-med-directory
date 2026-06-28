@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { saveStep2, autoSaveStep2 } from "@/app/provider/onboarding/location/actions";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 
@@ -11,6 +11,15 @@ const MapPinPicker = dynamic(
 );
 
 type Claim = Record<string, unknown>;
+
+type Branch = {
+  name: string;
+  area: string;
+  landmark: string;
+  latitude: number | null;
+  longitude: number | null;
+  maps_link: string;
+};
 
 export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [isPending, startTransition] = useTransition();
@@ -33,6 +42,11 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [website, setWebsite] = useState((claim.proposed_website as string) ?? "");
   const [bookingLink, setBookingLink] = useState((claim.proposed_booking_link as string) ?? "");
 
+  const branchCount = (claim.proposed_branch_count as number) ?? 1;
+  const [branches, setBranches] = useState<Branch[]>(
+    (claim.proposed_branches as Branch[]) ?? [],
+  );
+
   function autoSave(partial: Parameters<typeof autoSaveStep2>[0]) {
     startTransition(async () => {
       await autoSaveStep2(partial);
@@ -40,10 +54,60 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
     });
   }
 
-  function handlePinChange(newLat: number, newLng: number) {
-    setLat(newLat);
-    setLng(newLng);
-    autoSave({ lat: newLat, lng: newLng });
+  const handleMapChange = useCallback(
+    (newLat: number, newLng: number, fromCurrentLocation?: boolean) => {
+      setLat(newLat);
+      setLng(newLng);
+      // Auto-generate a Google Maps link from the pin
+      const generatedLink = `https://www.google.com/maps?q=${newLat},${newLng}`;
+      setMapsLink(generatedLink);
+      autoSave({ lat: newLat, lng: newLng, maps_link: generatedLink });
+      if (fromCurrentLocation) {
+        // soft note could be shown; data already saved
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  function updateBranch(index: number, partial: Partial<Branch>) {
+    const next = [...branches];
+    next[index] = { ...next[index], ...partial };
+    setBranches(next);
+    autoSave({ branches: next });
+  }
+
+  function addBranch() {
+    const next = [
+      ...branches,
+      { name: "", area: "", landmark: "", latitude: null, longitude: null, maps_link: "" },
+    ];
+    setBranches(next);
+    autoSave({ branches: next });
+  }
+
+  function useBranchLocation(index: number) {
+    if (!("geolocation" in navigator)) return;
+
+    const confirmed = window.confirm(
+      "Only use this if you are physically standing at this branch's entrance right now. Continue?",
+    );
+    if (!confirmed) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        updateBranch(index, {
+          latitude,
+          longitude,
+          maps_link: `https://www.google.com/maps?q=${latitude},${longitude}`,
+        });
+      },
+      () => {
+        // Geolocation denied or unavailable — leave the branch pin unset.
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
+    );
   }
 
   function field(
@@ -112,6 +176,9 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               type="text"
               {...field(area, setArea, { area })}
             />
+            <p className="text-xs text-muted-foreground">
+              The neighborhood patients would recognize, e.g. &quot;Bole Medhanialem&quot;
+            </p>
           </div>
 
           {/* Landmark */}
@@ -128,6 +195,9 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               type="text"
               {...field(landmark, setLandmark, { landmark })}
             />
+            <p className="text-xs text-muted-foreground">
+              A well-known nearby place, e.g. &quot;next to Edna Mall&quot;
+            </p>
           </div>
 
           {/* Building description */}
@@ -143,6 +213,9 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               type="text"
               {...field(buildingDesc, setBuildingDesc, { building_desc: buildingDesc })}
             />
+            <p className="text-xs text-muted-foreground">
+              Floor, building color/name, where reception is
+            </p>
           </div>
 
           {/* Access notes */}
@@ -160,12 +233,15 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               rows={2}
               value={accessNotes}
             />
+            <p className="text-xs text-muted-foreground">
+              Parking, wheelchair access, elevator, entrance directions
+            </p>
           </div>
 
           {/* Map pin */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground">Pin your location *</label>
-            <MapPinPicker lat={lat} lng={lng} onChange={handlePinChange} />
+            <MapPinPicker lat={lat} lng={lng} onChange={handleMapChange} />
             <input name="lat" type="hidden" value={lat ?? ""} />
             <input name="lng" type="hidden" value={lng ?? ""} />
           </div>
@@ -179,13 +255,102 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="maps_link"
               name="maps_link"
+              onBlur={(e) => autoSave({ maps_link: e.target.value })}
+              onChange={(e) => setMapsLink(e.target.value)}
               placeholder="https://maps.app.goo.gl/..."
               type="url"
-              {...field(mapsLink, setMapsLink, { maps_link: mapsLink })}
+              value={mapsLink}
             />
           </div>
         </div>
       </div>
+
+      {branchCount > 1 && (
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <div className="mb-4">
+            <h2 className="mb-1 text-lg font-bold text-foreground">Branch locations</h2>
+            <p className="text-sm text-muted-foreground">
+              You told us you have {branchCount} branches. Add their locations below.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {branches.map((branch, i) => (
+              <div key={i} className="space-y-3 rounded-xl border border-border p-4">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Branch {i + 1} of {branchCount}
+                </p>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-foreground">Branch name</label>
+                  <input
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    onBlur={(e) => updateBranch(i, { name: e.target.value })}
+                    onChange={(e) => {
+                      const next = [...branches];
+                      next[i] = { ...next[i], name: e.target.value };
+                      setBranches(next);
+                    }}
+                    type="text"
+                    value={branch.name}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-foreground">Area</label>
+                  <input
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    onBlur={(e) => updateBranch(i, { area: e.target.value })}
+                    onChange={(e) => {
+                      const next = [...branches];
+                      next[i] = { ...next[i], area: e.target.value };
+                      setBranches(next);
+                    }}
+                    type="text"
+                    value={branch.area}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-foreground">Landmark</label>
+                  <input
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    onBlur={(e) => updateBranch(i, { landmark: e.target.value })}
+                    onChange={(e) => {
+                      const next = [...branches];
+                      next[i] = { ...next[i], landmark: e.target.value };
+                      setBranches(next);
+                    }}
+                    type="text"
+                    value={branch.landmark}
+                  />
+                </div>
+
+                <button
+                  className="text-sm font-medium text-primary hover:underline"
+                  onClick={() => useBranchLocation(i)}
+                  type="button"
+                >
+                  📍{" "}
+                  {branch.latitude != null && branch.longitude != null
+                    ? "Pin captured — update location"
+                    : "Use my location for this branch"}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {branches.length < branchCount && (
+            <button
+              className="mt-4 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              onClick={addBranch}
+              type="button"
+            >
+              + Add branch {branches.length + 1} of {branchCount}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="mb-1 text-lg font-bold text-foreground">Contact details</h2>
