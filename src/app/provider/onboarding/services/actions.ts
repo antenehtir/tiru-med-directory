@@ -20,7 +20,12 @@ export async function saveStep3(formData: FormData) {
   const workingHours = formData.get("working_hours") as string;
   const scheduleJson = formData.get("schedule_json") as string;
   const schedule = scheduleJson ? JSON.parse(scheduleJson) : null;
-  const weekendHours = formData.get("weekend_hours") as string;
+  const appointmentModalitiesJson = formData.get(
+    "appointment_modalities_json",
+  ) as string;
+  const appointmentModalities = appointmentModalitiesJson
+    ? JSON.parse(appointmentModalitiesJson)
+    : null;
   const holidayHours = formData.get("holiday_hours") as string;
   const emergencyType = formData.get("emergency_type") as string;
   const walkinAppointment = formData.get("walkin_appointment") as string;
@@ -42,10 +47,14 @@ export async function saveStep3(formData: FormData) {
       proposed_working_days: workingDays || null,
       proposed_working_hours: workingHours || null,
       proposed_schedule: schedule,
-      proposed_weekend_hours: weekendHours || null,
       proposed_holiday_hours: holidayHours || null,
       proposed_emergency_type: emergencyType || null,
       proposed_walkin_appointment: walkinAppointment || null,
+      proposed_appointment_modalities: appointmentModalities,
+      proposed_booking_link:
+        appointmentModalities?.find(
+          (m: { type: string; value: string }) => m.type === "online",
+        )?.value ?? null,
       proposed_checkup_offered: checkupOffered,
       proposed_checkup_pdf_url: checkupPdfUrl || null,
       proposed_checkup_packages: checkupPackages,
@@ -84,10 +93,11 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_working_days",
     "proposed_working_hours",
     "proposed_schedule",
-    "proposed_weekend_hours",
     "proposed_holiday_hours",
     "proposed_emergency_type",
     "proposed_walkin_appointment",
+    "proposed_appointment_modalities",
+    "proposed_booking_link",
     "proposed_checkup_offered",
     "proposed_checkup_pdf_url",
     "proposed_checkup_packages",

@@ -40,7 +40,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [telegram, setTelegram] = useState((claim.proposed_telegram as string) ?? "");
   const [email, setEmail] = useState((claim.proposed_email as string) ?? "");
   const [website, setWebsite] = useState((claim.proposed_website as string) ?? "");
-  const [bookingLink, setBookingLink] = useState((claim.proposed_booking_link as string) ?? "");
 
   const branchCount = (claim.proposed_branch_count as number) ?? 1;
   const [branches, setBranches] = useState<Branch[]>(
@@ -517,21 +516,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               placeholder="https://..."
               type="url"
               {...field(website, setWebsite, { website })}
-            />
-          </div>
-
-          {/* Booking link */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="booking_link">
-              Online booking link
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="booking_link"
-              name="booking_link"
-              placeholder="https://..."
-              type="url"
-              {...field(bookingLink, setBookingLink, { booking_link: bookingLink })}
             />
           </div>
         </div>

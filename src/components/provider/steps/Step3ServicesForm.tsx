@@ -21,6 +21,56 @@ import {
 
 type Claim = Record<string, unknown>;
 
+type AppointmentModality = {
+  type: "phone" | "telegram" | "whatsapp" | "online" | "in_person";
+  label: string;
+  value: string;
+};
+
+const APPOINTMENT_MODALITY_OPTIONS: {
+  type: AppointmentModality["type"];
+  label: string;
+  placeholder: string;
+  inputType: "tel" | "text" | "url";
+  icon: string;
+}[] = [
+  {
+    type: "phone",
+    label: "Phone call",
+    placeholder: "+251 91 234 5678",
+    inputType: "tel",
+    icon: "📞",
+  },
+  {
+    type: "telegram",
+    label: "Telegram",
+    placeholder: "@username or t.me/username",
+    inputType: "text",
+    icon: "✈️",
+  },
+  {
+    type: "whatsapp",
+    label: "WhatsApp",
+    placeholder: "+251 91 234 5678",
+    inputType: "tel",
+    icon: "💬",
+  },
+  {
+    type: "online",
+    label: "Online booking",
+    placeholder: "https://booking.example.com",
+    inputType: "url",
+    icon: "🌐",
+  },
+  {
+    type: "in_person",
+    label: "In-person at reception",
+    placeholder: "e.g. Visit reception desk, Mon–Fri 8AM–5PM",
+    inputType: "text",
+    icon: "🏥",
+  },
+];
+
 export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -51,6 +101,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [checkupPackages, setCheckupPackages] = useState<CheckupPackage[]>(
     (claim.proposed_checkup_packages as CheckupPackage[]) ?? [],
   );
+
+  const [walkinPolicy, setWalkinPolicy] = useState(
+    (claim.proposed_walkin_appointment as string) ?? "",
+  );
+  const [appointmentModalities, setAppointmentModalities] = useState<
+    AppointmentModality[]
+  >((claim.proposed_appointment_modalities as AppointmentModality[]) ?? []);
 
   function autoSave(partial: Record<string, unknown>) {
     startTransition(async () => {
@@ -119,6 +176,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       />
       <input name="working_hours" type="hidden" value={scheduleToText(schedule)} />
       <input name="schedule_json" type="hidden" value={JSON.stringify(schedule)} />
+      <input
+        name="appointment_modalities_json"
+        type="hidden"
+        value={JSON.stringify(appointmentModalities)}
+      />
       {services.map((svc) => (
         <input key={svc} name="services" type="hidden" value={svc} />
       ))}
@@ -336,22 +398,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             />
           </div>
 
-          {/* Weekend hours */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="weekend_hours">
-              Weekend hours (if different)
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              defaultValue={(claim.proposed_weekend_hours as string) ?? ""}
-              id="weekend_hours"
-              name="weekend_hours"
-              onBlur={(e) => autoSave({ proposed_weekend_hours: e.target.value })}
-              placeholder="e.g. 9:00 AM – 2:00 PM or Closed"
-              type="text"
-            />
-          </div>
-
           {/* Holiday availability */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="holiday_hours">
@@ -387,23 +433,98 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             </select>
           </div>
 
-          {/* Walk-in / appointment */}
-          <div className="flex flex-col gap-1.5">
+          {/* Walk-in / appointment policy */}
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="walkin_appointment">
               Walk-in / appointment policy *
             </label>
             <select
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              defaultValue={(claim.proposed_walkin_appointment as string) ?? ""}
+              defaultValue={walkinPolicy}
               id="walkin_appointment"
               name="walkin_appointment"
-              onBlur={(e) => autoSave({ proposed_walkin_appointment: e.target.value })}
+              onChange={(e) => {
+                setWalkinPolicy(e.target.value);
+                autoSave({ proposed_walkin_appointment: e.target.value });
+                if (e.target.value === "Walk-in only") {
+                  setAppointmentModalities([]);
+                  autoSave({ proposed_appointment_modalities: [] });
+                }
+              }}
             >
               <option value="">Select…</option>
               {WALKIN_APPOINTMENT_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
+
+            {/* Appointment modalities — shown when appointment is part of policy */}
+            {walkinPolicy !== "" && walkinPolicy !== "Walk-in only" && (
+              <div className="mt-2 rounded-xl border border-border bg-background p-4 space-y-3">
+                <p className="text-sm font-semibold text-foreground">
+                  How can patients book an appointment?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Select all that apply and provide the contact details for each.
+                </p>
+
+                <div className="space-y-3">
+                  {APPOINTMENT_MODALITY_OPTIONS.map((option) => {
+                    const existing = appointmentModalities.find(
+                      (m) => m.type === option.type,
+                    );
+                    const isSelected = !!existing;
+
+                    return (
+                      <div key={option.type} className="space-y-2">
+                        <label className="flex cursor-pointer items-center gap-3">
+                          <input
+                            checked={isSelected}
+                            onChange={(e) => {
+                              let next: AppointmentModality[];
+                              if (e.target.checked) {
+                                next = [
+                                  ...appointmentModalities,
+                                  { type: option.type, label: option.label, value: "" },
+                                ];
+                              } else {
+                                next = appointmentModalities.filter(
+                                  (m) => m.type !== option.type,
+                                );
+                              }
+                              setAppointmentModalities(next);
+                              autoSave({ proposed_appointment_modalities: next });
+                            }}
+                            type="checkbox"
+                          />
+                          <span className="text-sm font-medium text-foreground">
+                            {option.icon} {option.label}
+                          </span>
+                        </label>
+
+                        {isSelected && (
+                          <input
+                            className="ml-6 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            defaultValue={existing?.value ?? ""}
+                            onBlur={(e) => {
+                              const next = appointmentModalities.map((m) =>
+                                m.type === option.type
+                                  ? { ...m, value: e.target.value }
+                                  : m,
+                              );
+                              setAppointmentModalities(next);
+                              autoSave({ proposed_appointment_modalities: next });
+                            }}
+                            placeholder={option.placeholder}
+                            type={option.inputType}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

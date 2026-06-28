@@ -30,7 +30,6 @@ export async function saveStep2(formData: FormData) {
   const telegram = formData.get("telegram") as string;
   const email = formData.get("email") as string;
   const website = formData.get("website") as string;
-  const bookingLink = formData.get("booking_link") as string;
 
   const { error: updateError } = await supabase
     .from("facility_claims")
@@ -49,7 +48,6 @@ export async function saveStep2(formData: FormData) {
       proposed_telegram: telegram || null,
       proposed_email: email || null,
       proposed_website: website || null,
-      proposed_booking_link: bookingLink || null,
       submission_step: 3,
     })
     .eq("id", claimId);
@@ -86,7 +84,6 @@ export async function autoSaveStep2(data: {
   telegram?: string;
   email?: string;
   website?: string;
-  booking_link?: string;
   branches?: Array<{
     name: string;
     area: string;
@@ -119,7 +116,6 @@ export async function autoSaveStep2(data: {
   if (data.telegram !== undefined) updates.proposed_telegram = data.telegram || null;
   if (data.email !== undefined) updates.proposed_email = data.email || null;
   if (data.website !== undefined) updates.proposed_website = data.website || null;
-  if (data.booking_link !== undefined) updates.proposed_booking_link = data.booking_link || null;
   if (data.branches !== undefined) updates.proposed_branches = data.branches;
 
   if (Object.keys(updates).length === 0) return;
