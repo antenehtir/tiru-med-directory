@@ -124,28 +124,6 @@ export function MapPinPicker({
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
 
-  function extractCoordsFromMapsLink(url: string): {
-    lat: number;
-    lng: number;
-  } | null {
-    // !3d!4d format (pin coords — most accurate)
-    const dataMatch = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-    if (dataMatch) {
-      return { lat: parseFloat(dataMatch[1]), lng: parseFloat(dataMatch[2]) };
-    }
-    // @lat,lng format (viewport center — fallback)
-    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (atMatch) {
-      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
-    }
-    // q=lat,lng format
-    const qMatch = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (qMatch) {
-      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
-    }
-    return null;
-  }
-
   function isValidAddisCoords(lat: number, lng: number) {
     return lat >= 8.7 && lat <= 9.3 && lng >= 38.5 && lng <= 39.0;
   }
@@ -188,24 +166,36 @@ export function MapPinPicker({
     );
   }
 
-  function handleMapsLinkExtract() {
+  async function handleMapsLinkExtract() {
     setLinkError(null);
-    const coords = extractCoordsFromMapsLink(mapsLinkInput);
-    if (!coords) {
-      setLinkError(
-        "Could not extract coordinates from this link. Make sure you copied a full Google Maps link (not a search result).",
-      );
-      return;
+    if (!mapsLinkInput.trim()) return;
+
+    setLocating(true);
+    try {
+      const res = await fetch("/api/provider/resolve-maps-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: mapsLinkInput.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setLinkError(
+          data.error ??
+            "Could not extract coordinates. Try copying the link directly from your facility's Google Maps page.",
+        );
+        return;
+      }
+
+      setPendingLat(data.lat);
+      setPendingLng(data.lng);
+      setOption("maps_link");
+    } catch {
+      setLinkError("Network error. Please check your connection and try again.");
+    } finally {
+      setLocating(false);
     }
-    if (!isValidAddisCoords(coords.lat, coords.lng)) {
-      setLinkError(
-        "The coordinates in this link appear to be outside Addis Ababa. Please check the link.",
-      );
-      return;
-    }
-    setPendingLat(coords.lat);
-    setPendingLng(coords.lng);
-    setOption("maps_link");
   }
 
   function handleConfirm() {
@@ -343,11 +333,18 @@ export function MapPinPicker({
               />
               <button
                 className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-                disabled={!mapsLinkInput.trim()}
+                disabled={!mapsLinkInput.trim() || locating}
                 onClick={handleMapsLinkExtract}
                 type="button"
               >
-                Confirm
+                {locating ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-3 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                    Resolving...
+                  </span>
+                ) : (
+                  "Confirm"
+                )}
               </button>
             </div>
             {linkError && (

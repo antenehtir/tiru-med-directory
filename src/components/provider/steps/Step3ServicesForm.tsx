@@ -7,10 +7,14 @@ import {
   MAIN_SERVICES,
   SPECIALTIES,
   PAYMENT_METHODS,
-  WORKING_DAYS_OPTIONS,
   EMERGENCY_TYPES,
   WALKIN_APPOINTMENT_OPTIONS,
 } from "@/lib/provider/onboarding-config";
+import {
+  ScheduleBuilder,
+  scheduleToText,
+  type ScheduleRow,
+} from "@/components/provider/ScheduleBuilder";
 
 type Claim = Record<string, unknown>;
 
@@ -21,6 +25,14 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
   const [services, setServices] = useState<string[]>(
     (claim.proposed_services as string[]) ?? [],
+  );
+  const [customService, setCustomService] = useState("");
+
+  const existingSchedule = claim.proposed_schedule as ScheduleRow[] | null;
+  const [schedule, setSchedule] = useState<ScheduleRow[]>(
+    existingSchedule && existingSchedule.length > 0
+      ? existingSchedule
+      : [{ days: [], open: "", close: "", closed: false }],
   );
 
   const [checkupOffered, setCheckupOffered] = useState(
@@ -146,6 +158,8 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       <input name="checkup_offered" type="hidden" value={checkupOffered ? "yes" : "no"} />
       <input name="insurance_accepted" type="hidden" value={insuranceAccepted ? "yes" : "no"} />
       <input name="checkup_pdf_url" type="hidden" value={uploadedUrl} />
+      <input name="working_hours" type="hidden" value={scheduleToText(schedule)} />
+      <input name="schedule_json" type="hidden" value={JSON.stringify(schedule)} />
       {services.map((svc) => (
         <input key={svc} name="services" type="hidden" value={svc} />
       ))}
@@ -173,9 +187,26 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
         {/* Main services */}
         <div className="mb-5">
-          <p className="mb-2 text-sm font-semibold text-foreground">
-            General services
-          </p>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">General services</p>
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => {
+                const allMain = [...MAIN_SERVICES];
+                const hasAll = allMain.every((s) => services.includes(s));
+                const next = hasAll
+                  ? services.filter((s) => !allMain.includes(s as never))
+                  : [...new Set([...services, ...allMain])];
+                setServices(next);
+                autoSave({ proposed_services: next });
+              }}
+              type="button"
+            >
+              {MAIN_SERVICES.every((s) => services.includes(s))
+                ? "Deselect all"
+                : "Select all"}
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {MAIN_SERVICES.map((svc) => (
               <button
@@ -196,9 +227,26 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
         {/* Specialties */}
         <div>
-          <p className="mb-2 text-sm font-semibold text-foreground">
-            Medical specialties
-          </p>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">Medical specialties</p>
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => {
+                const allSpecs = [...SPECIALTIES];
+                const hasAll = allSpecs.every((s) => services.includes(s));
+                const next = hasAll
+                  ? services.filter((s) => !allSpecs.includes(s as never))
+                  : [...new Set([...services, ...allSpecs])];
+                setServices(next);
+                autoSave({ proposed_services: next });
+              }}
+              type="button"
+            >
+              {SPECIALTIES.every((s) => services.includes(s))
+                ? "Deselect all"
+                : "Select all"}
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {SPECIALTIES.map((spec) => (
               <button
@@ -215,6 +263,75 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Custom service */}
+        <div className="mt-4 flex flex-col gap-1.5">
+          <p className="text-sm font-medium text-foreground">
+            Add a service not listed above
+          </p>
+          <div className="flex gap-2">
+            <input
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setCustomService(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const trimmed = customService.trim();
+                  if (trimmed && !services.includes(trimmed)) {
+                    const next = [...services, trimmed];
+                    setServices(next);
+                    autoSave({ proposed_services: next });
+                    setCustomService("");
+                  }
+                }
+              }}
+              placeholder="e.g. Hyperbaric oxygen therapy"
+              type="text"
+              value={customService}
+            />
+            <button
+              className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+              disabled={!customService.trim() || services.includes(customService.trim())}
+              onClick={() => {
+                const trimmed = customService.trim();
+                if (trimmed && !services.includes(trimmed)) {
+                  const next = [...services, trimmed];
+                  setServices(next);
+                  autoSave({ proposed_services: next });
+                  setCustomService("");
+                }
+              }}
+              type="button"
+            >
+              Add
+            </button>
+          </div>
+          {services
+            .filter(
+              (s) =>
+                !(MAIN_SERVICES as readonly string[]).includes(s) &&
+                !(SPECIALTIES as readonly string[]).includes(s),
+            )
+            .map((custom) => (
+              <span
+                key={custom}
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+              >
+                {custom}
+                <button
+                  className="hover:text-red-500"
+                  onClick={() => {
+                    const next = services.filter((s) => s !== custom);
+                    setServices(next);
+                    autoSave({ proposed_services: next });
+                  }}
+                  type="button"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
         </div>
 
         {/* Selection summary */}
@@ -239,39 +356,24 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         </h2>
 
         <div className="space-y-4">
-          {/* Working days */}
+          {/* Schedule builder */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="working_days">
-              Regular working days *
+            <label className="text-sm font-medium text-foreground">
+              Working schedule *
             </label>
-            <select
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              defaultValue={(claim.proposed_working_days as string) ?? ""}
-              id="working_days"
-              name="working_days"
-              onBlur={(e) => autoSave({ proposed_working_days: e.target.value })}
-              required
-            >
-              <option value="">Select…</option>
-              {WORKING_DAYS_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Working hours */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="working_hours">
-              Opening and closing time *
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              defaultValue={(claim.proposed_working_hours as string) ?? ""}
-              id="working_hours"
-              name="working_hours"
-              onBlur={(e) => autoSave({ proposed_working_hours: e.target.value })}
-              placeholder="e.g. 8:00 AM – 6:00 PM"
-              type="text"
+            <p className="text-xs text-muted-foreground">
+              Add one row per schedule pattern. Use shortcuts to quickly
+              select weekdays, weekends, or all days.
+            </p>
+            <ScheduleBuilder
+              onChange={(rows) => {
+                setSchedule(rows);
+                autoSave({
+                  proposed_schedule: rows,
+                  proposed_working_hours: scheduleToText(rows),
+                });
+              }}
+              value={schedule}
             />
           </div>
 

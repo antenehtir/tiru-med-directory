@@ -18,6 +18,8 @@ export async function saveStep3(formData: FormData) {
   const services = formData.getAll("services") as string[];
   const workingDays = formData.get("working_days") as string;
   const workingHours = formData.get("working_hours") as string;
+  const scheduleJson = formData.get("schedule_json") as string;
+  const schedule = scheduleJson ? JSON.parse(scheduleJson) : null;
   const weekendHours = formData.get("weekend_hours") as string;
   const holidayHours = formData.get("holiday_hours") as string;
   const emergencyType = formData.get("emergency_type") as string;
@@ -35,6 +37,7 @@ export async function saveStep3(formData: FormData) {
       proposed_services: services.length > 0 ? services : null,
       proposed_working_days: workingDays || null,
       proposed_working_hours: workingHours || null,
+      proposed_schedule: schedule,
       proposed_weekend_hours: weekendHours || null,
       proposed_holiday_hours: holidayHours || null,
       proposed_emergency_type: emergencyType || null,
@@ -75,6 +78,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_services",
     "proposed_working_days",
     "proposed_working_hours",
+    "proposed_schedule",
     "proposed_weekend_hours",
     "proposed_holiday_hours",
     "proposed_emergency_type",
