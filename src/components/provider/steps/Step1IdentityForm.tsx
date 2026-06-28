@@ -170,7 +170,13 @@ export function Step1IdentityForm({
                 <input
                   checked={hasBranches}
                   name="_has_branches"
-                  onChange={() => setHasBranches(true)}
+                  onChange={() => {
+                    setHasBranches(true);
+                    if (branchCount <= 1) {
+                      setBranchCount(2);
+                      autoSave({ branch_count: 2 });
+                    }
+                  }}
                   type="radio"
                   value="yes"
                 />
@@ -181,22 +187,22 @@ export function Step1IdentityForm({
             {hasBranches && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground" htmlFor="branch_count">
-                  How many additional branches?
+                  How many total locations?
                 </label>
                 <select
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={branchCount > 1 ? String(branchCount - 1) : "1"}
+                  defaultValue={String(branchCount >= 2 ? branchCount : 2)}
                   id="branch_count"
                   name="branch_count"
                   onChange={(e) => {
-                    const total = parseInt(e.target.value, 10) + 1;
+                    const total = parseInt(e.target.value, 10);
                     setBranchCount(total);
                     autoSave({ branch_count: total });
                   }}
                 >
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={String(n)}>
-                      {n} additional {n === 1 ? "branch" : "branches"} ({n + 1} total)
+                  {[2, 3, 4, 5, 6].map((total) => (
+                    <option key={total} value={String(total)}>
+                      {total} total locations
                     </option>
                   ))}
                 </select>
