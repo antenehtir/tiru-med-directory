@@ -14,6 +14,12 @@ export async function providerSignUp(formData: FormData) {
   const claimantRoleRaw = formData.get("claimant_role") as string;
   const claimantRoleOther = formData.get("claimant_role_other") as string;
   const claimantRole = claimantRoleRaw === "Other" ? claimantRoleOther : claimantRoleRaw;
+  const facilityType = formData.get("facility_type") as string;
+  const facilityTypeOther = formData.get("facility_type_other") as string;
+  const diagnosticSubtype =
+    facilityType === "Laboratory / Diagnostics"
+      ? (formData.get("diagnostic_subtype") as string)
+      : null;
   const termsAccepted = formData.get("terms") === "on";
 
   if (!termsAccepted) {
@@ -59,6 +65,10 @@ export async function providerSignUp(formData: FormData) {
   // supabase/migrations_draft/017_provider_accounts_role_and_facility_phone.sql
   // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS claimant_role text, ADD COLUMN IF NOT EXISTS facility_phone text;
 
+  // MANUAL: provider_accounts has no facility_type, facility_type_other, or
+  // diagnostic_subtype columns yet. See
+  // supabase/migrations_draft/019_provider_category_fields.sql
+
   // Create provider_account record
   const { error: insertError } = await supabase
     .from("provider_accounts")
@@ -70,6 +80,9 @@ export async function providerSignUp(formData: FormData) {
       phone,
       facility_phone: facilityPhone,
       claimant_role: claimantRole,
+      facility_type: facilityType,
+      facility_type_other: facilityType === "Other" ? facilityTypeOther : null,
+      diagnostic_subtype: diagnosticSubtype,
       terms_accepted: true,
       terms_accepted_at: new Date().toISOString(),
       onboarding_phase: 0,

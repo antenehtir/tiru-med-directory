@@ -14,6 +14,23 @@ const ROLE_OPTIONS = [
   "Other",
 ];
 
+const FACILITY_TYPE_OPTIONS = [
+  "Hospital",
+  "Specialty Center",
+  "Clinic",
+  "Pharmacy",
+  "Laboratory / Diagnostics",
+  "Home Care",
+  "Ambulance Service",
+  "Other",
+];
+
+const DIAGNOSTIC_SUBTYPE_OPTIONS = [
+  { value: "lab", label: "Laboratory only" },
+  { value: "imaging", label: "Imaging only" },
+  { value: "both", label: "Both — laboratory and imaging" },
+];
+
 function ProviderSignupFormInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -21,6 +38,8 @@ function ProviderSignupFormInner() {
   const [confirm, setConfirm] = useState("");
   const [mismatchError, setMismatchError] = useState(false);
   const [claimantRole, setClaimantRole] = useState("");
+  const [facilityType, setFacilityType] = useState("");
+  const [diagnosticSubtype, setDiagnosticSubtype] = useState("");
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
@@ -60,6 +79,68 @@ function ProviderSignupFormInner() {
           <p className="text-xs text-muted-foreground">
             Enter the name exactly as it appears on your license or signage.
           </p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="facility_type">
+            Facility type *
+          </label>
+          <select
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            id="facility_type"
+            name="facility_type"
+            onChange={(e) => {
+              setFacilityType(e.target.value);
+              if (e.target.value !== "Laboratory / Diagnostics") setDiagnosticSubtype("");
+            }}
+            required
+            value={facilityType}
+          >
+            <option disabled value="">
+              Select facility type
+            </option>
+            {FACILITY_TYPE_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          {facilityType === "Other" && (
+            <input
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              id="facility_type_other"
+              name="facility_type_other"
+              placeholder="Please describe your facility type"
+              required
+              type="text"
+            />
+          )}
+
+          {facilityType === "Laboratory / Diagnostics" && (
+            <div className="mt-2 flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-medium text-foreground">
+                What services does your facility offer? *
+              </p>
+              <div className="flex flex-col gap-2">
+                {DIAGNOSTIC_SUBTYPE_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
+                  >
+                    <input
+                      checked={diagnosticSubtype === opt.value}
+                      name="diagnostic_subtype"
+                      onChange={() => setDiagnosticSubtype(opt.value)}
+                      required
+                      type="radio"
+                      value={opt.value}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-1.5">

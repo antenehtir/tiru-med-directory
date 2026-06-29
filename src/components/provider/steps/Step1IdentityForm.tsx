@@ -13,9 +13,13 @@ type Claim = Record<string, unknown>;
 export function Step1IdentityForm({
   claim,
   facilityName,
+  facilityType,
+  facilityTypeOther,
 }: {
   claim: Claim;
   facilityName: string;
+  facilityType?: string | null;
+  facilityTypeOther?: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -96,6 +100,26 @@ export function Step1IdentityForm({
         </div>
 
         <div className="space-y-4">
+          {/* Facility type — read-only, set at signup. Not editable here. */}
+          {facilityType && (
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
+              <p className="text-sm text-foreground">
+                Facility type:{" "}
+                <span className="font-medium">
+                  {facilityType === "Other" && facilityTypeOther
+                    ? `Other — ${facilityTypeOther}`
+                    : facilityType}
+                </span>
+              </p>
+              <a
+                className="shrink-0 text-xs text-primary hover:underline"
+                href="/provider/signup"
+              >
+                Change
+              </a>
+            </div>
+          )}
+
           {/* Official name — UNCONTROLLED, uses defaultValue */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="name">

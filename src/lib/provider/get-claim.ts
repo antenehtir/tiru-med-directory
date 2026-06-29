@@ -31,6 +31,8 @@ export async function getOrCreateClaim() {
       status: "pending",
       submission_step: 1,
       completion_pct: 0,
+      facility_type: (provider.facility_type as string | null) ?? null,
+      diagnostic_subtype: (provider.diagnostic_subtype as string | null) ?? null,
     })
     .select("*")
     .single();
@@ -86,6 +88,12 @@ export async function ensureClaimId(
   const existing = await findPendingClaimId(supabase, providerId);
   if (existing) return existing;
 
+  const { data: providerAccount } = await supabase
+    .from("provider_accounts")
+    .select("facility_type, diagnostic_subtype")
+    .eq("id", providerId)
+    .maybeSingle();
+
   const { data: created, error } = await supabase
     .from("facility_claims")
     .insert({
@@ -94,6 +102,8 @@ export async function ensureClaimId(
       status: "pending",
       submission_step: 1,
       completion_pct: 0,
+      facility_type: (providerAccount?.facility_type as string | null) ?? null,
+      diagnostic_subtype: (providerAccount?.diagnostic_subtype as string | null) ?? null,
     })
     .select("id")
     .single();

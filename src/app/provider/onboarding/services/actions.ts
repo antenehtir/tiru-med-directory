@@ -40,6 +40,8 @@ export async function saveStep3(formData: FormData) {
   const paymentMethods = formData.getAll("payment_methods") as string[];
   const insuranceAccepted = formData.get("insurance_accepted") === "yes";
   const insuranceNote = formData.get("insurance_note") as string;
+  const categoryDataJson = formData.get("category_data_json") as string;
+  const categoryData = categoryDataJson ? JSON.parse(categoryDataJson) : null;
 
   const { error } = await supabase
     .from("facility_claims")
@@ -63,6 +65,7 @@ export async function saveStep3(formData: FormData) {
       proposed_payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       proposed_insurance_accepted: insuranceAccepted,
       proposed_insurance_note: insuranceNote || null,
+      proposed_category_data: categoryData,
       submission_step: 4,
     })
     .eq("id", claimId);
@@ -120,6 +123,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_payment_methods",
     "proposed_insurance_accepted",
     "proposed_insurance_note",
+    "proposed_category_data",
   ];
 
   const updates: Record<string, unknown> = {};

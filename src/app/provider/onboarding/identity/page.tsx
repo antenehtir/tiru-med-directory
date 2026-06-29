@@ -26,6 +26,8 @@ export default async function IdentityStepPage() {
       <Step1IdentityForm
         claim={claim}
         facilityName={(provider.facilities as { name?: string } | null)?.name ?? ""}
+        facilityType={(claim.facility_type as string | null) ?? null}
+        facilityTypeOther={(provider.facility_type_other as string | null) ?? null}
       />
     </OnboardingShell>
   );

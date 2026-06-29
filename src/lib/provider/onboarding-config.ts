@@ -151,6 +151,151 @@ export const PAYMENT_METHODS = [
   "Corporate credit agreement",
 ] as const;
 
+export const IMAGING_SERVICES = [
+  "X-Ray",
+  "Ultrasound",
+  "CT Scan",
+  "MRI",
+  "Mammography",
+  "Fluoroscopy",
+  "DEXA Scan",
+  "PET Scan",
+  "Nuclear Medicine",
+  "Echocardiography",
+  "ECG / EKG",
+  "EEG",
+  "Spirometry",
+  "Endoscopy",
+  "Colonoscopy",
+  "Bronchoscopy",
+  "Colposcopy",
+  "Doppler Ultrasound",
+  "Bone Marrow Biopsy",
+  "Interventional Radiology",
+] as const;
+
+export const FACILITY_TYPES = [
+  "Hospital",
+  "Specialty Center",
+  "Clinic",
+  "Pharmacy",
+  "Laboratory / Diagnostics",
+  "Home Care",
+  "Ambulance Service",
+  "Other",
+] as const;
+
+export const DIAGNOSTIC_SUBTYPE_OPTIONS = [
+  { value: "lab", label: "Laboratory only" },
+  { value: "imaging", label: "Imaging only" },
+  { value: "both", label: "Both — laboratory and imaging" },
+] as const;
+
+export const PHARMACY_CATEGORIES = [
+  "Prescription (Rx)",
+  "OTC Medications",
+  "Supplements & Vitamins",
+  "Compounding",
+  "Veterinary",
+  "Controlled Substances",
+  "Vaccines",
+  "Medical Supplies & Equipment",
+  "Cosmetics & Personal Care",
+  "Baby & Maternal Care",
+] as const;
+
+export const DELIVERY_OPTIONS = ["In-store only", "Delivery only", "Both"] as const;
+
+// Distinct from ADDIS_SUB_CITIES (used by Step 2 location) — this list and
+// spelling was specified for delivery/coverage-area selectors (Pharmacy,
+// Home Care, Ambulance) and includes "Cherkos" which the Step 2 list doesn't.
+export const COVERAGE_SUB_CITIES = [
+  "Addis Ketema",
+  "Akaky Kaliti",
+  "Arada",
+  "Bole",
+  "Gullele",
+  "Kirkos",
+  "Kolfe Keranio",
+  "Lideta",
+  "Nifas Silk-Lafto",
+  "Yeka",
+  "Lemi-Kura",
+  "Cherkos",
+] as const;
+
+export const LAB_TESTS = [
+  "Blood Work",
+  "Urinalysis",
+  "Microbiology & Culture",
+  "Histopathology",
+  "Cytology",
+  "Hormonal Assays",
+  "Genetic Testing",
+  "Immunology",
+  "Toxicology",
+  "COVID-19 Testing",
+  "HIV Testing",
+  "STI Panel",
+  "TB Testing",
+  "Malaria Testing",
+  "Pregnancy Testing",
+] as const;
+
+export const SAMPLE_COLLECTION_OPTIONS = ["Walk-in only", "Home collection", "Both"] as const;
+
+export const TURNAROUND_TIME_OPTIONS = [
+  "Same day",
+  "Next day",
+  "2–3 days",
+  "3–5 days",
+  "1 week+",
+] as const;
+
+export const HOME_CARE_SERVICES = [
+  "Nursing Care",
+  "Wound Care",
+  "IV Therapy",
+  "Post-Surgical Care",
+  "Physiotherapy",
+  "Occupational Therapy",
+  "Palliative Care",
+  "Elderly Care",
+  "Pediatric Care",
+  "Mental Health Support",
+  "Medication Management",
+  "Health Monitoring",
+  "Caregiver Support",
+  "Doctor Home Visits",
+  "Lab Sample Collection",
+] as const;
+
+export const MIN_VISIT_DURATION_OPTIONS = ["30 min", "1 hour", "2 hours", "Half day", "Full day"] as const;
+
+export const BOOKING_LEAD_TIME_OPTIONS = ["Same day", "Next day", "2–3 days", "1 week"] as const;
+
+export const AMBULANCE_VEHICLE_TYPES = [
+  "Basic Life Support (BLS)",
+  "Advanced Life Support (ALS)",
+  "Neonatal Transport",
+  "Bariatric Ambulance",
+  "Air Ambulance",
+  "Patient Transport (non-emergency)",
+  "Wheelchair Van",
+] as const;
+
+export const RESPONSE_TIME_OPTIONS = [
+  "Under 10 min",
+  "10–20 min",
+  "20–30 min",
+  "30+ min",
+  "Varies",
+] as const;
+
+// Facility types that show the default Step 3 view (general services,
+// specialties, imaging, schedule, emergency, walk-in/appointment, check-up).
+export const DEFAULT_STEP3_FACILITY_TYPES = ["Hospital", "Specialty Center", "Clinic", "Other"] as const;
+
 export const WORKING_DAYS_OPTIONS = [
   "Monday – Friday",
   "Monday – Saturday",
@@ -214,12 +359,18 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
     claim.proposed_maps_link;
   if (hasLocation && hasContact && hasMap) pct += 30;
 
-  // Step 3 (30%): working hours + main services + walk-in/appointment
-  const hasSchedule = claim.proposed_working_hours || claim.proposed_working_days;
+  // Step 3 (30%): main services + working hours (if collected) + walk-in/appointment (if collected)
+  // Ambulance Service has no schedule builder (24/7 toggle instead), and
+  // every facility type except the default group has no walk-in/appointment
+  // selector — those sub-checks are skipped for types that don't collect them.
+  const facilityType = claim.facility_type as string | undefined;
+  const usesSchedule = facilityType !== "Ambulance Service";
+  const usesWalkin = !facilityType || (DEFAULT_STEP3_FACILITY_TYPES as readonly string[]).includes(facilityType);
+  const hasSchedule = !usesSchedule || claim.proposed_working_hours || claim.proposed_working_days;
   const hasServices =
     Array.isArray(claim.proposed_services) &&
     (claim.proposed_services as unknown[]).length > 0;
-  const hasBooking = claim.proposed_walkin_appointment;
+  const hasBooking = !usesWalkin || claim.proposed_walkin_appointment;
   if (hasSchedule && hasServices && hasBooking) pct += 30;
 
   // Step 4 (10%): doctors — optional, at least one named entry counts
