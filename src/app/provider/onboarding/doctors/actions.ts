@@ -1,0 +1,62 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
+import { ensureClaimId } from "@/lib/provider/get-claim";
+import type { DoctorEntry } from "@/lib/provider/doctor-types";
+
+export async function autoSaveStep4(doctors: DoctorEntry[]) {
+  const provider = await getProviderAccount();
+  if (!provider) return;
+
+  const supabase = await createProviderSupabaseClient();
+
+  const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
+  if (!claimId) return;
+
+  const { error } = await supabase
+    .from("facility_claims")
+    .update({ proposed_doctors: doctors })
+    .eq("id", claimId);
+
+  if (error) {
+    console.error("autoSaveStep4 failed:", error.message);
+  }
+}
+
+export async function saveStep4AndContinue(doctors: DoctorEntry[]) {
+  const provider = await getProviderAccount();
+  if (!provider) redirect("/provider/login");
+
+  const supabase = await createProviderSupabaseClient();
+
+  const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
+  if (!claimId) {
+    console.error("saveStep4AndContinue: could not find or create claim for provider", provider.id);
+    redirect("/provider/onboarding/doctors");
+  }
+
+  const { error: updateError } = await supabase
+    .from("facility_claims")
+    .update({
+      proposed_doctors: doctors,
+      submission_step: 5,
+    })
+    .eq("id", claimId);
+
+  if (updateError) {
+    console.error("saveStep4AndContinue update failed:", updateError.message);
+    redirect("/provider/onboarding/doctors");
+  }
+
+  // phase 5 = media (the step they land on next), matching login's phaseToSlug map
+  await supabase
+    .from("provider_accounts")
+    .update({
+      onboarding_phase: 5,
+      last_active_at: new Date().toISOString(),
+    })
+    .eq("id", provider.id);
+
+  redirect("/provider/onboarding/media");
+}

@@ -219,10 +219,12 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
   const hasBooking = claim.proposed_walkin_appointment;
   if (hasSchedule && hasServices && hasBooking) pct += 25;
 
-  // Step 4 (10%): doctors — optional, any entry counts
+  // Step 4 (10%): doctors — optional, at least one named entry counts
   if (
     Array.isArray(claim.proposed_doctors) &&
-    (claim.proposed_doctors as unknown[]).length > 0
+    (claim.proposed_doctors as Array<Record<string, unknown>>).some(
+      (doctor) => typeof doctor?.full_name === "string" && doctor.full_name.trim().length > 0,
+    )
   ) {
     pct += 10;
   }
