@@ -17,7 +17,6 @@ export type DoctorEntry = {
   specialty: string;
   subspecialty: string;
   languages: string[];
-  available_days: string[];
   available_schedule: DoctorScheduleRow[];
   appointment_required: boolean;
   bio: string;
@@ -142,8 +141,6 @@ export const DOCTOR_LANGUAGES = [
   "Other",
 ] as const;
 
-export const DOCTOR_AVAILABLE_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-
 export function createEmptyDoctor(): DoctorEntry {
   return {
     id: crypto.randomUUID(),
@@ -154,7 +151,6 @@ export function createEmptyDoctor(): DoctorEntry {
     specialty: "",
     subspecialty: "",
     languages: [],
-    available_days: [],
     available_schedule: [{ days: [], open: "", close: "", closed: false }],
     appointment_required: false,
     bio: "",

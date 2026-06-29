@@ -81,18 +81,55 @@ function CelebrationBurst() {
 
 export function MilestoneCard({
   pct,
+  status,
+  facilitySlug,
   stepChecklist,
 }: {
   pct: number;
   status: string;
+  facilitySlug: string | null;
   stepChecklist: StepChecklistItem[];
 }) {
+  const approved = status === "approved";
   const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-950">
       <div className="mx-auto mt-12 max-w-lg rounded-3xl bg-card p-8 shadow-lg">
-        {eligible ? (
+        {approved ? (
+          <div className="space-y-6 text-center">
+            <CelebrationBurst />
+
+            <div>
+              <h1 className="text-xl font-bold text-foreground">You&apos;re now Official! ✓</h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                Your facility has been verified and your Official badge is now live on the
+                directory.
+              </p>
+            </div>
+
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-1 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1.5 text-sm font-bold text-[#0F766E]">
+                ✓ Official
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <a
+                className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                href={facilitySlug ? `/facilities/${facilitySlug}` : "/provider/dashboard"}
+              >
+                View your listing →
+              </a>
+              <a
+                className="block text-sm text-muted-foreground hover:text-foreground"
+                href="/provider/dashboard"
+              >
+                Go to my dashboard →
+              </a>
+            </div>
+          </div>
+        ) : eligible ? (
           <div className="space-y-6 text-center">
             <CelebrationBurst />
 

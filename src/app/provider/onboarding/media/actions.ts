@@ -8,6 +8,11 @@ export type Step5Data = {
   entrance_photo_url: string;
   logo_url: string;
   license_url: string;
+  license_issue_date: string;
+  license_expiry_date: string;
+  business_license_url: string;
+  business_license_issue_date: string;
+  business_license_expiry_date: string;
 };
 
 const ENTRANCE_PHOTO_WEIGHT = 7;
@@ -62,6 +67,21 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
   }
   if (data.logo_url !== undefined) updates.proposed_logo_url = data.logo_url || null;
   if (data.license_url !== undefined) updates.proposed_license_url = data.license_url || null;
+  if (data.license_issue_date !== undefined) {
+    updates.proposed_license_issue_date = data.license_issue_date || null;
+  }
+  if (data.license_expiry_date !== undefined) {
+    updates.proposed_license_expiry_date = data.license_expiry_date || null;
+  }
+  if (data.business_license_url !== undefined) {
+    updates.proposed_business_license_url = data.business_license_url || null;
+  }
+  if (data.business_license_issue_date !== undefined) {
+    updates.proposed_business_license_issue_date = data.business_license_issue_date || null;
+  }
+  if (data.business_license_expiry_date !== undefined) {
+    updates.proposed_business_license_expiry_date = data.business_license_expiry_date || null;
+  }
 
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase.from("facility_claims").update(updates).eq("id", claimId);
@@ -107,6 +127,11 @@ export async function saveStep5AndContinue(data: Step5Data) {
       proposed_entrance_photo_url: data.entrance_photo_url || null,
       proposed_logo_url: data.logo_url || null,
       proposed_license_url: data.license_url || null,
+      proposed_license_issue_date: data.license_issue_date || null,
+      proposed_license_expiry_date: data.license_expiry_date || null,
+      proposed_business_license_url: data.business_license_url || null,
+      proposed_business_license_issue_date: data.business_license_issue_date || null,
+      proposed_business_license_expiry_date: data.business_license_expiry_date || null,
       submission_step: 6,
     })
     .eq("id", claimId);

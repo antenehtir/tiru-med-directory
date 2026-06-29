@@ -23,6 +23,11 @@ export default async function MediaStepPage() {
     entrance_photo_url: (claim.proposed_entrance_photo_url as string) ?? "",
     logo_url: (claim.proposed_logo_url as string) ?? "",
     license_url: (claim.proposed_license_url as string) ?? "",
+    license_issue_date: (claim.proposed_license_issue_date as string) ?? "",
+    license_expiry_date: (claim.proposed_license_expiry_date as string) ?? "",
+    business_license_url: (claim.proposed_business_license_url as string) ?? "",
+    business_license_issue_date: (claim.proposed_business_license_issue_date as string) ?? "",
+    business_license_expiry_date: (claim.proposed_business_license_expiry_date as string) ?? "",
   };
 
   return (

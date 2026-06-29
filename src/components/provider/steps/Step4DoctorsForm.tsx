@@ -7,7 +7,6 @@ import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,
   DOCTOR_LANGUAGES,
-  DOCTOR_AVAILABLE_DAYS,
   CLINICAL_ROLES,
   MEDICAL_SPECIALTIES,
   createEmptyDoctor,
@@ -29,10 +28,9 @@ function normalizeDoctor(raw: Partial<DoctorEntry>): DoctorEntry {
   return {
     ...empty,
     ...raw,
+    specialty: typeof raw.specialty === "string" ? raw.specialty : empty.specialty,
+    subspecialty: typeof raw.subspecialty === "string" ? raw.subspecialty : empty.subspecialty,
     languages: Array.isArray(raw.languages) ? raw.languages : empty.languages,
-    available_days: Array.isArray(raw.available_days)
-      ? raw.available_days
-      : empty.available_days,
     available_schedule:
       Array.isArray(raw.available_schedule) && raw.available_schedule.length > 0
         ? raw.available_schedule
@@ -82,7 +80,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
     autoSave(next);
   }
 
-  function toggleListValue(id: string, field: "languages" | "available_days", value: string) {
+  function toggleListValue(id: string, field: "languages", value: string) {
     const doctor = doctors.find((d) => d.id === id);
     if (!doctor) return;
     const current = doctor[field];
@@ -118,8 +116,8 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       setPhotoErrors((prev) => ({ ...prev, [id]: "Please upload a JPG, PNG, or WEBP image." }));
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setPhotoErrors((prev) => ({ ...prev, [id]: "File must be under 2MB." }));
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoErrors((prev) => ({ ...prev, [id]: "File must be under 10MB." }));
       return;
     }
 
@@ -333,27 +331,6 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold text-foreground">Available days</p>
-                <div className="flex flex-wrap gap-2">
-                  {DOCTOR_AVAILABLE_DAYS.map((day) => (
-                    <button
-                      key={day}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                        doctor.available_days.includes(day)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
-                      }`}
-                      onClick={() => toggleListValue(doctor.id, "available_days", day)}
-                      type="button"
-                    >
-                      {doctor.available_days.includes(day) ? "✓ " : ""}
-                      {day}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-foreground">Availability schedule</label>
                 <ScheduleBuilder
@@ -384,25 +361,6 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                     Yes
                   </label>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-foreground">Short bio (optional)</label>
-                <textarea
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  onBlur={(e) => autoSave(updateDoctor(doctor.id, { bio: e.target.value }))}
-                  onChange={(e) => updateDoctor(doctor.id, { bio: e.target.value })}
-                  placeholder="A short professional summary…"
-                  rows={3}
-                  value={doctor.bio}
-                />
-                <p
-                  className={`text-right text-xs ${
-                    bioLength > BIO_MAX_LENGTH ? "text-red-500" : "text-muted-foreground"
-                  }`}
-                >
-                  {bioLength} / {BIO_MAX_LENGTH}
-                </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -440,9 +398,29 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                     type="file"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">JPG, PNG, or WEBP · Max 10MB</p>
                 {photoErrors[doctor.id] && (
                   <p className="text-xs text-red-500">{photoErrors[doctor.id]}</p>
                 )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Short bio (optional)</label>
+                <textarea
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  onBlur={(e) => autoSave(updateDoctor(doctor.id, { bio: e.target.value }))}
+                  onChange={(e) => updateDoctor(doctor.id, { bio: e.target.value })}
+                  placeholder="A short professional summary…"
+                  rows={3}
+                  value={doctor.bio}
+                />
+                <p
+                  className={`text-right text-xs ${
+                    bioLength > BIO_MAX_LENGTH ? "text-red-500" : "text-muted-foreground"
+                  }`}
+                >
+                  {bioLength} / {BIO_MAX_LENGTH}
+                </p>
               </div>
             </div>
           </div>
