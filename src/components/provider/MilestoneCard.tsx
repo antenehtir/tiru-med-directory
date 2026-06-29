@@ -91,6 +91,7 @@ export function MilestoneCard({
   stepChecklist: StepChecklistItem[];
 }) {
   const approved = status === "approved";
+  const pendingReview = status === "pending_review";
   const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
 
   return (
@@ -128,6 +129,32 @@ export function MilestoneCard({
                 Go to my dashboard →
               </a>
             </div>
+          </div>
+        ) : pendingReview ? (
+          <div className="space-y-6 text-center">
+            <CelebrationBurst />
+
+            <div>
+              <h1 className="text-xl font-bold text-foreground">
+                Submitted! Your listing is under review.
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                An admin will contact your registered facility number to verify your claim. This
+                usually takes 1–3 business days.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800">
+              You cannot edit your listing while it is under review. Contact us if you need to
+              make urgent changes.
+            </div>
+
+            <a
+              className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              href="/provider/dashboard"
+            >
+              Go to my dashboard →
+            </a>
           </div>
         ) : eligible ? (
           <div className="space-y-6 text-center">
