@@ -1,13 +1,16 @@
 export const ONBOARDING_STEPS = [
   { num: 1, slug: "identity", label: "Basic Identity", weight: 10 },
-  { num: 2, slug: "location", label: "Location & Contact", weight: 25 },
-  { num: 3, slug: "services", label: "Services & Schedule", weight: 25 },
+  { num: 2, slug: "location", label: "Location & Contact", weight: 30 },
+  { num: 3, slug: "services", label: "Services & Schedule", weight: 30 },
   { num: 4, slug: "doctors", label: "Doctors & Staff", weight: 10 },
-  { num: 5, slug: "media", label: "Photos & Documents", weight: 20 },
-  { num: 6, slug: "review", label: "Review & Submit", weight: 10 },
+  { num: 5, slug: "media", label: "Photos & Documents", weight: 15 },
+  { num: 6, slug: "review", label: "Review & Submit", weight: 5 },
 ] as const;
 
 export const TOTAL_STEPS = ONBOARDING_STEPS.length;
+
+// Steps 1+2+3 (10 + 30 + 30) sum to this — the threshold for Official badge eligibility
+export const OFFICIAL_BADGE_THRESHOLD_PCT = 70;
 
 // Provider category options
 export const PROVIDER_CATEGORIES = [
@@ -200,7 +203,7 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
     if (claim.proposed_name) pct += 10;
   }
 
-  // Step 2 (25%): sub_city + area + landmark + phone + (map pin OR maps link)
+  // Step 2 (30%): sub_city + area + landmark + phone + (map pin OR maps link)
   const hasLocation =
     claim.proposed_sub_city &&
     claim.proposed_area &&
@@ -209,15 +212,15 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
   const hasMap =
     (claim.proposed_latitude && claim.proposed_longitude) ||
     claim.proposed_maps_link;
-  if (hasLocation && hasContact && hasMap) pct += 25;
+  if (hasLocation && hasContact && hasMap) pct += 30;
 
-  // Step 3 (25%): working hours + main services + walk-in/appointment
+  // Step 3 (30%): working hours + main services + walk-in/appointment
   const hasSchedule = claim.proposed_working_hours || claim.proposed_working_days;
   const hasServices =
     Array.isArray(claim.proposed_services) &&
     (claim.proposed_services as unknown[]).length > 0;
   const hasBooking = claim.proposed_walkin_appointment;
-  if (hasSchedule && hasServices && hasBooking) pct += 25;
+  if (hasSchedule && hasServices && hasBooking) pct += 30;
 
   // Step 4 (10%): doctors — optional, at least one named entry counts
   if (
@@ -229,11 +232,11 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
     pct += 10;
   }
 
-  // Step 5 (20%): at least one photo
-  if (claim.proposed_entrance_photo_url || claim.proposed_photo_url) pct += 20;
+  // Step 5 (15%): at least one photo
+  if (claim.proposed_entrance_photo_url || claim.proposed_photo_url) pct += 15;
 
-  // Step 6 (10%): submission (status moves to pending_review)
-  if (claim.status === "pending_review" || claim.status === "approved") pct += 10;
+  // Step 6 (5%): submission (status moves to pending_review)
+  if (claim.status === "pending_review" || claim.status === "approved") pct += 5;
 
   return Math.min(pct, 100);
 }

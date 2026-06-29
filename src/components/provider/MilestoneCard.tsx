@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OFFICIAL_BADGE_THRESHOLD_PCT } from "@/lib/provider/onboarding-config";
 
 type StepChecklistItem = {
   label: string;
@@ -86,7 +87,7 @@ export function MilestoneCard({
   status: string;
   stepChecklist: StepChecklistItem[];
 }) {
-  const eligible = pct >= 70;
+  const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-950">
