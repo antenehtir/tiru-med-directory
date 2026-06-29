@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
+import { calculateCompletion } from "@/lib/provider/onboarding-config";
 
 export async function saveStep3(formData: FormData) {
   const provider = await getProviderAccount();
@@ -71,6 +72,20 @@ export async function saveStep3(formData: FormData) {
     redirect("/provider/onboarding/services");
   }
 
+  const { data: updatedClaim } = await supabase
+    .from("facility_claims")
+    .select("*")
+    .eq("id", claimId)
+    .single();
+
+  if (updatedClaim) {
+    const completionPct = calculateCompletion(updatedClaim);
+    await supabase
+      .from("provider_accounts")
+      .update({ completion_pct: completionPct })
+      .eq("id", provider.id);
+  }
+
   // phase 4 = doctors (the step they land on next), matching login's phaseToSlug map
   await supabase
     .from("provider_accounts")
@@ -119,5 +134,22 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     .update(updates)
     .eq("id", claimId);
 
-  if (error) console.error("autoSaveStep3 failed:", error.message);
+  if (error) {
+    console.error("autoSaveStep3 failed:", error.message);
+    return;
+  }
+
+  const { data: updatedClaim } = await supabase
+    .from("facility_claims")
+    .select("*")
+    .eq("id", claimId)
+    .single();
+
+  if (updatedClaim) {
+    const completionPct = calculateCompletion(updatedClaim);
+    await supabase
+      .from("provider_accounts")
+      .update({ completion_pct: completionPct })
+      .eq("id", provider.id);
+  }
 }
