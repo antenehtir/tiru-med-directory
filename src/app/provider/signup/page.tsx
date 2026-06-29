@@ -11,8 +11,7 @@ export default function ProviderSignupPage() {
             Register your facility
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Create an account to claim or list your facility on Tiru.
-            It&apos;s free.
+            Create an account to list or claim your facility. It&apos;s free.
           </p>
         </div>
         <ProviderSignupForm />

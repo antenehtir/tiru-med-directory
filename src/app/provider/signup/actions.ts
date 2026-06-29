@@ -8,6 +8,7 @@ export async function providerSignUp(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const displayName = formData.get("display_name") as string;
+  const facilityName = formData.get("facility_name") as string;
   const phone = formData.get("phone") as string;
   const termsAccepted = formData.get("terms") === "on";
 
@@ -43,6 +44,11 @@ export async function providerSignUp(formData: FormData) {
     redirect(`/provider/signup?error=${encodeURIComponent(error?.message ?? "signup_failed")}`);
   }
 
+  // MANUAL: provider_accounts has no facility_name column yet — run this
+  // against the live Supabase project (SQL Editor) before this write below
+  // will persist it. See also supabase/migrations_draft/015_provider_accounts_facility_name.sql
+  // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS facility_name text;
+
   // Create provider_account record
   const { error: insertError } = await supabase
     .from("provider_accounts")
@@ -50,6 +56,7 @@ export async function providerSignUp(formData: FormData) {
       id: data.user.id,
       email,
       display_name: displayName,
+      facility_name: facilityName,
       phone,
       terms_accepted: true,
       terms_accepted_at: new Date().toISOString(),

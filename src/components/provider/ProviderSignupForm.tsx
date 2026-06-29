@@ -35,8 +35,25 @@ function ProviderSignupFormInner() {
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <form action={providerSignUp} className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="facility_name">
+            Facility name *
+          </label>
+          <input
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            id="facility_name"
+            name="facility_name"
+            placeholder="e.g. Addis Cardiac Hospital"
+            required
+            type="text"
+          />
+          <p className="text-xs text-muted-foreground">
+            Enter the name exactly as it appears on your license or signage.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="display_name">
-            Your name / contact person
+            Your name *
           </label>
           <input
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -46,6 +63,7 @@ function ProviderSignupFormInner() {
             required
             type="text"
           />
+          <p className="text-xs text-muted-foreground">The person setting up this account.</p>
         </div>
 
         <div className="flex flex-col gap-1.5">
