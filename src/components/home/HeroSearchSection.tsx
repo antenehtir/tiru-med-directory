@@ -41,6 +41,21 @@ export function HeroSearchSection() {
               Browse with filter
             </Link>
           </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border/60 pt-4">
+            <Link
+              className="inline-flex min-h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+              href="/provider/signup"
+            >
+              List your facility
+            </Link>
+            <Link
+              className="text-sm font-medium text-muted-foreground transition hover:text-primary"
+              href="/provider/login"
+            >
+              Already registered? Sign in →
+            </Link>
+          </div>
         </div>
       </PageContainer>
     </section>

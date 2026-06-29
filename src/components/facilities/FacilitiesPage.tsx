@@ -14,16 +14,6 @@ type FacilitiesPageProps = {
   facilities?: Facility[];
 };
 
-const categoryProviderTypeParam: Record<FacilityCategoryFilter, string> = {
-  hospital: "Healthcare Facility",
-  specialty: "Healthcare Facility",
-  clinic: "Healthcare Facility",
-  diagnostics: "Diagnostic Center",
-  pharmacy: "Pharmacy",
-  ambulance: "Ambulance Service",
-  "home-care": "Healthcare Facility",
-};
-
 export function FacilitiesPage({
   activeCategory,
   activeCategoryLabel,
@@ -58,17 +48,21 @@ export function FacilitiesPage({
                 </p>
                 <Link
                   className="mt-4 inline-flex min-h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
-                  href={`/register?type=${encodeURIComponent(categoryProviderTypeParam[activeCategory])}`}
+                  href="/provider/signup"
                 >
-                  + List a provider
+                  List your facility
                 </Link>
               </section>
             }
           />
           <p className="text-sm text-muted-foreground">
             Don&apos;t see your {categoryLabel.toLowerCase()}?{" "}
-            <Link className="font-semibold text-primary" href="/register">
-              List it here &rarr;
+            <Link className="font-semibold text-primary" href="/provider/signup">
+              List your facility &rarr;
+            </Link>
+            {" "}&middot;{" "}
+            <Link className="text-muted-foreground hover:text-primary" href="/provider/login">
+              Already registered? Sign in
             </Link>
           </p>
         </div>
@@ -121,8 +115,12 @@ export function FacilitiesPage({
 
         <p className="text-sm text-muted-foreground">
           Is your facility missing?{" "}
-          <Link className="font-semibold text-primary" href="/register">
-            Register it here &rarr;
+          <Link className="font-semibold text-primary" href="/provider/signup">
+            List your facility &rarr;
+          </Link>
+          {" "}&middot;{" "}
+          <Link className="text-muted-foreground hover:text-primary" href="/provider/login">
+            Already registered? Sign in
           </Link>
         </p>
       </div>

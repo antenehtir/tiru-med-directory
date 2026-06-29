@@ -24,8 +24,8 @@ export function DiagnosticsPage({ activeType, diagnostics = [] }: DiagnosticsPag
           emptyState={
             <p className="text-sm leading-6 text-muted-foreground">
               Diagnostics listings coming soon.{" "}
-              <Link className="font-semibold text-primary" href="/register">
-                Register your practice &rarr;
+              <Link className="font-semibold text-primary" href="/provider/signup">
+                List your facility &rarr;
               </Link>
             </p>
           }

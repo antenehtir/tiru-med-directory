@@ -10,7 +10,8 @@ const quickLinks = [
 ];
 
 const providerLinks = [
-  { label: "Provider registration", href: "/register" },
+  { label: "List your facility", href: "/provider/signup" },
+  { label: "Provider login", href: "/provider/login" },
   { label: "Suggest correction", href: "/corrections" },
   { label: "Contact", href: "/contact" },
 ];
@@ -35,7 +36,7 @@ export function Footer() {
         </nav>
 
         <nav aria-label="Footer provider links">
-          <p className="font-semibold text-primary">Providers</p>
+          <p className="font-semibold text-primary">For Healthcare Providers</p>
           <div className="mt-3 grid gap-1">
             {providerLinks.map((link) => (
               <Link

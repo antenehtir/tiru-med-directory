@@ -94,10 +94,10 @@ type TriageCard = {
 const triageCards: TriageCard[] = [
   {
     Icon: BuildingIcon,
-    title: "List your practice on Tiru",
+    title: "List your facility",
     description:
       "Add your facility, specialist practice, or service to the directory.",
-    href: "/register",
+    href: "/provider/signup",
   },
   {
     Icon: EditIcon,

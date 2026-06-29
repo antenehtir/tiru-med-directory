@@ -371,8 +371,12 @@ export function NearbyPage({
                   </p>
                   <p className="mt-1 text-sm leading-6 text-primary">
                     We&apos;re actively adding pharmacies across Addis Ababa.{" "}
-                    <Link className="underline underline-offset-2" href="/register">
-                      List your pharmacy here
+                    <Link className="underline underline-offset-2" href="/provider/signup">
+                      List your facility here
+                    </Link>
+                    .{" "}
+                    <Link className="underline underline-offset-2" href="/provider/login">
+                      Already registered? Sign in
                     </Link>
                     .
                   </p>
