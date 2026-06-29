@@ -21,15 +21,36 @@ const BIO_MAX_LENGTH = 300;
 const clinicalRoles = CLINICAL_ROLES as readonly string[];
 const specialtyCategories = Object.keys(MEDICAL_SPECIALTIES);
 
+// Backfills any fields missing from data saved under an older DoctorEntry
+// shape (e.g. pre-schedule-builder rows have no available_schedule), so
+// hydration never hands ScheduleBuilder/array fields an undefined value.
+function normalizeDoctor(raw: Partial<DoctorEntry>): DoctorEntry {
+  const empty = createEmptyDoctor();
+  return {
+    ...empty,
+    ...raw,
+    languages: Array.isArray(raw.languages) ? raw.languages : empty.languages,
+    available_days: Array.isArray(raw.available_days)
+      ? raw.available_days
+      : empty.available_days,
+    available_schedule:
+      Array.isArray(raw.available_schedule) && raw.available_schedule.length > 0
+        ? raw.available_schedule
+        : empty.available_schedule,
+  };
+}
+
 export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const claimId = (claim.id as string) ?? "unknown";
 
-  const existingDoctors = claim.proposed_doctors as DoctorEntry[] | null;
+  const existingDoctors = claim.proposed_doctors as Partial<DoctorEntry>[] | null;
   const [doctors, setDoctors] = useState<DoctorEntry[]>(
-    existingDoctors && existingDoctors.length > 0 ? existingDoctors : [createEmptyDoctor()],
+    existingDoctors && existingDoctors.length > 0
+      ? existingDoctors.map(normalizeDoctor)
+      : [createEmptyDoctor()],
   );
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
