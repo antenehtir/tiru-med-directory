@@ -10,6 +10,10 @@ export async function providerSignUp(formData: FormData) {
   const displayName = formData.get("display_name") as string;
   const facilityName = formData.get("facility_name") as string;
   const phone = formData.get("phone") as string;
+  const facilityPhone = formData.get("facility_phone") as string;
+  const claimantRoleRaw = formData.get("claimant_role") as string;
+  const claimantRoleOther = formData.get("claimant_role_other") as string;
+  const claimantRole = claimantRoleRaw === "Other" ? claimantRoleOther : claimantRoleRaw;
   const termsAccepted = formData.get("terms") === "on";
 
   if (!termsAccepted) {
@@ -49,6 +53,12 @@ export async function providerSignUp(formData: FormData) {
   // will persist it. See also supabase/migrations_draft/015_provider_accounts_facility_name.sql
   // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS facility_name text;
 
+  // MANUAL: provider_accounts has no claimant_role or facility_phone columns
+  // yet — run this against the live Supabase project (SQL Editor) before
+  // this write below will persist them. See also
+  // supabase/migrations_draft/017_provider_accounts_role_and_facility_phone.sql
+  // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS claimant_role text, ADD COLUMN IF NOT EXISTS facility_phone text;
+
   // Create provider_account record
   const { error: insertError } = await supabase
     .from("provider_accounts")
@@ -58,6 +68,8 @@ export async function providerSignUp(formData: FormData) {
       display_name: displayName,
       facility_name: facilityName,
       phone,
+      facility_phone: facilityPhone,
+      claimant_role: claimantRole,
       terms_accepted: true,
       terms_accepted_at: new Date().toISOString(),
       onboarding_phase: 0,

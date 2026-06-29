@@ -4,12 +4,23 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignUp } from "@/app/provider/signup/actions";
 
+const ROLE_OPTIONS = [
+  "Owner",
+  "Medical Director",
+  "Manager",
+  "Administrator",
+  "Marketing Officer",
+  "Reception",
+  "Other",
+];
+
 function ProviderSignupFormInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [mismatchError, setMismatchError] = useState(false);
+  const [claimantRole, setClaimantRole] = useState("");
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
@@ -67,31 +78,88 @@ function ProviderSignupFormInner() {
         </div>
 
         <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="claimant_role">
+            Your role at this facility *
+          </label>
+          <select
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            id="claimant_role"
+            name="claimant_role"
+            onChange={(e) => setClaimantRole(e.target.value)}
+            required
+            value={claimantRole}
+          >
+            <option disabled value="">
+              Select your role
+            </option>
+            {ROLE_OPTIONS.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+          {claimantRole === "Other" && (
+            <input
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              id="claimant_role_other"
+              name="claimant_role_other"
+              placeholder="Please specify your role"
+              required
+              type="text"
+            />
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="phone">
-            Contact phone
+            Your mobile number *
           </label>
           <input
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="phone"
             name="phone"
             placeholder="+251 91 234 5678"
+            required
             type="tel"
           />
+          <p className="text-xs text-muted-foreground">
+            Your direct number — for urgent notifications about your listing.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="facility_phone">
+            Facility phone *
+          </label>
+          <input
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            id="facility_phone"
+            name="facility_phone"
+            placeholder="+251 11 234 5678"
+            required
+            type="tel"
+          />
+          <p className="text-xs text-muted-foreground">
+            The official number patients call. Admin will use this to verify your claim.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="email">
-            Email address
+            Work email *
           </label>
           <input
             autoComplete="email"
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="email"
             name="email"
-            placeholder="you@facility.com"
+            placeholder="you@facilityname.com"
             required
             type="email"
           />
+          <p className="text-xs text-muted-foreground">
+            Use your work email — password resets and notifications go here.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1.5">
