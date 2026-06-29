@@ -79,7 +79,8 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [services, setServices] = useState<string[]>(
     (claim.proposed_services as string[]) ?? [],
   );
-  const [customService, setCustomService] = useState("");
+  const [customMainService, setCustomMainService] = useState("");
+  const [customSpecialty, setCustomSpecialty] = useState("");
 
   const existingSchedule = claim.proposed_schedule as ScheduleRow[] | null;
   const [schedule, setSchedule] = useState<ScheduleRow[]>(
@@ -97,6 +98,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(
     (claim.proposed_payment_methods as string[]) ?? [],
   );
+  const [customPayment, setCustomPayment] = useState("");
 
   const [checkupPackages, setCheckupPackages] = useState<CheckupPackage[]>(
     (claim.proposed_checkup_packages as CheckupPackage[]) ?? [],
@@ -244,6 +246,43 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               </button>
             ))}
           </div>
+
+          {/* Add custom general service */}
+          <div className="mt-3 flex gap-2">
+            <input
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setCustomMainService(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (customMainService.trim() && !services.includes(customMainService.trim())) {
+                    const next = [...services, customMainService.trim()];
+                    setServices(next);
+                    autoSave({ proposed_services: next });
+                    setCustomMainService("");
+                  }
+                }
+              }}
+              placeholder="Add a service not listed..."
+              type="text"
+              value={customMainService}
+            />
+            <button
+              className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+              disabled={!customMainService.trim() || services.includes(customMainService.trim())}
+              onClick={() => {
+                if (customMainService.trim() && !services.includes(customMainService.trim())) {
+                  const next = [...services, customMainService.trim()];
+                  setServices(next);
+                  autoSave({ proposed_services: next });
+                  setCustomMainService("");
+                }
+              }}
+              type="button"
+            >
+              Add
+            </button>
+          </div>
         </div>
 
         {/* Specialties */}
@@ -284,43 +323,36 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Custom service */}
-        <div className="mt-4 flex flex-col gap-1.5">
-          <p className="text-sm font-medium text-foreground">
-            Add a service not listed above
-          </p>
-          <div className="flex gap-2">
+          {/* Add custom specialty */}
+          <div className="mt-3 flex gap-2">
             <input
               className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              onChange={(e) => setCustomService(e.target.value)}
+              onChange={(e) => setCustomSpecialty(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  const trimmed = customService.trim();
-                  if (trimmed && !services.includes(trimmed)) {
-                    const next = [...services, trimmed];
+                  if (customSpecialty.trim() && !services.includes(customSpecialty.trim())) {
+                    const next = [...services, customSpecialty.trim()];
                     setServices(next);
                     autoSave({ proposed_services: next });
-                    setCustomService("");
+                    setCustomSpecialty("");
                   }
                 }
               }}
-              placeholder="e.g. Hyperbaric oxygen therapy"
+              placeholder="Add a service not listed..."
               type="text"
-              value={customService}
+              value={customSpecialty}
             />
             <button
               className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-              disabled={!customService.trim() || services.includes(customService.trim())}
+              disabled={!customSpecialty.trim() || services.includes(customSpecialty.trim())}
               onClick={() => {
-                const trimmed = customService.trim();
-                if (trimmed && !services.includes(trimmed)) {
-                  const next = [...services, trimmed];
+                if (customSpecialty.trim() && !services.includes(customSpecialty.trim())) {
+                  const next = [...services, customSpecialty.trim()];
                   setServices(next);
                   autoSave({ proposed_services: next });
-                  setCustomService("");
+                  setCustomSpecialty("");
                 }
               }}
               type="button"
@@ -328,32 +360,42 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               Add
             </button>
           </div>
-          {services
-            .filter(
-              (s) =>
-                !(MAIN_SERVICES as readonly string[]).includes(s) &&
-                !(SPECIALTIES as readonly string[]).includes(s),
-            )
-            .map((custom) => (
-              <span
-                key={custom}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-              >
-                {custom}
-                <button
-                  className="hover:text-red-500"
-                  onClick={() => {
-                    const next = services.filter((s) => s !== custom);
-                    setServices(next);
-                    autoSave({ proposed_services: next });
-                  }}
-                  type="button"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
         </div>
+
+        {/* Custom entries — shown below both groups */}
+        {services.some(
+          (s) =>
+            !(MAIN_SERVICES as readonly string[]).includes(s) &&
+            !(SPECIALTIES as readonly string[]).includes(s),
+        ) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {services
+              .filter(
+                (s) =>
+                  !(MAIN_SERVICES as readonly string[]).includes(s) &&
+                  !(SPECIALTIES as readonly string[]).includes(s),
+              )
+              .map((custom) => (
+                <span
+                  key={custom}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                >
+                  {custom}
+                  <button
+                    className="hover:text-red-500"
+                    onClick={() => {
+                      const next = services.filter((s) => s !== custom);
+                      setServices(next);
+                      autoSave({ proposed_services: next });
+                    }}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+          </div>
+        )}
 
         {/* Selection summary */}
         {services.length > 0 && (
@@ -613,9 +655,28 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         <div className="space-y-4">
           {/* Payment methods */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Payment methods accepted
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">
+                Payment methods accepted
+              </label>
+              <button
+                className="text-xs text-primary hover:underline"
+                onClick={() => {
+                  const allMethods = [...PAYMENT_METHODS];
+                  const hasAll = allMethods.every((m) => paymentMethods.includes(m));
+                  const next = hasAll
+                    ? paymentMethods.filter((m) => !allMethods.includes(m as never))
+                    : [...new Set([...paymentMethods, ...allMethods])];
+                  setPaymentMethods(next);
+                  autoSave({ proposed_payment_methods: next });
+                }}
+                type="button"
+              >
+                {PAYMENT_METHODS.every((m) => paymentMethods.includes(m))
+                  ? "Deselect all"
+                  : "Select all"}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map((method) => (
                 <label
@@ -632,6 +693,72 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 </label>
               ))}
             </div>
+
+            {/* Add custom payment method */}
+            <div className="mt-2 flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => setCustomPayment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (customPayment.trim() && !paymentMethods.includes(customPayment.trim())) {
+                      const next = [...paymentMethods, customPayment.trim()];
+                      setPaymentMethods(next);
+                      autoSave({ proposed_payment_methods: next });
+                      setCustomPayment("");
+                    }
+                  }
+                }}
+                placeholder="Add payment method not listed..."
+                type="text"
+                value={customPayment}
+              />
+              <button
+                className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                disabled={!customPayment.trim() || paymentMethods.includes(customPayment.trim())}
+                onClick={() => {
+                  if (customPayment.trim() && !paymentMethods.includes(customPayment.trim())) {
+                    const next = [...paymentMethods, customPayment.trim()];
+                    setPaymentMethods(next);
+                    autoSave({ proposed_payment_methods: next });
+                    setCustomPayment("");
+                  }
+                }}
+                type="button"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Custom payment entries — removable tags */}
+            {paymentMethods.some(
+              (m) => !(PAYMENT_METHODS as readonly string[]).includes(m),
+            ) && (
+              <div className="flex flex-wrap gap-2">
+                {paymentMethods
+                  .filter((m) => !(PAYMENT_METHODS as readonly string[]).includes(m))
+                  .map((custom) => (
+                    <span
+                      key={custom}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                    >
+                      {custom}
+                      <button
+                        className="hover:text-red-500"
+                        onClick={() => {
+                          const next = paymentMethods.filter((m) => m !== custom);
+                          setPaymentMethods(next);
+                          autoSave({ proposed_payment_methods: next });
+                        }}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+              </div>
+            )}
           </div>
 
           {/* Insurance */}

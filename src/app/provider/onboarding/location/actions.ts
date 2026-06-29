@@ -30,6 +30,10 @@ export async function saveStep2(formData: FormData) {
   const telegram = formData.get("telegram") as string;
   const email = formData.get("email") as string;
   const website = formData.get("website") as string;
+  const instagram = formData.get("instagram") as string;
+  const facebook = formData.get("facebook") as string;
+  const tiktok = formData.get("tiktok") as string;
+  const linkedin = formData.get("linkedin") as string;
 
   const { error: updateError } = await supabase
     .from("facility_claims")
@@ -48,6 +52,10 @@ export async function saveStep2(formData: FormData) {
       proposed_telegram: telegram || null,
       proposed_email: email || null,
       proposed_website: website || null,
+      proposed_instagram: instagram || null,
+      proposed_facebook: facebook || null,
+      proposed_tiktok: tiktok || null,
+      proposed_linkedin: linkedin || null,
       submission_step: 3,
     })
     .eq("id", claimId);
@@ -84,6 +92,10 @@ export async function autoSaveStep2(data: {
   telegram?: string;
   email?: string;
   website?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  linkedin?: string;
   branches?: Array<{
     name: string;
     area: string;
@@ -91,6 +103,7 @@ export async function autoSaveStep2(data: {
     latitude: number | null;
     longitude: number | null;
     maps_link: string;
+    phone: string;
   }>;
 }) {
   const provider = await getProviderAccount();
@@ -116,6 +129,10 @@ export async function autoSaveStep2(data: {
   if (data.telegram !== undefined) updates.proposed_telegram = data.telegram || null;
   if (data.email !== undefined) updates.proposed_email = data.email || null;
   if (data.website !== undefined) updates.proposed_website = data.website || null;
+  if (data.instagram !== undefined) updates.proposed_instagram = data.instagram || null;
+  if (data.facebook !== undefined) updates.proposed_facebook = data.facebook || null;
+  if (data.tiktok !== undefined) updates.proposed_tiktok = data.tiktok || null;
+  if (data.linkedin !== undefined) updates.proposed_linkedin = data.linkedin || null;
   if (data.branches !== undefined) updates.proposed_branches = data.branches;
 
   if (Object.keys(updates).length === 0) return;

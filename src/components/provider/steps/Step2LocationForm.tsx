@@ -19,6 +19,7 @@ type Branch = {
   latitude: number | null;
   longitude: number | null;
   maps_link: string;
+  phone: string;
 };
 
 export function Step2LocationForm({ claim }: { claim: Claim }) {
@@ -58,6 +59,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
         latitude: null,
         longitude: null,
         maps_link: "",
+        phone: "",
       }));
       setBranches(initial);
       autoSave({ branches: initial });
@@ -95,7 +97,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   function addBranch() {
     const next = [
       ...branches,
-      { name: "", area: "", landmark: "", latitude: null, longitude: null, maps_link: "" },
+      { name: "", area: "", landmark: "", latitude: null, longitude: null, maps_link: "", phone: "" },
     ];
     setBranches(next);
     autoSave({ branches: next });
@@ -389,6 +391,24 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                     </p>
                   </div>
 
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Branch phone number
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onBlur={(e) => updateBranch(i, { phone: e.target.value })}
+                      onChange={(e) => {
+                        const next = [...branches];
+                        next[i] = { ...next[i], phone: e.target.value };
+                        setBranches(next);
+                      }}
+                      placeholder="+251 ..."
+                      type="tel"
+                      value={branch.phone ?? ""}
+                    />
+                  </div>
+
                   <button
                     className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                     onClick={() => useBranchLocation(i)}
@@ -517,6 +537,79 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               type="url"
               {...field(website, setWebsite, { website })}
             />
+          </div>
+
+          {/* Social media */}
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-semibold text-foreground">
+              Social media (optional)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Paste the full link including https:// so patients can tap
+              directly to your page.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="instagram">
+                  Instagram
+                </label>
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  defaultValue={(claim.proposed_instagram as string) ?? ""}
+                  id="instagram"
+                  name="instagram"
+                  onBlur={(e) => autoSave({ instagram: e.target.value })}
+                  placeholder="https://instagram.com/yourpage"
+                  type="url"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="facebook">
+                  Facebook
+                </label>
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  defaultValue={(claim.proposed_facebook as string) ?? ""}
+                  id="facebook"
+                  name="facebook"
+                  onBlur={(e) => autoSave({ facebook: e.target.value })}
+                  placeholder="https://facebook.com/yourpage"
+                  type="url"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="tiktok">
+                  TikTok
+                </label>
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  defaultValue={(claim.proposed_tiktok as string) ?? ""}
+                  id="tiktok"
+                  name="tiktok"
+                  onBlur={(e) => autoSave({ tiktok: e.target.value })}
+                  placeholder="https://tiktok.com/@yourpage"
+                  type="url"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="linkedin">
+                  LinkedIn
+                </label>
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  defaultValue={(claim.proposed_linkedin as string) ?? ""}
+                  id="linkedin"
+                  name="linkedin"
+                  onBlur={(e) => autoSave({ linkedin: e.target.value })}
+                  placeholder="https://linkedin.com/company/yourpage"
+                  type="url"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

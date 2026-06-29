@@ -143,6 +143,7 @@ export const PAYMENT_METHODS = [
   "CBE Birr",
   "Telebirr",
   "POS / Card",
+  "Visa / Mastercard",
   "Insurance",
   "Corporate credit agreement",
 ] as const;
