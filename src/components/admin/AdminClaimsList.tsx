@@ -48,7 +48,10 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
 
   function handleApprove(claimId: string, facilityId: string | null) {
     if (!confirm("Approve this claim? The facility will become Official.")) return;
-    startTransition(() => approveClaim(claimId, facilityId, notes[claimId] ?? ""));
+    startTransition(async () => {
+      const result = await approveClaim(claimId, facilityId, notes[claimId] ?? "");
+      if (result?.warning) alert(result.warning);
+    });
   }
 
   function handleReject(claimId: string) {
