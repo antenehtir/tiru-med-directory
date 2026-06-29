@@ -4,6 +4,11 @@ import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { OnboardingShell } from "@/components/provider/OnboardingShell";
 import { Step4DoctorsForm } from "@/components/provider/steps/Step4DoctorsForm";
 
+// MANUAL SETUP REQUIRED: Create 'doctor-photos' bucket in Supabase dashboard
+// Settings: Public bucket, allowed MIME types: image/jpeg, image/png, image/webp, max size 2MB
+// Then add RLS policy: allow insert for authenticated users
+// And: GRANT SELECT ON storage.objects TO anon;
+
 export default async function DoctorsStepPage() {
   const result = await getOrCreateClaim();
   if (!result) redirect("/provider/login");

@@ -77,7 +77,7 @@ export async function saveStep3(formData: FormData) {
     .update({ onboarding_phase: 4, last_active_at: new Date().toISOString() })
     .eq("id", provider.id);
 
-  redirect("/provider/onboarding/doctors");
+  redirect("/provider/onboarding/milestone");
 }
 
 export async function autoSaveStep3(data: Record<string, unknown>) {

@@ -1,30 +1,40 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/onboarding/doctors/actions";
 import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,
   DOCTOR_LANGUAGES,
   DOCTOR_AVAILABLE_DAYS,
-  CLINICAL_ROLES_WITH_SPECIALTY,
+  CLINICAL_ROLES,
+  MEDICAL_SPECIALTIES,
   createEmptyDoctor,
   type DoctorEntry,
 } from "@/lib/provider/doctor-types";
+import { ScheduleBuilder } from "@/components/provider/ScheduleBuilder";
 
 type Claim = Record<string, unknown>;
 
 const BIO_MAX_LENGTH = 300;
-const clinicalRoles = CLINICAL_ROLES_WITH_SPECIALTY as readonly string[];
+const clinicalRoles = CLINICAL_ROLES as readonly string[];
+const specialtyCategories = Object.keys(MEDICAL_SPECIALTIES);
 
 export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  const claimId = (claim.id as string) ?? "unknown";
+
   const existingDoctors = claim.proposed_doctors as DoctorEntry[] | null;
   const [doctors, setDoctors] = useState<DoctorEntry[]>(
     existingDoctors && existingDoctors.length > 0 ? existingDoctors : [createEmptyDoctor()],
   );
+
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [photoErrors, setPhotoErrors] = useState<Record<string, string>>({});
 
   function autoSave(next: DoctorEntry[]) {
     startTransition(async () => {
@@ -64,8 +74,67 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   function handleRoleChange(id: string, role: string) {
     const partial: Partial<DoctorEntry> = { role };
     if (role !== "Other") partial.role_other = "";
-    if (!clinicalRoles.includes(role)) partial.specialty = "";
+    if (!clinicalRoles.includes(role)) {
+      partial.specialty = "";
+      partial.subspecialty = "";
+    }
     autoSave(updateDoctor(id, partial));
+  }
+
+  function handleSpecialtyChange(id: string, specialty: string) {
+    autoSave(updateDoctor(id, { specialty, subspecialty: "" }));
+  }
+
+  function handleSubspecialtyChange(id: string, subspecialty: string) {
+    autoSave(updateDoctor(id, { subspecialty }));
+  }
+
+  async function handlePhotoSelect(id: string, file: File | undefined) {
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setPhotoErrors((prev) => ({ ...prev, [id]: "Please upload a JPG, PNG, or WEBP image." }));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoErrors((prev) => ({ ...prev, [id]: "File must be under 2MB." }));
+      return;
+    }
+
+    setPhotoErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setUploadingId(id);
+
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+
+      const ext = file.name.split(".").pop();
+      const path = `${claimId}/${id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("doctor-photos")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("doctor-photos").getPublicUrl(path);
+
+      autoSave(updateDoctor(id, { photo_url: urlData.publicUrl }));
+    } catch (err) {
+      console.error("Doctor photo upload failed:", err);
+      setPhotoErrors((prev) => ({ ...prev, [id]: "Upload failed. Please try again." }));
+    } finally {
+      setUploadingId(null);
+      const input = fileInputRefs.current[id];
+      if (input) input.value = "";
+    }
   }
 
   function handleSaveAndContinue() {
@@ -165,17 +234,62 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
               )}
 
               {showSpecialty && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-foreground">Specialty</label>
-                  <input
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    defaultValue={doctor.specialty}
-                    onBlur={(e) => autoSave(updateDoctor(doctor.id, { specialty: e.target.value }))}
-                    placeholder="e.g. Cardiology"
-                    type="text"
-                  />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-foreground">Specialty</label>
+                    <select
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      onChange={(e) => handleSpecialtyChange(doctor.id, e.target.value)}
+                      value={doctor.specialty}
+                    >
+                      <option value="">Select…</option>
+                      {specialtyCategories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {doctor.specialty && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-semibold text-foreground">Subspecialty</label>
+                      <select
+                        className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        onChange={(e) => handleSubspecialtyChange(doctor.id, e.target.value)}
+                        value={doctor.subspecialty}
+                      >
+                        <option value="">Select…</option>
+                        {(MEDICAL_SPECIALTIES[doctor.specialty] ?? []).map((sub) => (
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
+
+              {showSpecialty &&
+                (doctor.subspecialty === "Other (specify)" || doctor.specialty === "Other") && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-foreground">
+                      Specify specialty
+                    </label>
+                    <input
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      defaultValue={
+                        doctor.subspecialty === "Other (specify)" ? "" : doctor.subspecialty
+                      }
+                      onBlur={(e) =>
+                        autoSave(updateDoctor(doctor.id, { subspecialty: e.target.value }))
+                      }
+                      placeholder="e.g. Sports Cardiology"
+                      type="text"
+                    />
+                  </div>
+                )}
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold text-foreground">Languages spoken</p>
@@ -220,13 +334,10 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-foreground">Available hours</label>
-                <input
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={doctor.available_hours}
-                  onBlur={(e) => autoSave(updateDoctor(doctor.id, { available_hours: e.target.value }))}
-                  placeholder="e.g. 9am–5pm"
-                  type="text"
+                <label className="text-sm font-semibold text-foreground">Availability schedule</label>
+                <ScheduleBuilder
+                  onChange={(rows) => autoSave(updateDoctor(doctor.id, { available_schedule: rows }))}
+                  value={doctor.available_schedule}
                 />
               </div>
 
@@ -271,6 +382,46 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                 >
                   {bioLength} / {BIO_MAX_LENGTH}
                 </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Photo (optional)</label>
+                <p className="text-xs text-muted-foreground">
+                  A professional headshot helps patients recognize their doctor
+                </p>
+                <div className="flex items-center gap-3">
+                  {doctor.photo_url && (
+                    <img
+                      alt={doctor.full_name || "Doctor photo"}
+                      className="size-[60px] rounded-full object-cover"
+                      src={doctor.photo_url}
+                    />
+                  )}
+                  <button
+                    className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                    disabled={uploadingId === doctor.id}
+                    onClick={() => fileInputRefs.current[doctor.id]?.click()}
+                    type="button"
+                  >
+                    {uploadingId === doctor.id
+                      ? "Uploading…"
+                      : doctor.photo_url
+                        ? "Replace photo"
+                        : "Upload photo"}
+                  </button>
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => handlePhotoSelect(doctor.id, e.target.files?.[0])}
+                    ref={(el) => {
+                      fileInputRefs.current[doctor.id] = el;
+                    }}
+                    type="file"
+                  />
+                </div>
+                {photoErrors[doctor.id] && (
+                  <p className="text-xs text-red-500">{photoErrors[doctor.id]}</p>
+                )}
               </div>
             </div>
           </div>
