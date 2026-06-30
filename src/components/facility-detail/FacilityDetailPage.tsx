@@ -3,6 +3,7 @@ import type { Facility } from "@/types/facility";
 import { FacilityActionPanel } from "./FacilityActionPanel";
 import { FacilityCorrectionCta } from "./FacilityCorrectionCta";
 import { FacilityDetailHeader } from "./FacilityDetailHeader";
+import { FacilityDoctorsSection } from "./FacilityDoctorsSection";
 import { FacilityHoursSection } from "./FacilityHoursSection";
 import { FacilityInformationSection } from "./FacilityInformationSection";
 import { FacilityServicesSection } from "./FacilityServicesSection";
@@ -40,6 +41,7 @@ export function FacilityDetailPage({
           <FacilityInformationSection facility={facility} />
           <FacilityServicesSection facility={facility} />
           <FacilityHoursSection facility={facility} />
+          <FacilityDoctorsSection facility={facility} />
         </div>
 
         {/* Mobile action panel — shown only on mobile, after content */}

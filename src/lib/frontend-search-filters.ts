@@ -17,7 +17,8 @@ export const specialtySubFilters = ["All specialties", ...SPECIALTY_OPTIONS];
 // Uses word-boundary regex — "ent" must appear as a standalone word, not inside "center".
 const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   "Internal Medicine": ["internal medicine"],
-  "Pediatrics & Maternal-Child Health": ["pediatric", "paediatric", "maternal", "child health", "mch"],
+  "Pediatrics": ["pediatric", "paediatric", "paeds", "nicu", "neonatolog"],
+  "Maternal & Child Health": ["maternal", "child health", "mch"],
   "Gynecology & Obstetrics": ["gynecology", "gynaecology", "obstetric", "gyn-obs", "gyni-obs"],
   "General Surgery": ["general surgery", "surgical"],
   "Cardiology": ["cardiology", "cardiac", "cardiovascular"],

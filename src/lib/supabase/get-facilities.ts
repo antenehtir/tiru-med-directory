@@ -4,6 +4,7 @@ import type {
   Facility,
   FacilityContactChannel,
   FacilityContactChannelType,
+  FacilityDoctor,
 } from "@/types/facility";
 import { realFacilities } from "@/data/real-facility-profiles";
 
@@ -23,6 +24,8 @@ type DBFacility = {
   maps_link: string | null;
   working_hours: string | null;
   emergency_service: boolean;
+  emergency_type: string | null;
+  walkin_appointment: string | null;
   services: unknown;
   special_services: unknown;
   logo_url: string | null;
@@ -36,6 +39,7 @@ type DBFacility = {
   verification_status: string;
   record_number: number | null;
   is_active: boolean | null;
+  doctors: unknown;
 };
 
 function makeChannel(
@@ -121,6 +125,9 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     subCities,
     area: row.area ?? undefined,
     isActive: row.is_active ?? true,
+    doctors: Array.isArray(row.doctors) ? (row.doctors as FacilityDoctor[]) : undefined,
+    emergencyType: row.emergency_type ?? null,
+    walkinAppointment: row.walkin_appointment ?? null,
   };
 }
 

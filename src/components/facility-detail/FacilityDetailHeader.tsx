@@ -75,11 +75,8 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
         </div>
       </div>
 
-      <div
-        className={`mt-6 grid gap-3 ${
-          facility.availabilityNote ? "sm:grid-cols-3" : "sm:grid-cols-2"
-        }`}
-      >
+      {/* Info cards — always 2 base cols; availability and emergency add more */}
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
         <div className="rounded-2xl border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
             {facility.category}
@@ -128,6 +125,22 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               {facility.availabilityNote}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Availability</p>
+          </div>
+        ) : null}
+        {facility.emergencyType ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30">
+            <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+              {facility.emergencyType}
+            </p>
+            <p className="mt-1 text-sm text-red-600/70 dark:text-red-400/70">Emergency</p>
+          </div>
+        ) : null}
+        {facility.walkinAppointment ? (
+          <div className="rounded-2xl border border-border bg-background p-4">
+            <p className="text-sm font-semibold text-foreground">
+              {facility.walkinAppointment}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Walk-in / Appointment</p>
           </div>
         ) : null}
       </div>

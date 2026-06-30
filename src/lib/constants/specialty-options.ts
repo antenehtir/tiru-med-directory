@@ -1,6 +1,7 @@
 export const SPECIALTY_OPTIONS = [
   "Internal Medicine",
-  "Pediatrics & Maternal-Child Health",
+  "Pediatrics",
+  "Maternal & Child Health",
   "Gynecology & Obstetrics",
   "General Surgery",
   "Cardiology",

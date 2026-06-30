@@ -19,6 +19,28 @@ export type FacilityContactChannel = {
   href?: string;
 };
 
+export type FacilityDoctorScheduleRow = {
+  days: string[];
+  open: string;
+  close: string;
+  closed: boolean;
+};
+
+export type FacilityDoctor = {
+  id: string;
+  full_name: string;
+  title: string;
+  role: string;
+  role_other: string;
+  specialty: string;
+  subspecialty: string;
+  languages: string[];
+  available_schedule: FacilityDoctorScheduleRow[];
+  appointment_required: boolean;
+  bio: string;
+  photo_url: string;
+};
+
 export type Facility = {
   id: string;
   name: string;
@@ -44,4 +66,7 @@ export type Facility = {
   subCities: string[];
   area?: string;
   isActive?: boolean;
+  doctors?: FacilityDoctor[];
+  emergencyType?: string | null;
+  walkinAppointment?: string | null;
 };
