@@ -19,12 +19,15 @@ export type FacilityContactChannel = {
   href?: string;
 };
 
-export type FacilityDoctorScheduleRow = {
+export type FacilityScheduleRow = {
   days: string[];
   open: string;
   close: string;
   closed: boolean;
 };
+
+// Alias kept for backward compat with FacilityDoctor.available_schedule
+export type FacilityDoctorScheduleRow = FacilityScheduleRow;
 
 export type FacilityDoctor = {
   id: string;
@@ -69,4 +72,5 @@ export type Facility = {
   doctors?: FacilityDoctor[];
   emergencyType?: string | null;
   walkinAppointment?: string | null;
+  schedule?: FacilityScheduleRow[];
 };

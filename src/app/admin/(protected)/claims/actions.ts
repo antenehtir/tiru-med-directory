@@ -4,18 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 
 // facility_claims.proposed_* fields with no matching column on the live
-// facilities table (checked against src/lib/supabase/get-facilities.ts,
-// scripts/seed-facilities.ts, and the admin facility list select — there is
-// no canonical schema file since 001_create_facilities_table.sql is a
-// stale, never-applied draft for a different table shape). These are
-// captured during onboarding but currently have nowhere to land on the
-// public facility record, so the merge below intentionally skips them.
+// facilities table — captured during onboarding but skipped during approval.
+// Requires migration 025 (adds schedule/doctors/emergency_type/walkin_appointment)
+// before the four new fields below are written successfully.
+// Still intentionally skipped (no facilities column exists for these):
 // - proposed_landmark, proposed_building_desc, proposed_access_notes
 // - proposed_whatsapp, proposed_tiktok, proposed_linkedin
-// - proposed_schedule, proposed_emergency_type, proposed_walkin_appointment
 // - proposed_appointment_modalities, proposed_payment_methods
 // - proposed_checkup_offered, proposed_checkup_packages
-// - proposed_doctors (doctors live in their own public.doctors table, not a facilities column)
 // - proposed_branch_count, proposed_branches
 // - proposed_description, proposed_languages, proposed_patient_groups, proposed_ownership_type
 
@@ -49,6 +45,11 @@ function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, unknown> 
     // No dedicated entrance_photo_url column — maps onto the existing
     // photo_url column, which is the facility's main public photo.
     photo_url: claim.proposed_entrance_photo_url,
+    // Requires migration 025 to add these columns before they land correctly.
+    schedule: claim.proposed_schedule,
+    doctors: claim.proposed_doctors,
+    emergency_type: claim.proposed_emergency_type,
+    walkin_appointment: claim.proposed_walkin_appointment,
   };
 }
 

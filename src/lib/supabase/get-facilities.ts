@@ -5,6 +5,7 @@ import type {
   FacilityContactChannel,
   FacilityContactChannelType,
   FacilityDoctor,
+  FacilityScheduleRow,
 } from "@/types/facility";
 import { realFacilities } from "@/data/real-facility-profiles";
 
@@ -40,6 +41,7 @@ type DBFacility = {
   record_number: number | null;
   is_active: boolean | null;
   doctors: unknown;
+  schedule: unknown;
 };
 
 function makeChannel(
@@ -128,6 +130,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     doctors: Array.isArray(row.doctors) ? (row.doctors as FacilityDoctor[]) : undefined,
     emergencyType: row.emergency_type ?? null,
     walkinAppointment: row.walkin_appointment ?? null,
+    schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
   };
 }
 

@@ -10,12 +10,17 @@ function getInitials(name: string): string {
 }
 
 function formatScheduleSummary(doctor: FacilityDoctor): string | null {
-  const active = doctor.available_schedule?.filter((r) => !r.closed && r.days.length > 0);
-  if (!active || active.length === 0) return null;
-  // Collapse rows that share the same hours
-  const first = active[0];
-  const days = active.flatMap((r) => r.days).join(", ");
-  return `${days} · ${first.open}–${first.close}`;
+  const active = (doctor.available_schedule ?? []).filter((r) => !r.closed && r.days.length > 0);
+  if (active.length === 0) return null;
+  // Each row may cover multiple days; show each group as "Mon, Tue: 8 AM–5 PM"
+  return active
+    .map((r) => {
+      const days = r.days.map((d) => d.slice(0, 3)).join(", ");
+      const hours =
+        r.open === "Open 24 hours" ? "24 hrs" : `${r.open}–${r.close}`;
+      return `${days}: ${hours}`;
+    })
+    .join(" · ");
 }
 
 function DoctorCard({ doctor }: { doctor: FacilityDoctor }) {
