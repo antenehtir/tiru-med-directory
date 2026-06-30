@@ -51,6 +51,7 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
     startTransition(async () => {
       const result = await approveClaim(claimId, facilityId, notes[claimId] ?? "");
       if (result?.warning) alert(result.warning);
+      if (result?.error) alert(`Approval error: ${result.error}`);
     });
   }
 

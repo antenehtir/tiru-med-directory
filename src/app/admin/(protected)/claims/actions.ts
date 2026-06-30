@@ -18,6 +18,40 @@ import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-cl
 // - proposed_doctors (doctors live in their own public.doctors table, not a facilities column)
 // - proposed_branch_count, proposed_branches
 // - proposed_description, proposed_languages, proposed_patient_groups, proposed_ownership_type
+
+type ClaimRow = Record<string, unknown>;
+
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, unknown> {
+  return {
+    name: claim.proposed_name,
+    sub_city: claim.proposed_sub_city,
+    area: claim.proposed_area,
+    latitude: claim.proposed_latitude,
+    longitude: claim.proposed_longitude,
+    maps_link: claim.proposed_maps_link,
+    phone: claim.proposed_phone,
+    phone_2: claim.proposed_phone_2,
+    telegram: claim.proposed_telegram,
+    email: claim.proposed_email,
+    website: claim.proposed_website,
+    instagram: claim.proposed_instagram,
+    facebook: claim.proposed_facebook,
+    services: claim.proposed_services,
+    working_hours: claim.proposed_working_hours,
+    logo_url: claim.proposed_logo_url,
+    // No dedicated entrance_photo_url column — maps onto the existing
+    // photo_url column, which is the facility's main public photo.
+    photo_url: claim.proposed_entrance_photo_url,
+  };
+}
+
 async function mergeProposedDataIntoFacility(
   supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
   adminId: string,
@@ -39,25 +73,7 @@ async function mergeProposedDataIntoFacility(
   await supabase.from("facility_claims").update({ status: "approved" }).eq("id", claim.id);
 
   const mergeObj: Record<string, unknown> = {
-    name: claim.proposed_name,
-    sub_city: claim.proposed_sub_city,
-    area: claim.proposed_area,
-    latitude: claim.proposed_latitude,
-    longitude: claim.proposed_longitude,
-    maps_link: claim.proposed_maps_link,
-    phone: claim.proposed_phone,
-    phone_2: claim.proposed_phone_2,
-    telegram: claim.proposed_telegram,
-    email: claim.proposed_email,
-    website: claim.proposed_website,
-    instagram: claim.proposed_instagram,
-    facebook: claim.proposed_facebook,
-    services: claim.proposed_services,
-    working_hours: claim.proposed_working_hours,
-    logo_url: claim.proposed_logo_url,
-    // No dedicated entrance_photo_url column — maps onto the existing
-    // photo_url column, which is the facility's main public photo.
-    photo_url: claim.proposed_entrance_photo_url,
+    ...buildFacilityFieldsFromClaim(claim),
     verification_status: "facility-owned",
     updated_at: new Date().toISOString(),
   };
@@ -88,13 +104,13 @@ export async function approveClaim(
   providerId: string,
   facilityId: string | null,
   callNotes: string,
-): Promise<{ warning?: string } | void> {
+): Promise<{ warning?: string; error?: string } | void> {
   const admin = await getAdminUser();
   if (!admin) throw new Error("Unauthorized");
 
   const supabase = await createAdminSupabaseClient();
 
-  // Mark provider verified
+  // Mark provider verified — runs for both existing-facility and new-listing paths.
   await supabase
     .from("provider_accounts")
     .update({
@@ -109,9 +125,9 @@ export async function approveClaim(
 
   let warning: string | undefined;
 
-  // If claiming an existing facility, flip it to Official and merge the
-  // provider's onboarding submission into the live facility record.
   if (facilityId) {
+    // Claiming an existing seeded facility — flip it to Official and merge
+    // the provider's onboarding submission into the live facility record.
     const { data: facility } = await supabase
       .from("facilities")
       .select("name, verification_status")
@@ -137,6 +153,90 @@ export async function approveClaim(
 
     // Never block the approval above on this — log/surface a warning instead.
     warning = await mergeProposedDataIntoFacility(supabase, admin.id, providerId, facilityId);
+  } else {
+    // New listing — provider submitted data for a facility not yet in the DB.
+    // Find the submitted claim, create a facilities row from it, then wire
+    // provider_accounts and facility_claims back to the new row.
+    const { data: claim } = await supabase
+      .from("facility_claims")
+      .select("*")
+      .eq("provider_id", providerId)
+      .eq("status", "pending_review")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!claim) {
+      console.error("approveClaim: no pending_review claim for new listing", { providerId });
+      return { error: "No submitted claim found for this provider. Cannot complete approval." };
+    }
+
+    const proposedName = (claim.proposed_name as string | null) ?? "";
+    if (!proposedName) {
+      return { error: "Claim has no facility name — cannot create a facilities record." };
+    }
+
+    // Generate a URL-safe slug; append a short suffix if the base slug is taken.
+    const rawSlug = toSlug(proposedName);
+    const baseSlug = rawSlug || `new-facility-${(claim.id as string).slice(0, 8)}`;
+    const { data: slugConflict } = await supabase
+      .from("facilities")
+      .select("id")
+      .eq("slug", baseSlug)
+      .maybeSingle();
+    const slug = slugConflict
+      ? `${baseSlug}-${(claim.id as string).slice(0, 6)}`
+      : baseSlug;
+
+    const filteredFields = Object.fromEntries(
+      Object.entries(buildFacilityFieldsFromClaim(claim)).filter(
+        ([, v]) => v !== null && v !== undefined && v !== "",
+      ),
+    );
+
+    const { data: newFacility, error: insertError } = await supabase
+      .from("facilities")
+      .insert({
+        ...filteredFields,
+        name: proposedName,
+        slug,
+        category: (claim.facility_type as string | null) ?? "Other",
+        verification_status: "facility-owned",
+        updated_at: new Date().toISOString(),
+      })
+      .select("id, name")
+      .single();
+
+    if (insertError || !newFacility) {
+      console.error("approveClaim: failed to insert new facility row", insertError?.message);
+      // Flip facility_claims anyway so the provider isn't stuck at pending_review.
+      await supabase
+        .from("facility_claims")
+        .update({ status: "approved" })
+        .eq("id", claim.id as string);
+      return {
+        warning: `Approved but facility record creation failed: ${insertError?.message ?? "unknown error"}. Create the facilities row manually in Supabase.`,
+      };
+    }
+
+    // Link provider_accounts and facility_claims to the new facilities row.
+    await supabase
+      .from("provider_accounts")
+      .update({ facility_id: newFacility.id })
+      .eq("id", providerId);
+
+    await supabase
+      .from("facility_claims")
+      .update({ status: "approved", facility_id: newFacility.id })
+      .eq("id", claim.id as string);
+
+    await supabase.from("audit_log").insert({
+      admin_id: admin.id,
+      action: "claim_approved_new_listing",
+      entity_type: "facility",
+      entity_id: newFacility.id,
+      note: `New facility "${newFacility.name}" (slug: ${slug}) created and approved from provider claim ${claim.id as string}. ${callNotes}`,
+    });
   }
 
   revalidatePath("/admin/claims");
