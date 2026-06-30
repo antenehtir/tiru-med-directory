@@ -9,7 +9,7 @@ async function getClaims(): Promise<Claim[]> {
       id, email, display_name, phone, claimant_role, claimant_role_other,
       claimant_phone, facility_official_phone_claimed, work_email,
       referral_source, verification_status_internal, verification_call_notes,
-      facility_id, created_at,
+      facility_id, facility_name, created_at,
       facilities ( id, name, category, phone, sub_city, area, verification_status )
     `)
     .in("verification_status_internal", ["call_pending", "unverified"])
@@ -29,9 +29,9 @@ export default async function AdminClaimsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Claim Verification</h1>
+        <h1 className="text-2xl font-bold text-foreground">Provider Submissions</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verify provider claims by calling the facility&apos;s official number
+          Review claims on existing facilities and new facility listing requests
         </p>
       </div>
       <AdminClaimsList claims={claims} />

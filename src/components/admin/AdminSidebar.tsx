@@ -27,19 +27,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: "Listing Requests",
-    href: "/admin/listings",
-    icon: (
-      <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
-        <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/>
-        <line strokeLinecap="round" strokeLinejoin="round" x1="12" x2="12" y1="18" y2="12"/>
-        <line strokeLinecap="round" strokeLinejoin="round" x1="9" x2="15" y1="15" y2="15"/>
-      </svg>
-    ),
-  },
-  {
-    label: "Claim Verification",
+    label: "Provider Submissions",
     href: "/admin/claims",
     icon: (
       <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -147,14 +135,12 @@ const MOBILE_NAV = [
     ),
   },
   {
-    label: "Listings",
-    href: "/admin/listings",
+    label: "Claims",
+    href: "/admin/claims",
     icon: (
       <svg className="size-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
-        <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/>
-        <line strokeLinecap="round" strokeLinejoin="round" x1="12" x2="12" y1="18" y2="12"/>
-        <line strokeLinecap="round" strokeLinejoin="round" x1="9" x2="15" y1="15" y2="15"/>
+        <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3-1-3-3-3-3 2-3 3-2-1-3-1-3 1-3 3 2 3 3 3-2 1-3 3 1 3 3 3 3-2 3-3 2 1 3 1z" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
   },
