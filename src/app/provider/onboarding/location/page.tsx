@@ -19,6 +19,29 @@ export default async function LocationStepPage() {
     );
   }
 
+  if (claim.status === "pending_review" || claim.status === "approved") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-teal-100 text-3xl text-teal-600">✓</div>
+          <h1 className="text-lg font-bold text-foreground">Your listing is under review</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your listing cannot be edited while it is under review. An admin will contact
+            your facility to verify your claim.
+          </p>
+          <div className="mt-6 space-y-2">
+            <a className="block rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90" href="/provider/onboarding/milestone">
+              View submission status →
+            </a>
+            <a className="block text-sm text-muted-foreground hover:text-foreground" href="/provider/dashboard">
+              Go to dashboard →
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const completion = calculateCompletion(claim);
 
   return (
