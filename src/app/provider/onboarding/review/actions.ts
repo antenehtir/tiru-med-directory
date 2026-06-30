@@ -41,8 +41,14 @@ export async function submitForReview(): Promise<{ error: string } | void> {
       code: updateError.code,
       details: updateError.details,
     });
+    if (updateError.message?.includes("check constraint")) {
+      return {
+        error:
+          "Submission failed due to a configuration issue. Please contact support — error code: STATUS_CONSTRAINT. (Run migration 020 in Supabase to fix.)",
+      };
+    }
     return {
-      error: `Submission failed: ${updateError.message || "Unknown database error"}. If this persists, check that migration 016 (submitted_at column) has been applied in Supabase.`,
+      error: `Submission failed: ${updateError.message || "Unknown database error"}. If this persists, check that migrations 016 and 020 have been applied in Supabase.`,
     };
   }
 
