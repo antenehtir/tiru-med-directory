@@ -35,6 +35,7 @@ type DBFacility = {
   longitude: number | null;
   verification_status: string;
   record_number: number | null;
+  is_active: boolean | null;
 };
 
 function makeChannel(
@@ -119,6 +120,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     subCity: row.sub_city ?? undefined,
     subCities,
     area: row.area ?? undefined,
+    isActive: row.is_active ?? true,
   };
 }
 
@@ -158,6 +160,7 @@ export async function getSimilarFacilities(
     const { data, error } = await supabase
       .from("facilities")
       .select("*")
+      .eq("is_active", true)
       .eq("category", facility.category)
       .neq("slug", facility.slug)
       .limit(limit);
@@ -192,6 +195,7 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
     const { data, error } = await supabase
       .from("facilities")
       .select("*")
+      .eq("is_active", true)
       .order("record_number", { ascending: true });
 
     if (error || !data || data.length === 0) {

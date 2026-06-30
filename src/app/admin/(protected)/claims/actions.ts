@@ -194,6 +194,15 @@ export async function approveClaim(
       ),
     );
 
+    // Assign the next record_number so the admin Facility Directory shows a #.
+    const { data: maxRecord } = await supabase
+      .from("facilities")
+      .select("record_number")
+      .order("record_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextRecordNumber = ((maxRecord?.record_number as number | null) ?? 0) + 1;
+
     const { data: newFacility, error: insertError } = await supabase
       .from("facilities")
       .insert({
@@ -202,6 +211,7 @@ export async function approveClaim(
         slug,
         category: (claim.facility_type as string | null) ?? "Other",
         verification_status: "facility-owned",
+        record_number: nextRecordNumber,
         updated_at: new Date().toISOString(),
       })
       .select("id, name")

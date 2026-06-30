@@ -5,7 +5,7 @@ async function getFacilities() {
   const supabase = await createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("facilities")
-    .select("id, slug, name, category, sub_city, area, verification_status, record_number, phone, working_hours, emergency_service")
+    .select("id, slug, name, category, sub_city, area, verification_status, record_number, phone, working_hours, emergency_service, is_active, deactivation_category, deactivated_at")
     .order("record_number", { ascending: true });
 
   if (error) return [];

@@ -43,4 +43,5 @@ export type Facility = {
   subCity?: string;
   subCities: string[];
   area?: string;
+  isActive?: boolean;
 };

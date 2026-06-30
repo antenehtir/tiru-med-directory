@@ -4,16 +4,17 @@ import {
   FormEvent,
   KeyboardEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { realFacilities } from "@/data/real-facility-profiles";
-import {
-  getProviderSearchSuggestions,
-  type SearchSuggestion,
-} from "@/lib/search-suggestions";
+
+type SearchSuggestion = {
+  id: string;
+  name: string;
+  metadata: string;
+  detailHref: string;
+};
 
 type SearchAutocompleteInputProps = {
   autoFocus?: boolean;
@@ -48,28 +49,57 @@ export function SearchAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
 
   useEffect(() => {
-    if (!autoFocus) {
-      return;
-    }
-
+    if (!autoFocus) return;
     const input = inputRef.current;
-
-    if (!input) {
-      return;
-    }
-
+    if (!input) return;
     input.scrollIntoView({ block: "center", behavior: "smooth" });
     input.focus({ preventScroll: true });
   }, [autoFocus]);
 
-  const suggestions = useMemo(
-    () => getProviderSearchSuggestions(realFacilities, query),
-    [query],
-  );
-  const showSuggestions =
-    isOpen && query.trim().length > 0 && suggestions.length > 0;
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/provider/search-facilities?q=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      })
+        .then((r) => r.json())
+        .then((json) => {
+          const facilities: Record<string, string | null>[] = json.facilities ?? [];
+          setSuggestions(
+            facilities.map((f) => ({
+              id: f.id ?? "",
+              name: f.name ?? "",
+              metadata: [
+                f.category,
+                [f.area, f.sub_city].filter(Boolean).join(", "),
+              ]
+                .filter(Boolean)
+                .join(" | "),
+              detailHref: `/facilities/${f.slug}`,
+            })),
+          );
+        })
+        .catch(() => {
+          // aborted or network error — leave existing suggestions
+        });
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  const showSuggestions = isOpen && query.trim().length > 0 && suggestions.length > 0;
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,27 +108,18 @@ export function SearchAutocompleteInput({
 
   function navigateToSearch(value: string) {
     const trimmedQuery = value.trim();
-
     setIsOpen(false);
-
     if (trimmedQuery.length === 0) {
       router.push("/search");
       return;
     }
-
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
   }
 
   function selectSuggestion(suggestion: SearchSuggestion) {
     setQuery(suggestion.name);
     setIsOpen(false);
-
-    if (suggestion.detailHref) {
-      router.push(suggestion.detailHref);
-      return;
-    }
-
-    navigateToSearch(suggestion.name);
+    router.push(suggestion.detailHref);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {

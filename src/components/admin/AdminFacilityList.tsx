@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateFacilityBadge } from "@/app/admin/(protected)/facilities/actions";
+import {
+  updateFacilityBadge,
+  deactivateFacility,
+  reactivateFacility,
+} from "@/app/admin/(protected)/facilities/actions";
 
 type Facility = {
   id: string;
@@ -15,26 +19,58 @@ type Facility = {
   phone: string | null;
   working_hours: string | null;
   emergency_service: boolean;
+  is_active: boolean | null;
+  deactivation_category: string | null;
+  deactivated_at: string | null;
 };
 
 const BADGE_LABELS: Record<string, string> = {
   "community-submitted": "CS",
   "facility-owned": "Official",
-  "verified": "✓",
+  verified: "✓",
 };
 
 const BADGE_COLORS: Record<string, string> = {
   "community-submitted": "bg-amber-50 text-amber-700 border-amber-200",
   "facility-owned": "bg-blue-50 text-blue-700 border-blue-200",
-  "verified": "bg-teal-50 text-teal-700 border-teal-200",
+  verified: "bg-teal-50 text-teal-700 border-teal-200",
 };
+
+const DEACTIVATION_CATEGORIES = [
+  "Closed permanently",
+  "License expired or not renewed",
+  "Relocated (new listing pending)",
+  "Under investigation",
+  "Temporarily closed",
+  "Other",
+];
+
+function getAvailableBadgeOptions(currentStatus: string) {
+  if (currentStatus === "community-submitted") {
+    return [
+      { value: "community-submitted", label: "CS" },
+      { value: "facility-owned", label: "Owned" },
+    ];
+  }
+  // Once Owned or Verified: CS is locked out permanently.
+  return [
+    { value: "facility-owned", label: "Owned" },
+    { value: "verified", label: "Verified" },
+  ];
+}
 
 export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [badgeFilter, setBadgeFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isPending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deactivateModal, setDeactivateModal] = useState<{
+    facilityId: string;
+    facilityName: string;
+  } | null>(null);
+  const [deactivateForm, setDeactivateForm] = useState({ category: "", reason: "" });
 
   const categories = Array.from(new Set(facilities.map((f) => f.category))).sort();
 
@@ -46,14 +82,44 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
       (f.sub_city ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || f.category === categoryFilter;
     const matchesBadge = badgeFilter === "all" || f.verification_status === badgeFilter;
-    return matchesSearch && matchesCategory && matchesBadge;
+    const isInactive = f.is_active === false;
+    const matchesActive =
+      activeFilter === "all" ||
+      (activeFilter === "active" ? !isInactive : isInactive);
+    return matchesSearch && matchesCategory && matchesBadge && matchesActive;
   });
 
-  async function handleBadgeChange(facilityId: string, newStatus: string) {
+  function handleBadgeChange(facilityId: string, currentStatus: string, newStatus: string) {
+    if (currentStatus === "verified" && newStatus === "facility-owned") {
+      if (!confirm("Are you sure you want to downgrade this facility from Verified to Owned?"))
+        return;
+    }
     setUpdatingId(facilityId);
     startTransition(async () => {
       await updateFacilityBadge(facilityId, newStatus);
       setUpdatingId(null);
+    });
+  }
+
+  function handleReactivate(facilityId: string, facilityName: string) {
+    if (
+      !confirm(
+        `Reactivate "${facilityName}"? This will make it visible on the public directory again.`,
+      )
+    )
+      return;
+    startTransition(async () => {
+      await reactivateFacility(facilityId);
+    });
+  }
+
+  function handleDeactivateSubmit() {
+    if (!deactivateModal || !deactivateForm.category || !deactivateForm.reason.trim()) return;
+    const { facilityId } = deactivateModal;
+    setDeactivateModal(null);
+    startTransition(async () => {
+      await deactivateFacility(facilityId, deactivateForm.category, deactivateForm.reason.trim());
+      setDeactivateForm({ category: "", reason: "" });
     });
   }
 
@@ -75,7 +141,9 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
         >
           <option value="all">All categories</option>
           {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </select>
         <select
@@ -87,6 +155,15 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
           <option value="community-submitted">CS only</option>
           <option value="facility-owned">Owned only</option>
           <option value="verified">Verified only</option>
+        </select>
+        <select
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={(e) => setActiveFilter(e.target.value as "all" | "active" | "inactive")}
+          value={activeFilter}
+        >
+          <option value="all">All</option>
+          <option value="active">Active only</option>
+          <option value="inactive">Inactive only</option>
         </select>
         <span className="flex items-center text-sm text-muted-foreground">
           {filtered.length} results
@@ -103,62 +180,113 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
               <th className="px-4 py-3 text-left font-semibold text-foreground">Category</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Location</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Badge</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Status</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((facility) => (
-              <tr
-                key={facility.id}
-                className="border-b border-border last:border-0 hover:bg-muted/20"
-              >
-                <td className="px-4 py-3 text-muted-foreground">
-                  {facility.record_number ?? "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-foreground">{facility.name}</div>
-                  {facility.phone && (
-                    <div className="text-xs text-muted-foreground">{facility.phone}</div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{facility.category}</td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {[facility.area, facility.sub_city].filter(Boolean).join(", ")}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-bold ${BADGE_COLORS[facility.verification_status] ?? ""}`}
-                  >
-                    {BADGE_LABELS[facility.verification_status] ?? facility.verification_status}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="rounded-lg border border-border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                      defaultValue={facility.verification_status}
-                      disabled={updatingId === facility.id || isPending}
-                      onChange={(e) => handleBadgeChange(facility.id, e.target.value)}
-                    >
-                      <option value="community-submitted">CS</option>
-                      <option value="facility-owned">Owned</option>
-                      <option value="verified">Verified</option>
-                    </select>
-                    {updatingId === facility.id && (
-                      <span className="text-xs text-muted-foreground">Saving...</span>
+            {filtered.map((facility) => {
+              const isInactive = facility.is_active === false;
+              const availableOptions = getAvailableBadgeOptions(facility.verification_status);
+
+              return (
+                <tr
+                  key={facility.id}
+                  className={`border-b border-border last:border-0 hover:bg-muted/20 ${isInactive ? "opacity-60" : ""}`}
+                >
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {facility.record_number ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-foreground">{facility.name}</div>
+                    {facility.phone && (
+                      <div className="text-xs text-muted-foreground">{facility.phone}</div>
                     )}
-                    <a
-                      className="text-xs text-primary hover:underline"
-                      href={`/facilities/${facility.slug}`}
-                      rel="noopener noreferrer"
-                      target="_blank"
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{facility.category}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {[facility.area, facility.sub_city].filter(Boolean).join(", ")}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-bold ${BADGE_COLORS[facility.verification_status] ?? ""}`}
                     >
-                      View ↗
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      {BADGE_LABELS[facility.verification_status] ?? facility.verification_status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isInactive ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
+                        <span className="size-1.5 rounded-full bg-red-400" />
+                        Inactive
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-600">
+                        <span className="size-1.5 rounded-full bg-teal-400" />
+                        Active
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="rounded-lg border border-border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={facility.verification_status}
+                        disabled={updatingId === facility.id || isPending}
+                        onChange={(e) =>
+                          handleBadgeChange(
+                            facility.id,
+                            facility.verification_status,
+                            e.target.value,
+                          )
+                        }
+                      >
+                        {availableOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      {updatingId === facility.id && (
+                        <span className="text-xs text-muted-foreground">Saving...</span>
+                      )}
+                      {isInactive ? (
+                        <button
+                          className="rounded-md border border-teal-200 bg-teal-50 px-2 py-1 text-xs font-medium text-teal-700 transition hover:bg-teal-100 disabled:opacity-50"
+                          disabled={isPending}
+                          onClick={() => handleReactivate(facility.id, facility.name)}
+                          type="button"
+                        >
+                          Activate
+                        </button>
+                      ) : (
+                        <button
+                          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                          disabled={isPending}
+                          onClick={() =>
+                            setDeactivateModal({
+                              facilityId: facility.id,
+                              facilityName: facility.name,
+                            })
+                          }
+                          type="button"
+                        >
+                          Deactivate
+                        </button>
+                      )}
+                      <a
+                        className="text-xs text-primary hover:underline"
+                        href={`/facilities/${facility.slug}`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        View ↗
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {filtered.length === 0 && (
@@ -167,6 +295,76 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
           </div>
         )}
       </div>
+
+      {/* Deactivation modal */}
+      {deactivateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <h2 className="text-lg font-bold text-foreground">Deactivate listing</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Deactivating will hide &quot;{deactivateModal.facilityName}&quot; from the public
+              directory. This action can be reversed.
+            </p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  REASON CATEGORY *
+                </label>
+                <select
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={deactivateForm.category}
+                  onChange={(e) =>
+                    setDeactivateForm((prev) => ({ ...prev, category: e.target.value }))
+                  }
+                >
+                  <option value="">Select a reason...</option>
+                  {DEACTIVATION_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  ADDITIONAL DETAILS *
+                </label>
+                <textarea
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Provide details about this deactivation..."
+                  rows={3}
+                  value={deactivateForm.reason}
+                  onChange={(e) =>
+                    setDeactivateForm((prev) => ({ ...prev, reason: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition hover:text-foreground"
+                onClick={() => {
+                  setDeactivateModal(null);
+                  setDeactivateForm({ category: "", reason: "" });
+                }}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+                disabled={
+                  !deactivateForm.category || !deactivateForm.reason.trim() || isPending
+                }
+                onClick={handleDeactivateSubmit}
+                type="button"
+              >
+                Confirm deactivation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
