@@ -36,32 +36,43 @@ export async function submitForReview(): Promise<{ error: string } | void> {
     .eq("id", claimId);
 
   if (updateError) {
-    console.error("submitForReview update failed:", updateError.message);
-    return { error: "Something went wrong submitting your listing. Please try again." };
+    console.error("submitForReview update failed:", {
+      message: updateError.message,
+      code: updateError.code,
+      details: updateError.details,
+    });
+    return {
+      error: `Submission failed: ${updateError.message || "Unknown database error"}. If this persists, check that migration 016 (submitted_at column) has been applied in Supabase.`,
+    };
   }
 
   // calculateCompletion() already adds the Step 6 bonus once status is
   // pending_review/approved — no separate "+5" on top of this, that would
   // double-count it.
-  const { data: updatedClaim } = await supabase
-    .from("facility_claims")
-    .select("*")
-    .eq("id", claimId)
-    .single();
+  try {
+    const { data: updatedClaim } = await supabase
+      .from("facility_claims")
+      .select("*")
+      .eq("id", claimId)
+      .single();
 
-  const finalPct = Math.min(100, updatedClaim ? calculateCompletion(updatedClaim) : currentPct);
+    const finalPct = Math.min(100, updatedClaim ? calculateCompletion(updatedClaim) : currentPct);
 
-  await supabase
-    .from("provider_accounts")
-    .update({
-      completion_pct: finalPct,
-      // onboarding_phase is an integer column — there is no slug mapped to 7
-      // in login's phaseToSlug map, so a returning provider naturally falls
-      // through to the dashboard instead of back into the onboarding flow.
-      onboarding_phase: 7,
-      last_active_at: new Date().toISOString(),
-    })
-    .eq("id", provider.id);
+    await supabase
+      .from("provider_accounts")
+      .update({
+        completion_pct: finalPct,
+        // onboarding_phase is an integer column — there is no slug mapped to 7
+        // in login's phaseToSlug map, so a returning provider naturally falls
+        // through to the dashboard instead of back into the onboarding flow.
+        onboarding_phase: 7,
+        last_active_at: new Date().toISOString(),
+      })
+      .eq("id", provider.id);
+  } catch (err) {
+    // provider_accounts update is non-critical — log but don't block the redirect
+    console.error("submitForReview: provider_accounts update failed:", err);
+  }
 
   redirect("/provider/onboarding/milestone");
 }

@@ -174,6 +174,19 @@ export const IMAGING_SERVICES = [
   "Interventional Radiology",
 ] as const;
 
+export const BASIC_LAB_SERVICES = [
+  "Blood Glucose Test",
+  "Pregnancy Test",
+  "Rapid Strep Test",
+  "Rapid Malaria Test",
+  "Urinalysis (Dipstick)",
+  "HIV Rapid Test",
+  "Hemoglobin Test",
+  "Blood Typing",
+  "COVID-19 Rapid Test",
+  "Basic Blood Pressure & Vitals Monitoring",
+] as const;
+
 export const FACILITY_TYPES = [
   "Hospital",
   "Specialty Center",

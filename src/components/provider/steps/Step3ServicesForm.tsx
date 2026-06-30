@@ -9,6 +9,7 @@ import {
   EMERGENCY_TYPES,
   WALKIN_APPOINTMENT_OPTIONS,
   IMAGING_SERVICES,
+  BASIC_LAB_SERVICES,
   PHARMACY_CATEGORIES,
   DELIVERY_OPTIONS,
   COVERAGE_SUB_CITIES,
@@ -252,6 +253,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
   const isDefault =
     !facilityType || (DEFAULT_STEP3_FACILITY_TYPES as readonly string[]).includes(facilityType);
+  const isOther = facilityType === "Other";
   const isPharmacy = facilityType === "Pharmacy";
   const isDiagnostic = facilityType === "Laboratory / Diagnostics";
   const isHomeCare = facilityType === "Home Care";
@@ -396,7 +398,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   // Known option lists for whichever branch is active — anything in
   // `services` that isn't in one of these is a custom (free-typed) entry.
   const knownLists: readonly (readonly string[])[] = isDefault
-    ? [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES]
+    ? [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES, BASIC_LAB_SERVICES]
     : isPharmacy
       ? [PHARMACY_CATEGORIES]
       : isDiagLabOnly
@@ -406,7 +408,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           : isDiagBoth
             ? [LAB_TESTS, IMAGING_SERVICES]
             : isHomeCare
-              ? [HOME_CARE_SERVICES]
+              ? [HOME_CARE_SERVICES, BASIC_LAB_SERVICES]
               : isAmbulance
                 ? [AMBULANCE_VEHICLE_TYPES]
                 : [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES];
@@ -495,6 +497,16 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               options={IMAGING_SERVICES}
               services={services}
               title="Imaging & Diagnostics"
+            />
+            <PillSelector
+              customValue={customInputs.basiclab ?? ""}
+              onCustomAdd={() => addCustomService("basiclab")}
+              onCustomChange={(v) => setCustomInput("basiclab", v)}
+              onSelectAll={() => selectAllIn(BASIC_LAB_SERVICES)}
+              onToggle={toggleService}
+              options={BASIC_LAB_SERVICES}
+              services={services}
+              title="Basic Lab / Point-of-care Testing"
             />
           </>
         )}
@@ -622,6 +634,16 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               options={HOME_CARE_SERVICES}
               services={services}
               title="Services offered"
+            />
+            <PillSelector
+              customValue={customInputs.basiclab ?? ""}
+              onCustomAdd={() => addCustomService("basiclab")}
+              onCustomChange={(v) => setCustomInput("basiclab", v)}
+              onSelectAll={() => selectAllIn(BASIC_LAB_SERVICES)}
+              onToggle={toggleService}
+              options={BASIC_LAB_SERVICES}
+              services={services}
+              title="Basic Lab / Point-of-care Testing"
             />
 
             <div className="mb-5 flex flex-col gap-2">
@@ -762,8 +784,70 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           </>
         )}
 
-        {/* Custom entries — leftover free-typed items not in any known list above */}
-        {customEntries.length > 0 && (
+        {/* "Other" facility type — freeform tag section for any services not in predefined lists */}
+        {isOther && (
+          <div className="mb-5">
+            <div className="mb-2">
+              <p className="text-sm font-semibold text-foreground">Other services</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Add any additional services your facility offers that aren&apos;t listed above.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <input
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => setCustomInput("other", e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomService("other");
+                  }
+                }}
+                placeholder="Type a service and press Add…"
+                type="text"
+                value={customInputs.other ?? ""}
+              />
+              <button
+                className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                disabled={
+                  !(customInputs.other ?? "").trim() ||
+                  services.includes((customInputs.other ?? "").trim())
+                }
+                onClick={() => addCustomService("other")}
+                type="button"
+              >
+                Add
+              </button>
+            </div>
+            {customEntries.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {customEntries.map((custom) => (
+                  <span
+                    key={custom}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                  >
+                    {custom}
+                    <button
+                      className="hover:text-red-500"
+                      onClick={() => {
+                        const next = services.filter((s) => s !== custom);
+                        setServices(next);
+                        autoSave({ proposed_services: next });
+                      }}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Custom entries — leftover free-typed items not in any known list above.
+            Suppressed for "Other" facility type — handled in the section above. */}
+        {customEntries.length > 0 && !isOther && (
           <div className="mt-4 flex flex-wrap gap-2">
             {customEntries.map((custom) => (
               <span

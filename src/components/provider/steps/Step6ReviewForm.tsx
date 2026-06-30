@@ -527,7 +527,10 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
       <div className="mb-4 flex flex-col items-center gap-2 rounded-2xl bg-card p-6 text-center shadow-sm">
         <CompletionRing pct={pct} />
         {pct >= 70 ? (
-          <p className="text-sm font-semibold text-teal-600">Ready to submit ✓</p>
+          <>
+            <p className="text-sm font-semibold text-teal-600">Ready to submit ✓</p>
+            <p className="text-xs text-muted-foreground">Submitting will bring your profile to 100%</p>
+          </>
         ) : (
           <p className="text-sm font-semibold text-amber-600">Not yet eligible</p>
         )}

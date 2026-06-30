@@ -137,6 +137,9 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       const ext = file.name.split(".").pop();
       const path = `${claimId}/${id}.${ext}`;
 
+      // MANUAL SETUP REQUIRED: Verify 'doctor-photos' bucket exists in Supabase dashboard
+      // Public bucket, allowed MIME: image/jpeg, image/png, image/webp, max size 10MB
+      // Run: GRANT SELECT ON storage.objects TO anon; GRANT INSERT ON storage.objects TO authenticated;
       const { error: uploadError } = await supabase.storage
         .from("doctor-photos")
         .upload(path, file, { upsert: true });
@@ -147,8 +150,18 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
 
       autoSave(updateDoctor(id, { photo_url: urlData.publicUrl }));
     } catch (err) {
-      console.error("Doctor photo upload failed:", err);
-      setPhotoErrors((prev) => ({ ...prev, [id]: "Upload failed. Please try again." }));
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error("Doctor photo upload error:", {
+        message: errMsg,
+        bucket: "doctor-photos",
+        path: `${claimId}/${id}`,
+        error: err,
+      });
+      const userMsg =
+        errMsg.toLowerCase().includes("bucket") || errMsg.toLowerCase().includes("not found")
+          ? "Photo storage is not yet configured — please contact support or try again later."
+          : `Upload failed: ${errMsg}`;
+      setPhotoErrors((prev) => ({ ...prev, [id]: userMsg }));
     } finally {
       setUploadingId(null);
       const input = fileInputRefs.current[id];
