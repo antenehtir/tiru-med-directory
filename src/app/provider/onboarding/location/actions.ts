@@ -178,10 +178,11 @@ export async function autoSaveStep2(data: {
 
     if ((updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
       const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(updatedClaim));
-      await supabase
+      const { error: liveUpdateError } = await supabase
         .from("facilities")
         .update({ ...toSync, updated_at: new Date().toISOString() })
         .eq("id", updatedClaim.facility_id as string);
+      if (liveUpdateError) console.error("autoSaveStep2 live sync failed:", liveUpdateError.message);
     }
   }
 }

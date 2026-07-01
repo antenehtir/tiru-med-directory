@@ -21,6 +21,10 @@ export async function submitForReview(): Promise<{ error: string } | void> {
     .eq("id", claimId)
     .single();
 
+  if ((currentClaim?.status as string | undefined) === "approved") {
+    redirect("/provider/dashboard");
+  }
+
   const currentPct = currentClaim ? calculateCompletion(currentClaim) : 0;
   if (currentPct < 70) {
     return { error: "Your profile must be at least 70% complete to submit." };

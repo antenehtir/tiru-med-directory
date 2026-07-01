@@ -96,6 +96,10 @@ export async function saveStep3(formData: FormData) {
     .update({ onboarding_phase: 4, last_active_at: new Date().toISOString() })
     .eq("id", provider.id);
 
+  // Approved providers editing live — go to next step, not milestone
+  if ((updatedClaim?.status as string | undefined) === "approved") {
+    redirect("/provider/onboarding/doctors");
+  }
   redirect("/provider/onboarding/milestone");
 }
 
@@ -159,10 +163,11 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
 
     if ((updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
       const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(updatedClaim));
-      await supabase
+      const { error: liveUpdateError } = await supabase
         .from("facilities")
         .update({ ...toSync, updated_at: new Date().toISOString() })
         .eq("id", updatedClaim.facility_id as string);
+      if (liveUpdateError) console.error("autoSaveStep3 live sync failed:", liveUpdateError.message);
     }
   }
 }
