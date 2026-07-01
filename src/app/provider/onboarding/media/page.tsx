@@ -8,7 +8,7 @@ export default async function MediaStepPage() {
   const result = await getOrCreateClaim();
   if (!result) redirect("/provider/login");
 
-  const { claim } = result;
+  const { provider, claim } = result;
   if (!claim) {
     return (
       <OnboardingShell completionPct={0} currentStep={5}>
@@ -42,6 +42,8 @@ export default async function MediaStepPage() {
 
   const completion = calculateCompletion(claim);
   const isLiveEdit = (claim.status as string) === "approved";
+  const facilitySlug = (provider.facilities as { slug?: string } | null)?.slug ?? undefined;
+  const submissionStep = (claim.submission_step as number | null) ?? undefined;
 
   const initialData = {
     entrance_photo_url: (claim.proposed_entrance_photo_url as string) ?? "",
@@ -55,7 +57,7 @@ export default async function MediaStepPage() {
   };
 
   return (
-    <OnboardingShell completionPct={completion} currentStep={5} isLiveEdit={isLiveEdit}>
+    <OnboardingShell completionPct={completion} currentStep={5} isLiveEdit={isLiveEdit} facilitySlug={facilitySlug} submissionStep={submissionStep}>
       <Step5MediaForm claimId={claim.id as string} initialData={initialData} />
     </OnboardingShell>
   );

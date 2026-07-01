@@ -72,11 +72,28 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               {facility.address}
             </p>
           ) : null}
+
+          {/* Compact emergency + walk-in pills */}
+          {(facility.emergencyType || facility.walkinAppointment) ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {facility.emergencyType ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-400">
+                  <span className="size-1.5 rounded-full bg-red-500 dark:bg-red-400" />
+                  {facility.emergencyType}
+                </span>
+              ) : null}
+              {facility.walkinAppointment ? (
+                <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700 dark:bg-teal-950/50 dark:text-teal-400">
+                  {facility.walkinAppointment}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
-      {/* Info cards — always 2 base cols; availability and emergency add more */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+      {/* Info cards — facility type + location only */}
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
             {facility.category}
@@ -115,34 +132,6 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             <p className="mt-1 text-sm text-muted-foreground">Location</p>
           </div>
         )}
-        {facility.availabilityNote ? (
-          <div className="rounded-2xl border border-border bg-background p-4">
-            <p
-              className={`text-sm font-semibold ${
-                facility.isOpen ? "text-success" : "text-warning"
-              }`}
-            >
-              {facility.availabilityNote}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">Availability</p>
-          </div>
-        ) : null}
-        {facility.emergencyType ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30">
-            <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-              {facility.emergencyType}
-            </p>
-            <p className="mt-1 text-sm text-red-600/70 dark:text-red-400/70">Emergency</p>
-          </div>
-        ) : null}
-        {facility.walkinAppointment ? (
-          <div className="rounded-2xl border border-border bg-background p-4">
-            <p className="text-sm font-semibold text-foreground">
-              {facility.walkinAppointment}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">Walk-in / Appointment</p>
-          </div>
-        ) : null}
       </div>
     </header>
   );

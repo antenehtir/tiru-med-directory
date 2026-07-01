@@ -8,7 +8,7 @@ export default async function ServicesStepPage() {
   const result = await getOrCreateClaim();
   if (!result) redirect("/provider/login");
 
-  const { claim } = result;
+  const { provider, claim } = result;
   if (!claim) {
     return (
       <OnboardingShell completionPct={0} currentStep={3}>
@@ -42,9 +42,11 @@ export default async function ServicesStepPage() {
 
   const completion = calculateCompletion(claim);
   const isLiveEdit = (claim.status as string) === "approved";
+  const facilitySlug = (provider.facilities as { slug?: string } | null)?.slug ?? undefined;
+  const submissionStep = (claim.submission_step as number | null) ?? undefined;
 
   return (
-    <OnboardingShell completionPct={completion} currentStep={3} isLiveEdit={isLiveEdit}>
+    <OnboardingShell completionPct={completion} currentStep={3} isLiveEdit={isLiveEdit} facilitySlug={facilitySlug} submissionStep={submissionStep}>
       <Step3ServicesForm claim={claim} />
     </OnboardingShell>
   );

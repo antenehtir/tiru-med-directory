@@ -44,9 +44,11 @@ export default async function IdentityStepPage() {
 
   const completion = calculateCompletion(claim);
   const isLiveEdit = (claim.status as string) === "approved";
+  const facilitySlug = (provider.facilities as { slug?: string } | null)?.slug ?? undefined;
+  const submissionStep = (claim.submission_step as number | null) ?? undefined;
 
   return (
-    <OnboardingShell completionPct={completion} currentStep={1} isLiveEdit={isLiveEdit}>
+    <OnboardingShell completionPct={completion} currentStep={1} isLiveEdit={isLiveEdit} facilitySlug={facilitySlug} submissionStep={submissionStep}>
       <Step1IdentityForm
         claim={claim}
         facilityName={(provider.facilities as { name?: string } | null)?.name ?? ""}

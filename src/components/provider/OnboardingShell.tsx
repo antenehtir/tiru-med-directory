@@ -5,15 +5,25 @@ export function OnboardingShell({
   currentStep,
   completionPct,
   isLiveEdit,
+  facilitySlug,
+  submissionStep,
   children,
 }: {
   currentStep: number;
   completionPct: number;
   isLiveEdit?: boolean;
+  facilitySlug?: string;
+  submissionStep?: number;
   children: React.ReactNode;
 }) {
   const step = ONBOARDING_STEPS.find((s) => s.num === currentStep);
   const prevStep = ONBOARDING_STEPS.find((s) => s.num === currentStep - 1);
+
+  // A dot is accessible if it's been visited (up to max of currentStep or submissionStep),
+  // or if the provider is in live-edit mode (approved — can jump to any step).
+  const maxAccessible = isLiveEdit
+    ? TOTAL_STEPS
+    : Math.max(currentStep, submissionStep ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -36,8 +46,20 @@ export function OnboardingShell({
       </header>
 
       {isLiveEdit && (
-        <div className="border-b border-teal-200 bg-teal-50 px-4 py-2.5 text-center text-sm font-medium text-teal-800 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
-          Editing live listing — changes go live immediately.
+        <div className="flex items-center justify-between border-b border-teal-200 bg-teal-50 px-4 py-2.5 dark:border-teal-800 dark:bg-teal-950/60">
+          <p className="text-sm font-medium text-teal-800 dark:text-teal-300">
+            Editing live listing — changes go live immediately.
+          </p>
+          {facilitySlug && (
+            <a
+              className="ml-4 shrink-0 rounded-lg border border-teal-300 bg-white px-3 py-1 text-xs font-semibold text-teal-700 transition hover:bg-teal-50 dark:border-teal-700 dark:bg-transparent dark:text-teal-300 dark:hover:bg-teal-900/40"
+              href={`/facilities/${facilitySlug}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              View live listing ↗
+            </a>
+          )}
         </div>
       )}
 
@@ -62,24 +84,26 @@ export function OnboardingShell({
             {ONBOARDING_STEPS.map((s) => {
               const isComplete = s.num < currentStep;
               const isCurrent = s.num === currentStep;
-              const isAccessible = s.num <= currentStep;
+              const isAccessible = s.num <= maxAccessible;
 
               return (
                 <div key={s.num} className="flex flex-col items-center gap-1">
-                  {isAccessible ? (
+                  {isAccessible && !isCurrent ? (
                     <Link
-                      className={`flex size-8 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                        isCurrent
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
-                          : isComplete
-                            ? "bg-primary/20 text-primary hover:bg-primary/30"
-                            : "bg-muted text-muted-foreground"
+                      className={`flex size-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                        isComplete
+                          ? "bg-primary/20 text-primary hover:bg-primary/30 hover:ring-2 hover:ring-primary/40"
+                          : "bg-primary/10 text-primary hover:bg-primary/20 hover:ring-2 hover:ring-primary/30"
                       }`}
                       href={`/provider/onboarding/${s.slug}`}
                       title={isComplete ? `Go back to ${s.label}` : s.label}
                     >
                       {isComplete ? "✓" : s.num}
                     </Link>
+                  ) : isCurrent ? (
+                    <span className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground ring-2 ring-primary ring-offset-2">
+                      {s.num}
+                    </span>
                   ) : (
                     <span className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground opacity-40">
                       {s.num}
