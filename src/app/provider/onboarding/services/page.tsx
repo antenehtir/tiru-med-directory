@@ -17,7 +17,7 @@ export default async function ServicesStepPage() {
     );
   }
 
-  if (claim.status === "pending_review" || claim.status === "approved") {
+  if (claim.status === "pending_review") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
@@ -41,9 +41,10 @@ export default async function ServicesStepPage() {
   }
 
   const completion = calculateCompletion(claim);
+  const isLiveEdit = (claim.status as string) === "approved";
 
   return (
-    <OnboardingShell completionPct={completion} currentStep={3}>
+    <OnboardingShell completionPct={completion} currentStep={3} isLiveEdit={isLiveEdit}>
       <Step3ServicesForm claim={claim} />
     </OnboardingShell>
   );

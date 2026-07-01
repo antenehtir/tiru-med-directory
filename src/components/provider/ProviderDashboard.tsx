@@ -10,7 +10,7 @@ type ProviderAccount = {
   facility_id: string | null;
   admin_note: string | null;
   onboarding_phase: number | null;
-  facilities: { slug: string } | null;
+  facilities: { slug: string; updated_at: string | null } | null;
 };
 
 type FacilityClaim = Record<string, unknown> & {
@@ -174,7 +174,7 @@ export function ProviderDashboard({
     { label: "Step 3 Services & Schedule", complete: submissionStep > 3 },
   ];
 
-  const showQuickLinks = claim?.status !== "pending_review" && claim?.status !== "approved";
+  const showQuickLinks = claim?.status !== "pending_review";
   const showCompletionBreakdown = Boolean(claim) && claim?.status === "pending";
 
   return (
@@ -300,6 +300,14 @@ export function ProviderDashboard({
               <p className="mt-1 text-sm text-muted-foreground">
                 Your facility is live on the Tiru Medical Directory with the Official badge.
               </p>
+              {provider.facilities?.updated_at && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Last updated {formatDate(provider.facilities.updated_at)}
+                </p>
+              )}
+              <p className="mt-2 text-xs text-teal-600 dark:text-teal-400">
+                You can update your listing anytime — changes go live immediately.
+              </p>
               <div className="mt-4 flex flex-col items-center gap-2">
                 <a
                   className="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
@@ -311,7 +319,7 @@ export function ProviderDashboard({
                   className="text-sm text-muted-foreground hover:text-foreground"
                   href="/provider/onboarding/identity"
                 >
-                  Update your listing →
+                  Edit your listing →
                 </a>
               </div>
             </div>

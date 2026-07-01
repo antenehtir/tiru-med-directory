@@ -4,10 +4,12 @@ import { ONBOARDING_STEPS, TOTAL_STEPS } from "@/lib/provider/onboarding-config"
 export function OnboardingShell({
   currentStep,
   completionPct,
+  isLiveEdit,
   children,
 }: {
   currentStep: number;
   completionPct: number;
+  isLiveEdit?: boolean;
   children: React.ReactNode;
 }) {
   const step = ONBOARDING_STEPS.find((s) => s.num === currentStep);
@@ -32,6 +34,12 @@ export function OnboardingShell({
           </a>
         </div>
       </header>
+
+      {isLiveEdit && (
+        <div className="border-b border-teal-200 bg-teal-50 px-4 py-2.5 text-center text-sm font-medium text-teal-800 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
+          Editing live listing — changes go live immediately.
+        </div>
+      )}
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         {/* Progress */}

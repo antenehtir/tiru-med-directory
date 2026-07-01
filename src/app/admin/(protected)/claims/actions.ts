@@ -2,55 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
-
-// facility_claims.proposed_* fields with no matching column on the live
-// facilities table — captured during onboarding but skipped during approval.
-// Requires migration 025 (adds schedule/doctors/emergency_type/walkin_appointment)
-// before the four new fields below are written successfully.
-// Still intentionally skipped (no facilities column exists for these):
-// - proposed_landmark, proposed_building_desc, proposed_access_notes
-// - proposed_whatsapp, proposed_tiktok, proposed_linkedin
-// - proposed_appointment_modalities, proposed_payment_methods
-// - proposed_checkup_offered, proposed_checkup_packages
-// - proposed_branch_count, proposed_branches
-// - proposed_description, proposed_languages, proposed_patient_groups, proposed_ownership_type
-
-type ClaimRow = Record<string, unknown>;
+import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
 
 function toSlug(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, unknown> {
-  return {
-    name: claim.proposed_name,
-    sub_city: claim.proposed_sub_city,
-    area: claim.proposed_area,
-    latitude: claim.proposed_latitude,
-    longitude: claim.proposed_longitude,
-    maps_link: claim.proposed_maps_link,
-    phone: claim.proposed_phone,
-    phone_2: claim.proposed_phone_2,
-    telegram: claim.proposed_telegram,
-    email: claim.proposed_email,
-    website: claim.proposed_website,
-    instagram: claim.proposed_instagram,
-    facebook: claim.proposed_facebook,
-    services: claim.proposed_services,
-    working_hours: claim.proposed_working_hours,
-    logo_url: claim.proposed_logo_url,
-    // No dedicated entrance_photo_url column — maps onto the existing
-    // photo_url column, which is the facility's main public photo.
-    photo_url: claim.proposed_entrance_photo_url,
-    // Requires migration 025 to add these columns before they land correctly.
-    schedule: claim.proposed_schedule,
-    doctors: claim.proposed_doctors,
-    emergency_type: claim.proposed_emergency_type,
-    walkin_appointment: claim.proposed_walkin_appointment,
-  };
 }
 
 async function mergeProposedDataIntoFacility(
@@ -73,15 +31,11 @@ async function mergeProposedDataIntoFacility(
   // the claim lifecycle shouldn't get stuck on a facilities write failure.
   await supabase.from("facility_claims").update({ status: "approved" }).eq("id", claim.id);
 
-  const mergeObj: Record<string, unknown> = {
+  const updateData = filterNonEmpty({
     ...buildFacilityFieldsFromClaim(claim),
     verification_status: "facility-owned",
     updated_at: new Date().toISOString(),
-  };
-
-  const updateData = Object.fromEntries(
-    Object.entries(mergeObj).filter(([, v]) => v !== null && v !== undefined && v !== ""),
-  );
+  });
 
   const { error } = await supabase.from("facilities").update(updateData).eq("id", facilityId);
 
@@ -189,11 +143,7 @@ export async function approveClaim(
       ? `${baseSlug}-${(claim.id as string).slice(0, 6)}`
       : baseSlug;
 
-    const filteredFields = Object.fromEntries(
-      Object.entries(buildFacilityFieldsFromClaim(claim)).filter(
-        ([, v]) => v !== null && v !== undefined && v !== "",
-      ),
-    );
+    const filteredFields = filterNonEmpty(buildFacilityFieldsFromClaim(claim));
 
     // Assign the next record_number so the admin Facility Directory shows a #.
     const { data: maxRecord } = await supabase

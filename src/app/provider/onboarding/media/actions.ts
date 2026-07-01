@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
+import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
 
 export type Step5Data = {
   entrance_photo_url: string;
@@ -83,9 +84,15 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
     updates.proposed_business_license_expiry_date = data.business_license_expiry_date || null;
   }
 
+  let updatedClaim: Record<string, unknown> | null = null;
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase.from("facility_claims").update(updates).eq("id", claimId);
-    if (error) console.error("autoSaveStep5 failed:", error.message);
+    if (error) {
+      console.error("autoSaveStep5 failed:", error.message);
+    } else {
+      const { data } = await supabase.from("facility_claims").select("*").eq("id", claimId).single();
+      updatedClaim = data ?? null;
+    }
   }
 
   const currentOverallPct = provider.completion_pct ?? 0;
@@ -95,6 +102,14 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
     .from("provider_accounts")
     .update({ completion_pct: nextOverallPct })
     .eq("id", provider.id);
+
+  if (updatedClaim && (updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
+    const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(updatedClaim));
+    await supabase
+      .from("facilities")
+      .update({ ...toSync, updated_at: new Date().toISOString() })
+      .eq("id", updatedClaim.facility_id as string);
+  }
 }
 
 export async function saveStep5AndContinue(data: Step5Data) {

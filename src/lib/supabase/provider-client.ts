@@ -38,7 +38,7 @@ export async function getProviderAccount() {
       *,
       facilities (
         id, slug, name, category, sub_city, area,
-        verification_status, record_number
+        verification_status, record_number, updated_at
       )
     `)
     .eq("id", user.id)

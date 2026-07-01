@@ -17,7 +17,7 @@ export default async function MediaStepPage() {
     );
   }
 
-  if (claim.status === "pending_review" || claim.status === "approved") {
+  if (claim.status === "pending_review") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-950">
         <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
@@ -41,6 +41,7 @@ export default async function MediaStepPage() {
   }
 
   const completion = calculateCompletion(claim);
+  const isLiveEdit = (claim.status as string) === "approved";
 
   const initialData = {
     entrance_photo_url: (claim.proposed_entrance_photo_url as string) ?? "",
@@ -54,7 +55,7 @@ export default async function MediaStepPage() {
   };
 
   return (
-    <OnboardingShell completionPct={completion} currentStep={5}>
+    <OnboardingShell completionPct={completion} currentStep={5} isLiveEdit={isLiveEdit}>
       <Step5MediaForm claimId={claim.id as string} initialData={initialData} />
     </OnboardingShell>
   );

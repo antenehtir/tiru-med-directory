@@ -56,9 +56,9 @@ export async function getOrCreateClaim() {
   return { provider, claim: created };
 }
 
-// Returns the claim id for editable claims (pending or rejected), null for locked ones.
-// Flips a rejected claim back to pending on first edit so it re-enters the normal flow.
-// Returns null for pending_review/approved — callers must not write to locked claims.
+// Returns the claim id for editable claims, null for locked ones.
+// Approved claims are now writable — edits sync live to the facilities row.
+// Only pending_review is fully locked (admin is actively reviewing).
 export async function findPendingClaimId(
   supabase: Awaited<ReturnType<typeof createProviderSupabaseClient>>,
   providerId: string,
@@ -76,7 +76,9 @@ export async function findPendingClaimId(
   }
   if (!data) return null;
   const status = data.status as string;
-  if (status === "pending_review" || status === "approved") return null;
+  // pending_review = admin is actively evaluating; block edits to avoid mid-review changes.
+  if (status === "pending_review") return null;
+  // approved = provider edits go live immediately; allow writes.
   if (status === "rejected") {
     // Provider is re-editing — restore to pending so the claim re-enters the flow.
     await supabase
@@ -108,7 +110,8 @@ export async function ensureClaimId(
 
   if (existing) {
     const status = existing.status as string;
-    if (status === "pending_review" || status === "approved") return null;
+    // pending_review = locked while admin reviews. approved = editable (syncs live).
+    if (status === "pending_review") return null;
     if (status === "rejected") {
       await supabase
         .from("facility_claims")
@@ -151,6 +154,6 @@ export async function ensureClaimId(
     .maybeSingle();
   if (!raced) return null;
   const racedStatus = raced.status as string;
-  if (racedStatus === "pending_review" || racedStatus === "approved") return null;
+  if (racedStatus === "pending_review") return null;
   return raced.id as string;
 }

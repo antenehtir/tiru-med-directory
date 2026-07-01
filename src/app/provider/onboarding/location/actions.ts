@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
+import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
 
 export async function saveStep2(formData: FormData) {
   const provider = await getProviderAccount();
@@ -174,5 +175,13 @@ export async function autoSaveStep2(data: {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
+
+    if ((updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
+      const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(updatedClaim));
+      await supabase
+        .from("facilities")
+        .update({ ...toSync, updated_at: new Date().toISOString() })
+        .eq("id", updatedClaim.facility_id as string);
+    }
   }
 }
