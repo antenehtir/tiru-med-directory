@@ -73,4 +73,6 @@ export type Facility = {
   emergencyType?: string | null;
   walkinAppointment?: string | null;
   schedule?: FacilityScheduleRow[];
+  paymentMethods?: string[];
+  insuranceNote?: string | null;
 };

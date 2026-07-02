@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
+import { buildFacilityFieldsFromClaim } from "@/lib/provider/facility-field-mapping";
 
 export async function saveStep3(formData: FormData) {
   const provider = await getProviderAccount();
@@ -39,7 +39,7 @@ export async function saveStep3(formData: FormData) {
     : null;
   const checkupNote = formData.get("checkup_note") as string;
   const paymentMethods = formData.getAll("payment_methods") as string[];
-  const insuranceAccepted = formData.get("insurance_accepted") === "yes";
+  const insuranceAccepted = paymentMethods.includes("Insurance");
   const insuranceNote = formData.get("insurance_note") as string;
   const categoryDataJson = formData.get("category_data_json") as string;
   const categoryData = categoryDataJson ? JSON.parse(categoryDataJson) : null;
@@ -65,7 +65,7 @@ export async function saveStep3(formData: FormData) {
       proposed_checkup_note: checkupNote || null,
       proposed_payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       proposed_insurance_accepted: insuranceAccepted,
-      proposed_insurance_note: insuranceNote || null,
+      proposed_insurance_note: insuranceAccepted ? insuranceNote || null : null,
       proposed_category_data: categoryData,
       submission_step: 4,
     })
@@ -136,6 +136,13 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     if (data[key] !== undefined) updates[key] = data[key];
   }
 
+  // "Insurance" ticked in payment_methods is the sole insurance-accepted signal
+  // now (Step 3 consolidation) — keep the legacy boolean column in sync.
+  if (data.proposed_payment_methods !== undefined) {
+    const methods = data.proposed_payment_methods as string[];
+    updates.proposed_insurance_accepted = methods.includes("Insurance");
+  }
+
   if (Object.keys(updates).length === 0) return;
 
   const { error } = await supabase
@@ -162,12 +169,16 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
       .eq("id", provider.id);
 
     if ((updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
-      const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(updatedClaim));
-      const { error: liveUpdateError } = await supabase
+      const toSync = buildFacilityFieldsFromClaim(updatedClaim);
+      const { data: syncedRows, error: liveUpdateError } = await supabase
         .from("facilities")
         .update({ ...toSync, updated_at: new Date().toISOString() })
-        .eq("id", updatedClaim.facility_id as string);
+        .eq("id", updatedClaim.facility_id as string)
+        .select("id");
       if (liveUpdateError) console.error("autoSaveStep3 live sync failed:", liveUpdateError.message);
+      else if (!syncedRows || syncedRows.length === 0) {
+        console.error("autoSaveStep3 live sync affected 0 rows — likely blocked by facilities RLS policy", updatedClaim.facility_id);
+      }
     }
   }
 }

@@ -35,6 +35,7 @@ type DBFacility = {
   instagram: string | null;
   facebook: string | null;
   telegram: string | null;
+  whatsapp: string | null;
   latitude: number | null;
   longitude: number | null;
   verification_status: string;
@@ -42,6 +43,8 @@ type DBFacility = {
   is_active: boolean | null;
   doctors: unknown;
   schedule: unknown;
+  payment_methods: unknown;
+  insurance_note: string | null;
 };
 
 function makeChannel(
@@ -76,7 +79,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     makeChannel(row.slug, "email", "Email", row.email, `mailto:${row.email ?? ""}`),
     makeChannel(row.slug, "website", "Website", row.website, row.website ?? ""),
     makeChannel(row.slug, "maps", "Google Maps", row.maps_link, row.maps_link ?? ""),
-    makeChannel(row.slug, "social", "Telegram", row.telegram, row.telegram ?? ""),
+    makeChannel(row.slug, "whatsapp", "WhatsApp", row.whatsapp, ""),
+    makeChannel(row.slug, "social", "Telegram", row.telegram, ""),
     makeChannel(row.slug, "social", "Instagram", row.instagram, row.instagram ?? ""),
     makeChannel(row.slug, "social", "Facebook", row.facebook, row.facebook ?? ""),
     makeChannel(row.slug, "appointment", "Booking", row.booking_link, row.booking_link ?? ""),
@@ -131,6 +135,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     emergencyType: row.emergency_type ?? null,
     walkinAppointment: row.walkin_appointment ?? null,
     schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
+    paymentMethods: toStringArray(row.payment_methods),
+    insuranceNote: row.insurance_note ?? null,
   };
 }
 

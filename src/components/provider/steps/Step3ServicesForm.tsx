@@ -292,11 +292,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [checkupOffered, setCheckupOffered] = useState(
     (claim.proposed_checkup_offered as boolean) ?? false,
   );
-  const [insuranceAccepted, setInsuranceAccepted] = useState(
-    (claim.proposed_insurance_accepted as boolean) ?? false,
-  );
   const [paymentMethods, setPaymentMethods] = useState<string[]>(
     (claim.proposed_payment_methods as string[]) ?? [],
+  );
+  const [insuranceNote, setInsuranceNote] = useState(
+    (claim.proposed_insurance_note as string) ?? "",
   );
   const [customPayment, setCustomPayment] = useState("");
 
@@ -359,7 +359,12 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       ? paymentMethods.filter((m) => m !== method)
       : [...paymentMethods, method];
     setPaymentMethods(next);
-    autoSave({ proposed_payment_methods: next });
+    if (method === "Insurance" && !next.includes("Insurance")) {
+      setInsuranceNote("");
+      autoSave({ proposed_payment_methods: next, proposed_insurance_note: null });
+    } else {
+      autoSave({ proposed_payment_methods: next });
+    }
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -429,7 +434,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     <form action={saveStep3} className="space-y-6" onSubmit={handleSubmit}>
       {/* Hidden fields for checkboxes/toggles */}
       <input name="checkup_offered" type="hidden" value={checkupOffered ? "yes" : "no"} />
-      <input name="insurance_accepted" type="hidden" value={insuranceAccepted ? "yes" : "no"} />
       <input
         name="checkup_packages_json"
         type="hidden"
@@ -1233,51 +1237,24 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             )}
           </div>
 
-          {/* Insurance */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Insurance accepted?
-            </label>
-            <div className="flex gap-3">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={!insuranceAccepted}
-                  onChange={() => {
-                    setInsuranceAccepted(false);
-                    autoSave({ proposed_insurance_accepted: false });
-                  }}
-                  type="radio"
-                  value="no"
-                />
-                No
+          {/* Insurance — signalled by ticking "Insurance" above; insurer names are optional */}
+          {paymentMethods.includes("Insurance") && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="insurance_note">
+                Which insurers do you accept? (optional)
               </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={insuranceAccepted}
-                  onChange={() => {
-                    setInsuranceAccepted(true);
-                    autoSave({ proposed_insurance_accepted: true });
-                  }}
-                  type="radio"
-                  value="yes"
-                />
-                Yes
-              </label>
+              <input
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                id="insurance_note"
+                name="insurance_note"
+                onBlur={(e) => autoSave({ proposed_insurance_note: e.target.value || null })}
+                onChange={(e) => setInsuranceNote(e.target.value)}
+                placeholder="e.g. Cigna, Nyala Insurance, CBHI"
+                type="text"
+                value={insuranceNote}
+              />
             </div>
-
-            {insuranceAccepted && (
-              <div className="flex flex-col gap-1.5">
-                <input
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={(claim.proposed_insurance_note as string) ?? ""}
-                  name="insurance_note"
-                  onBlur={(e) => autoSave({ proposed_insurance_note: e.target.value })}
-                  placeholder="e.g. CBE Life, NYT, Awash Insurance accepted"
-                  type="text"
-                />
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
