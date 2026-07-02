@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ facilities: [], error: "no client" });
   }
 
+  // PostgREST's .or() filter syntax splits on "," and groups on "()" — strip
+  // those out of the raw query so free-typed input can't break the filter.
+  const safeQ = q.replace(/[,()]/g, "");
+  const orFilter = `name.ilike.%${safeQ}%,area.ilike.%${safeQ}%,sub_city.ilike.%${safeQ}%,category.ilike.%${safeQ}%`;
+
   // Try with is_active filter (requires migration 023); fall back without it
   // if the column doesn't exist yet.
   let data: Record<string, unknown>[] | null = null;
@@ -23,7 +28,7 @@ export async function GET(request: NextRequest) {
     .from("facilities")
     .select("id, slug, name, category, area, sub_city, verification_status")
     .eq("is_active", true)
-    .ilike("name", `%${q}%`)
+    .or(orFilter)
     .order("name")
     .limit(10) as { data: Record<string, unknown>[] | null; error: { message: string } | null });
 
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest) {
     ({ data, error } = await supabase
       .from("facilities")
       .select("id, slug, name, category, area, sub_city, verification_status")
-      .ilike("name", `%${q}%`)
+      .or(orFilter)
       .order("name")
       .limit(10) as { data: Record<string, unknown>[] | null; error: { message: string } | null });
   }
