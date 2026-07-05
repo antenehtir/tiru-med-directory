@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/onboarding/doctors/actions";
+import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/onboarding/doctors/actions";
 import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,

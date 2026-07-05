@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { saveStep2, autoSaveStep2 } from "@/app/provider/onboarding/location/actions";
+import { saveStep2, autoSaveStep2 } from "@/app/provider/(console)/onboarding/location/actions";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 
 const MapPinPicker = dynamic(

@@ -47,18 +47,9 @@ export async function providerSignIn(formData: FormData) {
     redirect("/provider/login?error=not_provider");
   }
 
-  // Route based on onboarding phase
-  const phaseToSlug: Record<number, string> = {
-    0: "/provider/onboarding/claim",
-    1: "/provider/onboarding/identity",
-    2: "/provider/onboarding/location",
-    3: "/provider/onboarding/services",
-    4: "/provider/onboarding/doctors",
-    5: "/provider/onboarding/media",
-    6: "/provider/onboarding/review",
-  };
-
-  const destination =
-    phaseToSlug[provider.onboarding_phase ?? 0] ?? "/provider/dashboard";
-  redirect(destination);
+  // Always land on the Overview tab of the provider console — it already
+  // shows the right status-specific messaging (start/continue onboarding,
+  // ready to submit, under review, approved) and links onward from there.
+  // The milestone page is reachable explicitly, not as a login destination.
+  redirect("/provider/dashboard");
 }

@@ -95,8 +95,8 @@ export function MilestoneCard({
   const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-950">
-      <div className="mx-auto mt-12 max-w-lg rounded-3xl bg-card p-8 shadow-lg">
+    <div className="px-4 py-8">
+      <div className="mx-auto max-w-lg rounded-3xl bg-card p-8 shadow-lg">
         {approved ? (
           <div className="space-y-6 text-center">
             <CelebrationBurst />

@@ -125,14 +125,6 @@ function ClockIcon() {
   );
 }
 
-function StarIcon() {
-  return (
-    <svg className="size-12 text-teal-500" fill="currentColor" stroke="currentColor" strokeWidth="0.5" viewBox="0 0 24 24">
-      <path d="M12 2.5 14.9 9l6.6.6-5 4.4 1.5 6.5L12 17.3 6 20.5l1.5-6.5-5-4.4L9.1 9Z" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function XCircleIcon() {
   return (
     <svg className="size-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -157,6 +149,54 @@ const COMPLETION_STEPS = [
   { label: "Step 5 Photos", weight: 15, doneAt: 6 },
 ];
 
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-1 text-xs font-medium text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+const QUICK_EDIT_SHORTCUTS = [
+  { label: "Edit services →", href: "/provider/onboarding/services" },
+  { label: "Add a doctor →", href: "/provider/onboarding/doctors" },
+  { label: "Upload a photo →", href: "/provider/onboarding/media" },
+];
+
+function ApprovedOverview({ provider, claim }: { provider: ProviderAccount; claim: FacilityClaim }) {
+  const pct = calculateCompletion(claim);
+  const doctorCount = Array.isArray(claim.proposed_doctors)
+    ? (claim.proposed_doctors as unknown[]).length
+    : 0;
+  const lastUpdated = provider.facilities?.updated_at ? formatDate(provider.facilities.updated_at) : "—";
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard label="Profile completion" value={`${pct}%`} />
+        <StatCard label="Doctors listed" value={String(doctorCount)} />
+        <StatCard label="Last updated" value={lastUpdated} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <p className="mb-3 font-semibold text-foreground">Quick edit</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {QUICK_EDIT_SHORTCUTS.map((shortcut) => (
+            <a
+              key={shortcut.href}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+              href={shortcut.href}
+            >
+              {shortcut.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProviderDashboard({
   provider,
   claim,
@@ -166,7 +206,6 @@ export function ProviderDashboard({
 }) {
   const submissionStep = (claim?.submission_step as number | null) ?? 0;
   const pct = claim ? calculateCompletion(claim) : 0;
-  const facilitySlug = provider.facilities?.slug ?? null;
 
   const stepChecklist = [
     { label: "Step 1 Basic Info", complete: submissionStep > 1 },
@@ -174,224 +213,192 @@ export function ProviderDashboard({
     { label: "Step 3 Services & Schedule", complete: submissionStep > 3 },
   ];
 
-  const showQuickLinks = claim?.status !== "pending_review";
+  const showQuickLinks = claim?.status !== "pending_review" && claim?.status !== "approved";
   const showCompletionBreakdown = Boolean(claim) && claim?.status === "pending";
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Welcome back, {provider.display_name ?? "there"}
-            </h1>
-            <p className="mt-0.5 text-sm font-medium text-teal-600">{provider.facility_name}</p>
-          </div>
-          <a className="shrink-0 text-sm text-muted-foreground hover:text-foreground" href="/provider/logout">
-            Sign out
-          </a>
-        </div>
+  if (claim?.status === "approved") {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+        <ApprovedOverview claim={claim} provider={provider} />
 
-        {/* Status card */}
-        <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          {!claim && (
-            <div className="text-center">
-              <div className="flex justify-center"><ClipboardIcon /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">Start your listing</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                You haven&apos;t started your facility listing yet.
-              </p>
-              <a
-                className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                href="/provider/onboarding/identity"
-              >
-                Begin onboarding →
-              </a>
-            </div>
-          )}
-
-          {claim?.status === "pending" && pct < 70 && (
-            <div className="text-center">
-              <div className="flex justify-center"><PencilIcon /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">Your listing is in progress</h2>
-              <div className="mt-3 flex justify-center">
-                <ProgressRing pct={pct} ringColorClass="text-amber-500" />
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Complete Steps 1, 2, and 3 to reach 70% and become eligible to submit.
-              </p>
-              <div className="mt-4 space-y-2 rounded-xl border border-border bg-background p-4 text-left">
-                {stepChecklist.map((step) => (
-                  <div className="flex items-center gap-2 text-sm" key={step.label}>
-                    <span
-                      className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        step.complete ? "bg-teal-500 text-white" : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {step.complete ? "✓" : "·"}
-                    </span>
-                    <span className={step.complete ? "text-foreground" : "text-muted-foreground"}>
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <a
-                className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                href={continueOnboardingHref(provider.onboarding_phase)}
-              >
-                Continue onboarding →
-              </a>
-            </div>
-          )}
-
-          {claim?.status === "pending" && pct >= 70 && (
-            <div className="text-center">
-              <div className="flex justify-center"><CheckCircleIcon className="size-10 text-teal-500" /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">Ready to submit!</h2>
-              <div className="mt-3 flex justify-center">
-                <ProgressRing pct={pct} ringColorClass="text-teal-500" />
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Your profile is complete enough to submit for review.
-              </p>
-              <div className="mt-4 flex flex-col items-center gap-2">
-                <a
-                  className="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  href="/provider/onboarding/review"
-                >
-                  Review and submit →
-                </a>
-                <a
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                  href={continueOnboardingHref(provider.onboarding_phase)}
-                >
-                  Continue editing →
-                </a>
-              </div>
-            </div>
-          )}
-
-          {claim?.status === "pending_review" && (
-            <div className="text-center">
-              <div className="flex justify-center"><ClockIcon /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">Under review</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Submitted {formatDate(claim.submitted_at)}. An admin will call your facility to
-                verify your claim. This usually takes 1–3 business days.
-              </p>
-              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800 dark:bg-amber-950/30">
-                You cannot edit your listing while it is under review.
-              </div>
-              <a
-                className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                href="/provider/onboarding/review"
-              >
-                View submission →
-              </a>
-            </div>
-          )}
-
-          {claim?.status === "approved" && (
-            <div className="text-center">
-              <div className="flex justify-center"><StarIcon /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">You&apos;re Official! ✓</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Your facility is live on the Tiru Medical Directory with the Official badge.
-              </p>
-              {provider.facilities?.updated_at && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Last updated {formatDate(provider.facilities.updated_at)}
-                </p>
-              )}
-              <p className="mt-2 text-xs text-teal-600 dark:text-teal-400">
-                You can update your listing anytime — changes go live immediately.
-              </p>
-              <div className="mt-4 flex flex-col items-center gap-2">
-                <a
-                  className="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  href={facilitySlug ? `/facilities/${facilitySlug}` : "/facilities"}
-                >
-                  View your listing →
-                </a>
-                <a
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                  href="/provider/onboarding/identity"
-                >
-                  Edit your listing →
-                </a>
-              </div>
-            </div>
-          )}
-
-          {claim?.status === "rejected" && (
-            <div className="text-center">
-              <div className="flex justify-center"><XCircleIcon /></div>
-              <h2 className="mt-3 text-lg font-bold text-foreground">Listing not approved</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Your listing was not approved. Please review the feedback below and resubmit.
-              </p>
-              {provider.admin_note && (
-                <div className="mt-4 rounded-xl border border-border bg-background p-3 text-left text-sm text-foreground">
-                  {provider.admin_note}
-                </div>
-              )}
-              <a
-                className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                href="/provider/onboarding/identity"
-              >
-                Edit and resubmit →
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Quick links */}
-        {showQuickLinks && (
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {QUICK_LINKS.map((link) => (
-              <a
-                className="rounded-xl border border-border bg-card p-4 text-center text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
-                href={link.href}
-                key={link.href}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
-
-        {/* Completion breakdown */}
-        {showCompletionBreakdown && (
-          <div className="mb-6 rounded-2xl border border-border bg-card p-5">
-            <p className="mb-3 font-semibold text-foreground">Profile completion</p>
-            <div className="space-y-2">
-              {COMPLETION_STEPS.map((step) => {
-                const complete = submissionStep >= step.doneAt;
-                return (
-                  <div className="flex items-center justify-between text-sm" key={step.label}>
-                    <span className="text-muted-foreground">
-                      {step.label} — {step.weight}%
-                    </span>
-                    <span className={complete ? "font-semibold text-teal-600" : "text-muted-foreground"}>
-                      {complete ? "✓" : "pending"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center">
+        <div className="mt-8 text-center">
           <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
             Need help? Contact us
           </a>
           <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
         </div>
-      </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+      {/* Status card */}
+      <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        {!claim && (
+          <div className="text-center">
+            <div className="flex justify-center"><ClipboardIcon /></div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">Start your listing</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You haven&apos;t started your facility listing yet.
+            </p>
+            <a
+              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              href="/provider/onboarding/identity"
+            >
+              Begin onboarding →
+            </a>
+          </div>
+        )}
+
+        {claim?.status === "pending" && pct < 70 && (
+          <div className="text-center">
+            <div className="flex justify-center"><PencilIcon /></div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">Your listing is in progress</h2>
+            <div className="mt-3 flex justify-center">
+              <ProgressRing pct={pct} ringColorClass="text-amber-500" />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Complete Steps 1, 2, and 3 to reach 70% and become eligible to submit.
+            </p>
+            <div className="mt-4 space-y-2 rounded-xl border border-border bg-background p-4 text-left">
+              {stepChecklist.map((step) => (
+                <div className="flex items-center gap-2 text-sm" key={step.label}>
+                  <span
+                    className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                      step.complete ? "bg-teal-500 text-white" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {step.complete ? "✓" : "·"}
+                  </span>
+                  <span className={step.complete ? "text-foreground" : "text-muted-foreground"}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <a
+              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              href={continueOnboardingHref(provider.onboarding_phase)}
+            >
+              Continue onboarding →
+            </a>
+          </div>
+        )}
+
+        {claim?.status === "pending" && pct >= 70 && (
+          <div className="text-center">
+            <div className="flex justify-center"><CheckCircleIcon className="size-10 text-teal-500" /></div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">Ready to submit!</h2>
+            <div className="mt-3 flex justify-center">
+              <ProgressRing pct={pct} ringColorClass="text-teal-500" />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Your profile is complete enough to submit for review.
+            </p>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <a
+                className="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                href="/provider/onboarding/review"
+              >
+                Review and submit →
+              </a>
+              <a
+                className="text-sm text-muted-foreground hover:text-foreground"
+                href={continueOnboardingHref(provider.onboarding_phase)}
+              >
+                Continue editing →
+              </a>
+            </div>
+          </div>
+        )}
+
+        {claim?.status === "pending_review" && (
+          <div className="text-center">
+            <div className="flex justify-center"><ClockIcon /></div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">Under review</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Submitted {formatDate(claim.submitted_at)}. An admin will call your facility to
+              verify your claim. This usually takes 1–3 business days.
+            </p>
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800 dark:bg-amber-950/30">
+              You cannot edit your listing while it is under review.
+            </div>
+            <a
+              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              href="/provider/onboarding/milestone"
+            >
+              View submission status →
+            </a>
+          </div>
+        )}
+
+        {claim?.status === "rejected" && (
+          <div className="text-center">
+            <div className="flex justify-center"><XCircleIcon /></div>
+            <h2 className="mt-3 text-lg font-bold text-foreground">Listing not approved</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your listing was not approved. Please review the feedback below and resubmit.
+            </p>
+            {provider.admin_note && (
+              <div className="mt-4 rounded-xl border border-border bg-background p-3 text-left text-sm text-foreground">
+                {provider.admin_note}
+              </div>
+            )}
+            <a
+              className="mt-4 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              href="/provider/onboarding/identity"
+            >
+              Edit and resubmit →
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* Quick links */}
+      {showQuickLinks && (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {QUICK_LINKS.map((link) => (
+            <a
+              className="rounded-xl border border-border bg-card p-4 text-center text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+              href={link.href}
+              key={link.href}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Completion breakdown */}
+      {showCompletionBreakdown && (
+        <div className="mb-6 rounded-2xl border border-border bg-card p-5">
+          <p className="mb-3 font-semibold text-foreground">Profile completion</p>
+          <div className="space-y-2">
+            {COMPLETION_STEPS.map((step) => {
+              const complete = submissionStep >= step.doneAt;
+              return (
+                <div className="flex items-center justify-between text-sm" key={step.label}>
+                  <span className="text-muted-foreground">
+                    {step.label} — {step.weight}%
+                  </span>
+                  <span className={complete ? "font-semibold text-teal-600" : "text-muted-foreground"}>
+                    {complete ? "✓" : "pending"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="text-center">
+        <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
+          Need help? Contact us
+        </a>
+        <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
+      </div>
     </div>
   );
 }

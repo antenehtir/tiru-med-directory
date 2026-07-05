@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveStep3, autoSaveStep3 } from "@/app/provider/onboarding/services/actions";
+import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/services/actions";
 import {
   MAIN_SERVICES,
   SPECIALTIES,

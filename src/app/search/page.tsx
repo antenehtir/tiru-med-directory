@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { SearchResultsPage } from "@/components/search-results/SearchResultsPage";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { getSupabasePublicDoctorCards } from "@/lib/supabase/doctors-public-read";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 import type { PublicProviderCard } from "@/types/public-listings";
@@ -14,12 +15,15 @@ export const metadata: Metadata = {
 };
 
 export default async function SearchPage() {
-  const doctors = await getDoctorsForSearch();
+  const [doctors, facilities] = await Promise.all([
+    getDoctorsForSearch(),
+    getFacilitiesFromDB(),
+  ]);
 
   return (
     <PageShell>
       <Suspense>
-        <SearchResultsPage doctors={doctors} />
+        <SearchResultsPage doctors={doctors} facilities={facilities} />
       </Suspense>
     </PageShell>
   );

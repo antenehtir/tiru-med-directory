@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { submitForReview } from "@/app/provider/onboarding/review/actions";
+import { submitForReview } from "@/app/provider/(console)/onboarding/review/actions";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { createEmptyDoctor, type DoctorEntry } from "@/lib/provider/doctor-types";
 

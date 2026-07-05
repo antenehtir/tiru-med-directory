@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { saveStep1, autoSaveStep1 } from "@/app/provider/onboarding/identity/actions";
+import { saveStep1, autoSaveStep1 } from "@/app/provider/(console)/onboarding/identity/actions";
 import {
   OWNERSHIP_TYPES,
   LANGUAGES,

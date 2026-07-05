@@ -8,16 +8,17 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
-import { realFacilities } from "@/data/real-facility-profiles";
 import { filterDoctorsByQuery, filterFacilitiesByQuery } from "@/lib/frontend-search-filters";
 import {
   doctorMatchesListingFilters,
   facilityMatchesListingFilters,
 } from "@/lib/listing-filters";
 import type { Doctor } from "@/types/doctor";
+import type { Facility } from "@/types/facility";
 
 type SearchResultsPageProps = {
   doctors?: Doctor[];
+  facilities?: Facility[];
 };
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
@@ -28,7 +29,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 }
 
-function SearchResultsPageInner({ doctors = [] }: SearchResultsPageProps) {
+function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResultsPageProps) {
   const searchParams = useSearchParams();
   const focusSearch = searchParams.get("focus") === "1";
 
@@ -44,7 +45,7 @@ function SearchResultsPageInner({ doctors = [] }: SearchResultsPageProps) {
     activeFilterCount,
   } = useListingFilterModal();
 
-  const visibleFacilities = filterFacilitiesByQuery(realFacilities, query).filter((facility) =>
+  const visibleFacilities = filterFacilitiesByQuery(facilities, query).filter((facility) =>
     facilityMatchesListingFilters(facility, filters),
   );
   const visibleDoctors = filterDoctorsByQuery(doctors, query).filter((doctor) =>

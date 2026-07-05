@@ -6,7 +6,7 @@ import {
   autoSaveStep5,
   saveStep5AndContinue,
   type Step5Data,
-} from "@/app/provider/onboarding/media/actions";
+} from "@/app/provider/(console)/onboarding/media/actions";
 
 type UploadStatus = "idle" | "uploading";
 

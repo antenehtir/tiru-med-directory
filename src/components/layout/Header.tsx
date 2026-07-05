@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DesktopNavigation } from "@/components/navigation/DesktopNavigation";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SignInMenu } from "@/components/layout/SignInMenu";
 
 export function Header() {
   return (
@@ -12,6 +13,8 @@ export function Header() {
         </div>
 
         <DesktopNavigation />
+
+        <SignInMenu />
 
         <Link
           className="ml-2 hidden min-h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover lg:inline-flex"
@@ -66,6 +69,7 @@ export function Header() {
               />
             </svg>
           </Link>
+          <SignInMenu compact />
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
