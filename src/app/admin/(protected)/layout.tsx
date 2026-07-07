@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAdminUser } from "@/lib/supabase/admin-client";
+import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
 
 export const metadata = {
   title: "Tiru Admin",
   robots: { index: false, follow: false },
 };
+
+async function getPendingCorrectionsCount(): Promise<number> {
+  const supabase = await createAdminSupabaseClient();
+  const { count } = await supabase
+    .from("correction_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+  return count ?? 0;
+}
 
 export default async function AdminLayout({
   children,
@@ -18,6 +27,8 @@ export default async function AdminLayout({
   if (!adminUser) {
     redirect("/admin/login");
   }
+
+  const pendingCorrectionsCount = await getPendingCorrectionsCount();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -47,7 +58,7 @@ export default async function AdminLayout({
 
       <div className="flex pt-14">
         {/* Sidebar */}
-        <AdminSidebar />
+        <AdminSidebar pendingCorrectionsCount={pendingCorrectionsCount} />
 
         {/* Main content */}
         <main className="min-w-0 flex-1 px-4 py-8 pb-20 sm:px-8 lg:ml-56 lg:pb-8">

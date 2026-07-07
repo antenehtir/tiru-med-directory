@@ -17,6 +17,7 @@ const ACTION_LABELS: Record<string, string> = {
   reject_listing: "Listing rejected",
   approve_claim: "Claim approved",
   reject_claim: "Claim rejected",
+  correction_reviewed: "Correction reviewed",
 };
 
 export default async function AdminAuditLogPage() {
