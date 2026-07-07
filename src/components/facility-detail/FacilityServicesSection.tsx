@@ -1,3 +1,4 @@
+import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
 type FacilityServicesSectionProps = {
@@ -7,8 +8,10 @@ type FacilityServicesSectionProps = {
 export function FacilityServicesSection({
   facility,
 }: FacilityServicesSectionProps) {
+  const specialties = new Set(getFacilityMedicalSpecialties(facility.services));
   const seen = new Set<string>();
   const uniqueServices = facility.services.filter((service) => {
+    if (specialties.has(service)) return false;
     const key = service.toLowerCase().trim();
     if (seen.has(key)) return false;
     seen.add(key);

@@ -5,6 +5,10 @@ import {
 } from "@/components/cards/facility-category-style";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
+import {
+  getFacilityMedicalSpecialties,
+  getFacilityTypeDisplayLabel,
+} from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
 type FacilityDetailHeaderProps = {
@@ -29,6 +33,9 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const mapsHref = facility.contactChannels?.find(
     (channel) => channel.channelType === "maps",
   )?.href;
+
+  const facilityTypeLabel = getFacilityTypeDisplayLabel(facility);
+  const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
 
   return (
     <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
@@ -89,6 +96,20 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               ) : null}
             </div>
           ) : null}
+
+          {/* Specialties pill row */}
+          {medicalSpecialties.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {medicalSpecialties.map((specialty) => (
+                <span
+                  className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700 dark:bg-teal-950/50 dark:text-teal-400"
+                  key={specialty}
+                >
+                  {specialty}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -96,7 +117,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
-            {facility.category}
+            {facilityTypeLabel}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">Facility type</p>
         </div>

@@ -75,4 +75,5 @@ export type Facility = {
   schedule?: FacilityScheduleRow[];
   paymentMethods?: string[];
   insuranceNote?: string | null;
+  patientGroups?: string[];
 };

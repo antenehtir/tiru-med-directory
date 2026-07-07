@@ -142,7 +142,7 @@ export const SPECIALTIES = [
 
 export const PAYMENT_METHODS = [
   "Cash",
-  "Bank transfer (CBE, Awash, etc.)",
+  "Bank transfer",
   "CBE Birr",
   "Telebirr",
   "POS / Card",

@@ -33,6 +33,16 @@ export function Step1IdentityForm({
   const [patientGroups, setPatientGroups] = useState<string[]>(
     (claim.proposed_patient_groups as string[]) ?? [],
   );
+  const initialPatientGroups = (claim.proposed_patient_groups as string[]) ?? [];
+  const initialOtherGroup = initialPatientGroups.find(
+    (g) => !PATIENT_GROUPS.includes(g as (typeof PATIENT_GROUPS)[number]),
+  );
+  const [otherGroupSelected, setOtherGroupSelected] = useState<boolean>(
+    Boolean(initialOtherGroup),
+  );
+  const [otherGroupText, setOtherGroupText] = useState<string>(
+    initialOtherGroup ?? "",
+  );
   const [hasBranches, setHasBranches] = useState<boolean>(
     ((claim.proposed_branch_count as number) ?? 1) > 1,
   );
@@ -59,6 +69,30 @@ export function Step1IdentityForm({
     const next = patientGroups.includes(group)
       ? patientGroups.filter((g) => g !== group)
       : [...patientGroups, group];
+    setPatientGroups(next);
+    autoSave({ patient_groups: next });
+  }
+
+  function toggleOtherGroup() {
+    if (otherGroupSelected) {
+      const next = otherGroupText.trim()
+        ? patientGroups.filter((g) => g !== otherGroupText.trim())
+        : patientGroups;
+      setOtherGroupSelected(false);
+      setPatientGroups(next);
+      autoSave({ patient_groups: next });
+    } else {
+      setOtherGroupSelected(true);
+    }
+  }
+
+  function saveOtherGroupText(text: string) {
+    const trimmed = text.trim();
+    const withoutOld = otherGroupText.trim()
+      ? patientGroups.filter((g) => g !== otherGroupText.trim())
+      : patientGroups;
+    const next = trimmed ? [...withoutOld, trimmed] : withoutOld;
+    setOtherGroupText(trimmed);
     setPatientGroups(next);
     autoSave({ patient_groups: next });
   }
@@ -332,7 +366,25 @@ export function Step1IdentityForm({
                   {group}
                 </label>
               ))}
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  checked={otherGroupSelected}
+                  name="patient_groups_other"
+                  onChange={toggleOtherGroup}
+                  type="checkbox"
+                />
+                Other
+              </label>
             </div>
+            {otherGroupSelected && (
+              <input
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                defaultValue={otherGroupText}
+                onBlur={(e) => saveOtherGroupText(e.target.value)}
+                placeholder="Please specify"
+                type="text"
+              />
+            )}
           </div>
         </div>
       </div>

@@ -65,6 +65,7 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Oncology",
     "Pulmonology",
     "Rheumatology",
+    "Other",
   ],
   Surgery: [
     "General Surgery",
@@ -76,6 +77,7 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Plastic Surgery",
     "Urology",
     "Vascular Surgery",
+    "Other",
   ],
   "Obstetrics & Gynecology": [
     "General OB/GYN",
@@ -83,6 +85,7 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Reproductive Endocrinology",
     "Gynecologic Oncology",
     "Urogynecology",
+    "Other",
   ],
   Pediatrics: [
     "General Pediatrics",
@@ -90,6 +93,7 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Pediatric Cardiology",
     "Pediatric Neurology",
     "Pediatric Oncology",
+    "Other",
   ],
   "Psychiatry & Neurology": [
     "General Psychiatry",
@@ -97,23 +101,26 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Neurology",
     "Neuropsychiatry",
     "Addiction Medicine",
+    "Other",
   ],
   Radiology: [
     "Diagnostic Radiology",
     "Interventional Radiology",
     "Nuclear Medicine",
     "Neuroradiology",
+    "Other",
   ],
-  Anesthesiology: ["General Anesthesiology", "Pain Management", "Critical Care"],
-  Dermatology: ["General Dermatology", "Dermatopathology", "Cosmetic Dermatology"],
-  Ophthalmology: ["General Ophthalmology", "Retina", "Cornea", "Glaucoma", "Oculoplastics"],
-  ENT: ["General ENT", "Head & Neck Surgery", "Rhinology", "Otology", "Laryngology"],
+  Anesthesiology: ["General Anesthesiology", "Pain Management", "Critical Care", "Other"],
+  Dermatology: ["General Dermatology", "Dermatopathology", "Cosmetic Dermatology", "Other"],
+  Ophthalmology: ["General Ophthalmology", "Retina", "Cornea", "Glaucoma", "Oculoplastics", "Other"],
+  ENT: ["General ENT", "Head & Neck Surgery", "Rhinology", "Otology", "Laryngology", "Other"],
   Orthopedics: [
     "General Orthopedics",
     "Spine",
     "Sports Medicine",
     "Joint Replacement",
     "Hand Surgery",
+    "Other",
   ],
   Dentistry: [
     "General Dentistry",
@@ -123,10 +130,11 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Oral Surgery",
     "Prosthodontics",
     "Pediatric Dentistry",
+    "Other",
   ],
-  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care"],
-  "Family Medicine": ["General Family Medicine", "Geriatrics", "Sports Medicine"],
-  Pathology: ["Anatomic Pathology", "Clinical Pathology", "Forensic Pathology"],
+  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care", "Other"],
+  "Family Medicine": ["General Family Medicine", "Geriatrics", "Sports Medicine", "Other"],
+  Pathology: ["Anatomic Pathology", "Clinical Pathology", "Forensic Pathology", "Other"],
   Other: ["Other (specify)"],
 };
 

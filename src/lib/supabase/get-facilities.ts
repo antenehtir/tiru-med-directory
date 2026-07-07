@@ -45,6 +45,7 @@ type DBFacility = {
   schedule: unknown;
   payment_methods: unknown;
   insurance_note: string | null;
+  patient_groups: unknown;
 };
 
 function makeChannel(
@@ -137,6 +138,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,
+    patientGroups: toStringArray(row.patient_groups),
   };
 }
 

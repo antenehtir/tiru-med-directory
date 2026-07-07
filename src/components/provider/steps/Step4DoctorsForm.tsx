@@ -323,6 +323,23 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                   </div>
                 )}
 
+              {showSpecialty && doctor.subspecialty === "Other" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-foreground">
+                    Specify subspecialty
+                  </label>
+                  <input
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    defaultValue=""
+                    onBlur={(e) =>
+                      autoSave(updateDoctor(doctor.id, { subspecialty: e.target.value }))
+                    }
+                    placeholder="Please specify subspecialty"
+                    type="text"
+                  />
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold text-foreground">Languages spoken</p>
                 <div className="flex flex-wrap gap-2">
