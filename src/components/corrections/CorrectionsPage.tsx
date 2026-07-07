@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import type { Facility } from "@/types/facility";
 
 const sectionOptions = [
   "Phone number",
@@ -24,45 +24,26 @@ const inputClassName =
   "min-h-11 w-full rounded-lg border border-border bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-primary";
 const labelClassName = "mb-1.5 block text-sm font-semibold text-foreground";
 
-type CorrectionMode = "specific" | "full-update";
+type CorrectionMode = "specific" | "claim";
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-export function CorrectionsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialFacilityName =
-    searchParams.get("facility") ?? searchParams.get("listing") ?? "";
+type CorrectionsPageProps = {
+  facility?: Facility | null;
+};
+
+export function CorrectionsPage({ facility = null }: CorrectionsPageProps) {
+  const initialFacilityName = facility?.name ?? "";
+  const isClaimed =
+    facility?.verificationStatus === "facility-owned" ||
+    facility?.verificationStatus === "verified";
 
   const [mode, setMode] = useState<CorrectionMode>("specific");
-  const [fullUpdateName, setFullUpdateName] = useState(initialFacilityName);
-  const [fullUpdateError, setFullUpdateError] = useState("");
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function handleContinueToRegistration() {
-    const trimmedName = fullUpdateName.trim();
-
-    if (!trimmedName) {
-      setFullUpdateError("Please enter the facility or specialist name.");
-      return;
-    }
-
-    setFullUpdateError("");
-    setIsRedirecting(true);
-
-    const supabase = getSupabaseBrowserClient();
-
-    if (supabase) {
-      await supabase.from("correction_requests").insert({
-        provider_name: trimmedName,
-        correction_type: "Full update",
-        description: "[FULL UPDATE] Submitter has complete updated information and was sent to the registration form.",
-      });
-    }
-
-    router.push(`/register?update=true&name=${encodeURIComponent(trimmedName)}`);
-  }
+  const claimHref = facility?.name
+    ? `/provider/signup?facility_name=${encodeURIComponent(facility.name)}`
+    : "/provider/signup";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -160,178 +141,177 @@ export function CorrectionsPage() {
           Suggest a correction
         </h1>
 
-        <div
-          aria-label="Correction type"
-          className="mt-6 inline-flex rounded-full border border-border bg-muted p-1"
-          role="group"
-        >
-          <button
-            aria-pressed={mode === "specific"}
-            className={`min-h-10 rounded-full px-4 text-sm font-semibold transition ${
-              mode === "specific"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground"
-            }`}
-            onClick={() => setMode("specific")}
-            type="button"
+        {!isClaimed && (
+          <div
+            aria-label="Correction type"
+            className="mt-6 inline-flex rounded-full border border-border bg-muted p-1"
+            role="group"
           >
-            Correct specific info
-          </button>
-          <button
-            aria-pressed={mode === "full-update"}
-            className={`min-h-10 rounded-full px-4 text-sm font-semibold transition ${
-              mode === "full-update"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground"
-            }`}
-            onClick={() => setMode("full-update")}
-            type="button"
-          >
-            Submit full update
-          </button>
-        </div>
-
-        {mode === "full-update" ? (
-          <div className="mt-6 grid gap-4">
-            <p className="text-sm leading-6 text-muted-foreground">
-              We&rsquo;ll take you through the same registration process with
-              your facility name pre-filled.
-            </p>
-
-            <div>
-              <label className={labelClassName} htmlFor="full_update_name">
-                Facility or specialist name <span className="text-error">*</span>
-              </label>
-              <input
-                className={inputClassName}
-                id="full_update_name"
-                onChange={(event) => setFullUpdateName(event.target.value)}
-                type="text"
-                value={fullUpdateName}
-              />
-            </div>
-
-            {fullUpdateError ? (
-              <p className="text-sm font-medium text-error">{fullUpdateError}</p>
-            ) : null}
-
             <button
-              className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:opacity-60"
-              disabled={isRedirecting}
-              onClick={handleContinueToRegistration}
+              aria-pressed={mode === "specific"}
+              className={`min-h-10 rounded-full px-4 text-sm font-semibold transition ${
+                mode === "specific"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => setMode("specific")}
               type="button"
             >
-              {isRedirecting ? "Redirecting..." : "Continue to registration"}
+              Correct specific info
+            </button>
+            <button
+              aria-pressed={mode === "claim"}
+              className={`min-h-10 rounded-full px-4 text-sm font-semibold transition ${
+                mode === "claim"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => setMode("claim")}
+              type="button"
+            >
+              Claim this facility
             </button>
           </div>
-        ) : (
-          <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-            <div>
-              <label className={labelClassName} htmlFor="provider_name">
-                Facility or specialist name <span className="text-error">*</span>
-              </label>
-              <input
-                className={inputClassName}
-                defaultValue={initialFacilityName}
-                id="provider_name"
-                name="provider_name"
-                required
-                type="text"
-              />
-            </div>
+        )}
 
-            <div>
-              <label className={labelClassName} htmlFor="which_section">
-                Which section needs correction? <span className="text-error">*</span>
-              </label>
-              <select
-                className={inputClassName}
-                defaultValue=""
-                id="which_section"
-                name="which_section"
-                required
-              >
-                <option disabled value="">
-                  Select a section
-                </option>
-                {sectionOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {mode === "claim" && !isClaimed ? (
+          <div className="mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6">
+            <p className="text-sm leading-6 text-muted-foreground">
+              Own or manage this facility? Claim it to take control of your
+              listing and keep it accurate.
+            </p>
 
-            <div>
-              <label className={labelClassName} htmlFor="current_info">
-                What does it currently say? (optional)
-              </label>
-              <input
-                className={inputClassName}
-                id="current_info"
-                name="current_info"
-                type="text"
-              />
-            </div>
-
-            <div>
-              <label className={labelClassName} htmlFor="correct_info">
-                What should it say? <span className="text-error">*</span>
-              </label>
-              <textarea
-                className={`${inputClassName} min-h-28 py-2`}
-                id="correct_info"
-                name="correct_info"
-                placeholder="Provide the correct details"
-                required
-                rows={4}
-              />
-            </div>
-
-            <div className="mt-2 border-t border-border pt-4">
-              <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
-                Submitter details
-              </p>
-            </div>
-
-            <div>
-              <label className={labelClassName} htmlFor="submitter_name">
-                Your name
-              </label>
-              <input
-                className={inputClassName}
-                id="submitter_name"
-                name="submitter_name"
-                type="text"
-              />
-            </div>
-
-            <div>
-              <label className={labelClassName} htmlFor="submitter_contact">
-                Your contact <span className="text-error">*</span>
-              </label>
-              <input
-                className={inputClassName}
-                id="submitter_contact"
-                name="submitter_contact"
-                placeholder="So we can follow up if needed"
-                required
-                type="text"
-              />
-            </div>
-
-            {submitState === "error" ? (
-              <p className="text-sm font-medium text-error">{errorMessage}</p>
-            ) : null}
-
-            <button
-              className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:opacity-60"
-              disabled={submitState === "submitting"}
-              type="submit"
+            <Link
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+              href={claimHref}
             >
-              {submitState === "submitting" ? "Submitting..." : "Submit correction"}
-            </button>
-          </form>
+              Start claiming this facility →
+            </Link>
+          </div>
+        ) : (
+          <>
+            <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+              <div>
+                <label className={labelClassName} htmlFor="provider_name">
+                  Facility or specialist name <span className="text-error">*</span>
+                </label>
+                <input
+                  className={inputClassName}
+                  defaultValue={initialFacilityName}
+                  id="provider_name"
+                  name="provider_name"
+                  required
+                  type="text"
+                />
+              </div>
+
+              <div>
+                <label className={labelClassName} htmlFor="which_section">
+                  Which section needs correction? <span className="text-error">*</span>
+                </label>
+                <select
+                  className={inputClassName}
+                  defaultValue=""
+                  id="which_section"
+                  name="which_section"
+                  required
+                >
+                  <option disabled value="">
+                    Select a section
+                  </option>
+                  {sectionOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClassName} htmlFor="current_info">
+                  What does it currently say? (optional)
+                </label>
+                <input
+                  className={inputClassName}
+                  id="current_info"
+                  name="current_info"
+                  type="text"
+                />
+              </div>
+
+              <div>
+                <label className={labelClassName} htmlFor="correct_info">
+                  What should it say? <span className="text-error">*</span>
+                </label>
+                <textarea
+                  className={`${inputClassName} min-h-28 py-2`}
+                  id="correct_info"
+                  name="correct_info"
+                  placeholder="Provide the correct details"
+                  required
+                  rows={4}
+                />
+              </div>
+
+              <div className="mt-2 border-t border-border pt-4">
+                <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">
+                  Submitter details
+                </p>
+              </div>
+
+              <div>
+                <label className={labelClassName} htmlFor="submitter_name">
+                  Your name
+                </label>
+                <input
+                  className={inputClassName}
+                  id="submitter_name"
+                  name="submitter_name"
+                  type="text"
+                />
+              </div>
+
+              <div>
+                <label className={labelClassName} htmlFor="submitter_contact">
+                  Your contact <span className="text-error">*</span>
+                </label>
+                <input
+                  className={inputClassName}
+                  id="submitter_contact"
+                  name="submitter_contact"
+                  placeholder="So we can follow up if needed"
+                  required
+                  type="text"
+                />
+              </div>
+
+              {submitState === "error" ? (
+                <p className="text-sm font-medium text-error">{errorMessage}</p>
+              ) : null}
+
+              <button
+                className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:opacity-60"
+                disabled={submitState === "submitting"}
+                type="submit"
+              >
+                {submitState === "submitting" ? "Submitting..." : "Submit correction"}
+              </button>
+            </form>
+
+            {isClaimed && (
+              <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground">
+                  Are you the owner or manager of this facility?{" "}
+                  <Link
+                    className="font-semibold text-primary hover:underline"
+                    href="/provider/login"
+                  >
+                    Sign in to manage your listing directly →
+                  </Link>
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </PageContainer>

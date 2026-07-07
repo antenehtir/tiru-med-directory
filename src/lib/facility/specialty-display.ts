@@ -14,17 +14,3 @@ export function getFacilityMedicalSpecialties(services: string[]): string[] {
     return true;
   });
 }
-
-// Presentational-only label for the public facility detail page. Does not
-// change facility.category, which remains the stored/filterable value.
-export function getFacilityTypeDisplayLabel(facility: {
-  category: string;
-  services: string[];
-}): string {
-  if (facility.category !== "Specialty Center") return facility.category;
-
-  const specialties = getFacilityMedicalSpecialties(facility.services);
-  if (specialties.length === 1) return `${specialties[0]} Specialty Center`;
-  if (specialties.length >= 2) return "Multi-specialty Center";
-  return facility.category;
-}

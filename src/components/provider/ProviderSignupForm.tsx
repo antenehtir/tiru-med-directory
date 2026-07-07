@@ -42,6 +42,7 @@ function ProviderSignupFormInner() {
   const [diagnosticSubtype, setDiagnosticSubtype] = useState("");
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
+  const facilityNameParam = searchParams.get("facility_name");
 
   const errorMessage =
     errorParam === "terms"
@@ -68,8 +69,14 @@ function ProviderSignupFormInner() {
           <label className="text-sm font-medium text-foreground" htmlFor="facility_name">
             Facility name *
           </label>
+          {facilityNameParam && (
+            <p className="text-xs font-medium text-primary">
+              Claiming: {facilityNameParam}
+            </p>
+          )}
           <input
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            defaultValue={facilityNameParam ?? ""}
             id="facility_name"
             name="facility_name"
             placeholder="e.g. Addis Cardiac Hospital"

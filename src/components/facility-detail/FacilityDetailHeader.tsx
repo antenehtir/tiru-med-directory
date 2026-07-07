@@ -5,10 +5,7 @@ import {
 } from "@/components/cards/facility-category-style";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
-import {
-  getFacilityMedicalSpecialties,
-  getFacilityTypeDisplayLabel,
-} from "@/lib/facility/specialty-display";
+import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
 type FacilityDetailHeaderProps = {
@@ -34,7 +31,6 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
     (channel) => channel.channelType === "maps",
   )?.href;
 
-  const facilityTypeLabel = getFacilityTypeDisplayLabel(facility);
   const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
 
   return (
@@ -117,7 +113,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
-            {facilityTypeLabel}
+            {facility.category}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">Facility type</p>
         </div>
