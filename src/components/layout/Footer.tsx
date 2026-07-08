@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { ROUTES } from "@/components/navigation/navigation-items";
 
 const quickLinks = [
-  { label: "Search", href: "/search" },
-  { label: "Nearby", href: "/nearby" },
-  { label: "Specialists", href: "/specialists" },
-  { label: "Facilities", href: "/facilities" },
-  { label: "Pharmacies", href: "/pharmacies" },
-  { label: "Diagnostics", href: "/diagnostics" },
+  { label: "Search", href: ROUTES.search },
+  { label: "Nearby", href: ROUTES.nearby },
+  { label: "Specialists", href: ROUTES.specialists },
+  { label: "Facilities", href: ROUTES.facilities },
+  { label: "Pharmacies", href: ROUTES.pharmacies },
+  { label: "Diagnostics", href: ROUTES.diagnostics },
 ];
 
 const providerLinks = [

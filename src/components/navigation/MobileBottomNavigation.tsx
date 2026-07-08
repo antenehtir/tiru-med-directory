@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactElement, SVGProps } from "react";
-import { mobileNavigationItems } from "./navigation-items";
+import { mobileNavigationItems, ROUTES } from "./navigation-items";
 
 function isActiveRoute(pathname: string, href: string) {
   return href === "/" ? pathname === href : pathname.startsWith(href);
@@ -27,31 +27,31 @@ function NavIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 const navIcons: Record<string, (props: SVGProps<SVGSVGElement>) => ReactElement> = {
-  "/": (props) => (
+  [ROUTES.home]: (props) => (
     <NavIcon {...props}>
       <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
       <path d="M9 21V12h6v9" />
     </NavIcon>
   ),
-  "/search": (props) => (
+  [ROUTES.search]: (props) => (
     <NavIcon {...props}>
       <path d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
     </NavIcon>
   ),
-  "/nearby": (props) => (
+  [ROUTES.nearby]: (props) => (
     <NavIcon {...props}>
       <path d="M12 21C12 21 5 13.5 5 8.5a7 7 0 0114 0C19 13.5 12 21 12 21z" />
       <circle cx="12" cy="8.5" r="2.5" />
     </NavIcon>
   ),
-  "/doctors": (props) => (
+  [ROUTES.specialists]: (props) => (
     <NavIcon {...props}>
       <path d="M6 3v6a6 6 0 006 6 6 6 0 006-6V3" />
       <path d="M6 3H4M18 3h2M18 15a4 4 0 01-4 4H10" />
       <circle cx="18" cy="19" r="2" />
     </NavIcon>
   ),
-  "/facilities": (props) => (
+  [ROUTES.facilities]: (props) => (
     <NavIcon {...props}>
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <path d="M12 8v8M8 12h8" />
