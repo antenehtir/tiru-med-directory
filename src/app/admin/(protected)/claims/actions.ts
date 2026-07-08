@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
-
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import { toSlug } from "@/lib/slugify";
 
 async function mergeProposedDataIntoFacility(
   supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,

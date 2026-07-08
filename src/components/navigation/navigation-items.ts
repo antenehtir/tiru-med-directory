@@ -2,7 +2,7 @@ export const mainNavigationItems = [
   { label: "Home", href: "/" },
   { label: "Search", href: "/search" },
   { label: "Nearby", href: "/nearby" },
-  { label: "Specialists", href: "/doctors" },
+  { label: "Specialists", href: "/specialists" },
   { label: "Facilities", href: "/facilities" },
 ];
 

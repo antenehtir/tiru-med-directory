@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { toSlug } from "@/lib/slugify";
 import type { Facility, FacilityDoctor } from "@/types/facility";
 
 function getInitials(name: string): string {
@@ -47,11 +49,12 @@ function BioBlock({ bio }: { bio: string }) {
   );
 }
 
-function DoctorCard({ doctor }: { doctor: FacilityDoctor }) {
+function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facilitySlug: string }) {
   const initials = getInitials(doctor.full_name);
   const schedule = formatScheduleLine(doctor);
   const displayRole = doctor.role === "Other" && doctor.role_other ? doctor.role_other : doctor.role;
   const hasBio = doctor.bio && doctor.bio.trim().length > 0;
+  const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
 
   return (
     <div className="flex gap-4 rounded-2xl border border-border bg-background p-5 shadow-sm transition hover:shadow-md sm:flex-row">
@@ -126,6 +129,13 @@ function DoctorCard({ doctor }: { doctor: FacilityDoctor }) {
             ))}
           </div>
         )}
+
+        <Link
+          className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
+          href={`/specialists/${profileSlug}`}
+        >
+          View full profile →
+        </Link>
       </div>
     </div>
   );
@@ -148,7 +158,7 @@ export function FacilityDoctorsSection({ facility }: { facility: Facility }) {
       )}
       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
         {doctors.map((doctor) => (
-          <DoctorCard doctor={doctor} key={doctor.id} />
+          <DoctorCard doctor={doctor} facilitySlug={facility.slug} key={doctor.id} />
         ))}
       </div>
     </section>
