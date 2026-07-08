@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { PharmaciesPage } from "@/components/pharmacies/PharmaciesPage";
-import { realFacilities } from "@/data/real-facility-profiles";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { normalizeSearchParam } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
@@ -33,11 +33,17 @@ export default async function PharmaciesRoute({
 }
 
 async function getPharmaciesForRoute(): Promise<Facility[]> {
-  return realFacilities.filter((facility) =>
-    [facility.category, facility.subcategory, facility.name, ...facility.services]
-      .join(" ")
-      .toLowerCase()
-      .includes("pharmacy"),
+  const allFacilities = await getFacilitiesFromDB();
+  const exactMatches = allFacilities.filter(
+    (facility) => facility.category === "Pharmacy",
+  );
+
+  if (exactMatches.length > 0) {
+    return exactMatches;
+  }
+
+  return allFacilities.filter(
+    (facility) => facility.category.toLowerCase() === "pharmacy",
   );
 }
 

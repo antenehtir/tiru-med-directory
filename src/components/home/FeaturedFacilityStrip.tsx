@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { FacilityBanner } from "@/components/cards/FacilityCard";
 import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
-import { realFacilities } from "@/data/real-facility-profiles";
+import type { Facility } from "@/types/facility";
 
-const showcasedFacilities = realFacilities.slice(0, 10);
-const marqueeFacilities = [...showcasedFacilities, ...showcasedFacilities];
+export function FeaturedFacilityStrip({ facilities }: { facilities: Facility[] }) {
+  // getFacilitiesFromDB() orders ascending by record_number (oldest first) —
+  // take the tail and reverse it so "Recently added" shows the newest first.
+  const showcasedFacilities = facilities.slice(-10).reverse();
+  const marqueeFacilities = [...showcasedFacilities, ...showcasedFacilities];
 
-export function FeaturedFacilityStrip() {
   if (showcasedFacilities.length === 0) {
     return null;
   }
@@ -45,7 +47,7 @@ export function FeaturedFacilityStrip() {
 
 type FeaturedFacilityCardProps = {
   className: string;
-  facility: (typeof realFacilities)[number];
+  facility: Facility;
 };
 
 function FeaturedFacilityCard({

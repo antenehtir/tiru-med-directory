@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import type { Facility } from "@/types/facility";
 import { CategoryShowcaseSection } from "./CategoryShowcaseSection";
 import { FeaturedFacilityStrip } from "./FeaturedFacilityStrip";
 import { HeroSearchSection } from "./HeroSearchSection";
@@ -7,7 +8,7 @@ import { PromoBanner } from "./PromoBanner";
 import { QuickCategoriesSection } from "./QuickCategoriesSection";
 import { TrustStatsSection } from "./TrustStatsSection";
 
-export function Homepage() {
+export function Homepage({ facilities }: { facilities: Facility[] }) {
   return (
     <div className="homepage-clinical-bg">
       <HeroSearchSection />
@@ -28,7 +29,7 @@ export function Homepage() {
               Browse all →
             </Link>
           </div>
-          <FeaturedFacilityStrip />
+          <FeaturedFacilityStrip facilities={facilities} />
         </PageContainer>
       </section>
     </div>
