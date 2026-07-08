@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { toSlug } from "@/lib/slugify";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { Facility, FacilityDoctor } from "@/types/facility";
@@ -13,18 +14,6 @@ function getInitials(name: string): string {
     .slice(0, 2)
     .map((w) => w[0].toUpperCase())
     .join("");
-}
-
-function formatScheduleLine(doctor: FacilityDoctor): string | null {
-  const active = (doctor.available_schedule ?? []).filter((r) => !r.closed && r.days.length > 0);
-  if (active.length === 0) return null;
-  return active
-    .map((r) => {
-      const days = r.days.map((d) => d.slice(0, 3)).join(", ");
-      const hours = r.open === "Open 24 hours" ? "24 hrs" : `${r.open}–${r.close}`;
-      return `${days}: ${hours}`;
-    })
-    .join(" · ");
 }
 
 function BioBlock({ bio }: { bio: string }) {
@@ -52,7 +41,6 @@ function BioBlock({ bio }: { bio: string }) {
 
 function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facilitySlug: string }) {
   const initials = getInitials(doctor.full_name);
-  const schedule = formatScheduleLine(doctor);
   const displayRole = doctor.role === "Other" && doctor.role_other ? doctor.role_other : doctor.role;
   const hasBio = doctor.bio && doctor.bio.trim().length > 0;
   const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
@@ -105,17 +93,9 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
 
         {hasBio && <BioBlock bio={doctor.bio!} />}
 
-        {schedule && (
-          <div className="mt-2 flex items-center gap-1.5">
-            <svg className="size-3.5 shrink-0 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-              <rect height="18" rx="2" width="18" x="3" y="4" />
-              <line x1="3" x2="21" y1="9" y2="9" />
-              <line x1="8" x2="8" y1="2" y2="6" />
-              <line x1="16" x2="16" y1="2" y2="6" />
-            </svg>
-            <p className="text-xs text-muted-foreground">{schedule}</p>
-          </div>
-        )}
+        <div className="mt-2">
+          <AvailabilityIndicator schedule={doctor.available_schedule} />
+        </div>
 
         {doctor.languages.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">

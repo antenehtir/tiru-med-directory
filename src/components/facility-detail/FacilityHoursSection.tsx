@@ -1,77 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Facility, FacilityScheduleRow } from "@/types/facility";
-
-const DAYS_ORDER = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-type DayName = (typeof DAYS_ORDER)[number];
-
-// JS Date.getDay(): 0 = Sunday, 1 = Monday … 6 = Saturday
-const JS_DAY_TO_NAME: Record<number, DayName> = {
-  1: "Monday",
-  2: "Tuesday",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday",
-  6: "Saturday",
-  0: "Sunday",
-};
-
-function normalizeDay(raw: string): DayName | null {
-  const lower = raw.toLowerCase().slice(0, 3);
-  return (
-    (DAYS_ORDER.find((d) => d.toLowerCase().startsWith(lower)) as DayName | undefined) ?? null
-  );
-}
-
-function buildDayMap(rows: FacilityScheduleRow[]): Map<DayName, FacilityScheduleRow | null> {
-  const map = new Map<DayName, FacilityScheduleRow | null>(DAYS_ORDER.map((d) => [d, null]));
-  for (const row of rows) {
-    for (const rawDay of row.days) {
-      const day = normalizeDay(rawDay);
-      if (day) map.set(day, row);
-    }
-  }
-  return map;
-}
-
-function parseTimeTo24(timeStr: string): number | null {
-  // "8:00 AM" → minutes since midnight
-  const m = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
-  if (!m) return null;
-  let h = parseInt(m[1], 10);
-  const min = parseInt(m[2], 10);
-  const period = m[3].toUpperCase();
-  if (period === "AM" && h === 12) h = 0;
-  if (period === "PM" && h !== 12) h += 12;
-  return h * 60 + min;
-}
-
-function isCurrentlyOpen(row: FacilityScheduleRow, nowMin: number): boolean {
-  if (row.closed) return false;
-  if (row.open === "Open 24 hours") return true;
-  const openMin = parseTimeTo24(row.open);
-  const closeMin = parseTimeTo24(row.close);
-  if (openMin === null || closeMin === null) return false;
-  return nowMin >= openMin && nowMin < closeMin;
-}
-
-function nextOpenTime(rows: FacilityScheduleRow[], todayName: DayName, nowMin: number): string | null {
-  const todayRow = rows.find((r) => r.days.some((d) => normalizeDay(d) === todayName));
-  if (!todayRow || todayRow.closed) return null;
-  const openMin = parseTimeTo24(todayRow.open);
-  if (openMin !== null && nowMin < openMin) return todayRow.open;
-  return null;
-}
+import type { Facility } from "@/types/facility";
+import {
+  buildDayMap,
+  DAYS_ORDER,
+  getAvailabilityStatus,
+  getTodayName,
+} from "@/lib/schedule-availability";
 
 type FacilityHoursSectionProps = {
   facility: Facility;
@@ -79,7 +15,7 @@ type FacilityHoursSectionProps = {
 
 export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
   const now = new Date();
-  const todayName = JS_DAY_TO_NAME[now.getDay()];
+  const todayName = getTodayName(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
   const { dayMap, is24_7, openNow, opensAt } = useMemo(() => {
@@ -88,16 +24,17 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
       return { dayMap: null, is24_7: false, openNow: false, opensAt: null };
     }
 
+    const status = getAvailabilityStatus(schedule, now);
+    const map = buildDayMap(schedule);
+
     const is24_7 =
       facility.workingHours?.trim().toLowerCase() === "24/7" ||
-      schedule.some((r) => r.open === "Open 24 hours" && !r.closed);
-
-    const map = buildDayMap(schedule);
-    const todayRow = map.get(todayName) ?? null;
-    const openNow = is24_7 || (todayRow ? isCurrentlyOpen(todayRow, nowMin) : false);
-    const opensAt = !openNow ? nextOpenTime(schedule, todayName, nowMin) : null;
+      (status.state === "open-now" && status.is24Hours);
+    const openNow = status.state === "open-now";
+    const opensAt = status.state === "opens-later-today" ? status.opensAt : null;
 
     return { dayMap: map, is24_7, openNow, opensAt };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facility.schedule, facility.workingHours, todayName, nowMin]);
 
   if (!facility.workingHours && !facility.schedule?.length) return null;

@@ -2,68 +2,12 @@
 
 import { useMemo } from "react";
 import type { DoctorScheduleRow } from "@/lib/provider/doctor-types";
-
-// Adapted from FacilityHoursSection's day-by-day grid, applied to a single
-// doctor's available_schedule instead of a facility's schedule.
-const DAYS_ORDER = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-type DayName = (typeof DAYS_ORDER)[number];
-
-const JS_DAY_TO_NAME: Record<number, DayName> = {
-  1: "Monday",
-  2: "Tuesday",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday",
-  6: "Saturday",
-  0: "Sunday",
-};
-
-function normalizeDay(raw: string): DayName | null {
-  const lower = raw.toLowerCase().slice(0, 3);
-  return (
-    (DAYS_ORDER.find((d) => d.toLowerCase().startsWith(lower)) as DayName | undefined) ?? null
-  );
-}
-
-function buildDayMap(rows: DoctorScheduleRow[]): Map<DayName, DoctorScheduleRow | null> {
-  const map = new Map<DayName, DoctorScheduleRow | null>(DAYS_ORDER.map((d) => [d, null]));
-  for (const row of rows) {
-    for (const rawDay of row.days) {
-      const day = normalizeDay(rawDay);
-      if (day) map.set(day, row);
-    }
-  }
-  return map;
-}
-
-function parseTimeTo24(timeStr: string): number | null {
-  const m = timeStr.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
-  if (!m) return null;
-  let h = parseInt(m[1], 10);
-  const min = parseInt(m[2], 10);
-  const period = m[3].toUpperCase();
-  if (period === "AM" && h === 12) h = 0;
-  if (period === "PM" && h !== 12) h += 12;
-  return h * 60 + min;
-}
-
-function isCurrentlyOpen(row: DoctorScheduleRow, nowMin: number): boolean {
-  if (row.closed) return false;
-  if (row.open === "Open 24 hours") return true;
-  const openMin = parseTimeTo24(row.open);
-  const closeMin = parseTimeTo24(row.close);
-  if (openMin === null || closeMin === null) return false;
-  return nowMin >= openMin && nowMin < closeMin;
-}
+import {
+  buildDayMap,
+  DAYS_ORDER,
+  getAvailabilityStatus,
+  getTodayName,
+} from "@/lib/schedule-availability";
 
 export function SpecialistAvailabilitySection({
   schedule,
@@ -71,7 +15,7 @@ export function SpecialistAvailabilitySection({
   schedule: DoctorScheduleRow[];
 }) {
   const now = new Date();
-  const todayName = JS_DAY_TO_NAME[now.getDay()];
+  const todayName = getTodayName(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
   const { dayMap, availableNow } = useMemo(() => {
@@ -79,8 +23,9 @@ export function SpecialistAvailabilitySection({
       return { dayMap: null, availableNow: false };
     }
     const map = buildDayMap(schedule);
-    const todayRow = map.get(todayName) ?? null;
-    return { dayMap: map, availableNow: todayRow ? isCurrentlyOpen(todayRow, nowMin) : false };
+    const status = getAvailabilityStatus(schedule, now);
+    return { dayMap: map, availableNow: status.state === "open-now" };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule, todayName, nowMin]);
 
   if (!dayMap) return null;

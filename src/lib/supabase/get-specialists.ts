@@ -13,6 +13,7 @@ export type SpecialistListItem = {
   photoUrl: string | null;
   languages: string[];
   appointmentRequired: boolean;
+  availableSchedule: DoctorScheduleRow[];
   facilityId: string;
   facilityName: string;
   facilitySlug: string;
@@ -27,7 +28,6 @@ export type SpecialistListItem = {
 
 export type SpecialistDetail = SpecialistListItem & {
   bio: string;
-  availableSchedule: DoctorScheduleRow[];
   facilityEmail: string | null;
   facilityWebsite: string | null;
   facilityWhatsapp: string | null;

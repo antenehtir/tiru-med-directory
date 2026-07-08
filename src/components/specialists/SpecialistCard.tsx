@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 
@@ -67,6 +68,9 @@ export function SpecialistCard({
               ) : null}
             </p>
           )}
+          <div className="mt-1.5">
+            <AvailabilityIndicator schedule={specialist.availableSchedule} />
+          </div>
         </div>
       </div>
 
