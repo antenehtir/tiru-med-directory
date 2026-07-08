@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 
 function getInitials(name: string): string {
@@ -13,7 +14,13 @@ function getInitials(name: string): string {
 
 const OFFICIAL_BADGE_STATUSES = new Set(["facility-owned", "verified"]);
 
-export function SpecialistCard({ specialist }: { specialist: SpecialistListItem }) {
+export function SpecialistCard({
+  specialist,
+  distanceLabel,
+}: {
+  specialist: SpecialistListItem;
+  distanceLabel?: string;
+}) {
   const initials = getInitials(specialist.fullName);
   const locationLine = [specialist.facilityArea, specialist.facilitySubCity]
     .filter(Boolean)
@@ -26,6 +33,9 @@ export function SpecialistCard({ specialist }: { specialist: SpecialistListItem 
       className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
       href={profileHref}
     >
+      {distanceLabel && (
+        <p className="text-sm font-semibold text-primary">📍 {distanceLabel}</p>
+      )}
       <div className="flex items-start gap-3">
         {specialist.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -42,8 +52,7 @@ export function SpecialistCard({ specialist }: { specialist: SpecialistListItem 
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold leading-tight text-foreground">
-            {specialist.title && specialist.title !== "Other" ? `${specialist.title} ` : ""}
-            {specialist.fullName}
+            {formatDoctorDisplayName(specialist.title, specialist.fullName)}
           </p>
           {specialist.role && (
             <span className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">

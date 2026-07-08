@@ -21,6 +21,8 @@ export type SpecialistListItem = {
   facilitySubCity: string;
   facilityPhone: string;
   facilityBadge: string;
+  facilityLatitude: number | null;
+  facilityLongitude: number | null;
 };
 
 export type SpecialistDetail = SpecialistListItem & {
@@ -31,8 +33,6 @@ export type SpecialistDetail = SpecialistListItem & {
   facilityWhatsapp: string | null;
   facilityTelegram: string | null;
   facilityMapsLink: string | null;
-  facilityLatitude: number | null;
-  facilityLongitude: number | null;
 };
 
 type DBFacilityRow = {

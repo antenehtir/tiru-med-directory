@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistDetail, SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { SpecialistAvailabilitySection } from "./SpecialistAvailabilitySection";
 import { SpecialistCard } from "./SpecialistCard";
@@ -59,8 +60,7 @@ export function SpecialistDetailPage({
 
               <div className="min-w-0 flex-1">
                 <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
-                  {specialist.title && specialist.title !== "Other" ? `${specialist.title} ` : ""}
-                  {specialist.fullName}
+                  {formatDoctorDisplayName(specialist.title, specialist.fullName)}
                 </h1>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">

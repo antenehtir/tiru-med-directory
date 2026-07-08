@@ -23,16 +23,25 @@ import {
   formatDistanceKm,
   type Coordinates,
 } from "@/lib/nearby-distance";
+import { SpecialistCard } from "@/components/specialists/SpecialistCard";
+import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Facility } from "@/types/facility";
 
 export type NearbyFacility = Facility & {
   coordinates?: Coordinates;
 };
 
+export type NearbySpecialist = SpecialistListItem & {
+  coordinates?: Coordinates;
+};
+
 type NearbyPageProps = {
   facilities: NearbyFacility[];
   initialCategory: string;
+  specialists: NearbySpecialist[];
 };
+
+type NearbyTab = "facilities" | "specialists";
 
 type LocationState =
   | "idle"
@@ -49,7 +58,6 @@ const categoryOptions = [
   { label: "General Hospitals", value: "hospital" },
   { label: "Specialty Centers", value: "specialty" },
   { label: "Clinics", value: "clinic" },
-  { label: "Specialists", value: "doctors" },
   { label: "Diagnostics", value: "diagnostics" },
   { label: "Pharmacies", value: "pharmacies" },
 ];
@@ -57,7 +65,9 @@ const categoryOptions = [
 export function NearbyPage({
   facilities,
   initialCategory,
+  specialists,
 }: NearbyPageProps) {
+  const [activeTab, setActiveTab] = useState<NearbyTab>("facilities");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedNearbySpecialty, setSelectedNearbySpecialty] = useState("");
   const [locationState, setLocationState] = useState<LocationState>("idle");
@@ -127,6 +137,20 @@ export function NearbyPage({
       }))
       .sort((left, right) => left.distanceKm - right.distanceKm);
   }, [specialtyFilteredFacilities, userLocation]);
+
+  const rankedSpecialists = useMemo(() => {
+    if (!userLocation) {
+      return [];
+    }
+
+    return specialists
+      .filter((specialist) => specialist.coordinates)
+      .map((specialist) => ({
+        specialist,
+        distanceKm: calculateDistanceKm(userLocation, specialist.coordinates!),
+      }))
+      .sort((left, right) => left.distanceKm - right.distanceKm);
+  }, [specialists, userLocation]);
 
   const activeCategoryLabel =
     selectedCategory === "all"
@@ -239,6 +263,34 @@ export function NearbyPage({
 
       <ListingStatusBanner />
 
+      <div className="flex max-w-full gap-2 rounded-2xl border border-border bg-card p-1.5">
+        {(
+          [
+            { label: "Facilities", value: "facilities" },
+            { label: "Specialists", value: "specialists" },
+          ] as { label: string; value: NearbyTab }[]
+        ).map((tab) => {
+          const isActive = tab.value === activeTab;
+          return (
+            <button
+              aria-pressed={isActive}
+              className={`flex min-h-11 flex-1 items-center justify-center rounded-xl text-sm font-semibold transition ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              type="button"
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === "facilities" ? (
+      <>
       <div className="flex max-w-full flex-wrap gap-2">
         {categoryOptions.map((category) => {
           const isActive = category.value === selectedCategory;
@@ -295,6 +347,8 @@ export function NearbyPage({
           })}
         </div>
       ) : null}
+      </>
+      ) : null}
 
       {locationState === "idle" || locationState === "loading" ? (
         <p className="inline-flex w-fit items-center rounded-full bg-soft-accent px-4 py-2 text-sm font-semibold text-primary">
@@ -345,7 +399,7 @@ export function NearbyPage({
         </p>
       ) : null}
 
-      {locationState === "ready" ? (
+      {locationState === "ready" && activeTab === "facilities" ? (
         <section className="grid gap-3">
           {rankedFacilities.length > 0 ? (
             <>
@@ -392,6 +446,31 @@ export function NearbyPage({
                   </p>
                 </>
               )}
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      {locationState === "ready" && activeTab === "specialists" ? (
+        <section className="grid gap-3">
+          {rankedSpecialists.length > 0 ? (
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {rankedSpecialists.map(({ specialist, distanceKm }) => (
+                <SpecialistCard
+                  distanceLabel={formatDistanceKm(distanceKm)}
+                  key={specialist.id}
+                  specialist={specialist}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-primary/30 bg-soft-accent p-4">
+              <p className="text-sm font-semibold leading-6 text-primary">
+                📍 Coordinate data for specialists is being added.
+              </p>
+              <p className="mt-1 text-sm leading-6 text-primary">
+                Check back soon as we add more specialists in your area.
+              </p>
             </div>
           )}
         </section>
@@ -517,10 +596,6 @@ function filterFacilitiesByCategory(
 ): NearbyFacility[] {
   if (category === "all") {
     return facilities;
-  }
-
-  if (category === "doctors") {
-    return [];
   }
 
   const allowedCategories = NEARBY_CATEGORY_DB_MAP[category];

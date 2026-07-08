@@ -3,8 +3,10 @@ import { PageShell } from "@/components/layout/PageShell";
 import {
   NearbyPage,
   type NearbyFacility,
+  type NearbySpecialist,
 } from "@/components/nearby/NearbyPage";
 import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
+import { getAllSpecialists, type SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { resolveFacilityCoordinates } from "@/lib/nearby-distance";
 import type { Facility, FacilityContactChannel } from "@/types/facility";
 
@@ -25,16 +27,33 @@ type NearbyRouteProps = {
 export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
   const params = await searchParams;
   const selectedCategory = normalizeCategoryParam(params?.category);
-  const allFacilities = await getFacilitiesFromDB();
+  const [allFacilities, allSpecialists] = await Promise.all([
+    getFacilitiesFromDB(),
+    getAllSpecialists(),
+  ]);
 
   return (
     <PageShell>
       <NearbyPage
         facilities={allFacilities.map(mapFacilityToNearbyFacility)}
         initialCategory={selectedCategory}
+        specialists={allSpecialists.map(mapSpecialistToNearbySpecialist)}
       />
     </PageShell>
   );
+}
+
+function mapSpecialistToNearbySpecialist(specialist: SpecialistListItem): NearbySpecialist {
+  return {
+    ...specialist,
+    coordinates: resolveFacilityCoordinates(
+      {
+        latitude: specialist.facilityLatitude ?? undefined,
+        longitude: specialist.facilityLongitude ?? undefined,
+      },
+      undefined,
+    ),
+  };
 }
 
 function normalizeCategoryParam(value: string | string[] | undefined): string {

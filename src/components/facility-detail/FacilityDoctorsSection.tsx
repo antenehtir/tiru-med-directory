@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { toSlug } from "@/lib/slugify";
+import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { Facility, FacilityDoctor } from "@/types/facility";
 
 function getInitials(name: string): string {
@@ -77,8 +78,7 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
       {/* Details */}
       <div className="min-w-0 flex-1">
         <p className="text-base font-semibold leading-tight text-foreground">
-          {doctor.title && doctor.title !== "Other" ? `${doctor.title} ` : ""}
-          {doctor.full_name}
+          {formatDoctorDisplayName(doctor.title, doctor.full_name)}
         </p>
 
         {(displayRole || doctor.appointment_required) && (

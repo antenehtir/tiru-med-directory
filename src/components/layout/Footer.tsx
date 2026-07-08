@@ -3,7 +3,7 @@ import Link from "next/link";
 const quickLinks = [
   { label: "Search", href: "/search" },
   { label: "Nearby", href: "/nearby" },
-  { label: "Specialists", href: "/doctors" },
+  { label: "Specialists", href: "/specialists" },
   { label: "Facilities", href: "/facilities" },
   { label: "Pharmacies", href: "/pharmacies" },
   { label: "Diagnostics", href: "/diagnostics" },

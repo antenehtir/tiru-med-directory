@@ -149,6 +149,26 @@ export const DOCTOR_LANGUAGES = [
   "Other",
 ] as const;
 
+// Providers sometimes type the title straight into the name field during
+// onboarding (e.g. full_name = "Dr Kale-Ab Tesfaye") in addition to selecting
+// a title from the dropdown — rendering "{title} {full_name}" unconditionally
+// then shows "Dr. Dr Kale-Ab Tesfaye". This checks whether full_name already
+// starts with the title (case-insensitive, trailing "." ignored) before
+// prepending it, so every display location renders the name exactly once.
+export function formatDoctorDisplayName(title: string, fullName: string): string {
+  const trimmedTitle = title?.trim();
+  if (!trimmedTitle || trimmedTitle === "Other" || !fullName) return fullName;
+
+  const normalize = (value: string) => value.toLowerCase().replace(/\.+$/, "").trim();
+  const normalizedTitle = normalize(trimmedTitle);
+  const normalizedName = fullName.toLowerCase().trim();
+
+  const titleAlreadyPresent =
+    normalizedName === normalizedTitle || normalizedName.startsWith(`${normalizedTitle} `);
+
+  return titleAlreadyPresent ? fullName : `${trimmedTitle} ${fullName}`;
+}
+
 export function createEmptyDoctor(): DoctorEntry {
   return {
     id: crypto.randomUUID(),
