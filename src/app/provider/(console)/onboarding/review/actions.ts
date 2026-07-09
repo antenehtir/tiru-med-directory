@@ -25,6 +25,26 @@ export async function submitForReview(): Promise<{ error: string } | void> {
     redirect("/provider/dashboard");
   }
 
+  const hasOperatingLicense = !!(
+    currentClaim?.proposed_license_url &&
+    currentClaim?.proposed_license_issue_date &&
+    currentClaim?.proposed_license_expiry_date
+  );
+  const hasBusinessLicense = !!(
+    currentClaim?.proposed_business_license_url &&
+    currentClaim?.proposed_business_license_issue_date &&
+    currentClaim?.proposed_business_license_expiry_date
+  );
+
+  if (!hasOperatingLicense || !hasBusinessLicense) {
+    const missing: string[] = [];
+    if (!hasOperatingLicense) missing.push("operating license (with issue and expiry dates)");
+    if (!hasBusinessLicense) missing.push("business license (with issue and expiry dates)");
+    return {
+      error: `Please complete the following before submitting: ${missing.join(", ")}. Go to Photos & Documents (Step 5) to upload these.`,
+    };
+  }
+
   const currentPct = currentClaim ? calculateCompletion(currentClaim) : 0;
   if (currentPct < 70) {
     return { error: "Your profile must be at least 70% complete to submit." };

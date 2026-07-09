@@ -119,6 +119,12 @@ function PillList({ items }: { items: string[] }) {
   );
 }
 
+function RequiredNotice() {
+  return (
+    <span className="text-xs font-semibold text-red-600">Required for submission</span>
+  );
+}
+
 function Chip({ children, tone }: { children: React.ReactNode; tone: "green" | "gray" }) {
   const cls =
     tone === "green"
@@ -238,6 +244,28 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
   const bizLicenseIssue = claim.proposed_business_license_issue_date as string;
   const bizLicenseExpiry = claim.proposed_business_license_expiry_date as string;
   const bizLicenseFlag = getExpiryFlag(bizLicenseExpiry);
+
+  const hasOperatingLicense = Boolean(licenseUrl && licenseIssue && licenseExpiry);
+  const hasBusinessLicense = Boolean(bizLicenseUrl && bizLicenseIssue && bizLicenseExpiry);
+
+  function describeMissingLicense(
+    url: string,
+    issue: string,
+    expiry: string,
+    label: string,
+  ): string | null {
+    if (url && issue && expiry) return null;
+    const parts: string[] = [];
+    if (!url) parts.push("document");
+    if (!issue) parts.push("issue date");
+    if (!expiry) parts.push("expiry date");
+    return `${label} (missing ${parts.join(", ")})`;
+  }
+
+  const missingLicenseItems = [
+    describeMissingLicense(licenseUrl, licenseIssue, licenseExpiry, "Operating license"),
+    describeMissingLicense(bizLicenseUrl, bizLicenseIssue, bizLicenseExpiry, "Business license"),
+  ].filter((item): item is string => item !== null);
 
   return (
     <div>
@@ -493,6 +521,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
           <span className="text-xs font-medium text-muted-foreground">Operating license</span>
           <div className="flex flex-wrap items-center gap-2">
             {licenseUrl ? <Chip tone="green">✓ On file</Chip> : <Chip tone="gray">Not uploaded</Chip>}
+            {!licenseUrl && <RequiredNotice />}
             {licenseFlag && (
               <span
                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${expiryColorClasses[licenseFlag.color]}`}
@@ -501,8 +530,11 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Issued {licenseIssue || "—"} · Expires {licenseExpiry || "—"}
+          <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+            <span>Issued {licenseIssue || "—"}</span>
+            {!licenseIssue && <RequiredNotice />}
+            <span>· Expires {licenseExpiry || "—"}</span>
+            {!licenseExpiry && <RequiredNotice />}
           </p>
         </div>
 
@@ -510,6 +542,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
           <span className="text-xs font-medium text-muted-foreground">Business license</span>
           <div className="flex flex-wrap items-center gap-2">
             {bizLicenseUrl ? <Chip tone="green">✓ On file</Chip> : <Chip tone="gray">Not uploaded</Chip>}
+            {!bizLicenseUrl && <RequiredNotice />}
             {bizLicenseFlag && (
               <span
                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${expiryColorClasses[bizLicenseFlag.color]}`}
@@ -518,8 +551,11 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Issued {bizLicenseIssue || "—"} · Expires {bizLicenseExpiry || "—"}
+          <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+            <span>Issued {bizLicenseIssue || "—"}</span>
+            {!bizLicenseIssue && <RequiredNotice />}
+            <span>· Expires {bizLicenseExpiry || "—"}</span>
+            {!bizLicenseExpiry && <RequiredNotice />}
           </p>
         </div>
       </SectionCard>
@@ -562,6 +598,18 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         </label>
       </div>
 
+      {missingLicenseItems.length > 0 && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <p className="font-semibold">
+            ⚠ Both licenses (with issue and expiry dates) are required before you can submit.
+          </p>
+          <p className="mt-1">{missingLicenseItems.join("; ")}</p>
+          <a className="mt-1 inline-block font-semibold underline" href="/provider/onboarding/media">
+            Edit Photos & Documents →
+          </a>
+        </div>
+      )}
+
       {pct < 70 && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           Your profile is {pct}% complete. Complete Steps 1, 2, and 3 to reach 70% and submit.
@@ -570,7 +618,14 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
 
       <button
         className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={!checked1 || !checked2 || pct < 70 || submitting}
+        disabled={
+          !checked1 ||
+          !checked2 ||
+          pct < 70 ||
+          !hasOperatingLicense ||
+          !hasBusinessLicense ||
+          submitting
+        }
         onClick={handleSubmit}
         type="button"
       >

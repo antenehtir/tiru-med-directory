@@ -84,15 +84,20 @@ export function MilestoneCard({
   status,
   facilitySlug,
   stepChecklist,
+  hasOperatingLicense,
+  hasBusinessLicense,
 }: {
   pct: number;
   status: string;
   facilitySlug: string | null;
   stepChecklist: StepChecklistItem[];
+  hasOperatingLicense: boolean;
+  hasBusinessLicense: boolean;
 }) {
   const approved = status === "approved";
   const pendingReview = status === "pending_review";
   const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
+  const licensesComplete = hasOperatingLicense && hasBusinessLicense;
 
   return (
     <div className="px-4 py-8">
@@ -161,14 +166,28 @@ export function MilestoneCard({
             <CelebrationBurst />
 
             <div>
-              <h1 className="text-xl font-bold text-foreground">
-                You&apos;re eligible for the Official badge! 🎉
-              </h1>
-              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                Your listing has enough detail to be reviewed for Official verification.
-                Once an admin reviews and approves your submission, your facility will
-                display the Official badge on the directory.
-              </p>
+              {licensesComplete ? (
+                <>
+                  <h1 className="text-xl font-bold text-foreground">
+                    You&apos;re eligible for the Official badge! 🎉
+                  </h1>
+                  <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                    Your listing has enough detail to be reviewed for Official verification.
+                    Once an admin reviews and approves your submission, your facility will
+                    display the Official badge on the directory.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-xl font-bold text-foreground">
+                    Almost there — one more step
+                  </h1>
+                  <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                    Complete your Operating and Business License uploads (with issue and
+                    expiry dates) in Step 5 to become eligible for the Official badge.
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="flex justify-center">
@@ -196,12 +215,21 @@ export function MilestoneCard({
             </div>
 
             <div className="space-y-3">
-              <a
-                className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                href="/provider/onboarding/doctors"
-              >
-                Continue to Doctors & Staff →
-              </a>
+              {licensesComplete ? (
+                <a
+                  className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  href="/provider/onboarding/doctors"
+                >
+                  Continue to Doctors & Staff →
+                </a>
+              ) : (
+                <a
+                  className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  href="/provider/onboarding/media"
+                >
+                  Upload your licenses →
+                </a>
+              )}
               <a
                 className="block text-sm text-muted-foreground hover:text-foreground"
                 href="/provider/dashboard"

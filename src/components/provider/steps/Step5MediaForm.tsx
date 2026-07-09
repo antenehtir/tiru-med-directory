@@ -47,6 +47,14 @@ function getExpiryFlag(dateStr: string): ExpiryFlag | null {
   };
 }
 
+function RequiredForApproval() {
+  return (
+    <span className="ml-1.5 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+      Required for approval
+    </span>
+  );
+}
+
 function ExpiryFlagChip({ flag }: { flag: ExpiryFlag | null }) {
   if (!flag) return null;
   return (
@@ -416,6 +424,7 @@ export function Step5MediaForm({
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-bold text-foreground">
           Operating license or registration certificate
+          <RequiredForApproval />
         </h2>
         <p className="mt-1 mb-4 text-sm text-muted-foreground">
           Upload a scan or clear photo of your facility&apos;s operating license. This is kept
@@ -499,7 +508,10 @@ export function Step5MediaForm({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">License issue date</label>
+            <label className="text-sm font-semibold text-foreground">
+              License issue date
+              <RequiredForApproval />
+            </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               onBlur={(e) => autoSave({ license_issue_date: e.target.value })}
@@ -511,7 +523,10 @@ export function Step5MediaForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">License expiry date</label>
+            <label className="text-sm font-semibold text-foreground">
+              License expiry date
+              <RequiredForApproval />
+            </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               onBlur={(e) => autoSave({ license_expiry_date: e.target.value })}
@@ -528,7 +543,10 @@ export function Step5MediaForm({
 
       {/* Business / trade license */}
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-foreground">Business / trade license</h2>
+        <h2 className="text-lg font-bold text-foreground">
+          Business / trade license
+          <RequiredForApproval />
+        </h2>
         <p className="mt-1 mb-4 text-sm text-muted-foreground">
           Upload your facility&apos;s business registration or trade license. Kept private, used
           only for verification.
@@ -615,6 +633,7 @@ export function Step5MediaForm({
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-foreground">
               Business license issue date
+              <RequiredForApproval />
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -629,6 +648,7 @@ export function Step5MediaForm({
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-foreground">
               Business license expiry date
+              <RequiredForApproval />
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
