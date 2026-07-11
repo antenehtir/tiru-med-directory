@@ -24,12 +24,11 @@ const variantClasses: Record<PillVariant, string> = {
   danger:
     "border border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
   // Green/positive — "Available now", "Active", approved, "Open now", on-file confirmations
-  // NOTE: Do NOT use text-success — that CSS var is broken (mapped to teal, not green)
   success:
-    "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
+    "border border-success-border bg-success-bg text-success-text",
   // Blue/informational — Official badge (transitional; target is primary/teal)
   info:
-    "border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300",
+    "border border-info-border bg-info-bg text-info-text",
 };
 
 const sizeClasses: Record<PillSize, string> = {
@@ -46,8 +45,8 @@ const dotClasses: Record<PillVariant, string> = {
   muted:    "bg-muted-foreground",
   warning:  "bg-amber-500 dark:bg-amber-400",
   danger:   "bg-red-500 dark:bg-red-400",
-  success:  "bg-emerald-500 dark:bg-emerald-400",
-  info:     "bg-blue-500 dark:bg-blue-400",
+  success:  "bg-success",
+  info:     "bg-info",
 };
 
 type PillProps = {

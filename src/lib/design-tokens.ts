@@ -42,24 +42,22 @@
 //          "--danger" — use `text-error` Tailwind utility; Pill/Badge use
 //          `variant="danger"` which maps to red-* classes internally.
 //
-// success     --success (BROKEN)     #0F766E (teal!)       #14B8A6 (teal!)
-//   ⚠ BUG: --success is currently mapped to the SAME teal as --primary. This
-//          is semantically wrong — success should be green/emerald. It is NOT
-//          renamed here (that would cascade breaks). Instead, Pill/Badge use
-//          Tailwind's emerald-* classes for variant="success". The CSS variable
-//          `text-success` should NOT be used for "success" UI states until the
-//          token is corrected in a dedicated token-fix commit.
-//   USAGE (intended): "Available now" indicators, approved status, checkmarks,
-//          Active facility status, Open now badge, license "On file" labels.
+// success     --success              #10B981 (emerald-500) #34D399 (emerald-400)
+//             --success-bg           #ECFDF5 (emerald-50)  rgba(2,44,34,0.4) (emerald-950/40)
+//             --success-border       #A7F3D0 (emerald-200) #065F46 (emerald-800)
+//             --success-text         #047857 (emerald-700) #34D399 (emerald-400)
+//   USAGE: "Available now" indicators, approved status, checkmarks, Active
+//          facility status, Open now badge, license "On file" labels.
+//   NOTE:  --success is the dot/icon base color. Pill/Badge use --success-bg,
+//          --success-border, --success-text for the badge surface.
 //
-// info        [MISSING — no CSS variable defined]
-//   STATUS: The "info" semantic slot has no CSS custom property. Pill/Badge use
-//          Tailwind blue-* hardcoded classes for variant="info".
-//   USAGE: Non-warning informational chips used sparingly. Currently used for
-//          the Official badge (blue) — but the TARGET is to move Official to
-//          `primary` (teal) to align with brand. Official = blue is a
-//          transitional state; a later phase will convert it to `primary`.
-//   TODO:  Add --info token to globals.css (blue-700 / blue-300 for dark).
+// info        --info                 #3B82F6 (blue-500)    #60A5FA (blue-400)
+//             --info-bg              #EFF6FF (blue-50)     #172554 (blue-950)
+//             --info-border          #BFDBFE (blue-200)    #1D4ED8 (blue-700)
+//             --info-text            #1D4ED8 (blue-700)    #93C5FD (blue-300)
+//   USAGE: Non-warning informational chips. Currently: Official badge (blue) —
+//          TARGET is to move Official to `primary` (teal) in a later phase.
+//          Official = blue is transitional.
 //
 // muted       --muted / --muted-foreground   #F3F4F6 / #6B7280
 //   USAGE: Neutral chips, secondary text, disabled states, "Not uploaded" tags,
@@ -146,10 +144,7 @@ export type ColorVariant =
 //   rounded-lg   — inputs, buttons, modals, compact UI (INTENTIONALLY different
 //                  from cards — this is correct, not an inconsistency)
 //
-// AUDIT — OUTLIERS FOUND (do not fix in this commit):
-//   rounded-md — AdminFacilityList activate/deactivate action buttons. These
-//                are small inline table actions; rounded-lg is preferred.
-//                FIX IN: Phase 1 (admin table polish).
+// AUDIT — OUTLIERS FOUND:
 //   rounded-3xl on DoctorCard inner — intentional gradient border trick;
 //                leave as-is.
 
@@ -180,10 +175,10 @@ export type ColorVariant =
 //   default  → bordered, bg-card/bg-muted, text-foreground
 //   selected → filled primary, white text (Pill only)
 //   muted    → gray border, gray bg, muted-foreground text
-//   warning  → amber-50 bg, amber-200 border, amber-700 text
-//   danger   → red-50 bg, red-200 border, red-700 text
-//   success  → emerald-50 bg, emerald-200 border, emerald-700 text
-//   info     → blue-50 bg, blue-200 border, blue-700 text (transitional)
+//   warning  → amber-50 bg, amber-200 border, amber-700 text (hardcoded, no token triad)
+//   danger   → red-50 bg, red-200 border, red-700 text (hardcoded, no token triad)
+//   success  → --success-bg / --success-border / --success-text (token-driven)
+//   info     → --info-bg / --info-border / --info-text (token-driven)
 
 // ─── 5. OUTSTANDING CONVERSIONS ──────────────────────────────────────────────
 //

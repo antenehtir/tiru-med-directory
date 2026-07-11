@@ -19,7 +19,14 @@
   --secondary: #14B8A6;
   --secondary-foreground: var(--tiru-white);
 
-  --success: var(--tiru-accent);
+  --success: #10B981;
+  --success-bg: #ECFDF5;
+  --success-border: #A7F3D0;
+  --success-text: #047857;
+  --info: #3B82F6;
+  --info-bg: #EFF6FF;
+  --info-border: #BFDBFE;
+  --info-text: #1D4ED8;
   --warning: #B7791F;
   --error: #B42318;
 
@@ -48,7 +55,14 @@
   --secondary: #14B8A6;
   --secondary-foreground: #042F2E;
 
-  --success: #14B8A6;
+  --success: #34D399;
+  --success-bg: rgba(2, 44, 34, 0.4);
+  --success-border: #065F46;
+  --success-text: #34D399;
+  --info: #60A5FA;
+  --info-bg: #172554;
+  --info-border: #1D4ED8;
+  --info-text: #93C5FD;
   --warning: #FBBF24;
   --error: #FCA5A5;
 
@@ -75,6 +89,13 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-success-text: var(--success-text);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+  --color-info-text: var(--info-text);
   --color-warning: var(--warning);
   --color-error: var(--error);
   --color-card: var(--card);
