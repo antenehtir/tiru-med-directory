@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { approveClaim, rejectClaim } from "@/app/admin/(protected)/claims/actions";
+import { Pill } from "@/components/ui/Pill";
 
 export type Facility = {
   id: string;
@@ -90,15 +91,9 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
               type="button"
             >
               {label}{" "}
-              <span
-                className={`ml-1 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-                  activeTab === key
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
+              <Pill size="sm" variant={activeTab === key ? "selected" : "muted"}>
                 {count}
-              </span>
+              </Pill>
             </button>
           ))}
         </div>

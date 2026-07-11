@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
+import { Badge } from "@/components/ui/Badge";
+import { Pill } from "@/components/ui/Pill";
 import { toSlug } from "@/lib/slugify";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { Facility, FacilityDoctor } from "@/types/facility";
@@ -75,9 +77,7 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
               <span className="text-sm text-muted-foreground">{displayRole}</span>
             )}
             {doctor.appointment_required && (
-              <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-                By appointment
-              </span>
+              <Badge size="sm" variant="warning">By appointment</Badge>
             )}
           </div>
         )}
@@ -100,12 +100,9 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
         {doctor.languages.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {doctor.languages.map((lang) => (
-              <span
-                className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
-                key={lang}
-              >
+              <Pill key={lang} size="sm" variant="default">
                 {lang}
-              </span>
+              </Pill>
             ))}
           </div>
         )}

@@ -5,6 +5,7 @@ import {
 } from "@/components/cards/facility-category-style";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
+import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
@@ -80,15 +81,14 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           {(facility.emergencyType || facility.walkinAppointment) ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {facility.emergencyType ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-400">
-                  <span className="size-1.5 rounded-full bg-red-500 dark:bg-red-400" />
+                <Pill variant="danger" dot>
                   {facility.emergencyType}
-                </span>
+                </Pill>
               ) : null}
               {facility.walkinAppointment ? (
-                <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700 dark:bg-teal-950/50 dark:text-teal-400">
+                <Pill variant="default">
                   {facility.walkinAppointment}
-                </span>
+                </Pill>
               ) : null}
             </div>
           ) : null}
@@ -97,12 +97,9 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           {medicalSpecialties.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {medicalSpecialties.map((specialty) => (
-                <span
-                  className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700 dark:bg-teal-950/50 dark:text-teal-400"
-                  key={specialty}
-                >
+                <Pill key={specialty} variant="default">
                   {specialty}
-                </span>
+                </Pill>
               ))}
             </div>
           ) : null}

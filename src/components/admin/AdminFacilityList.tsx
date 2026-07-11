@@ -6,6 +6,8 @@ import {
   deactivateFacility,
   reactivateFacility,
 } from "@/app/admin/(protected)/facilities/actions";
+import { Badge } from "@/components/ui/Badge";
+import type { BadgeVariant } from "@/lib/design-tokens";
 
 type Facility = {
   id: string;
@@ -27,13 +29,13 @@ type Facility = {
 const BADGE_LABELS: Record<string, string> = {
   "community-submitted": "CS",
   "facility-owned": "Official",
-  verified: "✓",
+  verified: "✓ Verified",
 };
 
-const BADGE_COLORS: Record<string, string> = {
-  "community-submitted": "bg-amber-50 text-amber-700 border-amber-200",
-  "facility-owned": "bg-blue-50 text-blue-700 border-blue-200",
-  verified: "bg-teal-50 text-teal-700 border-teal-200",
+const BADGE_VARIANTS: Record<string, BadgeVariant> = {
+  "community-submitted": "warning",
+  "facility-owned": "info",   // transitional — target is "primary" in a later phase
+  verified: "success",
 };
 
 const DEACTIVATION_CATEGORIES = [
@@ -208,24 +210,14 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                     {[facility.area, facility.sub_city].filter(Boolean).join(", ")}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-bold ${BADGE_COLORS[facility.verification_status] ?? ""}`}
-                    >
+                    <Badge variant={BADGE_VARIANTS[facility.verification_status] ?? "default"}>
                       {BADGE_LABELS[facility.verification_status] ?? facility.verification_status}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    {isInactive ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
-                        <span className="size-1.5 rounded-full bg-red-400" />
-                        Inactive
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-600">
-                        <span className="size-1.5 rounded-full bg-teal-400" />
-                        Active
-                      </span>
-                    )}
+                    <Badge dot variant={isInactive ? "danger" : "success"}>
+                      {isInactive ? "Inactive" : "Active"}
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -252,7 +244,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                       )}
                       {isInactive ? (
                         <button
-                          className="rounded-md border border-teal-200 bg-teal-50 px-2 py-1 text-xs font-medium text-teal-700 transition hover:bg-teal-100 disabled:opacity-50"
+                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
                           disabled={isPending}
                           onClick={() => handleReactivate(facility.id, facility.name)}
                           type="button"
@@ -261,7 +253,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                         </button>
                       ) : (
                         <button
-                          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                          className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
                           disabled={isPending}
                           onClick={() =>
                             setDeactivateModal({

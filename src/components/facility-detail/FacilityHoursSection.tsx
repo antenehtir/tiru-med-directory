@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Badge } from "@/components/ui/Badge";
 import type { Facility } from "@/types/facility";
 import {
   buildDayMap,
@@ -46,16 +47,7 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-semibold text-primary">Hours</p>
         {hasStructuredSchedule && (
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              openNow
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            <span
-              className={`size-1.5 rounded-full ${openNow ? "bg-emerald-500" : "bg-muted-foreground"}`}
-            />
+          <Badge dot variant={openNow ? "success" : "muted"}>
             {openNow
               ? is24_7
                 ? "Open 24/7"
@@ -63,7 +55,7 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
               : opensAt
                 ? `Opens at ${opensAt}`
                 : "Closed now"}
-          </span>
+          </Badge>
         )}
       </div>
 

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
+import { Badge } from "@/components/ui/Badge";
+import { Pill } from "@/components/ui/Pill";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 
@@ -56,8 +58,10 @@ export function SpecialistCard({
             {formatDoctorDisplayName(specialist.title, specialist.fullName)}
           </p>
           {specialist.role && (
-            <span className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {specialist.role}
+            <span className="mt-1 block">
+              <Badge size="sm" variant="muted">
+                {specialist.role}
+              </Badge>
             </span>
           )}
           {(specialist.specialty || specialist.subspecialty) && (
@@ -79,9 +83,7 @@ export function SpecialistCard({
           {specialist.facilityName}
         </span>
         {isOfficial && (
-          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            Official
-          </span>
+          <Badge size="sm" variant="info">Official</Badge>
         )}
       </div>
       {locationLine && <p className="text-xs text-muted-foreground">{locationLine}</p>}
@@ -89,12 +91,9 @@ export function SpecialistCard({
       {specialist.languages.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {specialist.languages.map((lang) => (
-            <span
-              className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
-              key={lang}
-            >
+            <Pill key={lang} size="sm" variant="default">
               {lang}
-            </span>
+            </Pill>
           ))}
         </div>
       )}
