@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { VerificationBadge } from "@/components/trust/VerificationBadge";
+import { Badge } from "@/components/ui/Badge";
 
 const STORAGE_KEY = "tiru-status-banner-dismissed";
 const DISMISS_EVENT = "tiru-status-banner-dismiss";
@@ -50,15 +50,19 @@ export function ListingStatusBanner() {
 
   return (
     <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <div className="flex items-center gap-2">
-          <VerificationBadge status="community-submitted" />
+          <Badge size="sm" variant="warning">
+            CS
+          </Badge>
           <span className="text-xs text-muted-foreground">
             Community sourced — verify with provider
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <VerificationBadge status="facility-owned" />
+          <Badge size="sm" variant="info">
+            Official
+          </Badge>
           <span className="text-xs text-muted-foreground">
             Official — managed directly by the facility
           </span>

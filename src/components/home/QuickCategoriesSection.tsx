@@ -100,7 +100,7 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border border-t-2 bg-card p-3 transition hover:border-strong-border hover:shadow-md ${category.borderTopClass}`}
+                  className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border border-t-2 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-md active:scale-[0.98] ${category.borderTopClass}`}
                   href={category.href}
                   prefetch={true}
                 >
@@ -108,7 +108,7 @@ export function QuickCategoriesSection() {
                     <Icon />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words hyphens-auto text-sm font-semibold leading-tight text-foreground">
+                    <span className="block break-words hyphens-auto text-sm font-semibold leading-tight text-foreground sm:text-base">
                       {category.label}
                     </span>
                     <span className="mt-0.5 block line-clamp-2 text-xs leading-snug text-muted-foreground">
