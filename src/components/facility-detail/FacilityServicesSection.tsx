@@ -1,3 +1,4 @@
+import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
@@ -22,20 +23,17 @@ export function FacilityServicesSection({
 
   return (
     <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-      <p className="text-sm font-semibold text-primary">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Services
       </p>
-      <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
+      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
         Available care information
       </h2>
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {uniqueServices.map((service) => (
-          <span
-            className="rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground"
-            key={service}
-          >
+          <Pill key={service} variant="default">
             {service}
-          </span>
+          </Pill>
         ))}
       </div>
     </section>

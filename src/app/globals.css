@@ -199,6 +199,28 @@ a {
   }
 }
 
+.detail-reveal {
+  animation: detail-reveal 0.2s ease-out;
+}
+
+@keyframes detail-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-reveal {
+    animation: none;
+  }
+}
+
 .filter-modal-panel {
   animation: filter-modal-slide-up 0.25s ease-out;
 }

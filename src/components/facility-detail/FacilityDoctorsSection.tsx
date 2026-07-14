@@ -124,8 +124,10 @@ export function FacilityDoctorsSection({ facility }: { facility: Facility }) {
 
   return (
     <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-      <p className="text-sm font-semibold text-primary">Our team</p>
-      <h2 className="mt-1 text-2xl font-semibold leading-tight text-foreground">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Our team
+      </p>
+      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
         Meet the specialists
       </h2>
       {doctors.length > 1 && (

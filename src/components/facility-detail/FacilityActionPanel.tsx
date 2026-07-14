@@ -262,7 +262,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
             {showMoreNumbers ? "Fewer numbers ↑" : "More numbers ↓"}
           </button>
           {showMoreNumbers ? (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="detail-reveal mt-2 flex flex-wrap gap-2">
               {secondaryPhones.map((action) => (
                 <a
                   className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-strong-border"

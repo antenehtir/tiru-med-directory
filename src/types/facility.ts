@@ -65,6 +65,8 @@ export type Facility = {
   longitude?: number;
   onlineOnly?: boolean;
   logoUrl?: string;
+  photoUrl?: string;
+  updatedAt?: string;
   subCity?: string;
   subCities: string[];
   area?: string;

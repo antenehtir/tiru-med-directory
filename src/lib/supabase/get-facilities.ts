@@ -46,6 +46,7 @@ type DBFacility = {
   payment_methods: unknown;
   insurance_note: string | null;
   patient_groups: unknown;
+  updated_at: string | null;
 };
 
 function makeChannel(
@@ -128,6 +129,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     longitude: row.longitude ?? undefined,
     onlineOnly: rawSubCity === "online" ? true : undefined,
     logoUrl: row.logo_url ?? undefined,
+    photoUrl: row.photo_url ?? undefined,
+    updatedAt: row.updated_at ?? undefined,
     subCity: row.sub_city ?? undefined,
     subCities,
     area: row.area ?? undefined,

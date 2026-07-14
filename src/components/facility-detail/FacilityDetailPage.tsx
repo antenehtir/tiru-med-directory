@@ -6,6 +6,7 @@ import { FacilityDetailHeader } from "./FacilityDetailHeader";
 import { FacilityDoctorsSection } from "./FacilityDoctorsSection";
 import { FacilityHoursSection } from "./FacilityHoursSection";
 import { FacilityInformationSection } from "./FacilityInformationSection";
+import { FacilityLastUpdated } from "./FacilityLastUpdated";
 import { FacilityServicesSection } from "./FacilityServicesSection";
 import { SimilarFacilitiesSection } from "./SimilarFacilitiesSection";
 
@@ -26,7 +27,7 @@ export function FacilityDetailPage({
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
-      <div className="grid gap-6">
+      <div className="grid gap-8">
         {/* Top section: header + desktop sidebar */}
         <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
           <FacilityDetailHeader facility={facility} />
@@ -36,12 +37,13 @@ export function FacilityDetailPage({
           </div>
         </div>
 
-        {/* Content sections */}
-        <div className="grid gap-6">
-          <FacilityInformationSection facility={facility} />
+        {/* Content sections — patient-priority order: who works here & what they
+            do, before hours, then overview/payment. */}
+        <div className="grid gap-8">
+          <FacilityDoctorsSection facility={facility} />
           <FacilityServicesSection facility={facility} />
           <FacilityHoursSection facility={facility} />
-          <FacilityDoctorsSection facility={facility} />
+          <FacilityInformationSection facility={facility} />
         </div>
 
         {/* Mobile action panel — shown only on mobile, after content */}
@@ -51,6 +53,7 @@ export function FacilityDetailPage({
 
         <FacilityCorrectionCta facility={facility} />
         <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
+        <FacilityLastUpdated facility={facility} />
       </div>
     </PageContainer>
   );

@@ -1,3 +1,4 @@
+import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
@@ -17,40 +18,50 @@ export function FacilityInformationSection({
     return val && String(val).trim().length > 0;
   });
   const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
-  const careFocusValue =
-    medicalSpecialties.length > 0
-      ? medicalSpecialties.join(", ")
-      : facility.category;
+  const hasSpecialties = medicalSpecialties.length > 0;
   const paymentMethods = facility.paymentMethods ?? [];
   const hasPayment = paymentMethods.length > 0;
   const patientGroups = facility.patientGroups ?? [];
   const hasPatientGroups = patientGroups.length > 0;
 
+  // If the only thing we could show is the category (already the header
+  // subtitle), there's nothing non-redundant here — hide the whole section.
+  if (!hasSpecialties && visibleRows.length === 0 && !hasPatientGroups && !hasPayment) {
+    return null;
+  }
+
   return (
     <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-      <p className="text-sm font-semibold text-primary">
-        Facility information
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Overview
       </p>
+      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+        Facility information
+      </h2>
 
-      <div className="mt-4 grid gap-3">
-        <div className="rounded-2xl border border-border bg-background p-4">
-          <p className="text-sm font-semibold text-foreground">
-            {careFocusValue}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">Care focus</p>
+      {(hasSpecialties || visibleRows.length > 0) && (
+        <div className="mt-4 grid gap-3">
+          {hasSpecialties ? (
+            <div className="rounded-2xl border border-border bg-background p-4">
+              <p className="text-sm font-semibold text-foreground">
+                {medicalSpecialties.join(", ")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">Care focus</p>
+            </div>
+          ) : null}
+          {visibleRows.map((row) => (
+            <div
+              className="rounded-2xl border border-border bg-background p-4"
+              key={row.label}
+            >
+              <p className="text-sm font-semibold text-foreground">
+                {facility[row.key]}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{row.label}</p>
+            </div>
+          ))}
         </div>
-        {visibleRows.map((row) => (
-          <div
-            className="rounded-2xl border border-border bg-background p-4"
-            key={row.label}
-          >
-            <p className="text-sm font-semibold text-foreground">
-              {facility[row.key]}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{row.label}</p>
-          </div>
-        ))}
-      </div>
+      )}
 
       {hasPatientGroups && (
         <div className="mt-4 rounded-2xl border border-border bg-background p-4">
@@ -59,12 +70,9 @@ export function FacilityInformationSection({
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {patientGroups.map((group) => (
-              <span
-                className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground"
-                key={group}
-              >
+              <Pill key={group} variant="default">
                 {group}
-              </span>
+              </Pill>
             ))}
           </div>
         </div>
@@ -77,12 +85,9 @@ export function FacilityInformationSection({
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {paymentMethods.map((method) => (
-              <span
-                className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground"
-                key={method}
-              >
+              <Pill key={method} variant="default">
                 {method}
-              </span>
+              </Pill>
             ))}
           </div>
           {paymentMethods.includes("Insurance") && facility.insuranceNote && (
