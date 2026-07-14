@@ -8,13 +8,10 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-
-type SearchSuggestion = {
-  id: string;
-  name: string;
-  metadata: string;
-  detailHref: string;
-};
+import {
+  useFacilitySuggestions,
+  type FacilitySuggestion,
+} from "./use-facility-suggestions";
 
 type SearchAutocompleteInputProps = {
   autoFocus?: boolean;
@@ -49,7 +46,7 @@ export function SearchAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const { suggestions } = useFacilitySuggestions(query);
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -58,46 +55,6 @@ export function SearchAutocompleteInput({
     input.scrollIntoView({ block: "center", behavior: "smooth" });
     input.focus({ preventScroll: true });
   }, [autoFocus]);
-
-  useEffect(() => {
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => {
-      fetch(`/api/provider/search-facilities?q=${encodeURIComponent(trimmed)}`, {
-        signal: controller.signal,
-      })
-        .then((r) => r.json())
-        .then((json) => {
-          const facilities: Record<string, string | null>[] = json.facilities ?? [];
-          setSuggestions(
-            facilities.map((f) => ({
-              id: f.id ?? "",
-              name: f.name ?? "",
-              metadata: [
-                f.category,
-                [f.area, f.sub_city].filter(Boolean).join(", "),
-              ]
-                .filter(Boolean)
-                .join(" | "),
-              detailHref: `/facilities/${f.slug}`,
-            })),
-          );
-        })
-        .catch(() => {
-          // aborted or network error — leave existing suggestions
-        });
-    }, 150);
-
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [query]);
 
   const showSuggestions = isOpen && query.trim().length > 0 && suggestions.length > 0;
 
@@ -116,7 +73,7 @@ export function SearchAutocompleteInput({
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
   }
 
-  function selectSuggestion(suggestion: SearchSuggestion) {
+  function selectSuggestion(suggestion: FacilitySuggestion) {
     setQuery(suggestion.name);
     setIsOpen(false);
     router.push(suggestion.detailHref);

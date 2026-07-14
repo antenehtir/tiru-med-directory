@@ -13,6 +13,7 @@ import { ShareButton } from "@/components/cards/ShareButton";
 import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
+import { Pill } from "@/components/ui/Pill";
 import {
   createPublicContactActions,
   getExternalLinkProps,
@@ -100,12 +101,9 @@ export function FacilityCard({ facility }: FacilityCardProps) {
           {facility.services.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {facility.services.slice(0, 3).map((service) => (
-                <span
-                  key={service}
-                  className="rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground"
-                >
+                <Pill key={service} variant="muted">
                   {service}
-                </span>
+                </Pill>
               ))}
             </div>
           ) : null}
