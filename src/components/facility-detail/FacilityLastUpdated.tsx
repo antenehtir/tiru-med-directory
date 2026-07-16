@@ -25,11 +25,11 @@ export function FacilityLastUpdated({ facility }: FacilityLastUpdatedProps) {
   });
 
   return (
-    <p className="flex items-center justify-center gap-1.5 text-xs italic text-muted-foreground">
-      Last updated {formatted}
+    <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+      Updated {formatted}
       <span
         aria-hidden="true"
-        className="inline-flex size-4 items-center justify-center rounded-full border border-border text-[10px] not-italic"
+        className="inline-flex size-4 items-center justify-center rounded-full border border-border text-[10px]"
         title="This facility manages its own listing on Tiru"
       >
         i

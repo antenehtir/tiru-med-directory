@@ -6,7 +6,6 @@ import { FacilityDetailHeader } from "./FacilityDetailHeader";
 import { FacilityDoctorsSection } from "./FacilityDoctorsSection";
 import { FacilityHoursSection } from "./FacilityHoursSection";
 import { FacilityInformationSection } from "./FacilityInformationSection";
-import { FacilityLastUpdated } from "./FacilityLastUpdated";
 import { FacilityServicesSection } from "./FacilityServicesSection";
 import { SimilarFacilitiesSection } from "./SimilarFacilitiesSection";
 
@@ -53,7 +52,6 @@ export function FacilityDetailPage({
 
         <FacilityCorrectionCta facility={facility} />
         <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
-        <FacilityLastUpdated facility={facility} />
       </div>
     </PageContainer>
   );

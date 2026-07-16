@@ -9,6 +9,7 @@ import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
+import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
 type FacilityDetailHeaderProps = {
   facility: Facility;
@@ -92,6 +93,11 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             {facility.address}
           </p>
         ) : null}
+
+        {/* Paired with the Official badge above the banner — kept near the top
+            of the header (not on the banner itself) so it stays legible over
+            photo backgrounds and doesn't crowd the badge. */}
+        <FacilityLastUpdated facility={facility} />
 
         {/* Compact emergency + walk-in pills */}
         {(facility.emergencyType || facility.walkinAppointment) ? (
