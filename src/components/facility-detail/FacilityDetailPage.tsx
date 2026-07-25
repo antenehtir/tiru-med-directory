@@ -1,7 +1,7 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import type { Facility } from "@/types/facility";
+import { CorrectionCta } from "@/components/ui/CorrectionCta";
 import { FacilityActionPanel } from "./FacilityActionPanel";
-import { FacilityCorrectionCta } from "./FacilityCorrectionCta";
 import { FacilityDetailHeader } from "./FacilityDetailHeader";
 import { FacilityDoctorsSection } from "./FacilityDoctorsSection";
 import { FacilityHoursSection } from "./FacilityHoursSection";
@@ -50,7 +50,7 @@ export function FacilityDetailPage({
           <FacilityActionPanel facility={facility} />
         </div>
 
-        <FacilityCorrectionCta facility={facility} />
+        <CorrectionCta facilitySlug={facility.slug} />
         <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
       </div>
     </PageContainer>

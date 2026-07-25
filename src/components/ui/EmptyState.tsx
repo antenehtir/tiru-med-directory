@@ -37,7 +37,9 @@ export function EmptyState({
   );
 }
 
-export function SearchOffIcon(props: SVGProps<SVGSVGElement>) {
+// Plain magnifier glyph — used both as the empty-state "no results" icon and
+// as the leading adornment inside search inputs.
+export function SearchIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       aria-hidden="true"

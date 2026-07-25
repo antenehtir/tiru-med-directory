@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
+import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
+import { Pill } from "@/components/ui/Pill";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { SpecialistCard } from "./SpecialistCard";
 import {
@@ -96,18 +97,16 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
             {specialtyPills.map((label) => {
               const isActive = label === activeSpecialty;
               return (
-                <button
-                  className={`flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold ${
-                    isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card text-foreground hover:border-strong-border"
-                  }`}
+                <Pill
+                  ariaPressed={isActive}
+                  className="min-h-11"
                   key={label}
                   onClick={() => setActiveSpecialty(label)}
-                  type="button"
+                  size="lg"
+                  variant={isActive ? "selected" : "default"}
                 >
                   {label}
-                </button>
+                </Pill>
               );
             })}
           </div>
@@ -116,12 +115,14 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
             <input
-              className="min-h-12 w-full rounded-xl border border-border bg-card px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="min-h-12 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, specialty, or facility..."
               type="search"
               value={query}
             />
+            {/* Same leading magnifier adornment as ListingSearchBar */}
+            <SearchIcon className="pointer-events-none absolute left-3 top-4 size-4 text-muted-foreground" />
           </div>
           <button
             className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
@@ -169,7 +170,7 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
               ) : undefined
             }
             description="Try a different name, specialty, or facility."
-            icon={<SearchOffIcon />}
+            icon={<SearchIcon />}
             title="No specialists found"
           />
         )}

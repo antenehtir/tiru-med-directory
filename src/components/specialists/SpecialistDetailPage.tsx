@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Badge } from "@/components/ui/Badge";
+import { CorrectionCta } from "@/components/ui/CorrectionCta";
+import { Pill } from "@/components/ui/Pill";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistDetail, SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { SpecialistAvailabilitySection } from "./SpecialistAvailabilitySection";
@@ -40,7 +43,7 @@ export function SpecialistDetailPage({
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
-      <div className="grid gap-6">
+      <div className="grid gap-8">
         {/* Header + sidebar */}
         <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
           <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
@@ -59,22 +62,27 @@ export function SpecialistDetailPage({
               )}
 
               <div className="min-w-0 flex-1">
-                <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Specialist profile
+                </p>
+                <h1 className="mt-1 text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
                   {formatDoctorDisplayName(specialist.title, specialist.fullName)}
                 </h1>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {specialist.role && (
-                    <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                      {specialist.role}
-                    </span>
-                  )}
-                  {specialist.appointmentRequired && (
-                    <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-                      By appointment
-                    </span>
-                  )}
-                </div>
+                {(specialist.role || specialist.appointmentRequired) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {specialist.role && (
+                      <Badge size="sm" variant="muted">
+                        {specialist.role}
+                      </Badge>
+                    )}
+                    {specialist.appointmentRequired && (
+                      <Badge size="sm" variant="warning">
+                        By appointment
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
                 {(specialist.specialty || specialist.subspecialty) && (
                   <p className="mt-3 text-base font-medium text-primary">
@@ -90,12 +98,17 @@ export function SpecialistDetailPage({
 
                 <p className="mt-3 text-base leading-7 text-muted-foreground">
                   Practices at{" "}
-                  <Link className="font-semibold text-primary hover:underline" href={facilityHref}>
+                  <Link
+                    className="font-semibold text-primary hover:underline focus-visible:underline"
+                    href={facilityHref}
+                  >
                     {specialist.facilityName}
                   </Link>
                   {isOfficial && (
-                    <span className="ml-2 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                      Official
+                    <span className="ml-2 inline-flex align-middle">
+                      <Badge size="sm" variant="info">
+                        Official
+                      </Badge>
                     </span>
                   )}
                 </p>
@@ -108,21 +121,15 @@ export function SpecialistDetailPage({
             <div className="grid gap-3">
               {specialist.facilityPhone ? (
                 <a
-                  className="flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-center font-semibold text-primary-foreground transition hover:bg-primary-hover"
+                  className="flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-4 text-center font-semibold text-primary-foreground transition hover:bg-primary-hover"
                   href={telHref(specialist.facilityPhone)}
                 >
                   📞 Call {specialist.facilityName}
                 </a>
               ) : null}
-              <Link
-                className="flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-primary text-center font-semibold text-primary transition hover:bg-primary/5"
-                href={facilityHref}
-              >
-                View facility →
-              </Link>
               {directionsHref ? (
                 <a
-                  className="flex min-h-12 w-full items-center justify-center rounded-xl border border-border text-center font-semibold text-foreground transition hover:bg-muted"
+                  className="flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-primary px-4 text-center font-semibold text-primary transition hover:bg-primary/5"
                   href={directionsHref}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -130,16 +137,27 @@ export function SpecialistDetailPage({
                   📍 Get directions
                 </a>
               ) : null}
+              <Link
+                className="flex min-h-12 w-full items-center justify-center rounded-xl border border-border bg-card px-4 text-center font-semibold text-foreground transition hover:bg-muted"
+                href={facilityHref}
+              >
+                View facility →
+              </Link>
             </div>
           </aside>
         </div>
 
         {/* Main content */}
-        <div className="grid gap-6">
+        <div className="grid gap-8">
           {hasBio && (
             <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-              <p className="text-sm font-semibold text-primary">About</p>
-              <p className="mt-2 text-base leading-7 text-muted-foreground">{specialist.bio}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                About
+              </p>
+              <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+                Background
+              </h2>
+              <p className="mt-4 text-base leading-7 text-muted-foreground">{specialist.bio}</p>
             </section>
           )}
 
@@ -147,29 +165,36 @@ export function SpecialistDetailPage({
 
           {specialist.languages.length > 0 && (
             <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-              <p className="text-sm font-semibold text-primary">Languages spoken</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Languages
+              </p>
+              <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+                Languages spoken
+              </h2>
+              <div className="mt-4 flex flex-wrap gap-2">
                 {specialist.languages.map((lang) => (
-                  <span
-                    className="rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground"
-                    key={lang}
-                  >
+                  <Pill key={lang} variant="default">
                     {lang}
-                  </span>
+                  </Pill>
                 ))}
               </div>
             </section>
           )}
 
           <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
-            <p className="text-sm font-semibold text-primary">About {specialist.facilityName}</p>
-            <div className="mt-3 rounded-2xl border border-border bg-background p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Practice location
+            </p>
+            <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+              About {specialist.facilityName}
+            </h2>
+            <div className="mt-4 rounded-2xl border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">{specialist.facilityCategory}</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {[specialist.facilityArea, specialist.facilitySubCity].filter(Boolean).join(", ")}
               </p>
               <Link
-                className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
+                className="mt-3 inline-block text-sm font-semibold text-primary hover:underline focus-visible:underline"
                 href={facilityHref}
               >
                 View full facility profile →
@@ -177,6 +202,10 @@ export function SpecialistDetailPage({
             </div>
           </section>
         </div>
+
+        {/* Corrections route by facility slug — specialists live inside their
+            facility's record, so the same flow covers both. */}
+        <CorrectionCta facilitySlug={specialist.facilitySlug} />
 
         {similarSpecialists.length > 0 && (
           <section>
@@ -187,6 +216,9 @@ export function SpecialistDetailPage({
               <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
                 Other {specialist.specialty} specialists
               </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Compare availability, languages, and practice locations.
+              </p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {similarSpecialists.map((other) => (

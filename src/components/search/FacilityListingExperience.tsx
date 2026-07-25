@@ -2,7 +2,7 @@
 
 import { Suspense, type ReactNode } from "react";
 import { FacilityCardGrid } from "@/components/cards/FacilityCardGrid";
-import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
+import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import { filterFacilitiesByQuery, type FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { facilityMatchesListingFilters } from "@/lib/listing-filters";
 import type { Facility } from "@/types/facility";
@@ -85,7 +85,7 @@ function FacilityListingExperienceInner({
               ) : undefined
             }
             description="Try a different name, area, or category."
-            icon={<SearchOffIcon />}
+            icon={<SearchIcon />}
             title="No facilities found"
           />
         )

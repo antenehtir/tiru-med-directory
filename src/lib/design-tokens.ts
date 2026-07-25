@@ -182,6 +182,20 @@ export type ColorVariant =
 //
 //   icon: ReactNode | description: string | action: ReactNode
 //
+// Also exports SearchIcon / MapPinOffIcon. SearchIcon is a plain magnifier
+// used BOTH as the empty-state icon and as the leading adornment inside
+// search inputs (ListingSearchBar, SpecialistsPage) — don't add another.
+//
+// DETAIL-PAGE SECTION HEADER PATTERN (facility + specialist detail pages):
+//   <p className="text-xs font-semibold uppercase tracking-wide
+//                 text-muted-foreground">{kicker}</p>
+//   <h2 className="mt-1 text-xl font-semibold leading-tight
+//                  text-foreground">{title}</h2>
+// Top-level sections on those pages are separated by gap-8.
+// EXCEPTION: the "Similar facilities" / "Similar specialists" sections use a
+// deliberately larger related-content treatment (text-sm uppercase primary
+// kicker + text-2xl title + description) — consistent with each other.
+//
 // Skeleton / SkeletonCard / SkeletonCardGrid / SkeletonSpecialistCard(Grid)
 // (src/components/ui/Skeleton.tsx) — added Phase 3
 // ─────────────────────────────────────────────────────────────
@@ -215,23 +229,28 @@ export type ColorVariant =
 //   ✓ src/components/trust/VerificationBadge.tsx  (now delegates to Badge)
 //   ✓ src/components/cards/FacilityCard.tsx       (service pills, +N more overflow)
 //   ✓ src/components/nearby/NearbyPage.tsx        (toggle/category/specialty pills)
+//   ✓ src/components/specialists/SpecialistDetailPage.tsx  (Phase 4 — role/
+//       appointment/Official badges, language pills, kicker+title headers)
+//   ✓ src/components/specialists/SpecialistAvailabilitySection.tsx (Phase 4 —
+//       hardcoded emerald status chip → Badge dot success/muted)
+//   ✓ src/components/specialists/SpecialistsPage.tsx (Phase 4 — specialty pills)
+//   ✓ src/components/specialists/SpecialistCard.tsx  (Phase 4 — +N more overflow)
+//   ✓ src/components/ui/AvailabilityIndicator.tsx    (Phase 4 — emerald-* →
+//       bg-success / text-success-text tokens)
 //
 // Files to convert in future phases (still using inline pill/badge styles):
-//   Phase 4 — public-facing:
+//   Phase 5 — public-facing:
 //     src/components/cards/DoctorCard.tsx          (specialty tag)
-//     src/components/specialists/SpecialistDetailPage.tsx (role/appointment/
-//       Official chips, languages — raw spans, not yet Pill/Badge)
 //     src/components/admin/AdminCorrectionsList.tsx (status badges)
 //     src/components/admin/AdminUserList.tsx        (role badges)
 //     src/components/admin/AdminSidebar.tsx         (count badge)
 //
-//   Phase 4 — filter chips (these are interactive and need Pill onClick):
+//   Phase 5 — filter chips (these are interactive and need Pill onClick):
 //     src/components/facilities/FacilityCategoryFilters.tsx
 //     src/components/diagnostics/DiagnosticsFilterChips.tsx
 //     src/components/doctors/SpecialtyFilterChips.tsx
-//     src/components/specialists/SpecialistsPage.tsx (specialty pills, filters button)
 //
-//   Phase 4 — provider onboarding:
+//   Phase 5 — provider onboarding:
 //     src/components/provider/MilestoneCard.tsx    (status pills)
 //     src/components/provider/steps/Step5MediaForm.tsx
 //     src/components/provider/steps/Step6ReviewForm.tsx

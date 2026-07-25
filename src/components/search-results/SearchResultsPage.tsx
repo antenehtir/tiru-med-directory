@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
-import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
+import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import { filterDoctorsByQuery, filterFacilitiesByQuery } from "@/lib/frontend-search-filters";
 import {
   doctorMatchesListingFilters,
@@ -106,7 +106,7 @@ function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResults
               ) : undefined
             }
             description="Try a different name, area, or category."
-            icon={<SearchOffIcon />}
+            icon={<SearchIcon />}
             title={query ? `No results for "${query}"` : "No results found"}
           />
         )}

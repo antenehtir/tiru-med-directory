@@ -26,14 +26,12 @@ export function AvailabilityIndicator({
     <p className="flex items-center gap-1.5 text-xs">
       <span
         className={`size-1.5 shrink-0 rounded-full ${
-          isAvailableNow ? "bg-emerald-500" : "bg-muted-foreground"
+          isAvailableNow ? "bg-success" : "bg-muted-foreground"
         }`}
       />
       <span
         className={
-          isAvailableNow
-            ? "font-medium text-emerald-700 dark:text-emerald-400"
-            : "text-muted-foreground"
+          isAvailableNow ? "font-medium text-success-text" : "text-muted-foreground"
         }
       >
         {label}

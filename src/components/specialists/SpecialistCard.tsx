@@ -17,6 +17,10 @@ function getInitials(name: string): string {
 
 const OFFICIAL_BADGE_STATUSES = new Set(["facility-owned", "verified"]);
 
+// Matches FacilityCard's service-pill cap so cards stay even height within a
+// grid row when a specialist lists many languages.
+const MAX_VISIBLE_LANGUAGE_PILLS = 3;
+
 export function SpecialistCard({
   specialist,
   distanceLabel,
@@ -30,6 +34,8 @@ export function SpecialistCard({
     .join(", ");
   const isOfficial = OFFICIAL_BADGE_STATUSES.has(specialist.facilityBadge);
   const profileHref = `/specialists/${specialist.slug}`;
+  const visibleLanguages = specialist.languages.slice(0, MAX_VISIBLE_LANGUAGE_PILLS);
+  const overflowLanguageCount = specialist.languages.length - visibleLanguages.length;
 
   return (
     <Link
@@ -90,11 +96,16 @@ export function SpecialistCard({
 
       {specialist.languages.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {specialist.languages.map((lang) => (
+          {visibleLanguages.map((lang) => (
             <Pill key={lang} size="sm" variant="default">
               {lang}
             </Pill>
           ))}
+          {overflowLanguageCount > 0 && (
+            <Pill size="sm" variant="muted">
+              +{overflowLanguageCount} more
+            </Pill>
+          )}
         </div>
       )}
 
