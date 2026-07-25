@@ -5,7 +5,11 @@ import { PageShell } from "@/components/layout/PageShell";
 import { SpecialistDetailPage } from "@/components/specialists/SpecialistDetailPage";
 import { getAllSpecialists, getSpecialistBySlug } from "@/lib/supabase/get-specialists";
 
-export const revalidate = 60;
+// Detail pages show provider live-edits and admin approvals — these must be
+// visible immediately, not bounded by an ISR window. force-dynamic renders
+// fresh on every request (getSpecialistBySlug queries Supabase directly,
+// bypassing the specialists-list cache — see get-specialists.ts).
+export const dynamic = "force-dynamic";
 
 type SpecialistDetailRouteProps = {
   params: Promise<{

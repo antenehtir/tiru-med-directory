@@ -2,20 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { MapPinIcon, PhoneIcon } from "@/components/cards/contact-icons";
-import { FacilityBanner } from "@/components/cards/FacilityCard";
-import {
-  facilityBorderGradientClasses,
-  resolveFacilityCardCategoryKey,
-} from "@/components/cards/facility-category-style";
-import { ShareButton } from "@/components/cards/ShareButton";
-import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
+import { FacilityCard } from "@/components/cards/FacilityCard";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState, MapPinOffIcon } from "@/components/ui/EmptyState";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
-import {
-  createPublicContactActions,
-  getExternalLinkProps,
-} from "@/lib/contact-actions";
+import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
 import { matchesAnyAlias } from "@/lib/frontend-search-filters";
 import {
@@ -272,19 +263,16 @@ export function NearbyPage({
         ).map((tab) => {
           const isActive = tab.value === activeTab;
           return (
-            <button
-              aria-pressed={isActive}
-              className={`flex min-h-11 flex-1 items-center justify-center rounded-xl text-sm font-semibold transition ${
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+            <Pill
+              ariaPressed={isActive}
+              className="min-h-11 flex-1 justify-center"
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              type="button"
+              size="lg"
+              variant={isActive ? "selected" : "default"}
             >
               {tab.label}
-            </button>
+            </Pill>
           );
         })}
       </div>
@@ -296,13 +284,9 @@ export function NearbyPage({
           const isActive = category.value === selectedCategory;
 
           return (
-            <button
-              aria-pressed={isActive}
-              className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-full border px-4 py-2.5 text-center text-sm font-semibold leading-tight transition ${
-                isActive
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-foreground hover:border-strong-border"
-              }`}
+            <Pill
+              ariaPressed={isActive}
+              className="min-h-11"
               key={category.value}
               onClick={() => {
                 setSelectedCategory(category.value);
@@ -311,10 +295,11 @@ export function NearbyPage({
                   setSelectedNearbySpecialty("");
                 }
               }}
-              type="button"
+              size="lg"
+              variant={isActive ? "selected" : "default"}
             >
               {category.label}
-            </button>
+            </Pill>
           );
         })}
       </div>
@@ -328,21 +313,18 @@ export function NearbyPage({
                 : selectedNearbySpecialty === pill.display;
 
             return (
-              <button
-                aria-pressed={isActive}
-                className={`inline-flex min-h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition ${
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-strong-border"
-                }`}
+              <Pill
+                ariaPressed={isActive}
+                className="shrink-0 whitespace-nowrap"
                 key={pill.display}
                 onClick={() =>
                   setSelectedNearbySpecialty(pill.display === "All" ? "" : pill.display)
                 }
-                type="button"
+                size="sm"
+                variant={isActive ? "selected" : "default"}
               >
                 {pill.display}
-              </button>
+              </Pill>
             );
           })}
         </div>
@@ -357,56 +339,65 @@ export function NearbyPage({
       ) : null}
 
       {locationState === "timeout" ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Location is taking longer than expected.
-          </p>
-          <button
-            className="inline-flex min-h-9 items-center justify-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground transition hover:bg-primary-hover"
-            onClick={requestLocation}
-            type="button"
-          >
-            Try again
-          </button>
-        </div>
+        <EmptyState
+          action={
+            <button
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+              onClick={requestLocation}
+              type="button"
+            >
+              Try again
+            </button>
+          }
+          description="We couldn't get a location fix in time. Check your connection and try again."
+          icon={<MapPinOffIcon />}
+          title="Location is taking longer than expected"
+        />
       ) : null}
 
       {locationState === "denied" ? (
-        <div className="grid gap-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Enable location access to find the nearest care.
-            </p>
-            <button
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:border-strong-border"
-              onClick={() => setIsLocationTipOpen((current) => !current)}
-              type="button"
-            >
-              How to enable location
-            </button>
-          </div>
-          {isLocationTipOpen ? (
-            <p className="rounded-xl border border-border bg-muted p-3 text-sm leading-6 text-muted-foreground">
-              In your browser address bar, tap the lock icon and allow Location.
-            </p>
-          ) : null}
-        </div>
+        <EmptyState
+          action={
+            <div className="grid gap-3">
+              <button
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                onClick={() => setIsLocationTipOpen((current) => !current)}
+                type="button"
+              >
+                How to enable location
+              </button>
+              {isLocationTipOpen ? (
+                <p className="rounded-xl border border-border bg-muted p-3 text-sm leading-6 text-muted-foreground">
+                  In your browser address bar, tap the lock icon and allow Location.
+                </p>
+              ) : null}
+            </div>
+          }
+          description="Enable location access to find the nearest care."
+          icon={<MapPinOffIcon />}
+          title="Location access needed"
+        />
       ) : null}
 
       {locationState === "unsupported" ? (
-        <p className="text-sm leading-6 text-muted-foreground">
-          Location is not supported in this browser.
-        </p>
+        <EmptyState
+          description="Try a different browser, or use search or filters to browse facilities instead."
+          icon={<MapPinOffIcon />}
+          title="Location is not supported in this browser"
+        />
       ) : null}
 
       {locationState === "ready" && activeTab === "facilities" ? (
         <section className="grid gap-3">
           {rankedFacilities.length > 0 ? (
             <>
+              <Badge className="w-fit" size="sm" variant="muted">
+                Sorted by distance
+              </Badge>
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {rankedFacilities.map(({ facility, distanceKm }) => (
-                  <NearbyFacilityCard
-                    distanceLabel={`📍 ${formatDistanceKm(distanceKm)}`}
+                  <FacilityCard
+                    distanceLabel={formatDistanceKm(distanceKm)}
                     facility={facility}
                     key={facility.id}
                   />
@@ -417,36 +408,37 @@ export function NearbyPage({
               </p>
             </>
           ) : (
-            <div className="rounded-2xl border border-primary/30 bg-soft-accent p-4">
-              {selectedCategory === "pharmacies" ? (
-                <>
-                  <p className="text-sm font-semibold leading-6 text-primary">
-                    🏥 Pharmacies are being onboarded to Tiru.
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-primary">
-                    We&apos;re actively adding pharmacies across Addis Ababa.{" "}
-                    <Link className="underline underline-offset-2" href="/provider/signup">
-                      List your facility here
+            <EmptyState
+              action={
+                selectedCategory === "pharmacies" ? (
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Link
+                      className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+                      href="/provider/signup"
+                    >
+                      List your facility
                     </Link>
-                    .{" "}
-                    <Link className="underline underline-offset-2" href="/provider/login">
+                    <Link
+                      className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                      href="/provider/login"
+                    >
                       Already registered? Sign in
                     </Link>
-                    .
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold leading-6 text-primary">
-                    📍 Coordinate data for {activeCategoryLabel} providers is being
-                    added.
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-primary">
-                    Check back soon as we add more providers in your area.
-                  </p>
-                </>
-              )}
-            </div>
+                  </div>
+                ) : undefined
+              }
+              description={
+                selectedCategory === "pharmacies"
+                  ? "We're actively adding pharmacies across Addis Ababa."
+                  : "Check back soon as we add more providers in your area."
+              }
+              icon={<MapPinOffIcon />}
+              title={
+                selectedCategory === "pharmacies"
+                  ? "Pharmacies are being onboarded to Tiru"
+                  : `No ${activeCategoryLabel} providers with location data yet`
+              }
+            />
           )}
         </section>
       ) : null}
@@ -454,128 +446,30 @@ export function NearbyPage({
       {locationState === "ready" && activeTab === "specialists" ? (
         <section className="grid gap-3">
           {rankedSpecialists.length > 0 ? (
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {rankedSpecialists.map(({ specialist, distanceKm }) => (
-                <SpecialistCard
-                  distanceLabel={formatDistanceKm(distanceKm)}
-                  key={specialist.id}
-                  specialist={specialist}
-                />
-              ))}
-            </div>
+            <>
+              <Badge className="w-fit" size="sm" variant="muted">
+                Sorted by distance
+              </Badge>
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {rankedSpecialists.map(({ specialist, distanceKm }) => (
+                  <SpecialistCard
+                    distanceLabel={formatDistanceKm(distanceKm)}
+                    key={specialist.id}
+                    specialist={specialist}
+                  />
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="rounded-2xl border border-primary/30 bg-soft-accent p-4">
-              <p className="text-sm font-semibold leading-6 text-primary">
-                📍 Coordinate data for specialists is being added.
-              </p>
-              <p className="mt-1 text-sm leading-6 text-primary">
-                Check back soon as we add more specialists in your area.
-              </p>
-            </div>
+            <EmptyState
+              description="Check back soon as we add more specialists in your area."
+              icon={<MapPinOffIcon />}
+              title="No specialists with location data yet"
+            />
           )}
         </section>
       ) : null}
     </main>
-  );
-}
-
-function NearbyFacilityCard({
-  distanceLabel,
-  facility,
-}: {
-  distanceLabel?: string;
-  facility: NearbyFacility;
-}) {
-  const router = useRouter();
-  const contactActions = createPublicContactActions(facility.contactChannels);
-  const callAction = contactActions.find((action) => action.kind === "phone");
-  const mapAction = contactActions.find((action) => action.kind === "maps");
-  const categoryKey = resolveFacilityCardCategoryKey(facility);
-  const borderGradientClass = facilityBorderGradientClasses[categoryKey];
-  const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
-
-  function handleCardClick() {
-    router.push(detailHref);
-  }
-
-  function stopProp(e: React.MouseEvent | React.TouchEvent) {
-    e.stopPropagation();
-  }
-
-  return (
-    <article
-      className={`group cursor-pointer rounded-2xl bg-gradient-to-br p-[1px] transition ${borderGradientClass}`}
-      onClick={handleCardClick}
-    >
-      <div className="flex h-full min-w-0 flex-col rounded-2xl bg-card shadow-[0_10px_26px_rgba(31,41,55,0.04)] transition active:scale-[0.98] group-hover:shadow-md">
-        <FacilityBanner facility={facility} heightClassName="h-24" />
-
-        <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-          {distanceLabel ? (
-            <p className="text-sm font-semibold text-primary">{distanceLabel}</p>
-          ) : null}
-          <h3 className="break-words text-lg font-semibold leading-snug text-foreground">
-            {facility.name}
-          </h3>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            {facility.location || facility.address}
-          </p>
-
-          {facility.services.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {facility.services.slice(0, 3).map((service) => (
-                <span
-                  key={service}
-                  className="rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground"
-                >
-                  {service}
-                </span>
-              ))}
-            </div>
-          ) : null}
-
-          {facility.workingHours?.trim() ? (
-            <div className="mt-3">
-              <WorkingHoursIndicator hours={facility.workingHours} />
-            </div>
-          ) : null}
-
-          <div
-            className="mt-auto flex gap-2 pt-4"
-            onClick={stopProp}
-            onTouchEnd={stopProp}
-          >
-            {callAction ? (
-              <a
-                className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
-                href={callAction.href}
-                {...getExternalLinkProps(callAction)}
-              >
-                <PhoneIcon className="size-4 shrink-0" />
-                Call
-              </a>
-            ) : null}
-            {mapAction ? (
-              <a
-                className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
-                href={mapAction.href}
-                {...getExternalLinkProps(mapAction)}
-              >
-                <MapPinIcon className="size-4 shrink-0" />
-                Map
-              </a>
-            ) : null}
-            <ShareButton name={facility.name} slug={facility.slug} />
-            <Link
-              className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary-hover active:scale-95"
-              href={detailHref}
-            >
-              View details
-            </Link>
-          </div>
-        </div>
-      </div>
-    </article>
   );
 }
 

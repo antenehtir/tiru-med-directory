@@ -69,8 +69,9 @@
 //   others (e.g. VerificationBadge vs SpecialistCard). TARGET: all = primary.
 //   FIX IN: Phase 1 (trust badges convergence).
 //
-// - VerificationBadge uses hardcoded hex values (#A7F3D0, #ECFDF5, #0F766E)
-//   instead of Tailwind classes or CSS tokens. FIX IN: Phase 1.
+// - VerificationBadge: FIXED in Phase 3 — now a thin adapter delegating to
+//   Badge (variant mapping: community-submitted=warning, facility-owned=info,
+//   verified=success, pending=warning), no more hardcoded hex values.
 //
 // - MilestoneCard, Step5MediaForm, Step6ReviewForm use hardcoded hex colors
 //   (#A7F3D0, #ECFDF5 etc.) matching the --soft-accent/emerald palette but not
@@ -155,10 +156,12 @@ export type ColorVariant =
 // A compact label element. Renders as <button> when onClick provided, else <span>.
 //
 //   variant: default | selected | muted | warning | danger | success | info
-//   size:    sm (text-xs, px-2 py-0.5) | md (text-xs, px-3 py-1) [default: md]
+//   size:    sm (text-xs, px-2 py-0.5) | md (text-xs, px-3 py-1) |
+//            lg (text-sm, px-3 py-1.5) [default: md]
 //   dot:     boolean — renders a size-1.5 rounded-full dot matching variant color
 //   icon:    ReactNode — custom leading element (overrides dot)
 //   onClick: () => void — if provided, renders as <button>
+//   ariaPressed: boolean — for onClick pills used as toggle/tab controls
 //
 // Badge (src/components/ui/Badge.tsx)
 // ────────────────────────────────────
@@ -167,9 +170,27 @@ export type ColorVariant =
 // verification badges, role labels, admin status columns.
 //
 //   variant: default | muted | warning | danger | success | info
-//   size:    sm | md [default: md]
+//   size:    sm | md | lg [default: md]
 //   dot:     boolean — same colored-dot behavior as Pill
 //   icon:    ReactNode — custom leading element
+//   title:   string — native tooltip (used by VerificationBadge)
+//
+// EmptyState (src/components/ui/EmptyState.tsx) — added Phase 3
+// ─────────────────────────────────────────────────────────────
+// Centered zero-result state for listing surfaces: muted circular icon,
+// title (text-lg font-medium), description (text-sm muted), optional action.
+//
+//   icon: ReactNode | description: string | action: ReactNode
+//
+// Skeleton / SkeletonCard / SkeletonCardGrid / SkeletonSpecialistCard(Grid)
+// (src/components/ui/Skeleton.tsx) — added Phase 3
+// ─────────────────────────────────────────────────────────────
+// Skeleton is the base animate-pulse block. SkeletonCard mirrors
+// FacilityCard's exact structure (banner + title/location + pill row + hours
+// line + 4-button action row) so loading.tsx routes don't shift layout when
+// real content mounts. SkeletonSpecialistCard mirrors SpecialistCard's
+// different shape (avatar + text, no banner/action row) — do not reuse
+// SkeletonCard for specialist grids.
 //
 // VARIANT → VISUAL MAPPING (both components):
 //   default  → bordered, bg-card/bg-muted, text-foreground
@@ -182,31 +203,35 @@ export type ColorVariant =
 
 // ─── 5. OUTSTANDING CONVERSIONS ──────────────────────────────────────────────
 //
-// Files converted in Phase 0 (this commit):
+// Files converted through Phase 3:
 //   ✓ src/components/facility-detail/FacilityDetailHeader.tsx
 //   ✓ src/components/specialists/SpecialistCard.tsx
 //   ✓ src/components/facility-detail/FacilityDoctorsSection.tsx
 //   ✓ src/components/facility-detail/FacilityHoursSection.tsx
 //   ✓ src/components/admin/AdminFacilityList.tsx
 //   ✓ src/components/admin/AdminClaimsList.tsx
+//   ✓ src/components/facility-detail/FacilityInformationSection.tsx
+//   ✓ src/components/facility-detail/FacilityServicesSection.tsx
+//   ✓ src/components/trust/VerificationBadge.tsx  (now delegates to Badge)
+//   ✓ src/components/cards/FacilityCard.tsx       (service pills, +N more overflow)
+//   ✓ src/components/nearby/NearbyPage.tsx        (toggle/category/specialty pills)
 //
 // Files to convert in future phases (still using inline pill/badge styles):
-//   Phase 1 — public-facing, high-visibility:
-//     src/components/trust/VerificationBadge.tsx   (hardcoded hex → Badge)
-//     src/components/cards/FacilityCard.tsx        (service tag pills)
+//   Phase 4 — public-facing:
 //     src/components/cards/DoctorCard.tsx          (specialty tag)
-//     src/components/facility-detail/FacilityInformationSection.tsx (tag chips)
-//     src/components/facility-detail/FacilityServicesSection.tsx    (service pills)
+//     src/components/specialists/SpecialistDetailPage.tsx (role/appointment/
+//       Official chips, languages — raw spans, not yet Pill/Badge)
 //     src/components/admin/AdminCorrectionsList.tsx (status badges)
 //     src/components/admin/AdminUserList.tsx        (role badges)
 //     src/components/admin/AdminSidebar.tsx         (count badge)
 //
-//   Phase 2 — filter chips (these are interactive and need Pill onClick):
+//   Phase 4 — filter chips (these are interactive and need Pill onClick):
 //     src/components/facilities/FacilityCategoryFilters.tsx
 //     src/components/diagnostics/DiagnosticsFilterChips.tsx
 //     src/components/doctors/SpecialtyFilterChips.tsx
+//     src/components/specialists/SpecialistsPage.tsx (specialty pills, filters button)
 //
-//   Phase 2 — provider onboarding:
+//   Phase 4 — provider onboarding:
 //     src/components/provider/MilestoneCard.tsx    (status pills)
 //     src/components/provider/steps/Step5MediaForm.tsx
 //     src/components/provider/steps/Step6ReviewForm.tsx
@@ -214,4 +239,6 @@ export type ColorVariant =
 // Export variant type so consumers can be type-checked
 export type PillVariant = "default" | "selected" | "muted" | "warning" | "danger" | "success" | "info";
 export type BadgeVariant = "default" | "muted" | "warning" | "danger" | "success" | "info";
-export type PillSize = "sm" | "md";
+// "lg" added in Phase 3 to absorb VerificationBadge's larger banner-badge size
+// (was a one-off "sm"|"lg" prop on that component) into the shared scale.
+export type PillSize = "sm" | "md" | "lg";

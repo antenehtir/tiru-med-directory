@@ -2,6 +2,7 @@
 
 import { Suspense, type ReactNode } from "react";
 import { FacilityCardGrid } from "@/components/cards/FacilityCardGrid";
+import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
 import { filterFacilitiesByQuery, type FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { facilityMatchesListingFilters } from "@/lib/listing-filters";
 import type { Facility } from "@/types/facility";
@@ -71,9 +72,22 @@ function FacilityListingExperienceInner({
         <FacilityCardGrid facilities={results} />
       ) : (
         emptyState ?? (
-          <p className="text-sm leading-6 text-muted-foreground">
-            No matches yet. Try clearing filters or searching another term.
-          </p>
+          <EmptyState
+            action={
+              visibleFilterCount > 0 || query ? (
+                <button
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() => resetFilters(lockedType)}
+                  type="button"
+                >
+                  Clear filters
+                </button>
+              ) : undefined
+            }
+            description="Try a different name, area, or category."
+            icon={<SearchOffIcon />}
+            title="No facilities found"
+          />
         )
       )}
     </div>

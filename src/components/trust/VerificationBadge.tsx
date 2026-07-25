@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/Badge";
+import type { BadgeVariant, PillSize } from "@/lib/design-tokens";
 import type { VerificationStatus } from "@/types/verification";
 
 type VerificationBadgeProps = {
@@ -8,45 +10,37 @@ type VerificationBadgeProps = {
 
 const badgeContent: Record<
   VerificationStatus,
-  { label: string; className: string; title: string }
+  { label: string; variant: BadgeVariant; title: string }
 > = {
   "community-submitted": {
     label: "CS",
-    className:
-      "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300",
+    variant: "warning",
     title: "Community submitted — verify details with provider",
   },
   "facility-owned": {
     label: "Official",
-    className:
-      "border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300",
+    variant: "info",
     title: "Managed by the facility — information is provider-maintained",
   },
   verified: {
     label: "✓",
-    className:
-      "border border-[#A7F3D0] bg-[#ECFDF5] text-[#0F766E] dark:border-[#0F766E] dark:bg-[#064E3B] dark:text-[#A7F3D0]",
+    variant: "success",
     title: "Verified by Tiru — independently confirmed",
   },
   pending: {
     label: "Pending",
-    className:
-      "border border-[#FCD34D] bg-[#FEF3C7] text-[#92400E] dark:border-[#B45309] dark:bg-[#451A03] dark:text-[#FCD34D]",
+    variant: "warning",
     title: "Pending verification",
   },
 };
 
 export function VerificationBadge({ status, size = "sm" }: VerificationBadgeProps) {
   const badge = badgeContent[status];
+  const badgeSize: PillSize = size === "lg" ? "lg" : "sm";
 
   return (
-    <span
-      className={`inline-flex max-w-full shrink-0 items-center rounded-full border text-center font-bold leading-4 ${badge.className} ${
-        size === "lg" ? "px-3 py-1.5 text-sm" : "px-2 py-0.5 text-xs"
-      }`}
-      title={badge.title}
-    >
+    <Badge className="!font-bold" size={badgeSize} title={badge.title} variant={badge.variant}>
       {badge.label}
-    </span>
+    </Badge>
   );
 }

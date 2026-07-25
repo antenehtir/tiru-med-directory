@@ -200,7 +200,10 @@ export async function getSimilarFacilities(
 
 let cachedFacilities: Facility[] | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 60 * 60 * 1000;
+// Bounds staleness for getFacilitiesFromDB() consumers to match the 60s
+// route-level revalidate on listing pages (was 1hr — the root cause of
+// listing pages needing manual cache-busting redeploys to show new data).
+const CACHE_TTL = 60 * 1000;
 
 export async function getFacilitiesFromDB(): Promise<Facility[]> {
   if (cachedFacilities && Date.now() - cacheTime < CACHE_TTL) {

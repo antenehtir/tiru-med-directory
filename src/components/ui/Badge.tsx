@@ -34,6 +34,8 @@ const variantClasses: Record<BadgeVariant, string> = {
 const sizeClasses: Record<PillSize, string> = {
   sm: "px-2 py-0.5 text-xs gap-1",
   md: "px-2.5 py-0.5 text-xs gap-1.5",
+  // Prominent — banner-overlay badges (e.g. verification badge on card banners)
+  lg: "px-3 py-1.5 text-sm gap-2",
 };
 
 const dotClasses: Record<BadgeVariant, string> = {
@@ -51,6 +53,7 @@ type BadgeProps = {
   dot?: boolean;
   icon?: ReactNode;
   className?: string;
+  title?: string;
   children: ReactNode;
 };
 
@@ -60,6 +63,7 @@ export function Badge({
   dot = false,
   icon,
   className = "",
+  title,
   children,
 }: BadgeProps) {
   const prefix = icon ?? (dot ? (
@@ -67,7 +71,10 @@ export function Badge({
   ) : null);
 
   return (
-    <span className={`${base} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}>
+    <span
+      className={`${base} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      title={title}
+    >
       {prefix}
       {children}
     </span>

@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
+import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
 import { filterDoctorsByQuery, filterFacilitiesByQuery } from "@/lib/frontend-search-filters";
 import {
   doctorMatchesListingFilters,
@@ -92,10 +93,22 @@ function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResults
             ))}
           </div>
         ) : (
-          <p className="text-sm leading-6 text-muted-foreground">
-            No results{query ? ` for '${query}'` : ""}. Try a different name, area, or
-            category.
-          </p>
+          <EmptyState
+            action={
+              activeFilterCount > 0 || query ? (
+                <button
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() => resetFilters()}
+                  type="button"
+                >
+                  Clear filters
+                </button>
+              ) : undefined
+            }
+            description="Try a different name, area, or category."
+            icon={<SearchOffIcon />}
+            title={query ? `No results for "${query}"` : "No results found"}
+          />
         )}
       </div>
     </PageContainer>

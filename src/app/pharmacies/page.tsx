@@ -5,7 +5,9 @@ import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { normalizeSearchParam } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
-export const revalidate = 3600;
+// 1hr revalidate meant edits/approvals could take up to an hour to appear —
+// matched to the 60s window used by the other listing pages.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Pharmacies — Tiru",

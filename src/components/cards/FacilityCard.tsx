@@ -20,8 +20,13 @@ import {
 } from "@/lib/contact-actions";
 import type { Facility } from "@/types/facility";
 
+// Cap visible service pills so facilities with long service lists don't grow
+// cards unevenly tall within a grid row — overflow collapses to "+N more".
+const MAX_VISIBLE_SERVICE_PILLS = 3;
+
 type FacilityCardProps = {
   facility: Facility;
+  distanceLabel?: string;
 };
 
 type FacilityBannerProps = {
@@ -64,7 +69,29 @@ export function FacilityBanner({
   );
 }
 
-export function FacilityCard({ facility }: FacilityCardProps) {
+function ServicePillRow({ services }: { services: string[] }) {
+  if (services.length === 0) return null;
+
+  const visible = services.slice(0, MAX_VISIBLE_SERVICE_PILLS);
+  const overflowCount = services.length - visible.length;
+
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {visible.map((service) => (
+        <Pill key={service} variant="muted">
+          {service}
+        </Pill>
+      ))}
+      {overflowCount > 0 ? (
+        <Pill variant="muted">+{overflowCount} more</Pill>
+      ) : null}
+    </div>
+  );
+}
+
+// The canonical facility card — used in the facilities/search/category grids,
+// Nearby (with an optional distanceLabel), and Similar Facilities.
+export function FacilityCard({ facility, distanceLabel }: FacilityCardProps) {
   const router = useRouter();
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const contactActions = createPublicContactActions(facility.contactChannels);
@@ -90,23 +117,21 @@ export function FacilityCard({ facility }: FacilityCardProps) {
         <FacilityBanner facility={facility} />
 
         <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
+          {distanceLabel ? (
+            <p className="mb-1 text-sm font-semibold text-primary">
+              📍 {distanceLabel}
+            </p>
+          ) : null}
+
           <h3 className="break-words text-lg font-semibold leading-snug text-foreground">
             {facility.name}
           </h3>
 
           <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-            {facility.location}
+            {facility.location || facility.address}
           </p>
 
-          {facility.services.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {facility.services.slice(0, 3).map((service) => (
-                <Pill key={service} variant="muted">
-                  {service}
-                </Pill>
-              ))}
-            </div>
-          ) : null}
+          <ServicePillRow services={facility.services} />
 
           {facility.workingHours?.trim() ? (
             <div className="mt-4 border-t border-border pt-3">
@@ -115,13 +140,13 @@ export function FacilityCard({ facility }: FacilityCardProps) {
           ) : null}
 
           <div
-            className="mt-3 flex gap-2"
+            className="mt-auto flex gap-2 pt-3"
             onClick={stopProp}
             onTouchEnd={stopProp}
           >
             {callAction ? (
               <a
-                className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
+                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
                 href={callAction.href}
                 {...getExternalLinkProps(callAction)}
               >
@@ -131,7 +156,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
             ) : null}
             {mapAction ? (
               <a
-                className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
+                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-card text-center text-xs font-semibold text-foreground transition-all duration-150 hover:border-primary/60 hover:bg-primary/5 active:scale-95 active:border-primary active:bg-primary/10"
                 href={mapAction.href}
                 {...getExternalLinkProps(mapAction)}
               >
@@ -141,7 +166,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
             ) : null}
             <ShareButton name={facility.name} slug={facility.slug} />
             <Link
-              className="flex min-h-9 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary-hover active:scale-95"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary text-center text-xs font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary-hover active:scale-95"
               href={detailHref}
             >
               View details
@@ -150,5 +175,42 @@ export function FacilityCard({ facility }: FacilityCardProps) {
         </div>
       </div>
     </article>
+  );
+}
+
+type CompactFacilityCardProps = {
+  facility: Facility;
+  className?: string;
+};
+
+// Compact variant — no action row, smaller banner. Used for at-a-glance
+// browsing contexts (landing page "Recently added" strip) where the full
+// action row would be premature before the user has committed to a facility.
+export function CompactFacilityCard({
+  facility,
+  className = "",
+}: CompactFacilityCardProps) {
+  return (
+    <Link
+      className={`group block rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-transparent p-[1px] transition hover:from-primary/40 active:scale-[0.98] ${className}`}
+      href={facility.detailHref ?? `/facilities/${facility.slug}`}
+    >
+      <div className="flex h-full min-w-0 flex-col rounded-2xl bg-card shadow-[0_10px_26px_rgba(31,41,55,0.04)] group-hover:shadow-md">
+        <FacilityBanner facility={facility} heightClassName="h-24" />
+        <div className="flex flex-1 flex-col px-3 pb-3 pt-2">
+          <h3 className="line-clamp-2 break-words text-base font-semibold leading-snug text-foreground">
+            {facility.name}
+          </h3>
+          <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+            {facility.location}
+          </p>
+          {facility.workingHours?.trim() ? (
+            <div className="mt-2">
+              <WorkingHoursIndicator hours={facility.workingHours} />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </Link>
   );
 }

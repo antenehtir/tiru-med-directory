@@ -9,7 +9,11 @@ import {
   getSimilarFacilities,
 } from "@/lib/supabase/get-facilities";
 
-export const revalidate = 60;
+// Detail pages show provider live-edits and admin approvals — these must be
+// visible immediately, not bounded by an ISR window. force-dynamic renders
+// fresh on every request (getFacilityBySlug already queries Supabase
+// directly, uncached).
+export const dynamic = "force-dynamic";
 
 type FacilityDetailRouteProps = {
   params: Promise<{

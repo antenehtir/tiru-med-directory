@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { EmptyState, SearchOffIcon } from "@/components/ui/EmptyState";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { SpecialistCard } from "./SpecialistCard";
 import {
@@ -151,9 +152,26 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
             ))}
           </div>
         ) : (
-          <p className="text-sm leading-6 text-muted-foreground">
-            No specialists found — try different filters.
-          </p>
+          <EmptyState
+            action={
+              activeFilterCount > 0 || query || activeSpecialty !== ALL_SPECIALTIES_LABEL ? (
+                <button
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() => {
+                    setQuery("");
+                    setActiveSpecialty(ALL_SPECIALTIES_LABEL);
+                    setFilters(EMPTY_SPECIALIST_FILTERS);
+                  }}
+                  type="button"
+                >
+                  Clear filters
+                </button>
+              ) : undefined
+            }
+            description="Try a different name, specialty, or facility."
+            icon={<SearchOffIcon />}
+            title="No specialists found"
+          />
         )}
       </div>
     </PageContainer>

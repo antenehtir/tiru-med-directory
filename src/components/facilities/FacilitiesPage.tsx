@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FacilityListingExperience } from "@/components/search/FacilityListingExperience";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import type { Facility } from "@/types/facility";
 import { facilityCategoryIcons } from "./category-icons";
@@ -36,23 +37,19 @@ export function FacilitiesPage({
             facilities={facilities}
             lockedType={activeCategory}
             emptyState={
-              <section className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-                <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <CategoryIcon className="size-7" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  No {categoryLabel.toLowerCase()} listed yet
-                </h3>
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                  Be the first to add one.
-                </p>
-                <Link
-                  className="mt-4 inline-flex min-h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
-                  href="/provider/signup"
-                >
-                  List your facility
-                </Link>
-              </section>
+              <EmptyState
+                action={
+                  <Link
+                    className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+                    href="/provider/signup"
+                  >
+                    List your facility &rarr;
+                  </Link>
+                }
+                description="Check back soon, or list your facility."
+                icon={<CategoryIcon className="size-7" />}
+                title={`No ${categoryLabel.toLowerCase()} listed yet`}
+              />
             }
           />
           <p className="text-sm text-muted-foreground">
@@ -95,22 +92,7 @@ export function FacilitiesPage({
               Reviewed facility information.
             </p>
           </div>
-          <FacilityListingExperience
-            facilities={facilities}
-            emptyState={
-              <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center">
-                <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl border border-border bg-muted text-sm font-bold text-muted-foreground">
-                  0
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  No facility matches yet
-                </h3>
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                  Try another facility category or return to all facilities.
-                </p>
-              </section>
-            }
-          />
+          <FacilityListingExperience facilities={facilities} />
         </section>
 
         <p className="text-sm text-muted-foreground">

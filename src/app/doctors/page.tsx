@@ -9,7 +9,9 @@ import { getSupabasePublicDoctorCards } from "@/lib/supabase/doctors-public-read
 import type { PublicProviderCard } from "@/types/public-listings";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 
-export const revalidate = 3600;
+// 1hr revalidate meant edits/approvals could take up to an hour to appear —
+// matched to the 60s window used by the other listing pages.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Specialists — Tiru",

@@ -105,15 +105,13 @@ function flattenFacilityDoctors(row: DBFacilityRow): SpecialistDetail[] {
 // Same in-memory-cache-with-TTL pattern as getFacilitiesFromDB() in
 // get-facilities.ts — doctors aren't in their own table, so every request
 // would otherwise re-flatten every active facility's doctors jsonb column.
+// Bounds staleness for the list view to match the 60s route-level revalidate
+// on /specialists and /nearby (was 1hr).
 let cachedSpecialists: SpecialistDetail[] | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 60 * 60 * 1000;
+const CACHE_TTL = 60 * 1000;
 
-async function fetchAllSpecialists(): Promise<SpecialistDetail[]> {
-  if (cachedSpecialists && Date.now() - cacheTime < CACHE_TTL) {
-    return cachedSpecialists;
-  }
-
+async function queryAllSpecialistsFromDB(): Promise<SpecialistDetail[] | null> {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -128,24 +126,40 @@ async function fetchAllSpecialists(): Promise<SpecialistDetail[]> {
 
     if (error || !data) {
       console.warn("Failed to fetch specialists:", error?.message);
-      return cachedSpecialists ?? [];
+      return null;
     }
 
-    const flattened = (data as DBFacilityRow[]).flatMap(flattenFacilityDoctors);
-    cachedSpecialists = flattened;
-    cacheTime = Date.now();
-    return flattened;
+    return (data as DBFacilityRow[]).flatMap(flattenFacilityDoctors);
   } catch (err) {
     console.warn("Specialists fetch failed:", err);
-    return cachedSpecialists ?? [];
+    return null;
   }
+}
+
+async function fetchAllSpecialists(): Promise<SpecialistDetail[]> {
+  if (cachedSpecialists && Date.now() - cacheTime < CACHE_TTL) {
+    return cachedSpecialists;
+  }
+
+  const fresh = await queryAllSpecialistsFromDB();
+  if (fresh) {
+    cachedSpecialists = fresh;
+    cacheTime = Date.now();
+    return fresh;
+  }
+
+  return cachedSpecialists ?? [];
 }
 
 export async function getAllSpecialists(): Promise<SpecialistListItem[]> {
   return fetchAllSpecialists();
 }
 
+// The specialist detail route is force-dynamic — provider edits and admin
+// approvals must be visible instantly, so this always queries fresh rather
+// than reading the list cache above (which list views tolerate at 60s TTL).
 export async function getSpecialistBySlug(slug: string): Promise<SpecialistDetail | null> {
-  const specialists = await fetchAllSpecialists();
-  return specialists.find((specialist) => specialist.slug === slug) ?? null;
+  const fresh = await queryAllSpecialistsFromDB();
+  const source = fresh ?? cachedSpecialists ?? [];
+  return source.find((specialist) => specialist.slug === slug) ?? null;
 }

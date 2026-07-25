@@ -36,6 +36,8 @@ const sizeClasses: Record<PillSize, string> = {
   sm: "px-2 py-0.5 text-xs gap-1",
   // Standard — most pills across the UI
   md: "px-3 py-1 text-xs gap-1.5",
+  // Prominent — banner-overlay badges (e.g. verification badge on card banners)
+  lg: "px-3 py-1.5 text-sm gap-2",
 };
 
 // Colored dot matching the variant — for status indicators ("Available now", etc.)
@@ -57,6 +59,8 @@ type PillProps = {
   onClick?: () => void;
   className?: string;
   children: ReactNode;
+  // For onClick pills used as toggle/tab controls (e.g. category filters).
+  ariaPressed?: boolean;
 };
 
 export function Pill({
@@ -67,6 +71,7 @@ export function Pill({
   onClick,
   className = "",
   children,
+  ariaPressed,
 }: PillProps) {
   const cls = `${base} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
@@ -76,7 +81,7 @@ export function Pill({
 
   if (onClick) {
     return (
-      <button className={cls} onClick={onClick} type="button">
+      <button aria-pressed={ariaPressed} className={cls} onClick={onClick} type="button">
         {prefix}
         {children}
       </button>
