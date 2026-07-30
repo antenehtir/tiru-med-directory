@@ -237,23 +237,56 @@ export type ColorVariant =
 //   ✓ src/components/specialists/SpecialistCard.tsx  (Phase 4 — +N more overflow)
 //   ✓ src/components/ui/AvailabilityIndicator.tsx    (Phase 4 — emerald-* →
 //       bg-success / text-success-text tokens)
+//   ✓ src/components/provider/ProviderConsoleShell.tsx (Phase 5 — StatusBadge
+//       → Badge success/warning/danger/muted; teal-* → primary token)
+//   ✓ src/components/provider/steps/Step1IdentityForm.tsx (Phase 5 — branches/
+//       languages/patient-groups native checkbox groups → PillOption)
+//   ✓ src/components/provider/steps/Step3ServicesForm.tsx (Phase 5 — all
+//       onClick pill helpers → literal Pill; removable tag chips →
+//       getPillClassName("selected"))
+//   ✓ src/components/provider/steps/Step4DoctorsForm.tsx (Phase 5 — languages/
+//       appointment-required → Pill)
+//   ✓ src/components/provider/steps/Step5MediaForm.tsx (Phase 5 — hardcoded
+//       hex "Document on file" chips → Badge success; RequiredForApproval →
+//       Badge warning)
+//   ✓ src/components/provider/steps/Step6ReviewForm.tsx (Phase 5 — local Pill/
+//       Chip → Badge; ringColorClass/status text → primary/warning/
+//       success-text tokens)
+//   ✓ src/components/provider/SettingsForm.tsx (Phase 5 — error/success
+//       messaging → danger/success token banners)
+//
+// New shared provider-portal components (Phase 5):
+//   src/components/provider/Spinner.tsx    — border-spin loader, tone=
+//     "primary" (default, for light backgrounds) | "on-primary" (for spinners
+//     rendered on solid bg-primary buttons — default tone is illegible there)
+//   src/components/provider/SubmitButton.tsx — useFormStatus-based submit
+//     button for <form action={serverAction}> flows; must be a form
+//     descendant. Steps 4/5/6 and settings don't use <form action>, so they
+//     build the equivalent loading button manually from their own
+//     useTransition() isPending — see those files for the pattern.
+//   src/components/provider/AutoSaveIndicator.tsx — single "Saving…" /
+//     "Draft saved {time}" indicator replacing each step's own copy
+//   src/components/provider/PillOption.tsx — Pill-styled wrapper around a
+//     REAL native <input type="checkbox"/"radio">, for onboarding fields that
+//     submit via native FormData (name=/value= read server-side). Visually
+//     identical to Pill (shares getPillClassName) but keeps native form
+//     semantics — do NOT use plain <Pill onClick> where a field's value is
+//     read via formData.get()/getAll() rather than mirrored to a hidden input.
 //
 // Files to convert in future phases (still using inline pill/badge styles):
-//   Phase 5 — public-facing:
+//   Phase 6 — public-facing:
 //     src/components/cards/DoctorCard.tsx          (specialty tag)
 //     src/components/admin/AdminCorrectionsList.tsx (status badges)
 //     src/components/admin/AdminUserList.tsx        (role badges)
 //     src/components/admin/AdminSidebar.tsx         (count badge)
 //
-//   Phase 5 — filter chips (these are interactive and need Pill onClick):
+//   Phase 6 — filter chips (these are interactive and need Pill onClick):
 //     src/components/facilities/FacilityCategoryFilters.tsx
 //     src/components/diagnostics/DiagnosticsFilterChips.tsx
 //     src/components/doctors/SpecialtyFilterChips.tsx
 //
-//   Phase 5 — provider onboarding:
+//   Phase 6 — provider onboarding:
 //     src/components/provider/MilestoneCard.tsx    (status pills)
-//     src/components/provider/steps/Step5MediaForm.tsx
-//     src/components/provider/steps/Step6ReviewForm.tsx
 
 // Export variant type so consumers can be type-checked
 export type PillVariant = "default" | "selected" | "muted" | "warning" | "danger" | "success" | "info";

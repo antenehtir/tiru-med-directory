@@ -2,6 +2,9 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { saveStep1, autoSaveStep1 } from "@/app/provider/(console)/onboarding/identity/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { PillOption } from "@/components/provider/PillOption";
+import { SubmitButton } from "@/components/provider/SubmitButton";
 import {
   OWNERSHIP_TYPES,
   LANGUAGES,
@@ -126,11 +129,7 @@ export function Step1IdentityForm({
               Tell patients who you are. Fields marked * are required.
             </p>
           </div>
-          {lastSaved && (
-            <p className="shrink-0 text-xs text-muted-foreground">
-              Draft saved {lastSaved.toLocaleTimeString()}
-            </p>
-          )}
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
         <div className="space-y-4">
@@ -210,36 +209,36 @@ export function Step1IdentityForm({
               Does your facility have multiple branches?
             </label>
             <div className="flex gap-3">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={!hasBranches}
-                  name="_has_branches"
-                  onChange={() => {
-                    setHasBranches(false);
-                    setBranchCount(1);
-                    autoSave({ branch_count: 1 });
-                  }}
-                  type="radio"
-                  value="no"
-                />
+              <PillOption
+                checked={!hasBranches}
+                name="_has_branches"
+                onChange={() => {
+                  setHasBranches(false);
+                  setBranchCount(1);
+                  autoSave({ branch_count: 1 });
+                }}
+                size="lg"
+                type="radio"
+                value="no"
+              >
                 No, single location
-              </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={hasBranches}
-                  name="_has_branches"
-                  onChange={() => {
-                    setHasBranches(true);
-                    if (branchCount <= 1) {
-                      setBranchCount(2);
-                      autoSave({ branch_count: 2 });
-                    }
-                  }}
-                  type="radio"
-                  value="yes"
-                />
+              </PillOption>
+              <PillOption
+                checked={hasBranches}
+                name="_has_branches"
+                onChange={() => {
+                  setHasBranches(true);
+                  if (branchCount <= 1) {
+                    setBranchCount(2);
+                    autoSave({ branch_count: 2 });
+                  }
+                }}
+                size="lg"
+                type="radio"
+                value="yes"
+              >
                 Yes, multiple branches
-              </label>
+              </PillOption>
             </div>
 
             {hasBranches && (
@@ -314,19 +313,16 @@ export function Step1IdentityForm({
             </div>
             <div className="flex flex-wrap gap-2">
               {LANGUAGES.map((lang) => (
-                <label
+                <PillOption
+                  checked={languages.includes(lang)}
                   key={lang}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                  name="languages"
+                  onChange={() => toggleLanguage(lang)}
+                  size="lg"
+                  value={lang}
                 >
-                  <input
-                    checked={languages.includes(lang)}
-                    name="languages"
-                    onChange={() => toggleLanguage(lang)}
-                    type="checkbox"
-                    value={lang}
-                  />
                   {lang}
-                </label>
+                </PillOption>
               ))}
             </div>
           </div>
@@ -352,29 +348,25 @@ export function Step1IdentityForm({
             </div>
             <div className="flex flex-wrap gap-2">
               {PATIENT_GROUPS.map((group) => (
-                <label
+                <PillOption
+                  checked={patientGroups.includes(group)}
                   key={group}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                  name="patient_groups"
+                  onChange={() => togglePatientGroup(group)}
+                  size="lg"
+                  value={group}
                 >
-                  <input
-                    checked={patientGroups.includes(group)}
-                    name="patient_groups"
-                    onChange={() => togglePatientGroup(group)}
-                    type="checkbox"
-                    value={group}
-                  />
                   {group}
-                </label>
+                </PillOption>
               ))}
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={otherGroupSelected}
-                  name="patient_groups_other"
-                  onChange={toggleOtherGroup}
-                  type="checkbox"
-                />
+              <PillOption
+                checked={otherGroupSelected}
+                name="patient_groups_other"
+                onChange={toggleOtherGroup}
+                size="lg"
+              >
                 Other
-              </label>
+              </PillOption>
             </div>
             {otherGroupSelected && (
               <input
@@ -390,21 +382,15 @@ export function Step1IdentityForm({
       </div>
 
       {validationError && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
           {validationError}
         </p>
       )}
 
-      <div className="flex items-center justify-end gap-3">
-        {isPending && (
-          <span className="text-xs text-muted-foreground">Saving…</span>
-        )}
-        <button
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          type="submit"
-        >
-          Save & continue →
-        </button>
+      <div className="flex items-center justify-end">
+        <SubmitButton className="px-6" loadingText="Saving…">
+          Save &amp; continue →
+        </SubmitButton>
       </div>
     </form>
   );

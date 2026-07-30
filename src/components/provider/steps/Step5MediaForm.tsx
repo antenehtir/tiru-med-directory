@@ -7,6 +7,9 @@ import {
   saveStep5AndContinue,
   type Step5Data,
 } from "@/app/provider/(console)/onboarding/media/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { Spinner } from "@/components/provider/Spinner";
+import { Badge } from "@/components/ui/Badge";
 
 type UploadStatus = "idle" | "uploading";
 
@@ -32,26 +35,34 @@ function getExpiryFlag(dateStr: string): ExpiryFlag | null {
   if (diffDays >= 31) {
     return {
       label: `⚠ Expiring in ${diffDays} days — renew soon`,
-      className: "border-amber-300 bg-amber-50 text-amber-800",
+      // Amber "renew soon" tier — matches warning token colors.
+      className:
+        "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
     };
   }
   if (diffDays >= 1) {
     return {
       label: `⚠ Expiring in ${diffDays} days — urgent`,
-      className: "border-orange-300 bg-orange-50 text-orange-800",
+      // Orange "urgent" tier — intentionally distinct from both warning
+      // (amber) and danger (red); there's a real 3-step urgency gradient
+      // here (renew soon / urgent / expired) that a 2-variant badge system
+      // would collapse, so this stays a bespoke color rather than Badge.
+      className:
+        "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
     };
   }
   return {
     label: "✗ Expired — please upload renewed document",
-    className: "border-red-300 bg-red-50 text-red-700",
+    className:
+      "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
   };
 }
 
 function RequiredForApproval() {
   return (
-    <span className="ml-1.5 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+    <Badge className="ml-1.5 uppercase tracking-wide" size="sm" variant="warning">
       Required for approval
-    </span>
+    </Badge>
   );
 }
 
@@ -260,7 +271,7 @@ export function Step5MediaForm({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
         Photos significantly improve patient trust and your listing&apos;s completeness score.
         The license document is used only for admin verification.
       </div>
@@ -275,11 +286,7 @@ export function Step5MediaForm({
               the street or main gate.
             </p>
           </div>
-          {lastSaved && (
-            <p className="shrink-0 text-xs text-muted-foreground">
-              Saved {lastSaved.toLocaleTimeString()}
-            </p>
-          )}
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
         {urls.entrance_photo_url ? (
@@ -307,7 +314,7 @@ export function Step5MediaForm({
           >
             {entranceStatus === "uploading" ? (
               <>
-                <span className="size-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                <Spinner className="size-6" />
                 <span className="text-sm text-muted-foreground">Uploading…</span>
               </>
             ) : (
@@ -380,7 +387,7 @@ export function Step5MediaForm({
           >
             {logoStatus === "uploading" ? (
               <>
-                <span className="size-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                <Spinner className="size-6" />
                 <span className="text-sm text-muted-foreground">Uploading…</span>
               </>
             ) : (
@@ -447,9 +454,9 @@ export function Step5MediaForm({
                   <p className="font-medium text-foreground">Document on file</p>
                 )}
               </div>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-2.5 py-1 text-xs font-bold text-[#0F766E]">
+              <Badge className="shrink-0 font-bold" variant="success">
                 ✓ {licenseFileMeta ? "Document received" : "Document on file"}
-              </span>
+              </Badge>
             </div>
             <button
               className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
@@ -469,7 +476,7 @@ export function Step5MediaForm({
           >
             {licenseStatus === "uploading" ? (
               <>
-                <span className="size-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                <Spinner className="size-6" />
                 <span className="text-sm text-muted-foreground">Uploading…</span>
               </>
             ) : (
@@ -568,9 +575,9 @@ export function Step5MediaForm({
                   <p className="font-medium text-foreground">Document on file</p>
                 )}
               </div>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-2.5 py-1 text-xs font-bold text-[#0F766E]">
+              <Badge className="shrink-0 font-bold" variant="success">
                 ✓ {businessLicenseFileMeta ? "Document received" : "Document on file"}
-              </span>
+              </Badge>
             </div>
             <button
               className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
@@ -590,7 +597,7 @@ export function Step5MediaForm({
           >
             {businessLicenseStatus === "uploading" ? (
               <>
-                <span className="size-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                <Spinner className="size-6" />
                 <span className="text-sm text-muted-foreground">Uploading…</span>
               </>
             ) : (
@@ -679,22 +686,26 @@ export function Step5MediaForm({
 
       <div className="flex items-center justify-between">
         <a
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
           href="/provider/onboarding/doctors"
         >
           ← Back
         </a>
-        <div className="flex items-center gap-3">
-          {isPending && <span className="text-xs text-muted-foreground">Saving…</span>}
-          <button
-            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!permissionChecked}
-            onClick={handleSaveAndContinue}
-            type="button"
-          >
-            Save & continue →
-          </button>
-        </div>
+        <button
+          className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!permissionChecked || isPending}
+          onClick={handleSaveAndContinue}
+          type="button"
+        >
+          {isPending ? (
+            <>
+              <Spinner tone="on-primary" />
+              Saving…
+            </>
+          ) : (
+            "Save & continue →"
+          )}
+        </button>
       </div>
     </div>
   );

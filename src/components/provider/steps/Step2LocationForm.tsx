@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { saveStep2, autoSaveStep2 } from "@/app/provider/(console)/onboarding/location/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { SubmitButton } from "@/components/provider/SubmitButton";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 
 const MapPinPicker = dynamic(
@@ -149,11 +151,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               Help patients find you. Fields marked * are required.
             </p>
           </div>
-          {lastSaved && (
-            <p className="shrink-0 text-xs text-muted-foreground">
-              Draft saved {lastSaved.toLocaleTimeString()}
-            </p>
-          )}
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
         <div className="space-y-4">
@@ -616,22 +614,14 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
 
       <div className="flex items-center justify-between">
         <a
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
           href="/provider/onboarding/identity"
         >
           ← Back
         </a>
-        <div className="flex items-center gap-3">
-          {isPending && (
-            <span className="text-xs text-muted-foreground">Saving…</span>
-          )}
-          <button
-            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-            type="submit"
-          >
-            Save & continue →
-          </button>
-        </div>
+        <SubmitButton className="px-6" loadingText="Saving…">
+          Save &amp; continue →
+        </SubmitButton>
       </div>
     </form>
   );

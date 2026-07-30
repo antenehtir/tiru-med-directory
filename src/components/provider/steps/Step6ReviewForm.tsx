@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { submitForReview } from "@/app/provider/(console)/onboarding/review/actions";
+import { Spinner } from "@/components/provider/Spinner";
+import { Badge } from "@/components/ui/Badge";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { createEmptyDoctor, type DoctorEntry } from "@/lib/provider/doctor-types";
 
@@ -57,31 +59,41 @@ function getExpiryFlag(dateStr: string | null | undefined): ExpiryFlag | null {
   return null;
 }
 
+// Same 3-tier expiry gradient as Step5MediaForm's getExpiryFlag — kept as a
+// bespoke color set rather than Badge for the same reason (a genuine 3-step
+// urgency scale that a 2-variant warning/danger system would collapse).
 const expiryColorClasses: Record<ExpiryFlag["color"], string> = {
-  red: "border-red-300 bg-red-50 text-red-700",
-  orange: "border-orange-300 bg-orange-50 text-orange-800",
-  amber: "border-amber-300 bg-amber-50 text-amber-800",
+  red: "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
+  orange:
+    "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
+  amber:
+    "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
 };
 
 function SectionCard({
+  id,
   stepNum,
   title,
   editHref,
   children,
 }: {
+  id: string;
   stepNum: number;
   title: string;
   editHref: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 rounded-2xl bg-card p-6 shadow-sm">
+    <div className="mb-4 scroll-mt-24 rounded-2xl bg-card p-6 shadow-sm" id={id}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">
           <span className="mr-2 text-muted-foreground">{stepNum}.</span>
           {title}
         </h2>
-        <a className="text-sm font-medium text-primary hover:underline" href={editHref}>
+        <a
+          className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+          href={editHref}
+        >
           Edit
         </a>
       </div>
@@ -100,20 +112,14 @@ function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground">
-      {children}
-    </span>
-  );
-}
-
 function PillList({ items }: { items: string[] }) {
   if (!items || items.length === 0) return <span className="text-muted-foreground">—</span>;
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (
-        <Pill key={item}>{item}</Pill>
+        <Badge key={item} variant="default">
+          {item}
+        </Badge>
       ))}
     </div>
   );
@@ -121,19 +127,17 @@ function PillList({ items }: { items: string[] }) {
 
 function RequiredNotice() {
   return (
-    <span className="text-xs font-semibold text-red-600">Required for submission</span>
+    <Badge size="sm" variant="danger">
+      Required for submission
+    </Badge>
   );
 }
 
 function Chip({ children, tone }: { children: React.ReactNode; tone: "green" | "gray" }) {
-  const cls =
-    tone === "green"
-      ? "border-[#A7F3D0] bg-[#ECFDF5] text-[#0F766E]"
-      : "border-border bg-muted text-muted-foreground";
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${cls}`}>
+    <Badge className="font-bold" variant={tone === "green" ? "success" : "muted"}>
       {children}
-    </span>
+    </Badge>
   );
 }
 
@@ -150,7 +154,7 @@ function CompletionRing({ pct }: { pct: number }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (mounted ? pct / 100 : 0) * circumference;
-  const ringColorClass = pct >= 70 ? "text-teal-500" : "text-amber-500";
+  const ringColorClass = pct >= 70 ? "text-primary" : "text-warning";
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -267,9 +271,36 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
     describeMissingLicense(bizLicenseUrl, bizLicenseIssue, bizLicenseExpiry, "Business license"),
   ].filter((item): item is string => item !== null);
 
+  const JUMP_LINKS = [
+    { href: "#section-identity", label: "Identity" },
+    { href: "#section-location", label: "Location" },
+    { href: "#section-services", label: "Services" },
+    { href: "#section-doctors", label: "Doctors" },
+    { href: "#section-photos", label: "Photos" },
+  ];
+
   return (
     <div>
-      <SectionCard editHref="/provider/onboarding/identity" stepNum={1} title="Facility Identity">
+      <div className="sticky top-0 z-10 -mx-4 mb-4 flex flex-wrap items-center gap-x-1 gap-y-2 border-b border-border bg-background/95 px-4 py-3 text-sm backdrop-blur sm:-mx-6 sm:px-6">
+        <span className="mr-1 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Jump to:
+        </span>
+        {JUMP_LINKS.map((link, i) => (
+          <span className="flex items-center" key={link.href}>
+            <a
+              className="inline-flex min-h-11 items-center px-1 font-medium text-primary hover:underline"
+              href={link.href}
+            >
+              {link.label}
+            </a>
+            {i < JUMP_LINKS.length - 1 && (
+              <span className="text-muted-foreground">·</span>
+            )}
+          </span>
+        ))}
+      </div>
+
+      <SectionCard editHref="/provider/onboarding/identity" id="section-identity" stepNum={1} title="Facility Identity">
         <FieldRow label="Facility name" value={claim.proposed_name as string} />
         {altName && <FieldRow label="Alt name" value={altName} />}
         <FieldRow label="Ownership type" value={claim.proposed_ownership_type as string} />
@@ -307,7 +338,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         </div>
       </SectionCard>
 
-      <SectionCard editHref="/provider/onboarding/location" stepNum={2} title="Location & Contact">
+      <SectionCard editHref="/provider/onboarding/location" id="section-location" stepNum={2} title="Location & Contact">
         <FieldRow label="Location" value={locationLine} />
         {claim.proposed_building_desc ? (
           <FieldRow label="Building" value={claim.proposed_building_desc as string} />
@@ -367,7 +398,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         ) : null}
       </SectionCard>
 
-      <SectionCard editHref="/provider/onboarding/services" stepNum={3} title="Services & Schedule">
+      <SectionCard editHref="/provider/onboarding/services" id="section-services" stepNum={3} title="Services & Schedule">
         <div>
           <span className="text-xs font-medium text-muted-foreground">Services</span>
           <div className="mt-1">
@@ -424,7 +455,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         ) : null}
       </SectionCard>
 
-      <SectionCard editHref="/provider/onboarding/doctors" stepNum={4} title="Doctors & Staff">
+      <SectionCard editHref="/provider/onboarding/doctors" id="section-doctors" stepNum={4} title="Doctors & Staff">
         {doctors.length === 0 ? (
           <p className="italic text-muted-foreground">
             No doctors added — this step is optional.
@@ -465,9 +496,9 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
                       {[doctor.title, doctor.full_name].filter(Boolean).join(" ") || "Unnamed"}
                     </p>
                     {doctor.role && (
-                      <span className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-foreground">
+                      <Badge size="sm" variant="default">
                         {doctor.role === "Other" ? doctor.role_other || "Other" : doctor.role}
-                      </span>
+                      </Badge>
                     )}
                     {doctor.specialty && (
                       <p className="text-xs text-muted-foreground">
@@ -478,9 +509,9 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
                     {scheduleLine && <p className="text-xs text-muted-foreground">{scheduleLine}</p>}
                     {doctor.languages.length > 0 && <PillList items={doctor.languages} />}
                     {doctor.appointment_required && (
-                      <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                      <Badge size="sm" variant="warning">
                         Appointment required
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -490,7 +521,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         )}
       </SectionCard>
 
-      <SectionCard editHref="/provider/onboarding/media" stepNum={5} title="Photos & Documents">
+      <SectionCard editHref="/provider/onboarding/media" id="section-photos" stepNum={5} title="Photos & Documents">
         <div>
           <span className="text-xs font-medium text-muted-foreground">Entrance photo</span>
           <div className="mt-1">
@@ -564,11 +595,11 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         <CompletionRing pct={pct} />
         {pct >= 70 ? (
           <>
-            <p className="text-sm font-semibold text-teal-600">Ready to submit ✓</p>
+            <p className="text-sm font-semibold text-success-text">Ready to submit ✓</p>
             <p className="text-xs text-muted-foreground">Submitting will bring your profile to 100%</p>
           </>
         ) : (
-          <p className="text-sm font-semibold text-amber-600">Not yet eligible</p>
+          <p className="text-sm font-semibold text-warning">Not yet eligible</p>
         )}
       </div>
 
@@ -599,7 +630,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
       </div>
 
       {missingLicenseItems.length > 0 && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
           <p className="font-semibold">
             ⚠ Both licenses (with issue and expiry dates) are required before you can submit.
           </p>
@@ -611,13 +642,13 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
       )}
 
       {pct < 70 && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
           Your profile is {pct}% complete. Complete Steps 1, 2, and 3 to reach 70% and submit.
         </div>
       )}
 
       <button
-        className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         disabled={
           !checked1 ||
           !checked2 ||
@@ -630,19 +661,24 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         type="button"
       >
         {submitting ? (
-          <span className="inline-flex items-center justify-center gap-2">
-            <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+          <>
+            <Spinner tone="on-primary" />
             Submitting…
-          </span>
+          </>
         ) : (
           "Submit for review →"
         )}
       </button>
 
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
 
       <div className="mt-4">
-        <a className="text-sm text-muted-foreground hover:text-foreground" href="/provider/onboarding/media">
+        <a
+          className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
+          href="/provider/onboarding/media"
+        >
           ← Back
         </a>
       </div>

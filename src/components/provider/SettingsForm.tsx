@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { CLAIMANT_ROLES } from "@/lib/provider/onboarding-config";
 import { updateAccountDetails, updatePassword } from "@/app/provider/(console)/settings/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { Spinner } from "@/components/provider/Spinner";
 
 type ProviderAccountFields = {
   display_name: string | null;
@@ -17,7 +19,7 @@ function isKnownRole(role: string | null): boolean {
 }
 
 function AccountDetailsCard({ provider }: { provider: ProviderAccountFields }) {
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const [displayName, setDisplayName] = useState(provider.display_name ?? "");
   const [role, setRole] = useState(isKnownRole(provider.claimant_role) ? provider.claimant_role! : "Other");
   const [roleOther, setRoleOther] = useState(isKnownRole(provider.claimant_role) ? "" : provider.claimant_role ?? "");
@@ -42,11 +44,7 @@ function AccountDetailsCard({ provider }: { provider: ProviderAccountFields }) {
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-bold text-foreground">Account details</h2>
-        {lastSaved && (
-          <p className="shrink-0 text-xs text-muted-foreground">
-            Saved {lastSaved.toLocaleTimeString()}
-          </p>
-        )}
+        <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
       </div>
 
       <div className="space-y-4">
@@ -136,7 +134,11 @@ function AccountDetailsCard({ provider }: { provider: ProviderAccountFields }) {
           </p>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -221,15 +223,30 @@ function ChangePasswordCard() {
         </div>
 
         {message && (
-          <p className={`text-sm ${message.ok ? "text-teal-600" : "text-red-600"}`}>{message.text}</p>
+          <p
+            className={
+              message.ok
+                ? "rounded-lg border border-success-border bg-success-bg px-3 py-2 text-sm text-success-text"
+                : "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400"
+            }
+          >
+            {message.text}
+          </p>
         )}
 
         <button
-          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+          className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isPending}
           type="submit"
         >
-          {isPending ? "Updating…" : "Update password"}
+          {isPending ? (
+            <>
+              <Spinner tone="on-primary" />
+              Updating…
+            </>
+          ) : (
+            "Update password"
+          )}
         </button>
       </form>
     </div>

@@ -51,6 +51,18 @@ const dotClasses: Record<PillVariant, string> = {
   info:     "bg-info",
 };
 
+// Exposes Pill's exact class generation so form-native wrappers (e.g.
+// PillOption/PillRadioOption in the provider portal, which must keep real
+// <input type="checkbox"/"radio"> elements for FormData semantics) can look
+// byte-identical to <Pill> without duplicating the variant/size class maps.
+export function getPillClassName(
+  variant: PillVariant = "default",
+  size: PillSize = "md",
+  className = "",
+): string {
+  return `${base} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+}
+
 type PillProps = {
   variant?: PillVariant;
   size?: PillSize;

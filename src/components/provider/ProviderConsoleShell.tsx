@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode, type SVGProps } from "react";
+import { useEffect, useState, type ReactNode, type SVGProps } from "react";
+import { Badge } from "@/components/ui/Badge";
+import type { BadgeVariant } from "@/lib/design-tokens";
 
 type NavItem = {
   label: string;
@@ -71,32 +73,29 @@ const NAV_ITEMS: NavItem[] = [
 
 const SETTINGS_ITEM: NavItem = { label: "Account settings", href: "/provider/settings", step: null, icon: SettingsIcon };
 
+const STATUS_LABEL: Record<string, string> = {
+  approved: "✓ Official",
+  pending_review: "Under review",
+  rejected: "Needs changes",
+};
+
+// approved = success ("approved status" is a textbook success-token use case
+// per design-tokens.ts); pending_review = warning; rejected = danger;
+// anything else (null/draft) = muted.
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  approved: "success",
+  pending_review: "warning",
+  rejected: "danger",
+};
+
 function StatusBadge({ status }: { status: string | null }) {
-  if (status === "approved") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-700 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-400">
-        ✓ Official
-      </span>
-    );
-  }
-  if (status === "pending_review") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-        Under review
-      </span>
-    );
-  }
-  if (status === "rejected") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
-        Needs changes
-      </span>
-    );
-  }
+  const label = (status ? STATUS_LABEL[status] : undefined) ?? "Draft";
+  const variant = (status ? STATUS_VARIANT[status] : undefined) ?? "muted";
+
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
-      Draft
-    </span>
+    <Badge className="font-bold" variant={variant}>
+      {label}
+    </Badge>
   );
 }
 
@@ -228,7 +227,7 @@ function SidebarContent({
             href={`/facilities/${facilitySlug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-50 dark:text-teal-400 dark:hover:bg-teal-950/40"
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
           >
             <ExternalIcon className="size-4 shrink-0" />
             View live listing
@@ -263,6 +262,16 @@ export function ProviderConsoleShell({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
   const isApproved = claimStatus === "approved";
   const currentStepFromPath = NAV_ITEMS.find(
     (item) => item.step !== null && isActiveRoute(pathname, item.href),
@@ -280,7 +289,7 @@ export function ProviderConsoleShell({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 lg:flex">
+    <div className="min-h-screen bg-background lg:flex">
       {/* Desktop persistent sidebar */}
       <aside className="hidden w-[220px] shrink-0 border-r border-border bg-card lg:block">
         <div className="sticky top-0 h-screen">
@@ -300,42 +309,51 @@ export function ProviderConsoleShell({
           type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
-          className="flex size-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
+          className="flex size-11 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
         >
           <MenuIcon className="size-5" />
         </button>
       </div>
 
-      {/* Mobile slide-in drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-card shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border px-4 py-4">
-              <span className="text-base font-bold text-foreground">Tiru Provider</span>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                aria-label="Close menu"
-                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
-              >
-                <CloseIcon className="size-4" />
-              </button>
-            </div>
-            <SidebarContent {...sidebarProps} onNavigate={() => setMobileOpen(false)} />
+      {/* Mobile slide-in drawer — kept mounted (not conditionally rendered)
+          so the transform/opacity transitions actually animate; toggled via
+          classes instead. */}
+      <div
+        aria-hidden={!mobileOpen}
+        className={`fixed inset-0 z-50 lg:hidden ${mobileOpen ? "" : "pointer-events-none"}`}
+      >
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+        <div
+          className={`absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-card shadow-2xl transition-transform duration-300 ease-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-border px-4 py-4">
+            <span className="text-base font-bold text-foreground">Tiru Provider</span>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+            >
+              <CloseIcon className="size-4" />
+            </button>
           </div>
+          <SidebarContent {...sidebarProps} onNavigate={() => setMobileOpen(false)} />
         </div>
-      )}
+      </div>
 
       {/* Main content */}
       <div className="min-w-0 flex-1">
         {isApproved && (
-          <div className="flex items-center justify-center border-b border-teal-200 bg-teal-50 px-4 py-2 text-center dark:border-teal-800 dark:bg-teal-950/60">
-            <p className="text-xs font-medium text-teal-800 dark:text-teal-300 sm:text-sm">
+          <div className="flex items-center justify-center border-b border-primary/20 bg-soft-accent px-4 py-2 text-center">
+            <p className="text-xs font-medium text-primary sm:text-sm">
               Editing live listing — changes go live immediately.
             </p>
           </div>

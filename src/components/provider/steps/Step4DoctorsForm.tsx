@@ -3,6 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/onboarding/doctors/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { Spinner } from "@/components/provider/Spinner";
+import { Pill } from "@/components/ui/Pill";
 import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,
@@ -177,10 +180,13 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
         This step is optional. You can skip it and still submit your listing.
       </div>
-      <a className="inline-block text-sm text-primary hover:underline" href="/provider/onboarding/media">
+      <a
+        className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+        href="/provider/onboarding/media"
+      >
         Skip this step →
       </a>
 
@@ -344,19 +350,13 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                 <p className="text-sm font-semibold text-foreground">Languages spoken</p>
                 <div className="flex flex-wrap gap-2">
                   {DOCTOR_LANGUAGES.map((lang) => (
-                    <button
+                    <Pill
                       key={lang}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                        doctor.languages.includes(lang)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
-                      }`}
                       onClick={() => toggleListValue(doctor.id, "languages", lang)}
-                      type="button"
+                      variant={doctor.languages.includes(lang) ? "selected" : "default"}
                     >
-                      {doctor.languages.includes(lang) ? "✓ " : ""}
                       {lang}
-                    </button>
+                    </Pill>
                   ))}
                 </div>
               </div>
@@ -372,24 +372,20 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold text-foreground">Appointment required?</p>
                 <div className="flex gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input
-                      checked={!doctor.appointment_required}
-                      name={`appointment_required_${doctor.id}`}
-                      onChange={() => autoSave(updateDoctor(doctor.id, { appointment_required: false }))}
-                      type="radio"
-                    />
+                  <Pill
+                    onClick={() => autoSave(updateDoctor(doctor.id, { appointment_required: false }))}
+                    size="lg"
+                    variant={!doctor.appointment_required ? "selected" : "default"}
+                  >
                     No — walk-in OK
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input
-                      checked={doctor.appointment_required}
-                      name={`appointment_required_${doctor.id}`}
-                      onChange={() => autoSave(updateDoctor(doctor.id, { appointment_required: true }))}
-                      type="radio"
-                    />
+                  </Pill>
+                  <Pill
+                    onClick={() => autoSave(updateDoctor(doctor.id, { appointment_required: true }))}
+                    size="lg"
+                    variant={doctor.appointment_required ? "selected" : "default"}
+                  >
                     Yes
-                  </label>
+                  </Pill>
                 </div>
               </div>
 
@@ -466,22 +462,32 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       </button>
 
       <div className="flex items-center justify-between">
-        <a className="text-sm text-muted-foreground hover:text-foreground" href="/provider/onboarding/services">
+        <a
+          className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
+          href="/provider/onboarding/services"
+        >
           ← Back
         </a>
         <div className="flex items-center gap-3">
-          {isPending && <span className="text-xs text-muted-foreground">Saving…</span>}
-          {!isPending && lastSaved && (
-            <span className="text-xs text-muted-foreground">
-              Draft saved {lastSaved.toLocaleTimeString()}
-            </span>
-          )}
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
+          {/* No <form> wraps this step (doctors are saved as a JS array via
+              saveStep4AndContinue, not FormData) — useFormStatus/SubmitButton
+              don't apply, so the pending state is shown manually from the
+              same isPending used by auto-save. */}
           <button
-            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isPending}
             onClick={handleSaveAndContinue}
             type="button"
           >
-            Save & continue →
+            {isPending ? (
+              <>
+                <Spinner tone="on-primary" />
+                Saving…
+              </>
+            ) : (
+              "Save & continue →"
+            )}
           </button>
         </div>
       </div>

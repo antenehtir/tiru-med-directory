@@ -3,6 +3,8 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignUp } from "@/app/provider/signup/actions";
+import { PasswordStrengthHint } from "./PasswordStrengthHint";
+import { SubmitButton } from "./SubmitButton";
 
 const ROLE_OPTIONS = [
   "Owner",
@@ -30,6 +32,17 @@ const DIAGNOSTIC_SUBTYPE_OPTIONS = [
   { value: "imaging", label: "Imaging only" },
   { value: "both", label: "Both — laboratory and imaging" },
 ];
+
+const inputClass =
+  "min-h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      {children}
+    </p>
+  );
+}
 
 function ProviderSignupFormInner() {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,17 +78,19 @@ function ProviderSignupFormInner() {
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <form action={providerSignUp} className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <SectionLabel>About your facility</SectionLabel>
+
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="facility_name">
             Facility name *
           </label>
           {facilityNameParam && (
-            <p className="text-xs font-medium text-primary">
+            <p className="flex items-center gap-1.5 rounded-lg border border-info-border bg-info-bg px-3 py-2 text-xs font-medium text-info-text">
               Claiming: {facilityNameParam}
             </p>
           )}
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             defaultValue={facilityNameParam ?? ""}
             id="facility_name"
             name="facility_name"
@@ -93,7 +108,7 @@ function ProviderSignupFormInner() {
             Facility type *
           </label>
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             id="facility_type"
             name="facility_type"
             onChange={(e) => {
@@ -114,7 +129,7 @@ function ProviderSignupFormInner() {
           </select>
           {facilityType === "Other" && (
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className={inputClass}
               id="facility_type_other"
               name="facility_type_other"
               placeholder="Please describe your facility type"
@@ -151,11 +166,32 @@ function ProviderSignupFormInner() {
         </div>
 
         <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="facility_phone">
+            Facility phone *
+          </label>
+          <input
+            className={inputClass}
+            id="facility_phone"
+            name="facility_phone"
+            placeholder="+251 11 234 5678"
+            required
+            type="tel"
+          />
+          <p className="text-xs text-muted-foreground">
+            The official number patients call. Admin will use this to verify your claim.
+          </p>
+        </div>
+
+        <div className="mt-2 border-t border-border pt-4">
+          <SectionLabel>Your account</SectionLabel>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="display_name">
             Your name *
           </label>
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             id="display_name"
             name="display_name"
             placeholder="Dr. Abebe Kebede"
@@ -170,7 +206,7 @@ function ProviderSignupFormInner() {
             Your role at this facility *
           </label>
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             id="claimant_role"
             name="claimant_role"
             onChange={(e) => setClaimantRole(e.target.value)}
@@ -188,7 +224,7 @@ function ProviderSignupFormInner() {
           </select>
           {claimantRole === "Other" && (
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className={inputClass}
               id="claimant_role_other"
               name="claimant_role_other"
               placeholder="Please specify your role"
@@ -203,7 +239,7 @@ function ProviderSignupFormInner() {
             Your mobile number *
           </label>
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             id="phone"
             name="phone"
             placeholder="+251 91 234 5678"
@@ -216,29 +252,12 @@ function ProviderSignupFormInner() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="facility_phone">
-            Facility phone *
-          </label>
-          <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            id="facility_phone"
-            name="facility_phone"
-            placeholder="+251 11 234 5678"
-            required
-            type="tel"
-          />
-          <p className="text-xs text-muted-foreground">
-            The official number patients call. Admin will use this to verify your claim.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="email">
             Work email *
           </label>
           <input
             autoComplete="email"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className={inputClass}
             id="email"
             name="email"
             placeholder="you@facilityname.com"
@@ -257,7 +276,7 @@ function ProviderSignupFormInner() {
           <div className="relative">
             <input
               autoComplete="new-password"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`w-full pr-10 ${inputClass}`}
               id="password"
               minLength={8}
               name="password"
@@ -287,6 +306,7 @@ function ProviderSignupFormInner() {
               )}
             </button>
           </div>
+          <PasswordStrengthHint password={password} />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -296,7 +316,7 @@ function ProviderSignupFormInner() {
           <div className="relative">
             <input
               autoComplete="new-password"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`w-full pr-10 ${inputClass}`}
               id="confirm"
               name="confirm"
               onChange={(e) => setConfirm(e.target.value)}
@@ -325,7 +345,7 @@ function ProviderSignupFormInner() {
             </button>
           </div>
           {(mismatchError || (password && confirm && password !== confirm)) && (
-            <p className="text-xs text-red-500">Passwords do not match.</p>
+            <p className="text-xs text-red-600 dark:text-red-400">Passwords do not match.</p>
           )}
         </div>
 
@@ -347,15 +367,14 @@ function ProviderSignupFormInner() {
         </div>
 
         {errorMessage && (
-          <p className="text-sm text-red-500">{errorMessage}</p>
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+            {errorMessage}
+          </p>
         )}
 
-        <button
-          className="mt-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          type="submit"
-        >
+        <SubmitButton className="mt-1 w-full" loadingText="Creating account…">
           Create account
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

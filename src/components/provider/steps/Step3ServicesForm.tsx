@@ -2,6 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/services/actions";
+import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { SubmitButton } from "@/components/provider/SubmitButton";
+import { getPillClassName, Pill } from "@/components/ui/Pill";
 import {
   MAIN_SERVICES,
   SPECIALTIES,
@@ -139,18 +142,13 @@ function PillSelector({
       </div>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => (
-          <button
+          <Pill
             key={opt}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-              services.includes(opt)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-background text-muted-foreground hover:border-primary/40"
-            }`}
             onClick={() => onToggle(opt)}
-            type="button"
+            variant={services.includes(opt) ? "selected" : "default"}
           >
-            {services.includes(opt) ? "✓ " : ""}{opt}
-          </button>
+            {opt}
+          </Pill>
         ))}
       </div>
 
@@ -193,22 +191,18 @@ function SubCitySelect({
   return (
     <div className="flex flex-wrap gap-2">
       {COVERAGE_SUB_CITIES.map((city) => (
-        <label
+        <Pill
           key={city}
-          className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+          onClick={() => {
+            const next = selected.includes(city)
+              ? selected.filter((c) => c !== city)
+              : [...selected, city];
+            onChange(next);
+          }}
+          variant={selected.includes(city) ? "selected" : "default"}
         >
-          <input
-            checked={selected.includes(city)}
-            onChange={() => {
-              const next = selected.includes(city)
-                ? selected.filter((c) => c !== city)
-                : [...selected, city];
-              onChange(next);
-            }}
-            type="checkbox"
-          />
           {city}
-        </label>
+        </Pill>
       ))}
     </div>
   );
@@ -228,20 +222,21 @@ function ToggleGroup({
   return (
     <div className="flex flex-wrap gap-3">
       {options.map((opt) => (
-        <label
+        <Pill
           key={opt}
-          className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+          onClick={() => onChange(opt)}
+          size="lg"
+          variant={value === opt ? "selected" : "default"}
         >
-          <input checked={value === opt} onChange={() => onChange(opt)} type="radio" />
           {opt}
-        </label>
+        </Pill>
       ))}
     </div>
   );
 }
 
 export function Step3ServicesForm({ claim }: { claim: Claim }) {
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -463,11 +458,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               Select everything your facility offers. Patients search by these.
             </p>
           </div>
-          {lastSaved && (
-            <p className="shrink-0 text-xs text-muted-foreground">
-              Draft saved {lastSaved.toLocaleTimeString()}
-            </p>
-          )}
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
         {isDefault && (
@@ -753,22 +744,20 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             <div className="mb-5 flex flex-col gap-2">
               <label className="text-sm font-medium text-foreground">24/7 availability</label>
               <div className="flex gap-3">
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                  <input
-                    checked={!categoryData.emergency_available_24_7}
-                    onChange={() => autoSaveCategory({ emergency_available_24_7: false })}
-                    type="radio"
-                  />
+                <Pill
+                  onClick={() => autoSaveCategory({ emergency_available_24_7: false })}
+                  size="lg"
+                  variant={!categoryData.emergency_available_24_7 ? "selected" : "default"}
+                >
                   No
-                </label>
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                  <input
-                    checked={!!categoryData.emergency_available_24_7}
-                    onChange={() => autoSaveCategory({ emergency_available_24_7: true })}
-                    type="radio"
-                  />
+                </Pill>
+                <Pill
+                  onClick={() => autoSaveCategory({ emergency_available_24_7: true })}
+                  size="lg"
+                  variant={categoryData.emergency_available_24_7 ? "selected" : "default"}
+                >
                   Yes
-                </label>
+                </Pill>
               </div>
             </div>
 
@@ -826,13 +815,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             {customEntries.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {customEntries.map((custom) => (
-                  <span
-                    key={custom}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                  >
+                  <span key={custom} className={getPillClassName("selected", "md")}>
                     {custom}
                     <button
-                      className="hover:text-red-500"
+                      className="hover:text-red-200"
                       onClick={() => {
                         const next = services.filter((s) => s !== custom);
                         setServices(next);
@@ -854,13 +840,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         {customEntries.length > 0 && !isOther && (
           <div className="mt-4 flex flex-wrap gap-2">
             {customEntries.map((custom) => (
-              <span
-                key={custom}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-              >
+              <span key={custom} className={getPillClassName("selected", "md")}>
                 {custom}
                 <button
-                  className="hover:text-red-500"
+                  className="hover:text-red-200"
                   onClick={() => {
                     const next = services.filter((s) => s !== custom);
                     setServices(next);
@@ -1058,31 +1041,27 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
           <div className="space-y-4">
             {/* Yes/No toggle */}
-            <div className="flex gap-3">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={!checkupOffered}
-                  onChange={() => {
-                    setCheckupOffered(false);
-                    autoSave({ proposed_checkup_offered: false });
-                  }}
-                  type="radio"
-                  value="no"
-                />
+            <div className="flex flex-wrap gap-3">
+              <Pill
+                onClick={() => {
+                  setCheckupOffered(false);
+                  autoSave({ proposed_checkup_offered: false });
+                }}
+                size="lg"
+                variant={!checkupOffered ? "selected" : "default"}
+              >
                 We don&apos;t offer check-up packages
-              </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                <input
-                  checked={checkupOffered}
-                  onChange={() => {
-                    setCheckupOffered(true);
-                    autoSave({ proposed_checkup_offered: true });
-                  }}
-                  type="radio"
-                  value="yes"
-                />
+              </Pill>
+              <Pill
+                onClick={() => {
+                  setCheckupOffered(true);
+                  autoSave({ proposed_checkup_offered: true });
+                }}
+                size="lg"
+                variant={checkupOffered ? "selected" : "default"}
+              >
                 Yes, we offer check-up packages
-              </label>
+              </Pill>
             </div>
 
             {checkupOffered && (
@@ -1155,18 +1134,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             </div>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map((method) => (
-                <label
+                <Pill
                   key={method}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                  onClick={() => togglePayment(method)}
+                  variant={paymentMethods.includes(method) ? "selected" : "default"}
                 >
-                  <input
-                    checked={paymentMethods.includes(method)}
-                    onChange={() => togglePayment(method)}
-                    type="checkbox"
-                    value={method}
-                  />
                   {method}
-                </label>
+                </Pill>
               ))}
             </div>
 
@@ -1215,13 +1189,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 {paymentMethods
                   .filter((m) => !(PAYMENT_METHODS as readonly string[]).includes(m))
                   .map((custom) => (
-                    <span
-                      key={custom}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                    >
+                    <span key={custom} className={getPillClassName("selected", "md")}>
                       {custom}
                       <button
-                        className="hover:text-red-500"
+                        className="hover:text-red-200"
                         onClick={() => {
                           const next = paymentMethods.filter((m) => m !== custom);
                           setPaymentMethods(next);
@@ -1259,24 +1230,21 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
       </div>
 
       {validationError && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
           {validationError}
         </p>
       )}
 
       <div className="flex items-center justify-between">
         <a
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
           href="/provider/onboarding/location"
         >
           ← Back
         </a>
-        <button
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          type="submit"
-        >
-          Save & continue →
-        </button>
+        <SubmitButton className="px-6" loadingText="Saving…">
+          Save &amp; continue →
+        </SubmitButton>
       </div>
     </form>
   );

@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignIn } from "@/app/provider/login/actions";
+import { SubmitButton } from "./SubmitButton";
 
 function ProviderLoginFormInner() {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +26,7 @@ function ProviderLoginFormInner() {
           </label>
           <input
             autoComplete="email"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="min-h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="email"
             name="email"
             placeholder="you@example.com"
@@ -41,7 +42,7 @@ function ProviderLoginFormInner() {
           <div className="relative">
             <input
               autoComplete="current-password"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="password"
               name="password"
               placeholder="••••••••"
@@ -70,7 +71,7 @@ function ProviderLoginFormInner() {
           </div>
           <div className="text-right">
             <a
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline"
               href="/provider/forgot-password"
             >
               Forgot password?
@@ -79,15 +80,14 @@ function ProviderLoginFormInner() {
         </div>
 
         {errorMessage && (
-          <p className="text-sm text-red-500">{errorMessage}</p>
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+            {errorMessage}
+          </p>
         )}
 
-        <button
-          className="mt-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          type="submit"
-        >
+        <SubmitButton className="mt-1 w-full" loadingText="Signing in…">
           Sign in
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );
