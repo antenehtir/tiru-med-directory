@@ -8,12 +8,28 @@ async function getDashboardStats() {
     { count: totalFacilities },
     { count: correctionRequests },
     { count: listingRequests },
+    { count: claimsPending },
     { count: csCount },
     { count: officialCount },
   ] = await Promise.all([
     supabase.from("facilities").select("*", { count: "exact", head: true }),
     supabase.from("correction_requests").select("*", { count: "exact", head: true }),
-    supabase.from("listing_requests").select("*", { count: "exact", head: true }),
+    // Matches the New Listings tab on /admin/claims exactly: submitted
+    // (pending_review) claims for a facility that doesn't exist yet.
+    // Previously counted the unrelated `listing_requests` table (populated
+    // only by the separate public /register form), which is why this stat
+    // never matched what Provider Submissions actually showed.
+    supabase
+      .from("facility_claims")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending_review")
+      .is("facility_id", null),
+    // Matches the Claims tab: submitted claims on an existing facility.
+    supabase
+      .from("facility_claims")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending_review")
+      .not("facility_id", "is", null),
     supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })
@@ -28,6 +44,7 @@ async function getDashboardStats() {
     totalFacilities: totalFacilities ?? 0,
     correctionRequests: correctionRequests ?? 0,
     listingRequests: listingRequests ?? 0,
+    claimsPending: claimsPending ?? 0,
     csCount: csCount ?? 0,
     officialCount: officialCount ?? 0,
   };
@@ -67,6 +84,13 @@ export default async function AdminDashboardPage() {
       description: "New provider submissions",
       color: "text-violet-600 dark:text-violet-400",
       bg: "bg-violet-50 dark:bg-violet-950",
+    },
+    {
+      label: "Claims Pending",
+      value: stats.claimsPending,
+      description: "Submitted claims on existing facilities",
+      color: "text-rose-600 dark:text-rose-400",
+      bg: "bg-rose-50 dark:bg-rose-950",
     },
     {
       label: "Official Facilities",
