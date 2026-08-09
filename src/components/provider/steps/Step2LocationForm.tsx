@@ -43,6 +43,10 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [telegram, setTelegram] = useState((claim.proposed_telegram as string) ?? "");
   const [email, setEmail] = useState((claim.proposed_email as string) ?? "");
   const [website, setWebsite] = useState((claim.proposed_website as string) ?? "");
+  const [instagram, setInstagram] = useState((claim.proposed_instagram as string) ?? "");
+  const [facebook, setFacebook] = useState((claim.proposed_facebook as string) ?? "");
+  const [tiktok, setTiktok] = useState((claim.proposed_tiktok as string) ?? "");
+  const [linkedin, setLinkedin] = useState((claim.proposed_linkedin as string) ?? "");
 
   const branchCount = (claim.proposed_branch_count as number) ?? 1;
   const [branches, setBranches] = useState<Branch[]>(
@@ -139,6 +143,13 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value),
       onBlur: () => autoSave(dbKey),
     };
+  }
+
+  function normalizeUrl(value: string): string {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
   }
 
   return (
@@ -531,9 +542,15 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="website"
               name="website"
-              placeholder="https://..."
-              type="url"
-              {...field(website, setWebsite, { website })}
+              onBlur={() => {
+                const normalized = normalizeUrl(website);
+                setWebsite(normalized);
+                autoSave({ website: normalized });
+              }}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="tiruhealth.com"
+              type="text"
+              value={website}
             />
           </div>
 
@@ -554,12 +571,17 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                 </label>
                 <input
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={(claim.proposed_instagram as string) ?? ""}
                   id="instagram"
                   name="instagram"
-                  onBlur={(e) => autoSave({ instagram: e.target.value })}
-                  placeholder="https://instagram.com/yourpage"
-                  type="url"
+                  onBlur={() => {
+                    const normalized = normalizeUrl(instagram);
+                    setInstagram(normalized);
+                    autoSave({ instagram: normalized });
+                  }}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="instagram.com/yourpage"
+                  type="text"
+                  value={instagram}
                 />
               </div>
 
@@ -569,12 +591,17 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                 </label>
                 <input
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={(claim.proposed_facebook as string) ?? ""}
                   id="facebook"
                   name="facebook"
-                  onBlur={(e) => autoSave({ facebook: e.target.value })}
-                  placeholder="https://facebook.com/yourpage"
-                  type="url"
+                  onBlur={() => {
+                    const normalized = normalizeUrl(facebook);
+                    setFacebook(normalized);
+                    autoSave({ facebook: normalized });
+                  }}
+                  onChange={(e) => setFacebook(e.target.value)}
+                  placeholder="facebook.com/yourpage"
+                  type="text"
+                  value={facebook}
                 />
               </div>
 
@@ -584,12 +611,17 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                 </label>
                 <input
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={(claim.proposed_tiktok as string) ?? ""}
                   id="tiktok"
                   name="tiktok"
-                  onBlur={(e) => autoSave({ tiktok: e.target.value })}
-                  placeholder="https://tiktok.com/@yourpage"
-                  type="url"
+                  onBlur={() => {
+                    const normalized = normalizeUrl(tiktok);
+                    setTiktok(normalized);
+                    autoSave({ tiktok: normalized });
+                  }}
+                  onChange={(e) => setTiktok(e.target.value)}
+                  placeholder="tiktok.com/@yourpage"
+                  type="text"
+                  value={tiktok}
                 />
               </div>
 
@@ -599,12 +631,17 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                 </label>
                 <input
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  defaultValue={(claim.proposed_linkedin as string) ?? ""}
                   id="linkedin"
                   name="linkedin"
-                  onBlur={(e) => autoSave({ linkedin: e.target.value })}
-                  placeholder="https://linkedin.com/company/yourpage"
-                  type="url"
+                  onBlur={() => {
+                    const normalized = normalizeUrl(linkedin);
+                    setLinkedin(normalized);
+                    autoSave({ linkedin: normalized });
+                  }}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="linkedin.com/company/yourpage"
+                  type="text"
+                  value={linkedin}
                 />
               </div>
             </div>

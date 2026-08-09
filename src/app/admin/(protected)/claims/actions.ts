@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
 import { toSlug } from "@/lib/slugify";
+import { sendApprovalEmail } from "@/lib/email/send-approval-email";
 
 async function mergeProposedDataIntoFacility(
   supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
@@ -73,6 +74,7 @@ export async function approveClaim(
     .eq("id", providerId);
 
   let warning: string | undefined;
+  let approvedFacilityName: string | undefined;
 
   if (facilityId) {
     // Claiming an existing seeded facility — flip it to Official and merge
@@ -82,6 +84,7 @@ export async function approveClaim(
       .select("name, verification_status")
       .eq("id", facilityId)
       .single();
+    approvedFacilityName = facility?.name;
 
     // Ownership is tracked via provider_accounts.facility_id (set when the
     // provider selected this facility) — facilities.claimed_by is a separate
@@ -174,6 +177,8 @@ export async function approveClaim(
       };
     }
 
+    approvedFacilityName = newFacility.name;
+
     // Link provider_accounts and facility_claims to the new facilities row.
     await supabase
       .from("provider_accounts")
@@ -192,6 +197,22 @@ export async function approveClaim(
       entity_id: newFacility.id,
       note: `New facility "${newFacility.name}" (slug: ${slug}) created and approved from provider claim ${claim.id as string}. ${callNotes}`,
     });
+  }
+
+  // Non-blocking — email failure must never break the approval itself
+  const { data: providerData } = await supabase
+    .from("provider_accounts")
+    .select("email, display_name, facility_name, completion_pct")
+    .eq("id", providerId)
+    .single();
+
+  if (providerData?.email) {
+    sendApprovalEmail({
+      to: providerData.email,
+      providerName: providerData.display_name || "there",
+      facilityName: providerData.facility_name || approvedFacilityName || "your facility",
+      completionPct: providerData.completion_pct || 70,
+    }).catch((err) => console.error("Approval email error (non-blocking):", err));
   }
 
   revalidatePath("/admin/claims");

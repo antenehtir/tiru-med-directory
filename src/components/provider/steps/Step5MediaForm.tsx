@@ -276,157 +276,6 @@ export function Step5MediaForm({
         The license document is used only for admin verification.
       </div>
 
-      {/* Entrance photo */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-foreground">Facility entrance photo</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              A clear photo of your facility&apos;s entrance helps patients find you. Taken from
-              the street or main gate.
-            </p>
-          </div>
-          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
-        </div>
-
-        {urls.entrance_photo_url ? (
-          <div className="space-y-2">
-            <img
-              alt="Facility entrance"
-              className="max-h-48 w-full rounded-xl object-cover"
-              src={urls.entrance_photo_url}
-            />
-            <button
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={entranceStatus === "uploading"}
-              onClick={() => entranceInputRef.current?.click()}
-              type="button"
-            >
-              {entranceStatus === "uploading" ? "Uploading…" : "Change photo"}
-            </button>
-          </div>
-        ) : (
-          <button
-            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={entranceStatus === "uploading"}
-            onClick={() => entranceInputRef.current?.click()}
-            type="button"
-          >
-            {entranceStatus === "uploading" ? (
-              <>
-                <Spinner className="size-6" />
-                <span className="text-sm text-muted-foreground">Uploading…</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="size-6 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">
-                  Click to upload or drag and drop
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  JPG, PNG, or WEBP · Max 5MB
-                </span>
-              </>
-            )}
-          </button>
-        )}
-
-        {entranceError && <p className="mt-2 text-xs text-red-500">{entranceError}</p>}
-
-        <input
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={(e) => handleEntranceFile(e.target.files?.[0])}
-          ref={entranceInputRef}
-          type="file"
-        />
-      </div>
-
-      {/* Logo */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-foreground">Facility logo</h2>
-        <p className="mt-1 mb-4 text-sm text-muted-foreground">
-          Your logo appears on your directory card and detail page. Use a square image for best
-          results.
-        </p>
-
-        {urls.logo_url ? (
-          <div className="flex flex-col items-center gap-2">
-            <img
-              alt="Facility logo"
-              className="size-20 rounded-full object-cover"
-              src={urls.logo_url}
-            />
-            <button
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={logoStatus === "uploading"}
-              onClick={() => logoInputRef.current?.click()}
-              type="button"
-            >
-              {logoStatus === "uploading" ? "Uploading…" : "Change photo"}
-            </button>
-          </div>
-        ) : (
-          <button
-            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={logoStatus === "uploading"}
-            onClick={() => logoInputRef.current?.click()}
-            type="button"
-          >
-            {logoStatus === "uploading" ? (
-              <>
-                <Spinner className="size-6" />
-                <span className="text-sm text-muted-foreground">Uploading…</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="size-6 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">
-                  Click to upload or drag and drop
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  JPG, PNG, WEBP, or SVG · Max 2MB
-                </span>
-              </>
-            )}
-          </button>
-        )}
-
-        {logoError && <p className="mt-2 text-xs text-red-500">{logoError}</p>}
-
-        <input
-          accept="image/jpeg,image/png,image/webp,image/svg+xml"
-          className="hidden"
-          onChange={(e) => handleLogoFile(e.target.files?.[0])}
-          ref={logoInputRef}
-          type="file"
-        />
-      </div>
-
       {/* License */}
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-bold text-foreground">
@@ -669,6 +518,157 @@ export function Step5MediaForm({
           </div>
         </div>
         <ExpiryFlagChip flag={businessLicenseExpiryFlag} />
+      </div>
+
+      {/* Entrance photo */}
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Facility entrance photo</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              A clear photo of your facility&apos;s entrance helps patients find you. Taken from
+              the street or main gate.
+            </p>
+          </div>
+          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
+        </div>
+
+        {urls.entrance_photo_url ? (
+          <div className="space-y-2">
+            <img
+              alt="Facility entrance"
+              className="max-h-48 w-full rounded-xl object-cover"
+              src={urls.entrance_photo_url}
+            />
+            <button
+              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
+              disabled={entranceStatus === "uploading"}
+              onClick={() => entranceInputRef.current?.click()}
+              type="button"
+            >
+              {entranceStatus === "uploading" ? "Uploading…" : "Change photo"}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
+            disabled={entranceStatus === "uploading"}
+            onClick={() => entranceInputRef.current?.click()}
+            type="button"
+          >
+            {entranceStatus === "uploading" ? (
+              <>
+                <Spinner className="size-6" />
+                <span className="text-sm text-muted-foreground">Uploading…</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  className="size-6 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-foreground">
+                  Click to upload or drag and drop
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  JPG, PNG, or WEBP · Max 5MB
+                </span>
+              </>
+            )}
+          </button>
+        )}
+
+        {entranceError && <p className="mt-2 text-xs text-red-500">{entranceError}</p>}
+
+        <input
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => handleEntranceFile(e.target.files?.[0])}
+          ref={entranceInputRef}
+          type="file"
+        />
+      </div>
+
+      {/* Logo */}
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <h2 className="text-lg font-bold text-foreground">Facility logo</h2>
+        <p className="mt-1 mb-4 text-sm text-muted-foreground">
+          Your logo appears on your directory card and detail page. Use a square image for best
+          results.
+        </p>
+
+        {urls.logo_url ? (
+          <div className="flex flex-col items-center gap-2">
+            <img
+              alt="Facility logo"
+              className="size-20 rounded-full object-cover"
+              src={urls.logo_url}
+            />
+            <button
+              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
+              disabled={logoStatus === "uploading"}
+              onClick={() => logoInputRef.current?.click()}
+              type="button"
+            >
+              {logoStatus === "uploading" ? "Uploading…" : "Change photo"}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
+            disabled={logoStatus === "uploading"}
+            onClick={() => logoInputRef.current?.click()}
+            type="button"
+          >
+            {logoStatus === "uploading" ? (
+              <>
+                <Spinner className="size-6" />
+                <span className="text-sm text-muted-foreground">Uploading…</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  className="size-6 text-muted-foreground"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-foreground">
+                  Click to upload or drag and drop
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  JPG, PNG, WEBP, or SVG · Max 2MB
+                </span>
+              </>
+            )}
+          </button>
+        )}
+
+        {logoError && <p className="mt-2 text-xs text-red-500">{logoError}</p>}
+
+        <input
+          accept="image/jpeg,image/png,image/webp,image/svg+xml"
+          className="hidden"
+          onChange={(e) => handleLogoFile(e.target.files?.[0])}
+          ref={logoInputRef}
+          type="file"
+        />
       </div>
 
       <label className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-sm">

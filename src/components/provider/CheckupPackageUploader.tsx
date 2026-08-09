@@ -179,9 +179,7 @@ export function CheckupPackageUploader({
 
       {/* Upload new package */}
       <div className="rounded-xl border border-dashed border-border bg-background p-4 space-y-3">
-        <p className="text-sm font-medium text-foreground">
-          {value.length === 0 ? "Upload your first package" : "Add another package"}
-        </p>
+        <p className="text-sm font-medium text-foreground">+ Add another package</p>
 
         {/* Optional: name before uploading */}
         <div className="flex flex-col gap-1">

@@ -96,11 +96,7 @@ export async function saveStep3(formData: FormData) {
     .update({ onboarding_phase: 4, last_active_at: new Date().toISOString() })
     .eq("id", provider.id);
 
-  // Approved providers editing live — go to next step, not milestone
-  if ((updatedClaim?.status as string | undefined) === "approved") {
-    redirect("/provider/onboarding/doctors");
-  }
-  redirect("/provider/onboarding/milestone");
+  redirect("/provider/onboarding/doctors");
 }
 
 export async function autoSaveStep3(data: Record<string, unknown>) {

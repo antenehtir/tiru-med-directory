@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/services/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { SubmitButton } from "@/components/provider/SubmitButton";
@@ -12,7 +12,8 @@ import {
   EMERGENCY_TYPES,
   WALKIN_APPOINTMENT_OPTIONS,
   IMAGING_SERVICES,
-  BASIC_LAB_SERVICES,
+  BASIC_LAB_CATEGORIES,
+  ALL_BASIC_LAB_TESTS,
   PHARMACY_CATEGORIES,
   DELIVERY_OPTIONS,
   COVERAGE_SUB_CITIES,
@@ -174,6 +175,172 @@ function PillSelector({
         >
           Add
         </button>
+      </div>
+    </div>
+  );
+}
+
+// One parent category card within the Basic Lab section — a category-level
+// toggle that selects/deselects all its child tests at once, plus individual
+// deselectable pills once the category has at least one test selected.
+function BasicLabCategoryCard({
+  category,
+  tests,
+  services,
+  onToggleTest,
+  onCategoryToggle,
+  customValue,
+  onCustomChange,
+  onCustomAdd,
+}: {
+  category: string;
+  tests: string[];
+  services: string[];
+  onToggleTest: (item: string) => void;
+  onCategoryToggle: () => void;
+  customValue: string;
+  onCustomChange: (value: string) => void;
+  onCustomAdd: () => void;
+}) {
+  const allSelected = tests.every((t) => services.includes(t));
+  const someSelected = !allSelected && tests.some((t) => services.includes(t));
+  const checkboxRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (checkboxRef.current) checkboxRef.current.indeterminate = someSelected;
+  }, [someSelected]);
+
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <label className="flex cursor-pointer items-center gap-2">
+        <input
+          checked={allSelected}
+          onChange={onCategoryToggle}
+          ref={checkboxRef}
+          type="checkbox"
+        />
+        <span className="text-sm font-semibold text-foreground">{category}</span>
+      </label>
+
+      {(allSelected || someSelected) && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tests.map((test) => (
+            <Pill
+              key={test}
+              onClick={() => onToggleTest(test)}
+              variant={services.includes(test) ? "selected" : "default"}
+            >
+              {test}
+            </Pill>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex gap-2">
+        <input
+          className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={(e) => onCustomChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onCustomAdd();
+            }
+          }}
+          placeholder={`Add other ${category} test...`}
+          type="text"
+          value={customValue}
+        />
+        <button
+          className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+          disabled={!customValue.trim() || services.includes(customValue.trim())}
+          onClick={onCustomAdd}
+          type="button"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Basic Lab / Point-of-care Testing — hierarchical parent-category structure.
+// Each category selects/deselects its own children as a block; individual
+// tests can still be deselected one at a time. All selections (predefined and
+// custom) flow into the same flat `services` array as every other section.
+function BasicLabSelector({
+  services,
+  onToggleTest,
+  onSelectAllIn,
+  customInputs,
+  onCustomChange,
+  onCustomAdd,
+}: {
+  services: string[];
+  onToggleTest: (item: string) => void;
+  onSelectAllIn: (list: readonly string[]) => void;
+  customInputs: Record<string, string>;
+  onCustomChange: (key: string, value: string) => void;
+  onCustomAdd: (key: string) => void;
+}) {
+  const otherKey = "basiclab-other-test";
+
+  return (
+    <div className="mb-5">
+      <p className="mb-1 text-sm font-semibold text-foreground">
+        Basic Lab / Point-of-care Testing
+      </p>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Select each category your facility offers — this selects all its tests. Deselect any
+        individual test you don&apos;t offer.
+      </p>
+
+      <div className="space-y-3">
+        {Object.entries(BASIC_LAB_CATEGORIES).map(([category, tests]) => {
+          const key = `basiclab-${category}`;
+          return (
+            <BasicLabCategoryCard
+              category={category}
+              customValue={customInputs[key] ?? ""}
+              key={category}
+              onCategoryToggle={() => onSelectAllIn(tests)}
+              onCustomAdd={() => onCustomAdd(key)}
+              onCustomChange={(v) => onCustomChange(key, v)}
+              onToggleTest={onToggleTest}
+              services={services}
+              tests={tests}
+            />
+          );
+        })}
+      </div>
+
+      <div className="mt-3 rounded-xl border border-dashed border-border bg-background p-4">
+        <p className="mb-2 text-sm font-semibold text-foreground">Other test not listed</p>
+        <div className="flex gap-2">
+          <input
+            className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            onChange={(e) => onCustomChange(otherKey, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onCustomAdd(otherKey);
+              }
+            }}
+            placeholder="Add a test that doesn't fit any category above..."
+            type="text"
+            value={customInputs[otherKey] ?? ""}
+          />
+          <button
+            className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+            disabled={
+              !(customInputs[otherKey] ?? "").trim() ||
+              services.includes((customInputs[otherKey] ?? "").trim())
+            }
+            onClick={() => onCustomAdd(otherKey)}
+            type="button"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -398,7 +565,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   // Known option lists for whichever branch is active — anything in
   // `services` that isn't in one of these is a custom (free-typed) entry.
   const knownLists: readonly (readonly string[])[] = isDefault
-    ? [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES, BASIC_LAB_SERVICES]
+    ? [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
     : isPharmacy
       ? [PHARMACY_CATEGORIES]
       : isDiagLabOnly
@@ -408,7 +575,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           : isDiagBoth
             ? [LAB_TESTS, IMAGING_SERVICES]
             : isHomeCare
-              ? [HOME_CARE_SERVICES, BASIC_LAB_SERVICES]
+              ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
               : isAmbulance
                 ? [AMBULANCE_VEHICLE_TYPES]
                 : [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES];
@@ -493,15 +660,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               services={services}
               title="Imaging & Diagnostics"
             />
-            <PillSelector
-              customValue={customInputs.basiclab ?? ""}
-              onCustomAdd={() => addCustomService("basiclab")}
-              onCustomChange={(v) => setCustomInput("basiclab", v)}
-              onSelectAll={() => selectAllIn(BASIC_LAB_SERVICES)}
-              onToggle={toggleService}
-              options={BASIC_LAB_SERVICES}
+            <BasicLabSelector
+              customInputs={customInputs}
+              onCustomAdd={addCustomService}
+              onCustomChange={setCustomInput}
+              onSelectAllIn={selectAllIn}
+              onToggleTest={toggleService}
               services={services}
-              title="Basic Lab / Point-of-care Testing"
             />
           </>
         )}
@@ -630,15 +795,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               services={services}
               title="Services offered"
             />
-            <PillSelector
-              customValue={customInputs.basiclab ?? ""}
-              onCustomAdd={() => addCustomService("basiclab")}
-              onCustomChange={(v) => setCustomInput("basiclab", v)}
-              onSelectAll={() => selectAllIn(BASIC_LAB_SERVICES)}
-              onToggle={toggleService}
-              options={BASIC_LAB_SERVICES}
+            <BasicLabSelector
+              customInputs={customInputs}
+              onCustomAdd={addCustomService}
+              onCustomChange={setCustomInput}
+              onSelectAllIn={selectAllIn}
+              onToggleTest={toggleService}
               services={services}
-              title="Basic Lab / Point-of-care Testing"
             />
 
             <div className="mb-5 flex flex-col gap-2">

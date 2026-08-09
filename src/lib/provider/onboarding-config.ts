@@ -89,9 +89,7 @@ export const MAIN_SERVICES = [
   "Delivery / Maternity care",
   "Minor surgery",
   "Major surgery",
-  "Endoscopy",
   "Dialysis",
-  "Physiotherapy",
   "Dental procedure",
   "Eye care procedure",
   "Vaccination",
@@ -174,18 +172,19 @@ export const IMAGING_SERVICES = [
   "Interventional Radiology",
 ] as const;
 
-export const BASIC_LAB_SERVICES = [
-  "Blood Glucose Test",
-  "Pregnancy Test",
-  "Rapid Strep Test",
-  "Rapid Malaria Test",
-  "Urinalysis (Dipstick)",
-  "HIV Rapid Test",
-  "Hemoglobin Test",
-  "Blood Typing",
-  "COVID-19 Rapid Test",
-  "Basic Blood Pressure & Vitals Monitoring",
-] as const;
+export const BASIC_LAB_CATEGORIES: Record<string, string[]> = {
+  "Basic Blood Workup": ["CBC", "ESR", "CRP", "RBS", "FBS", "HbA1c", "Lipid Profile", "Peripheral Blood Film"],
+  "Basic Serum Chemistry": ["Electrolytes (Na/K/Cl)", "LFT (AST/ALT/ALP/Bilirubin)", "RFT (BUN/Creatinine)", "Uric Acid", "Total Protein/Albumin", "Calcium", "Phosphorus"],
+  "Hormonal Workup": ["TSH", "Free T3", "Free T4", "FSH", "LH", "Prolactin", "Testosterone", "Cortisol", "Insulin", "Vitamin D"],
+  "Basic Urine-based Tests": ["Urinalysis", "Pregnancy Test (Urine hCG)", "Microalbumin", "Urine Protein/Creatinine Ratio"],
+  "Basic Stool Test": ["Stool Direct/Microscopy", "H. pylori Antigen", "Occult Blood"],
+  "Culture & Sensitivity": ["Blood Culture", "Urine Culture", "Stool Culture", "Body Fluid Culture", "Wound/Swab Culture", "Throat Culture"],
+  "Body Fluid Analysis": ["Pleural Fluid", "Peritoneal (Ascitic) Fluid", "CSF Analysis", "Synovial Fluid"],
+  "Autoimmune Markers": ["ANA", "P-ANCA", "C-ANCA", "RF", "Anti-dsDNA", "Anti-CCP"],
+  "Serology & Infectious Disease Screening": ["HIV", "RPR/VDRL", "HBsAg", "Anti-HCV", "Widal Test", "Malaria (RDT/Blood Film)", "TB (GeneXpert/AFB)"],
+};
+
+export const ALL_BASIC_LAB_TESTS: string[] = Object.values(BASIC_LAB_CATEGORIES).flat();
 
 export const FACILITY_TYPES = [
   "Hospital",

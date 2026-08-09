@@ -16,11 +16,13 @@ function ConfirmationMap({
   lng,
   onConfirm,
   onRetry,
+  showActions = true,
 }: {
   lat: number;
   lng: number;
   onConfirm: () => void;
   onRetry: () => void;
+  showActions?: boolean;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<unknown>(null);
@@ -78,25 +80,29 @@ function ConfirmationMap({
         ref={mapContainerRef}
         style={{ zIndex: 0 }}
       />
-      <p className="text-xs text-muted-foreground text-center">
-        This is where patients will be directed. Does it look correct?
-      </p>
-      <div className="flex gap-2">
-        <button
-          className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          onClick={onConfirm}
-          type="button"
-        >
-          ✓ Yes, this is correct
-        </button>
-        <button
-          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted"
-          onClick={onRetry}
-          type="button"
-        >
-          Try again
-        </button>
-      </div>
+      {showActions && (
+        <>
+          <p className="text-xs text-muted-foreground text-center">
+            This is where patients will be directed. Does it look correct?
+          </p>
+          <div className="flex gap-2">
+            <button
+              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              onClick={onConfirm}
+              type="button"
+            >
+              ✓ Yes, this is correct
+            </button>
+            <button
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted"
+              onClick={onRetry}
+              type="button"
+            >
+              Try again
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -259,6 +265,7 @@ export function MapPinPicker({
             lng={confirmedLng}
             onConfirm={() => {}}
             onRetry={handleChangeConfirmed}
+            showActions={false}
           />
         </div>
       )}
