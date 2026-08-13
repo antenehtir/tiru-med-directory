@@ -363,11 +363,15 @@ function createDoctorDisplayName(row: SupabaseDoctorPublicRow): string {
     return displayName;
   }
 
-  if (displayName.toLowerCase().startsWith(title.toLowerCase())) {
+  // Strip a leading title-like prefix the source data may already carry
+  // (e.g. "Dr. Jane Doe") before re-prepending `title`, so this never
+  // renders a doubled prefix like "Dr. Dr. Jane Doe".
+  const cleanedName = displayName.replace(/^(dr|doctor|mr|mrs|ms|prof)\.?\s+/i, "").trim();
+  if (!cleanedName) {
     return displayName;
   }
 
-  return `${title} ${displayName}`;
+  return `${title} ${cleanedName}`;
 }
 
 function createSummary(input: {

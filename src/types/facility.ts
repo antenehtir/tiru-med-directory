@@ -66,6 +66,8 @@ export type Facility = {
   onlineOnly?: boolean;
   logoUrl?: string;
   photoUrl?: string;
+  /** Up to 4 gallery photos; photoUrl mirrors the first entry for back-compat. */
+  photoUrls?: string[];
   updatedAt?: string;
   subCity?: string;
   subCities: string[];

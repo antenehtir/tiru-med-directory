@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { updateCorrectionStatus } from "@/app/admin/(protected)/corrections/actions";
 
 export type CorrectionRequest = {
@@ -55,8 +56,14 @@ function formatDate(iso: string): string {
   });
 }
 
+const VALID_TABS: Tab[] = ["all", "pending", "reviewed", "resolved", "dismissed"];
+
 export function AdminCorrectionsList({ corrections }: { corrections: CorrectionRequest[] }) {
-  const [activeTab, setActiveTab] = useState<Tab>("all");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as Tab | null;
+  const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "all";
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);

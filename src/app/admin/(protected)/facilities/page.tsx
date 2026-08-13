@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { AdminFacilityList } from "@/components/admin/AdminFacilityList";
 
@@ -23,7 +24,9 @@ export default async function AdminFacilitiesPage() {
           {facilities.length} facilities · manage badges and records
         </p>
       </div>
-      <AdminFacilityList facilities={facilities} />
+      <Suspense fallback={null}>
+        <AdminFacilityList facilities={facilities} />
+      </Suspense>
     </div>
   );
 }

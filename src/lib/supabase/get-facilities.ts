@@ -31,6 +31,7 @@ type DBFacility = {
   special_services: unknown;
   logo_url: string | null;
   photo_url: string | null;
+  photo_urls: unknown;
   booking_link: string | null;
   instagram: string | null;
   facebook: string | null;
@@ -130,6 +131,13 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     onlineOnly: rawSubCity === "online" ? true : undefined,
     logoUrl: row.logo_url ?? undefined,
     photoUrl: row.photo_url ?? undefined,
+    // Falls back to the legacy single-URL column for rows saved before
+    // migration 032 (supabase/migrations_draft/032_*.sql) adds photo_urls.
+    photoUrls: Array.isArray(row.photo_urls)
+      ? (row.photo_urls as string[]).filter(Boolean)
+      : row.photo_url
+        ? [row.photo_url]
+        : [],
     updatedAt: row.updated_at ?? undefined,
     subCity: row.sub_city ?? undefined,
     subCities,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   updateFacilityBadge,
   deactivateFacility,
@@ -62,9 +63,16 @@ function getAvailableBadgeOptions(currentStatus: string) {
 }
 
 export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
+  const searchParams = useSearchParams();
+  // Lets dashboard stat cards deep-link straight into a filtered view, e.g.
+  // /admin/facilities?badge=community-submitted.
+  const badgeParam = searchParams.get("badge");
+  const initialBadgeFilter =
+    badgeParam && badgeParam in BADGE_VARIANTS ? badgeParam : "all";
+
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [badgeFilter, setBadgeFilter] = useState("all");
+  const [badgeFilter, setBadgeFilter] = useState(initialBadgeFilter);
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isPending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   facilityBannerGradientClasses,
   facilityWatermarkIconKey,
@@ -9,6 +8,7 @@ import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
+import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
 type FacilityDetailHeaderProps = {
@@ -35,7 +35,9 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   )?.href;
 
   const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
-  const bannerPhoto = facility.photoUrl?.trim() ? facility.photoUrl : null;
+  const bannerPhotos = (facility.photoUrls?.length ? facility.photoUrls : facility.photoUrl ? [facility.photoUrl] : [])
+    .map((url) => url?.trim())
+    .filter((url): url is string => Boolean(url));
   const hasLocation =
     Boolean(facility.location?.trim()) || Boolean(branchLocations?.length);
 
@@ -43,15 +45,8 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
     <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
       {/* Banner — real entrance photo when available, gradient placeholder otherwise */}
       <div className="relative h-48 w-full overflow-hidden rounded-2xl sm:h-56">
-        {bannerPhoto ? (
-          <Image
-            alt={`${facility.name} entrance`}
-            className="object-cover"
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 800px"
-            src={bannerPhoto}
-          />
+        {bannerPhotos.length > 0 ? (
+          <FacilityImageGallery alt={`${facility.name} entrance`} images={bannerPhotos} />
         ) : (
           <div
             className={`flex h-full w-full flex-col items-center justify-center gap-3 ${facilityBannerGradientClasses[categoryKey]}`}

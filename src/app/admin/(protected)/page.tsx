@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
+import {
+  BADGE_CHART_COLORS,
+  BadgeDistributionChart,
+  SubmissionsTrendChart,
+  type SubmissionTrendDatum,
+} from "@/components/admin/AdminDashboardCharts";
 
 async function getDashboardStats() {
   const supabase = await createAdminSupabaseClient();
@@ -11,6 +17,7 @@ async function getDashboardStats() {
     { count: claimsPending },
     { count: csCount },
     { count: officialCount },
+    { count: verifiedCount },
   ] = await Promise.all([
     supabase.from("facilities").select("*", { count: "exact", head: true }),
     supabase.from("correction_requests").select("*", { count: "exact", head: true }),
@@ -38,6 +45,10 @@ async function getDashboardStats() {
       .from("facilities")
       .select("*", { count: "exact", head: true })
       .eq("verification_status", "facility-owned"),
+    supabase
+      .from("facilities")
+      .select("*", { count: "exact", head: true })
+      .eq("verification_status", "verified"),
   ]);
 
   return {
@@ -47,13 +58,59 @@ async function getDashboardStats() {
     claimsPending: claimsPending ?? 0,
     csCount: csCount ?? 0,
     officialCount: officialCount ?? 0,
+    verifiedCount: verifiedCount ?? 0,
   };
 }
 
+function dayKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+async function getSubmissionsTrend(): Promise<SubmissionTrendDatum[]> {
+  const supabase = await createAdminSupabaseClient();
+
+  const since = new Date();
+  since.setDate(since.getDate() - 29);
+  since.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("facility_claims")
+    .select("submitted_at, facility_id")
+    .not("submitted_at", "is", null)
+    .gte("submitted_at", since.toISOString());
+
+  const days: SubmissionTrendDatum[] = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(since);
+    d.setDate(d.getDate() + i);
+    days.push({
+      date: dayKey(d),
+      label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      newListings: 0,
+      claims: 0,
+    });
+  }
+
+  if (error || !data) return days;
+
+  const byDay = new Map(days.map((d) => [d.date, d]));
+  for (const row of data) {
+    if (!row.submitted_at) continue;
+    const key = dayKey(new Date(row.submitted_at));
+    const bucket = byDay.get(key);
+    if (!bucket) continue;
+    if (row.facility_id === null) bucket.newListings += 1;
+    else bucket.claims += 1;
+  }
+
+  return days;
+}
+
 export default async function AdminDashboardPage() {
-  const [adminUser, stats] = await Promise.all([
+  const [adminUser, stats, submissionsTrend] = await Promise.all([
     getAdminUser(),
     getDashboardStats(),
+    getSubmissionsTrend(),
   ]);
 
   const statCards = [
@@ -63,6 +120,7 @@ export default async function AdminDashboardPage() {
       description: "Live records in directory",
       color: "text-teal-600 dark:text-teal-400",
       bg: "bg-teal-50 dark:bg-teal-950",
+      href: "/admin/facilities",
     },
     {
       label: "Community Submitted",
@@ -70,6 +128,7 @@ export default async function AdminDashboardPage() {
       description: "Unclaimed CS listings",
       color: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-50 dark:bg-amber-950",
+      href: "/admin/facilities?badge=community-submitted",
     },
     {
       label: "Correction Requests",
@@ -77,6 +136,7 @@ export default async function AdminDashboardPage() {
       description: "Pending review",
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-950",
+      href: "/admin/corrections?tab=pending",
     },
     {
       label: "Listing Requests",
@@ -84,6 +144,7 @@ export default async function AdminDashboardPage() {
       description: "New provider submissions",
       color: "text-violet-600 dark:text-violet-400",
       bg: "bg-violet-50 dark:bg-violet-950",
+      href: "/admin/claims?tab=new-listings",
     },
     {
       label: "Claims Pending",
@@ -91,6 +152,7 @@ export default async function AdminDashboardPage() {
       description: "Submitted claims on existing facilities",
       color: "text-rose-600 dark:text-rose-400",
       bg: "bg-rose-50 dark:bg-rose-950",
+      href: "/admin/claims?tab=claims",
     },
     {
       label: "Official Facilities",
@@ -98,30 +160,14 @@ export default async function AdminDashboardPage() {
       description: "Facility-owned listings",
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-950",
+      href: "/admin/facilities?badge=facility-owned",
     },
   ];
 
-  const quickLinks = [
-    {
-      href: "/admin/corrections",
-      title: "Correction Requests",
-      description: "Review and apply public corrections",
-    },
-    {
-      href: "/admin/listings",
-      title: "Listing Requests",
-      description: "Review new provider submissions",
-    },
-    {
-      href: "/admin/facilities",
-      title: "Facility Directory",
-      description: "Browse and manage all facilities",
-    },
-    {
-      href: "/admin/audit-log",
-      title: "Audit Log",
-      description: "Full history of admin actions",
-    },
+  const badgeDistribution = [
+    { name: "Community Submitted", value: stats.csCount, color: BADGE_CHART_COLORS.communitySubmitted },
+    { name: "Official", value: stats.officialCount, color: BADGE_CHART_COLORS.facilityOwned },
+    { name: "Verified", value: stats.verifiedCount, color: BADGE_CHART_COLORS.verified },
   ];
 
   return (
@@ -133,33 +179,32 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {statCards.map((card) => (
-          <div
+          <Link
+            className={`rounded-2xl border border-border p-5 transition hover:border-primary/40 hover:shadow-sm ${card.bg}`}
+            href={card.href}
             key={card.label}
-            className={`rounded-2xl border border-border p-5 ${card.bg}`}
           >
             <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
             <p className="mt-1 text-sm font-semibold text-foreground">{card.label}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{card.description}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {quickLinks.map((link) => (
-          <Link
-            key={link.href}
-            className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm"
-            href={link.href}
-          >
-            <div>
-              <p className="font-semibold text-foreground">{link.title}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{link.description}</p>
-            </div>
-            <span className="text-muted-foreground">→</span>
-          </Link>
-        ))}
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-foreground">Facility badge distribution</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">CS / Official / Verified split</p>
+          <BadgeDistributionChart data={badgeDistribution} />
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <h2 className="text-sm font-semibold text-foreground">New submissions (last 30 days)</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Listing requests + claims, by day</p>
+          <SubmissionsTrendChart data={submissionsTrend} />
+        </div>
       </div>
     </div>
   );

@@ -396,7 +396,12 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
   }
 
   // Step 5 (15%): at least one photo
-  if (claim.proposed_entrance_photo_url || claim.proposed_photo_url) pct += 15;
+  const hasEntrancePhoto =
+    claim.proposed_entrance_photo_url ||
+    claim.proposed_photo_url ||
+    (Array.isArray(claim.proposed_entrance_photo_urls) &&
+      (claim.proposed_entrance_photo_urls as unknown[]).length > 0);
+  if (hasEntrancePhoto) pct += 15;
 
   // Step 6 (5%): submission (status moves to pending_review)
   if (claim.status === "pending_review" || claim.status === "approved") pct += 5;

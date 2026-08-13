@@ -42,6 +42,8 @@ export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, un
     logo_url: claim.proposed_logo_url,
     // No separate entrance_photo_url column — maps to the main public photo column.
     photo_url: claim.proposed_entrance_photo_url,
+    // Up to 4 gallery images. Requires migration 032 (facilities.photo_urls).
+    photo_urls: claim.proposed_entrance_photo_urls,
     // Requires migration 025 columns (schedule, doctors, emergency_type, walkin_appointment).
     schedule: claim.proposed_schedule,
     doctors: claim.proposed_doctors,

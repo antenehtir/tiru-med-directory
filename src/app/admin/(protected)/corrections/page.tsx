@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { AdminCorrectionsList, type CorrectionRequest } from "@/components/admin/AdminCorrectionsList";
 
@@ -43,7 +44,9 @@ export default async function AdminCorrectionsPage() {
           Review facility and specialist corrections submitted by the public
         </p>
       </div>
-      <AdminCorrectionsList corrections={corrections} />
+      <Suspense fallback={null}>
+        <AdminCorrectionsList corrections={corrections} />
+      </Suspense>
     </div>
   );
 }

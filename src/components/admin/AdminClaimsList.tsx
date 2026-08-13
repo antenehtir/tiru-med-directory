@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { approveClaim, rejectClaim } from "@/app/admin/(protected)/claims/actions";
 import { Pill } from "@/components/ui/Pill";
 
@@ -35,12 +36,19 @@ export type Claim = {
 type Tab = "claims" | "new-listings";
 
 export function AdminClaimsList({ claims }: { claims: Claim[] }) {
+  const searchParams = useSearchParams();
   const claimsItems = claims.filter((c) => c.facility_id !== null);
   const newListingsItems = claims.filter((c) => c.facility_id === null);
 
-  const [activeTab, setActiveTab] = useState<Tab>(
-    newListingsItems.length > claimsItems.length ? "new-listings" : "claims",
-  );
+  const tabParam = searchParams.get("tab");
+  const initialTab: Tab =
+    tabParam === "claims" || tabParam === "new-listings"
+      ? tabParam
+      : newListingsItems.length > claimsItems.length
+        ? "new-listings"
+        : "claims";
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);

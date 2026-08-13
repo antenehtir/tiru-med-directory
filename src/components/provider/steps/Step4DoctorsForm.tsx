@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/onboarding/doctors/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { Spinner } from "@/components/provider/Spinner";
 import { Pill } from "@/components/ui/Pill";
+import { ImageCropModal } from "@/components/ui/ImageCropModal";
+import { extensionFromFile, uploadImageToBucket } from "@/lib/storage/upload-image";
 import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,
@@ -13,9 +14,12 @@ import {
   CLINICAL_ROLES,
   MEDICAL_SPECIALTIES,
   createEmptyDoctor,
+  stripDoctorNamePrefix,
   type DoctorEntry,
 } from "@/lib/provider/doctor-types";
 import { ScheduleBuilder } from "@/components/provider/ScheduleBuilder";
+
+const DOCTOR_PHOTO_ASPECT = 1;
 
 type Claim = Record<string, unknown>;
 
@@ -47,6 +51,15 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
 
   const claimId = (claim.id as string) ?? "unknown";
 
+  // The doctor-level "Appointment required?" question was removed as a
+  // duplicate of this facility-level policy (set in the hours/availability
+  // step) — every doctor's appointment_required now just follows it.
+  const facilityAppointmentRequired = claim.proposed_walkin_appointment === "Appointment required";
+
+  function applyFacilityAppointmentPolicy(list: DoctorEntry[]): DoctorEntry[] {
+    return list.map((d) => ({ ...d, appointment_required: facilityAppointmentRequired }));
+  }
+
   const existingDoctors = claim.proposed_doctors as Partial<DoctorEntry>[] | null;
   const [doctors, setDoctors] = useState<DoctorEntry[]>(
     existingDoctors && existingDoctors.length > 0
@@ -59,8 +72,9 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   const [photoErrors, setPhotoErrors] = useState<Record<string, string>>({});
 
   function autoSave(next: DoctorEntry[]) {
+    const withPolicy = applyFacilityAppointmentPolicy(next);
     startTransition(async () => {
-      await autoSaveStep4(next);
+      await autoSaveStep4(withPolicy);
       setLastSaved(new Date());
     });
   }
@@ -111,7 +125,10 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
     autoSave(updateDoctor(id, { subspecialty }));
   }
 
-  async function handlePhotoSelect(id: string, file: File | undefined) {
+  const pendingPhotoFileRef = useRef<File | null>(null);
+  const [photoCrop, setPhotoCrop] = useState<{ doctorId: string; objectUrl: string } | null>(null);
+
+  function onPhotoFileSelected(id: string, file: File | undefined) {
     if (!file) return;
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -129,37 +146,44 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       delete next[id];
       return next;
     });
+    pendingPhotoFileRef.current = file;
+    setPhotoCrop({ doctorId: id, objectUrl: URL.createObjectURL(file) });
+  }
+
+  function cancelPhotoCrop() {
+    if (photoCrop) {
+      URL.revokeObjectURL(photoCrop.objectUrl);
+      const input = fileInputRefs.current[photoCrop.doctorId];
+      if (input) input.value = "";
+    }
+    setPhotoCrop(null);
+    pendingPhotoFileRef.current = null;
+  }
+
+  async function handlePhotoCropComplete(blob: Blob) {
+    const crop = photoCrop;
+    const file = pendingPhotoFileRef.current;
+    if (!crop) return;
+    URL.revokeObjectURL(crop.objectUrl);
+    setPhotoCrop(null);
+    pendingPhotoFileRef.current = null;
+
+    const { doctorId: id } = crop;
+    const previousUrl = doctors.find((d) => d.id === id)?.photo_url || null;
     setUploadingId(id);
 
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      const url = await uploadImageToBucket(
+        "doctor-photos",
+        claimId,
+        blob,
+        file ? extensionFromFile(file) : "jpg",
+        previousUrl,
       );
-
-      const ext = file.name.split(".").pop();
-      const path = `${claimId}/${id}.${ext}`;
-
-      // MANUAL SETUP REQUIRED: Verify 'doctor-photos' bucket exists in Supabase dashboard
-      // Public bucket, allowed MIME: image/jpeg, image/png, image/webp, max size 10MB
-      // Run: GRANT SELECT ON storage.objects TO anon; GRANT INSERT ON storage.objects TO authenticated;
-      const { error: uploadError } = await supabase.storage
-        .from("doctor-photos")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from("doctor-photos").getPublicUrl(path);
-
-      autoSave(updateDoctor(id, { photo_url: urlData.publicUrl }));
+      autoSave(updateDoctor(id, { photo_url: url }));
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error("Doctor photo upload error:", {
-        message: errMsg,
-        bucket: "doctor-photos",
-        path: `${claimId}/${id}`,
-        error: err,
-      });
+      console.error("Doctor photo upload error:", { message: errMsg, bucket: "doctor-photos", error: err });
       const userMsg =
         errMsg.toLowerCase().includes("bucket") || errMsg.toLowerCase().includes("not found")
           ? "Photo storage is not yet configured — please contact support or try again later."
@@ -174,7 +198,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
 
   function handleSaveAndContinue() {
     startTransition(async () => {
-      await saveStep4AndContinue(doctors);
+      await saveStep4AndContinue(applyFacilityAppointmentPolicy(doctors));
     });
   }
 
@@ -189,6 +213,11 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       >
         Skip this step →
       </a>
+      <p className="text-xs text-muted-foreground">
+        Appointment availability for every doctor follows your facility&apos;s walk-in / appointment
+        policy set in the previous step
+        {claim.proposed_walkin_appointment ? ` (currently "${claim.proposed_walkin_appointment}")` : ""}.
+      </p>
 
       {doctors.map((doctor, index) => {
         const showSpecialty = clinicalRoles.includes(doctor.role);
@@ -218,7 +247,11 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                 <input
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   defaultValue={doctor.full_name}
-                  onBlur={(e) => autoSave(updateDoctor(doctor.id, { full_name: e.target.value }))}
+                  onBlur={(e) => {
+                    const cleaned = stripDoctorNamePrefix(e.target.value);
+                    e.target.value = cleaned;
+                    autoSave(updateDoctor(doctor.id, { full_name: cleaned }));
+                  }}
                   placeholder="e.g. Abebe Kebede"
                   type="text"
                 />
@@ -369,26 +402,6 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold text-foreground">Appointment required?</p>
-                <div className="flex gap-3">
-                  <Pill
-                    onClick={() => autoSave(updateDoctor(doctor.id, { appointment_required: false }))}
-                    size="lg"
-                    variant={!doctor.appointment_required ? "selected" : "default"}
-                  >
-                    No — walk-in OK
-                  </Pill>
-                  <Pill
-                    onClick={() => autoSave(updateDoctor(doctor.id, { appointment_required: true }))}
-                    size="lg"
-                    variant={doctor.appointment_required ? "selected" : "default"}
-                  >
-                    Yes
-                  </Pill>
-                </div>
-              </div>
-
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-foreground">Photo (optional)</label>
                 <p className="text-xs text-muted-foreground">
@@ -417,7 +430,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
                   <input
                     accept="image/jpeg,image/png,image/webp"
                     className="hidden"
-                    onChange={(e) => handlePhotoSelect(doctor.id, e.target.files?.[0])}
+                    onChange={(e) => onPhotoFileSelected(doctor.id, e.target.files?.[0])}
                     ref={(el) => {
                       fileInputRefs.current[doctor.id] = el;
                     }}
@@ -491,6 +504,16 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
           </button>
         </div>
       </div>
+
+      {photoCrop && (
+        <ImageCropModal
+          aspect={DOCTOR_PHOTO_ASPECT}
+          imageSrc={photoCrop.objectUrl}
+          onCancel={cancelPhotoCrop}
+          onComplete={handlePhotoCropComplete}
+          title="Crop photo"
+        />
+      )}
     </div>
   );
 }

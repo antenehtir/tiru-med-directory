@@ -38,8 +38,18 @@ export default async function MediaStepPage() {
     );
   }
 
+  // Falls back to the legacy single-URL column for claims saved before the
+  // multi-photo gallery migration (supabase/migrations_draft/032_*.sql) adds
+  // proposed_entrance_photo_urls.
+  const legacyEntrancePhoto = (claim.proposed_entrance_photo_url as string) ?? "";
+  const entrancePhotoUrls = Array.isArray(claim.proposed_entrance_photo_urls)
+    ? (claim.proposed_entrance_photo_urls as string[]).filter(Boolean)
+    : legacyEntrancePhoto
+      ? [legacyEntrancePhoto]
+      : [];
+
   const initialData = {
-    entrance_photo_url: (claim.proposed_entrance_photo_url as string) ?? "",
+    entrance_photo_urls: entrancePhotoUrls,
     logo_url: (claim.proposed_logo_url as string) ?? "",
     license_url: (claim.proposed_license_url as string) ?? "",
     license_issue_date: (claim.proposed_license_issue_date as string) ?? "",

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { AdminClaimsList, type Claim } from "@/components/admin/AdminClaimsList";
 
@@ -58,7 +59,9 @@ export default async function AdminClaimsPage() {
           Review claims on existing facilities and new facility listing requests
         </p>
       </div>
-      <AdminClaimsList claims={claims} />
+      <Suspense fallback={null}>
+        <AdminClaimsList claims={claims} />
+      </Suspense>
     </div>
   );
 }

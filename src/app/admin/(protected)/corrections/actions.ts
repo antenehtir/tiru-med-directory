@@ -22,7 +22,7 @@ export async function updateCorrectionStatus(
     .eq("id", id)
     .maybeSingle();
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("correction_requests")
     .update({
       status: newStatus,
@@ -30,11 +30,24 @@ export async function updateCorrectionStatus(
       reviewed_at: new Date().toISOString(),
       ...(adminNote !== undefined ? { admin_note: adminNote || null } : {}),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     console.error("updateCorrectionStatus failed:", error.message);
     return { error: error.message };
+  }
+
+  // Postgres/PostgREST returns success with zero rows when an UPDATE's
+  // WHERE clause is silently narrowed to nothing by a missing/misconfigured
+  // RLS policy — no `error` is raised for that case, so it has to be
+  // detected here instead of assumed from the absence of `error`.
+  if (!updated || updated.length === 0) {
+    console.error("updateCorrectionStatus affected 0 rows (likely missing RLS UPDATE grant):", id);
+    return {
+      error:
+        "Update did not apply — you may not have permission to update correction requests. Contact an administrator.",
+    };
   }
 
   await supabase.from("audit_log").insert({

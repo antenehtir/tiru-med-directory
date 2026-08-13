@@ -6,7 +6,7 @@ import { ensureClaimId } from "@/lib/provider/get-claim";
 import { buildFacilityFieldsFromClaim } from "@/lib/provider/facility-field-mapping";
 
 export type Step5Data = {
-  entrance_photo_url: string;
+  entrance_photo_urls: string[];
   logo_url: string;
   license_url: string;
   license_issue_date: string;
@@ -21,12 +21,12 @@ const LOGO_WEIGHT = 4;
 const LICENSE_WEIGHT = 4;
 
 function scoreStep5(data: {
-  entrance_photo_url?: string | null;
+  entrance_photo_urls?: string[] | null;
   logo_url?: string | null;
   license_url?: string | null;
 }): number {
   let score = 0;
-  if (data.entrance_photo_url) score += ENTRANCE_PHOTO_WEIGHT;
+  if (data.entrance_photo_urls && data.entrance_photo_urls.length > 0) score += ENTRANCE_PHOTO_WEIGHT;
   if (data.logo_url) score += LOGO_WEIGHT;
   if (data.license_url) score += LICENSE_WEIGHT;
   return score;
@@ -42,29 +42,36 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
 
   const { data: currentClaim } = await supabase
     .from("facility_claims")
-    .select("proposed_entrance_photo_url, proposed_logo_url, proposed_license_url")
+    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url, proposed_license_url")
     .eq("id", claimId)
     .single();
 
+  const currentEntrancePhotoUrls = Array.isArray(currentClaim?.proposed_entrance_photo_urls)
+    ? (currentClaim.proposed_entrance_photo_urls as string[])
+    : currentClaim?.proposed_entrance_photo_url
+      ? [currentClaim.proposed_entrance_photo_url as string]
+      : [];
+
   const oldScore = scoreStep5({
-    entrance_photo_url: currentClaim?.proposed_entrance_photo_url,
+    entrance_photo_urls: currentEntrancePhotoUrls,
     logo_url: currentClaim?.proposed_logo_url,
     license_url: currentClaim?.proposed_license_url,
   });
 
   const newScore = scoreStep5({
-    entrance_photo_url:
-      data.entrance_photo_url !== undefined
-        ? data.entrance_photo_url
-        : currentClaim?.proposed_entrance_photo_url,
+    entrance_photo_urls:
+      data.entrance_photo_urls !== undefined ? data.entrance_photo_urls : currentEntrancePhotoUrls,
     logo_url: data.logo_url !== undefined ? data.logo_url : currentClaim?.proposed_logo_url,
     license_url:
       data.license_url !== undefined ? data.license_url : currentClaim?.proposed_license_url,
   });
 
   const updates: Record<string, unknown> = {};
-  if (data.entrance_photo_url !== undefined) {
-    updates.proposed_entrance_photo_url = data.entrance_photo_url || null;
+  if (data.entrance_photo_urls !== undefined) {
+    updates.proposed_entrance_photo_urls = data.entrance_photo_urls;
+    // Kept in sync as a legacy fallback for any reader still on the
+    // single-URL column (see supabase/migrations_draft/032_*.sql).
+    updates.proposed_entrance_photo_url = data.entrance_photo_urls[0] || null;
   }
   if (data.logo_url !== undefined) updates.proposed_logo_url = data.logo_url || null;
   if (data.license_url !== undefined) updates.proposed_license_url = data.license_url || null;
@@ -130,12 +137,18 @@ export async function saveStep5AndContinue(data: Step5Data) {
 
   const { data: currentClaim } = await supabase
     .from("facility_claims")
-    .select("proposed_entrance_photo_url, proposed_logo_url, proposed_license_url")
+    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url, proposed_license_url")
     .eq("id", claimId)
     .single();
 
+  const currentEntrancePhotoUrls = Array.isArray(currentClaim?.proposed_entrance_photo_urls)
+    ? (currentClaim.proposed_entrance_photo_urls as string[])
+    : currentClaim?.proposed_entrance_photo_url
+      ? [currentClaim.proposed_entrance_photo_url as string]
+      : [];
+
   const oldScore = scoreStep5({
-    entrance_photo_url: currentClaim?.proposed_entrance_photo_url,
+    entrance_photo_urls: currentEntrancePhotoUrls,
     logo_url: currentClaim?.proposed_logo_url,
     license_url: currentClaim?.proposed_license_url,
   });
@@ -144,7 +157,8 @@ export async function saveStep5AndContinue(data: Step5Data) {
   const { error: updateError } = await supabase
     .from("facility_claims")
     .update({
-      proposed_entrance_photo_url: data.entrance_photo_url || null,
+      proposed_entrance_photo_urls: data.entrance_photo_urls,
+      proposed_entrance_photo_url: data.entrance_photo_urls[0] || null,
       proposed_logo_url: data.logo_url || null,
       proposed_license_url: data.license_url || null,
       proposed_license_issue_date: data.license_issue_date || null,

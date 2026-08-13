@@ -5,7 +5,11 @@ import { submitForReview } from "@/app/provider/(console)/onboarding/review/acti
 import { Spinner } from "@/components/provider/Spinner";
 import { Badge } from "@/components/ui/Badge";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { createEmptyDoctor, type DoctorEntry } from "@/lib/provider/doctor-types";
+import {
+  createEmptyDoctor,
+  formatDoctorDisplayName,
+  type DoctorEntry,
+} from "@/lib/provider/doctor-types";
 
 type Claim = Record<string, unknown>;
 type ScheduleRow = { days: string[]; open: string; close: string; closed: boolean };
@@ -238,7 +242,11 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
   const doctors = rawDoctors.map(normalizeDoctor);
 
   // Section 5 — Photos & Documents
-  const entrancePhoto = claim.proposed_entrance_photo_url as string;
+  const entrancePhotos = Array.isArray(claim.proposed_entrance_photo_urls)
+    ? (claim.proposed_entrance_photo_urls as string[]).filter(Boolean)
+    : claim.proposed_entrance_photo_url
+      ? [claim.proposed_entrance_photo_url as string]
+      : [];
   const logo = claim.proposed_logo_url as string;
   const licenseUrl = claim.proposed_license_url as string;
   const licenseIssue = claim.proposed_license_issue_date as string;
@@ -493,7 +501,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
                   </div>
                   <div className="flex-1 space-y-1.5">
                     <p className="font-bold text-foreground">
-                      {[doctor.title, doctor.full_name].filter(Boolean).join(" ") || "Unnamed"}
+                      {formatDoctorDisplayName(doctor.title, doctor.full_name) || "Unnamed"}
                     </p>
                     {doctor.role && (
                       <Badge size="sm" variant="default">
@@ -508,11 +516,6 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
                     )}
                     {scheduleLine && <p className="text-xs text-muted-foreground">{scheduleLine}</p>}
                     {doctor.languages.length > 0 && <PillList items={doctor.languages} />}
-                    {doctor.appointment_required && (
-                      <Badge size="sm" variant="warning">
-                        Appointment required
-                      </Badge>
-                    )}
                   </div>
                 </div>
               );
@@ -523,14 +526,21 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
 
       <SectionCard editHref="/provider/onboarding/media" id="section-photos" stepNum={5} title="Photos & Documents">
         <div>
-          <span className="text-xs font-medium text-muted-foreground">Entrance photo</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            Entrance photos ({entrancePhotos.length}/4)
+          </span>
           <div className="mt-1">
-            {entrancePhoto ? (
-              <img
-                alt="Entrance"
-                className="max-h-40 w-full rounded-xl object-cover"
-                src={entrancePhoto}
-              />
+            {entrancePhotos.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {entrancePhotos.map((url) => (
+                  <img
+                    alt="Facility entrance"
+                    className="h-24 w-full rounded-xl object-cover"
+                    key={url}
+                    src={url}
+                  />
+                ))}
+              </div>
             ) : (
               <Chip tone="gray">Not uploaded</Chip>
             )}
