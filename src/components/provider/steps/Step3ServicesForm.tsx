@@ -415,22 +415,95 @@ function SubCitySelect({
   selected: string[];
   onChange: (next: string[]) => void;
 }) {
+  const [customValue, setCustomValue] = useState("");
+  const knownCities = COVERAGE_SUB_CITIES as readonly string[];
+  const allSelected = knownCities.every((city) => selected.includes(city));
+  const customAreas = selected.filter((area) => !knownCities.includes(area));
+
+  function toggleCity(city: string) {
+    const next = selected.includes(city)
+      ? selected.filter((c) => c !== city)
+      : [...selected, city];
+    onChange(next);
+  }
+
+  function handleSelectAll() {
+    const next = allSelected
+      ? selected.filter((c) => !knownCities.includes(c))
+      : [...new Set([...selected, ...knownCities])];
+    onChange(next);
+  }
+
+  function addCustomArea() {
+    const value = customValue.trim();
+    if (!value || selected.includes(value)) return;
+    onChange([...selected, value]);
+    setCustomValue("");
+  }
+
+  function removeCustomArea(area: string) {
+    onChange(selected.filter((c) => c !== area));
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {COVERAGE_SUB_CITIES.map((city) => (
-        <Pill
-          key={city}
-          onClick={() => {
-            const next = selected.includes(city)
-              ? selected.filter((c) => c !== city)
-              : [...selected, city];
-            onChange(next);
-          }}
-          variant={selected.includes(city) ? "selected" : "default"}
+    <div>
+      <div className="mb-2 flex items-center justify-end">
+        <button
+          className="text-xs text-primary hover:underline"
+          onClick={handleSelectAll}
+          type="button"
         >
-          {city}
-        </Pill>
-      ))}
+          {allSelected ? "Deselect all" : "Select all"}
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {knownCities.map((city) => (
+          <Pill
+            key={city}
+            onClick={() => toggleCity(city)}
+            variant={selected.includes(city) ? "selected" : "default"}
+          >
+            {city}
+          </Pill>
+        ))}
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <input
+          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={(e) => setCustomValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addCustomArea();
+            }
+          }}
+          placeholder="Add other area not listed..."
+          type="text"
+          value={customValue}
+        />
+        <button
+          className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+          disabled={!customValue.trim() || selected.includes(customValue.trim())}
+          onClick={addCustomArea}
+          type="button"
+        >
+          Add
+        </button>
+      </div>
+
+      {customAreas.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {customAreas.map((area) => (
+            <span className={getPillClassName("selected", "md")} key={area}>
+              {area}
+              <button onClick={() => removeCustomArea(area)} type="button">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -446,6 +519,14 @@ function ToggleGroup({
   value: string;
   onChange: (value: string) => void;
 }) {
+  // Every "X only / Y only / Both" toggle group in this form (delivery
+  // options, sample collection) uses the literal string "Both" as its third
+  // option — when that's selected, the two individual modes it represents
+  // should visually light up too, not just the "Both" pill itself. The
+  // stored value stays "Both" either way; this only affects which pills
+  // render as selected.
+  const isActive = (opt: string) => value === opt || (value === "Both" && opt !== "Both");
+
   return (
     <div className="flex flex-wrap gap-3">
       {options.map((opt) => (
@@ -453,7 +534,7 @@ function ToggleGroup({
           key={opt}
           onClick={() => onChange(opt)}
           size="lg"
-          variant={value === opt ? "selected" : "default"}
+          variant={isActive(opt) ? "selected" : "default"}
         >
           {opt}
         </Pill>

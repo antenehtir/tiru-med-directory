@@ -62,7 +62,7 @@ const ExternalIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}><path d="M14 4h6v6M20 4l-9 9M19 13v6a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h6" /></Icon>
 );
 
-const NAV_ITEMS: NavItem[] = [
+const ALL_NAV_ITEMS: NavItem[] = [
   { label: "Overview", href: "/provider/dashboard", step: null, icon: OverviewIcon },
   { label: "Basic info", href: "/provider/onboarding/identity", step: 1, icon: IdentityIcon },
   { label: "Location", href: "/provider/onboarding/location", step: 2, icon: LocationIcon },
@@ -70,6 +70,19 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Doctors", href: "/provider/onboarding/doctors", step: 4, icon: DoctorsIcon },
   { label: "Photos and docs", href: "/provider/onboarding/media", step: 5, icon: MediaIcon },
 ];
+
+// Pharmacies don't list doctors or named staff — the Doctors step is
+// skipped entirely for this facility type (see also saveStep3's
+// pharmacy-specific phase jump in services/actions.ts, and
+// calculateCompletion's redistribution of the doctors step weight).
+const FACILITY_TYPES_WITHOUT_DOCTORS_STEP = new Set(["Pharmacy"]);
+
+function getNavItems(facilityType: string | null): NavItem[] {
+  if (facilityType && FACILITY_TYPES_WITHOUT_DOCTORS_STEP.has(facilityType)) {
+    return ALL_NAV_ITEMS.filter((item) => item.href !== "/provider/onboarding/doctors");
+  }
+  return ALL_NAV_ITEMS;
+}
 
 const SETTINGS_ITEM: NavItem = { label: "Account settings", href: "/provider/settings", step: null, icon: SettingsIcon };
 
@@ -116,6 +129,7 @@ type SidebarContentProps = {
   maxAccessibleStep: number;
   isApproved: boolean;
   pathname: string;
+  navItems: NavItem[];
   onNavigate?: () => void;
 };
 
@@ -175,6 +189,7 @@ function SidebarContent({
   maxAccessibleStep,
   isApproved,
   pathname,
+  navItems,
   onNavigate,
 }: SidebarContentProps) {
   const showUnderReviewLock = claimStatus === "pending_review";
@@ -194,7 +209,7 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Provider console">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const locked =
             item.step !== null &&
             !isApproved &&
@@ -250,6 +265,7 @@ export function ProviderConsoleShell({
   facilityUpdatedAt,
   claimStatus,
   submissionStep,
+  facilityType = null,
   children,
 }: {
   facilityName: string;
@@ -257,10 +273,12 @@ export function ProviderConsoleShell({
   facilityUpdatedAt: string | null;
   claimStatus: string | null;
   submissionStep: number | null;
+  facilityType?: string | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navItems = getNavItems(facilityType);
 
   // Lock body scroll while the mobile drawer is open.
   useEffect(() => {
@@ -273,7 +291,7 @@ export function ProviderConsoleShell({
   }, [mobileOpen]);
 
   const isApproved = claimStatus === "approved";
-  const currentStepFromPath = NAV_ITEMS.find(
+  const currentStepFromPath = navItems.find(
     (item) => item.step !== null && isActiveRoute(pathname, item.href),
   )?.step;
   const maxAccessibleStep = Math.max(submissionStep ?? 0, currentStepFromPath ?? 0, 1);
@@ -286,6 +304,7 @@ export function ProviderConsoleShell({
     maxAccessibleStep,
     isApproved,
     pathname,
+    navItems,
   };
 
   return (

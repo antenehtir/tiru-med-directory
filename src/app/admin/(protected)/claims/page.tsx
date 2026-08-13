@@ -15,6 +15,8 @@ async function getClaims(): Promise<Claim[]> {
     .from("facility_claims")
     .select(`
       facility_id,
+      proposed_license_url, proposed_license_issue_date, proposed_license_expiry_date,
+      proposed_business_license_url, proposed_business_license_issue_date, proposed_business_license_expiry_date,
       provider_accounts (
         id, email, display_name, phone, claimant_role, claimant_role_other,
         claimant_phone, facility_official_phone_claimed, work_email,
@@ -43,6 +45,12 @@ async function getClaims(): Promise<Claim[]> {
         // new listings until admin approval creates the facilities row.
         facility_id: row.facility_id,
         facilities: (Array.isArray(row.facilities) ? row.facilities[0] : row.facilities) ?? null,
+        proposed_license_url: row.proposed_license_url,
+        proposed_license_issue_date: row.proposed_license_issue_date,
+        proposed_license_expiry_date: row.proposed_license_expiry_date,
+        proposed_business_license_url: row.proposed_business_license_url,
+        proposed_business_license_issue_date: row.proposed_business_license_issue_date,
+        proposed_business_license_expiry_date: row.proposed_business_license_expiry_date,
       };
     })
     .filter((claim): claim is NonNullable<typeof claim> => claim !== null) as Claim[];

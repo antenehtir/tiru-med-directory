@@ -6,6 +6,7 @@ import {
   type SubmissionTrendDatum,
 } from "@/components/admin/AdminDashboardCharts";
 import { BADGE_STATUS_COLORS, BADGE_STATUS_LABELS } from "@/lib/admin/dashboard-colors";
+import { getFacilitiesWithLicenseIssues } from "@/lib/admin/facility-licenses";
 
 async function getDashboardStats() {
   const supabase = await createAdminSupabaseClient();
@@ -107,10 +108,11 @@ async function getSubmissionsTrend(): Promise<SubmissionTrendDatum[]> {
 }
 
 export default async function AdminDashboardPage() {
-  const [adminUser, stats, submissionsTrend] = await Promise.all([
+  const [adminUser, stats, submissionsTrend, licenseIssues] = await Promise.all([
     getAdminUser(),
     getDashboardStats(),
     getSubmissionsTrend(),
+    getFacilitiesWithLicenseIssues(),
   ]);
 
   const statCards = [
@@ -162,6 +164,14 @@ export default async function AdminDashboardPage() {
       bg: "bg-blue-50 dark:bg-blue-950",
       href: "/admin/facilities?badge=facility-owned",
     },
+    {
+      label: "License Issues",
+      value: licenseIssues.length,
+      description: "Expired or missing licenses",
+      color: "text-red-600 dark:text-red-400",
+      bg: "bg-red-50 dark:bg-red-950",
+      href: "/admin/compliance",
+    },
   ];
 
   const badgeDistribution = [
@@ -191,7 +201,7 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
         {statCards.map((card) => (
           <Link
             className={`rounded-2xl border border-border p-5 transition hover:border-primary/40 hover:shadow-sm ${card.bg}`}

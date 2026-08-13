@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { getProviderBrowserClient } from "@/lib/supabase/provider-browser-client";
 import {
   autoSaveStep5,
   saveStep5AndContinue,
@@ -84,10 +84,7 @@ function ExpiryFlagChip({ flag }: { flag: ExpiryFlag | null }) {
 }
 
 async function uploadToBucket(bucket: string, path: string, file: File): Promise<string> {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  const supabase = getProviderBrowserClient();
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
@@ -102,12 +99,28 @@ async function uploadToBucket(bucket: string, path: string, file: File): Promise
 export function Step5MediaForm({
   claimId,
   initialData,
+  backHref = "/provider/onboarding/doctors",
+  claimStatus = null,
 }: {
   claimId: string;
   initialData: Step5Data;
+  backHref?: string;
+  claimStatus?: string | null;
 }) {
+  // Photos/other fields lock only while the submission is actively under
+  // review (this replaces the old full-page "cannot be edited" block — the
+  // fields are now visible and clearly locked instead of hidden entirely).
+  // Licenses stay locked after approval too: there's no admin re-review
+  // workflow for a swapped-out license post-approval, and the live-edit
+  // sync path (buildFacilityFieldsFromClaim) doesn't even carry license
+  // fields to the public facilities row, so a silent post-approval license
+  // edit would have no verification step at all — blocking is the safer
+  // interim behavior until a re-review queue exists.
+  const photosLocked = claimStatus === "pending_review";
+  const licensesLocked = claimStatus === "pending_review" || claimStatus === "approved";
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [urls, setUrls] = useState<Step5Data>(initialData);
 
   const [entranceStatus, setEntranceStatus] = useState<UploadStatus>("idle");
@@ -153,8 +166,18 @@ export function Step5MediaForm({
 
   function autoSave(partial: Partial<Step5Data>) {
     startTransition(async () => {
-      await autoSaveStep5(partial);
-      setLastSaved(new Date());
+      const result = await autoSaveStep5(partial);
+      if (result.ok) {
+        setSaveError(null);
+        setLastSaved(new Date());
+      } else {
+        // Previously this always called setLastSaved(), so a failed save
+        // (e.g. an expired session) still showed "Draft saved" — the
+        // provider had no way to know their upload hadn't actually
+        // persisted. See src/lib/supabase/provider-browser-client.ts for
+        // the session-corruption root cause this was masking.
+        setSaveError(result.error ?? "Save failed — please try again.");
+      }
     });
   }
 
@@ -363,10 +386,26 @@ export function Step5MediaForm({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-        Photos significantly improve patient trust and your listing&apos;s completeness score.
-        The license document is used only for admin verification.
-      </div>
+      {photosLocked ? (
+        <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-foreground">
+          <span aria-hidden="true">🔒</span>
+          <span>
+            Your listing is under review — everything below is locked until an admin approves or
+            rejects it. You can still view what you submitted.
+          </span>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+          Photos significantly improve patient trust and your listing&apos;s completeness score.
+          The license document is used only for admin verification.
+        </div>
+      )}
+
+      {saveError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+          {saveError}
+        </div>
+      )}
 
       {/* License */}
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -378,6 +417,17 @@ export function Step5MediaForm({
           Upload a scan or clear photo of your facility&apos;s operating license. This is kept
           private and used only for verification — it will never be shown publicly.
         </p>
+
+        {licensesLocked && (
+          <div className="mb-4 flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-foreground">
+            <span aria-hidden="true">🔒</span>
+            <span>
+              {claimStatus === "approved"
+                ? "License documents are locked once your listing is approved. Contact support if you need to update your license."
+                : "License documents are locked while your submission is under review."}
+            </span>
+          </div>
+        )}
 
         {urls.license_url ? (
           <div className="space-y-2">
@@ -401,7 +451,7 @@ export function Step5MediaForm({
             </div>
             <button
               className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={licenseStatus === "uploading"}
+              disabled={licenseStatus === "uploading" || licensesLocked}
               onClick={() => licenseInputRef.current?.click()}
               type="button"
             >
@@ -411,7 +461,7 @@ export function Step5MediaForm({
         ) : (
           <button
             className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={licenseStatus === "uploading"}
+            disabled={licenseStatus === "uploading" || licensesLocked}
             onClick={() => licenseInputRef.current?.click()}
             type="button"
           >
@@ -461,7 +511,8 @@ export function Step5MediaForm({
               <RequiredForApproval />
             </label>
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={licensesLocked}
               onBlur={(e) => autoSave({ license_issue_date: e.target.value })}
               onChange={(e) =>
                 setUrls((prev) => ({ ...prev, license_issue_date: e.target.value }))
@@ -476,7 +527,8 @@ export function Step5MediaForm({
               <RequiredForApproval />
             </label>
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={licensesLocked}
               onBlur={(e) => autoSave({ license_expiry_date: e.target.value })}
               onChange={(e) =>
                 setUrls((prev) => ({ ...prev, license_expiry_date: e.target.value }))
@@ -522,7 +574,7 @@ export function Step5MediaForm({
             </div>
             <button
               className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={businessLicenseStatus === "uploading"}
+              disabled={businessLicenseStatus === "uploading" || licensesLocked}
               onClick={() => businessLicenseInputRef.current?.click()}
               type="button"
             >
@@ -532,7 +584,7 @@ export function Step5MediaForm({
         ) : (
           <button
             className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={businessLicenseStatus === "uploading"}
+            disabled={businessLicenseStatus === "uploading" || licensesLocked}
             onClick={() => businessLicenseInputRef.current?.click()}
             type="button"
           >
@@ -584,7 +636,8 @@ export function Step5MediaForm({
               <RequiredForApproval />
             </label>
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={licensesLocked}
               onBlur={(e) => autoSave({ business_license_issue_date: e.target.value })}
               onChange={(e) =>
                 setUrls((prev) => ({ ...prev, business_license_issue_date: e.target.value }))
@@ -599,7 +652,8 @@ export function Step5MediaForm({
               <RequiredForApproval />
             </label>
             <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={licensesLocked}
               onBlur={(e) => autoSave({ business_license_expiry_date: e.target.value })}
               onChange={(e) =>
                 setUrls((prev) => ({ ...prev, business_license_expiry_date: e.target.value }))
@@ -638,7 +692,7 @@ export function Step5MediaForm({
                 <div className="flex gap-1">
                   <button
                     className="rounded px-1 text-xs font-bold text-white disabled:opacity-30"
-                    disabled={index === 0}
+                    disabled={index === 0 || photosLocked}
                     onClick={() => moveEntrancePhoto(index, -1)}
                     title="Move left"
                     type="button"
@@ -647,7 +701,7 @@ export function Step5MediaForm({
                   </button>
                   <button
                     className="rounded px-1 text-xs font-bold text-white disabled:opacity-30"
-                    disabled={index === urls.entrance_photo_urls.length - 1}
+                    disabled={index === urls.entrance_photo_urls.length - 1 || photosLocked}
                     onClick={() => moveEntrancePhoto(index, 1)}
                     title="Move right"
                     type="button"
@@ -657,8 +711,8 @@ export function Step5MediaForm({
                 </div>
                 <div className="flex gap-2">
                   <button
-                    className="text-xs font-medium text-white hover:underline"
-                    disabled={entranceStatus === "uploading"}
+                    className="text-xs font-medium text-white hover:underline disabled:opacity-30"
+                    disabled={entranceStatus === "uploading" || photosLocked}
                     onClick={() => {
                       entranceSlotTarget.current = index;
                       entranceInputRef.current?.click();
@@ -668,7 +722,8 @@ export function Step5MediaForm({
                     Replace
                   </button>
                   <button
-                    className="text-xs font-medium text-red-300 hover:underline"
+                    className="text-xs font-medium text-red-300 hover:underline disabled:opacity-30"
+                    disabled={photosLocked}
                     onClick={() => removeEntrancePhoto(index)}
                     type="button"
                   >
@@ -684,7 +739,7 @@ export function Step5MediaForm({
             </div>
           ))}
 
-          {urls.entrance_photo_urls.length < MAX_ENTRANCE_PHOTOS && (
+          {urls.entrance_photo_urls.length < MAX_ENTRANCE_PHOTOS && !photosLocked && (
             <button
               className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-background text-center transition hover:border-primary/40 disabled:opacity-60"
               disabled={entranceStatus === "uploading"}
@@ -735,7 +790,7 @@ export function Step5MediaForm({
             />
             <button
               className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={logoStatus === "uploading"}
+              disabled={logoStatus === "uploading" || photosLocked}
               onClick={() => logoInputRef.current?.click()}
               type="button"
             >
@@ -745,7 +800,7 @@ export function Step5MediaForm({
         ) : (
           <button
             className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={logoStatus === "uploading"}
+            disabled={logoStatus === "uploading" || photosLocked}
             onClick={() => logoInputRef.current?.click()}
             type="button"
           >
@@ -811,41 +866,52 @@ export function Step5MediaForm({
         />
       )}
 
-      <label className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-sm">
-        <input
-          checked={permissionChecked}
-          className="mt-0.5"
-          onChange={(e) => setPermissionChecked(e.target.checked)}
-          type="checkbox"
-        />
-        <span className="text-foreground">
-          I confirm I have the right to publish the photos uploaded above, and that they
-          accurately represent this facility.
-        </span>
-      </label>
+      {!photosLocked && (
+        <label className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-sm">
+          <input
+            checked={permissionChecked}
+            className="mt-0.5"
+            onChange={(e) => setPermissionChecked(e.target.checked)}
+            type="checkbox"
+          />
+          <span className="text-foreground">
+            I confirm I have the right to publish the photos uploaded above, and that they
+            accurately represent this facility.
+          </span>
+        </label>
+      )}
 
       <div className="flex items-center justify-between">
         <a
           className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
-          href="/provider/onboarding/doctors"
+          href={backHref}
         >
           ← Back
         </a>
-        <button
-          className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!permissionChecked || isPending}
-          onClick={handleSaveAndContinue}
-          type="button"
-        >
-          {isPending ? (
-            <>
-              <Spinner tone="on-primary" />
-              Saving…
-            </>
-          ) : (
-            "Save & continue →"
-          )}
-        </button>
+        {photosLocked ? (
+          <a
+            className="flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+            href="/provider/onboarding/milestone"
+          >
+            View submission status →
+          </a>
+        ) : (
+          <button
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!permissionChecked || isPending}
+            onClick={handleSaveAndContinue}
+            type="button"
+          >
+            {isPending ? (
+              <>
+                <Spinner tone="on-primary" />
+                Saving…
+              </>
+            ) : (
+              "Save & continue →"
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,4 @@
-import { createBrowserClient } from "@supabase/ssr";
-
-function getClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
+import { getProviderBrowserClient as getClient } from "@/lib/supabase/provider-browser-client";
 
 // Every upload gets a brand-new, uuid-keyed path rather than overwriting a
 // fixed path with `upsert: true`. Replacing an image this way only ever
@@ -39,7 +32,7 @@ export async function uploadImageToBucket(
     void supabase.storage
       .from(bucket)
       .remove([previousPath])
-      .catch((err) => console.warn(`Failed to remove old ${bucket} object:`, previousPath, err));
+      .catch((err: unknown) => console.warn(`Failed to remove old ${bucket} object:`, previousPath, err));
   }
 
   return data.publicUrl;

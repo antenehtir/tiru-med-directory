@@ -32,13 +32,21 @@ function scoreStep5(data: {
   return score;
 }
 
-export async function autoSaveStep5(data: Partial<Step5Data>) {
+export type AutoSaveResult = { ok: boolean; error?: string };
+
+export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveResult> {
   const provider = await getProviderAccount();
-  if (!provider) return;
+  if (!provider) {
+    // The caller (Step5MediaForm's autoSave) must not treat this as a
+    // successful save — silently no-op'ing here (the previous behavior)
+    // is what let uploaded photos/logo look "saved" in the UI while the
+    // session was actually invalid and nothing was persisted.
+    return { ok: false, error: "Your session has expired. Please log in again to keep saving changes." };
+  }
 
   const supabase = await createProviderSupabaseClient();
   const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
-  if (!claimId) return;
+  if (!claimId) return { ok: false, error: "Could not find your draft listing. Please refresh and try again." };
 
   const { data: currentClaim } = await supabase
     .from("facility_claims")
@@ -96,10 +104,10 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
     const { error } = await supabase.from("facility_claims").update(updates).eq("id", claimId);
     if (error) {
       console.error("autoSaveStep5 failed:", error.message);
-    } else {
-      const { data } = await supabase.from("facility_claims").select("*").eq("id", claimId).single();
-      updatedClaim = data ?? null;
+      return { ok: false, error: "Save failed — please try again." };
     }
+    const { data } = await supabase.from("facility_claims").select("*").eq("id", claimId).single();
+    updatedClaim = data ?? null;
   }
 
   const currentOverallPct = provider.completion_pct ?? 0;
@@ -122,6 +130,8 @@ export async function autoSaveStep5(data: Partial<Step5Data>) {
       console.error("autoSaveStep5 live sync affected 0 rows — likely blocked by facilities RLS policy", updatedClaim.facility_id);
     }
   }
+
+  return { ok: true };
 }
 
 export async function saveStep5AndContinue(data: Step5Data) {

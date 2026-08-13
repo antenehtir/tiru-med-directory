@@ -95,13 +95,20 @@ export async function saveStep3(formData: FormData) {
       .eq("id", provider.id);
   }
 
-  // phase 4 = doctors (the step they land on next), matching login's phaseToSlug map
+  // Pharmacies don't list doctors/named staff — skip straight past the
+  // Doctors step (phase 4) to Photos & docs (phase 5). See also
+  // ProviderConsoleShell's FACILITY_TYPES_WITHOUT_DOCTORS_STEP and
+  // calculateCompletion's redistribution of the doctors step weight.
+  const skipsDoctorsStep = (updatedClaim?.facility_type as string | undefined) === "Pharmacy";
+  const nextPhase = skipsDoctorsStep ? 5 : 4;
+  const nextRoute = skipsDoctorsStep ? "/provider/onboarding/media" : "/provider/onboarding/doctors";
+
   await supabase
     .from("provider_accounts")
-    .update({ onboarding_phase: 4, last_active_at: new Date().toISOString() })
+    .update({ onboarding_phase: nextPhase, last_active_at: new Date().toISOString() })
     .eq("id", provider.id);
 
-  redirect("/provider/onboarding/doctors");
+  redirect(nextRoute);
 }
 
 export async function autoSaveStep3(data: Record<string, unknown>) {

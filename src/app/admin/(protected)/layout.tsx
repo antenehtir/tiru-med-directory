@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
+import { getFacilitiesWithLicenseIssues } from "@/lib/admin/facility-licenses";
 
 export const metadata = {
   title: "Tiru Admin",
@@ -28,7 +29,11 @@ export default async function AdminLayout({
     redirect("/admin/login");
   }
 
-  const pendingCorrectionsCount = await getPendingCorrectionsCount();
+  const [pendingCorrectionsCount, licenseIssues] = await Promise.all([
+    getPendingCorrectionsCount(),
+    getFacilitiesWithLicenseIssues(),
+  ]);
+  const licenseIssuesCount = licenseIssues.length;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -58,7 +63,10 @@ export default async function AdminLayout({
 
       <div className="flex pt-14">
         {/* Sidebar */}
-        <AdminSidebar pendingCorrectionsCount={pendingCorrectionsCount} />
+        <AdminSidebar
+          licenseIssuesCount={licenseIssuesCount}
+          pendingCorrectionsCount={pendingCorrectionsCount}
+        />
 
         {/* Main content */}
         <main className="min-w-0 flex-1 px-4 py-8 pb-20 sm:px-8 lg:ml-56 lg:pb-8">

@@ -20,6 +20,7 @@ export default async function ProviderConsoleLayout({
       facilityUpdatedAt={facilities?.updated_at ?? null}
       claimStatus={(claim?.status as string | undefined) ?? null}
       submissionStep={(claim?.submission_step as number | null) ?? null}
+      facilityType={(claim?.facility_type as string | undefined) ?? null}
     >
       {children}
     </ProviderConsoleShell>

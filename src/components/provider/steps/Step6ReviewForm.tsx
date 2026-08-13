@@ -237,9 +237,14 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
   const paymentMethods = (claim.proposed_payment_methods as string[]) ?? [];
   const checkupPackages = (claim.proposed_checkup_packages as Array<{ name?: string }> | null) ?? [];
 
-  // Section 4 — Doctors & Staff
+  // Section 4 — Doctors & Staff. Pharmacies don't have this step at all
+  // (see ProviderConsoleShell.tsx's FACILITY_TYPES_WITHOUT_DOCTORS_STEP).
+  // Blank-name entries (e.g. "+ Add another doctor" clicked but never
+  // filled in) are dropped here rather than rendered as "Unnamed" — matches
+  // the same non-blank filter calculateCompletion already uses.
+  const showDoctorsSection = (claim.facility_type as string | undefined) !== "Pharmacy";
   const rawDoctors = (claim.proposed_doctors as Array<Partial<DoctorEntry> & Record<string, unknown>> | null) ?? [];
-  const doctors = rawDoctors.map(normalizeDoctor);
+  const doctors = rawDoctors.map(normalizeDoctor).filter((d) => d.full_name.trim().length > 0);
 
   // Section 5 — Photos & Documents
   const entrancePhotos = Array.isArray(claim.proposed_entrance_photo_urls)
@@ -463,6 +468,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         ) : null}
       </SectionCard>
 
+      {showDoctorsSection && (
       <SectionCard editHref="/provider/onboarding/doctors" id="section-doctors" stepNum={4} title="Doctors & Staff">
         {doctors.length === 0 ? (
           <p className="italic text-muted-foreground">
@@ -523,6 +529,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
           </div>
         )}
       </SectionCard>
+      )}
 
       <SectionCard editHref="/provider/onboarding/media" id="section-photos" stepNum={5} title="Photos & Documents">
         <div>

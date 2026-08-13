@@ -20,6 +20,14 @@ export default async function DoctorsStepPage() {
     );
   }
 
+  // Pharmacies don't list doctors/named staff — this step is skipped
+  // entirely for them (sidebar nav + saveStep3's phase routing already do
+  // this in the normal flow); redirect here too in case of a direct link,
+  // bookmark, or back-navigation to this route.
+  if (claim.facility_type === "Pharmacy") {
+    redirect("/provider/onboarding/media");
+  }
+
   if (claim.status === "pending_review") {
     return (
       <div className="flex items-center justify-center px-4 py-16">

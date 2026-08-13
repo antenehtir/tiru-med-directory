@@ -385,13 +385,18 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
   const hasBooking = !usesWalkin || claim.proposed_walkin_appointment;
   if (hasSchedule && hasServices && hasBooking) pct += 30;
 
-  // Step 4 (10%): doctors — optional, at least one named entry counts
-  if (
+  // Step 4 (10%): doctors — optional, at least one named entry counts.
+  // Pharmacies don't have a Doctors step at all (see
+  // ProviderConsoleShell.tsx's FACILITY_TYPES_WITHOUT_DOCTORS_STEP) — same
+  // "always earned" pattern as hasSchedule/hasBooking above, so skipping a
+  // step that doesn't apply never blocks a pharmacy from reaching 100%.
+  const usesDoctorsStep = facilityType !== "Pharmacy";
+  const hasNamedDoctor =
     Array.isArray(claim.proposed_doctors) &&
     (claim.proposed_doctors as Array<Record<string, unknown>>).some(
       (doctor) => typeof doctor?.full_name === "string" && doctor.full_name.trim().length > 0,
-    )
-  ) {
+    );
+  if (!usesDoctorsStep || hasNamedDoctor) {
     pct += 10;
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { getProviderBrowserClient } from "@/lib/supabase/provider-browser-client";
 
 export type CheckupPackage = {
   name: string;
@@ -48,10 +48,7 @@ export function CheckupPackageUploader({
     setUploadError(null);
 
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      const supabase = getProviderBrowserClient();
 
       const ext = file.name.split(".").pop();
       const fileName = `checkup-packages/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;

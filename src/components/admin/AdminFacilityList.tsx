@@ -9,6 +9,8 @@ import {
 } from "@/app/admin/(protected)/facilities/actions";
 import { Badge } from "@/components/ui/Badge";
 import type { BadgeVariant } from "@/lib/design-tokens";
+import { LicenseStatusBadge } from "@/components/admin/LicenseStatusBadge";
+import { LICENSE_STATUS_LABELS, type FacilityLicenseInfo, type LicenseStatus } from "@/lib/licenses/license-status";
 
 type Facility = {
   id: string;
@@ -25,7 +27,10 @@ type Facility = {
   is_active: boolean | null;
   deactivation_category: string | null;
   deactivated_at: string | null;
+  licenseInfo: FacilityLicenseInfo;
 };
+
+const LICENSE_STATUS_OPTIONS = Object.keys(LICENSE_STATUS_LABELS) as LicenseStatus[];
 
 const BADGE_LABELS: Record<string, string> = {
   "community-submitted": "CS",
@@ -69,10 +74,14 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
   const badgeParam = searchParams.get("badge");
   const initialBadgeFilter =
     badgeParam && badgeParam in BADGE_VARIANTS ? badgeParam : "all";
+  const licenseParam = searchParams.get("license");
+  const initialLicenseFilter =
+    licenseParam && (LICENSE_STATUS_OPTIONS as string[]).includes(licenseParam) ? licenseParam : "all";
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [badgeFilter, setBadgeFilter] = useState(initialBadgeFilter);
+  const [licenseFilter, setLicenseFilter] = useState(initialLicenseFilter);
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isPending, startTransition] = useTransition();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -92,11 +101,12 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
       (f.sub_city ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || f.category === categoryFilter;
     const matchesBadge = badgeFilter === "all" || f.verification_status === badgeFilter;
+    const matchesLicense = licenseFilter === "all" || f.licenseInfo.worst === licenseFilter;
     const isInactive = f.is_active === false;
     const matchesActive =
       activeFilter === "all" ||
       (activeFilter === "active" ? !isInactive : isInactive);
-    return matchesSearch && matchesCategory && matchesBadge && matchesActive;
+    return matchesSearch && matchesCategory && matchesBadge && matchesLicense && matchesActive;
   });
 
   function handleBadgeChange(facilityId: string, currentStatus: string, newStatus: string) {
@@ -175,6 +185,18 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
           <option value="active">Active only</option>
           <option value="inactive">Inactive only</option>
         </select>
+        <select
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={(e) => setLicenseFilter(e.target.value)}
+          value={licenseFilter}
+        >
+          <option value="all">All licenses</option>
+          {LICENSE_STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {LICENSE_STATUS_LABELS[status]}
+            </option>
+          ))}
+        </select>
         <span className="flex items-center text-sm text-muted-foreground">
           {filtered.length} results
         </span>
@@ -190,6 +212,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
               <th className="px-4 py-3 text-left font-semibold text-foreground">Category</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Location</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Badge</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">License</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Status</th>
               <th className="px-4 py-3 text-left font-semibold text-foreground">Actions</th>
             </tr>
@@ -221,6 +244,9 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                     <Badge variant={BADGE_VARIANTS[facility.verification_status] ?? "default"}>
                       {BADGE_LABELS[facility.verification_status] ?? facility.verification_status}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <LicenseStatusBadge status={facility.licenseInfo.worst} />
                   </td>
                   <td className="px-4 py-3">
                     <Badge dot variant={isInactive ? "danger" : "success"}>

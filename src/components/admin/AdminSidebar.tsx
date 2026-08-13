@@ -46,6 +46,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Compliance",
+    href: "/admin/compliance",
+    icon: (
+      <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6z" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M9.5 12l1.8 1.8L15 10" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     label: "Audit Log",
     href: "/admin/audit-log",
     icon: (
@@ -74,8 +84,10 @@ const NAV_ITEMS = [
 
 export function AdminSidebar({
   pendingCorrectionsCount = 0,
+  licenseIssuesCount = 0,
 }: {
   pendingCorrectionsCount?: number;
+  licenseIssuesCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -103,6 +115,11 @@ export function AdminSidebar({
               {item.href === "/admin/corrections" && pendingCorrectionsCount > 0 && (
                 <span className="ml-auto rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
                   {pendingCorrectionsCount}
+                </span>
+              )}
+              {item.href === "/admin/compliance" && licenseIssuesCount > 0 && (
+                <span className="ml-auto rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-950/50 dark:text-red-400">
+                  {licenseIssuesCount}
                 </span>
               )}
             </Link>
