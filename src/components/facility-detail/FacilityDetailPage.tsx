@@ -36,11 +36,11 @@ export function FacilityDetailPage({
           </div>
         </div>
 
-        {/* Content sections — patient-priority order: who works here & what they
-            do, before hours, then overview/payment. */}
+        {/* Content sections — patient-priority order: what care is offered,
+            then who works here, then hours, then overview/payment. */}
         <div className="grid gap-8">
-          <FacilityDoctorsSection facility={facility} />
           <FacilityServicesSection facility={facility} />
+          <FacilityDoctorsSection facility={facility} />
           <FacilityHoursSection facility={facility} />
           <FacilityInformationSection facility={facility} />
         </div>

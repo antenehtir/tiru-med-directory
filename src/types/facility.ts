@@ -57,6 +57,10 @@ export type Facility = {
   category: string;
   subcategory: string;
   services: string[];
+  /** Category-tagged custom "other" service entries, keyed the same way as
+   *  onboarding's customInputs (e.g. "basiclab-Basic Blood Workup", "general").
+   *  See supabase/migrations_draft/035_custom_service_categories.sql. */
+  customServiceCategories?: Record<string, string[]>;
   location: string;
   address: string;
   workingHours: string;

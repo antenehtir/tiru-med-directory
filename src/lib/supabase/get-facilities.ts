@@ -31,6 +31,7 @@ type DBFacility = {
   appointment_modalities: unknown;
   services: unknown;
   special_services: unknown;
+  custom_service_categories: unknown;
   logo_url: string | null;
   photo_url: string | null;
   photo_urls: unknown;
@@ -113,6 +114,10 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     category: row.category,
     subcategory: row.subcategory ?? row.category,
     services: services.length > 0 ? services : [row.category],
+    customServiceCategories:
+      row.custom_service_categories && typeof row.custom_service_categories === "object"
+        ? (row.custom_service_categories as Record<string, string[]>)
+        : undefined,
     location:
       [row.area, row.sub_city].filter(Boolean).join(", ") ||
       row.location ||
