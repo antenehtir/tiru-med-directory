@@ -91,7 +91,9 @@ export function ListingSearchBar({
 
   // Live dropdown suggestions (150ms debounce) — independent of the 300ms grid
   // filter below, so the dropdown feels instant while the grid updates calmly.
-  const { suggestions, isLoading } = useFacilitySuggestions(localQuery);
+  const { suggestions, isLoading } = useFacilitySuggestions(localQuery, {
+    includeSpecialists: true,
+  });
 
   if (searchValue !== prevSearchValue) {
     setPrevSearchValue(searchValue);
@@ -195,8 +197,15 @@ export function ListingSearchBar({
                       onMouseEnter={() => setActiveIndex(index)}
                       type="button"
                     >
-                      <span className="w-full truncate text-sm font-semibold text-foreground">
-                        {suggestion.name}
+                      <span className="flex w-full min-w-0 items-center gap-1.5">
+                        <span className="min-w-0 truncate text-sm font-semibold text-foreground">
+                          {suggestion.name}
+                        </span>
+                        {suggestion.resultType === "specialist" ? (
+                          <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                            Specialist
+                          </span>
+                        ) : null}
                       </span>
                       {suggestion.metadata ? (
                         <span className="w-full truncate text-xs text-muted-foreground">
@@ -209,7 +218,7 @@ export function ListingSearchBar({
               </ul>
             ) : (
               <p className="px-4 py-3 text-sm text-muted-foreground">
-                No facilities match &ldquo;{localQuery.trim()}&rdquo;
+                No results match &ldquo;{localQuery.trim()}&rdquo;
               </p>
             )}
           </div>

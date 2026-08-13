@@ -1,4 +1,6 @@
 import { SPECIALTY_OPTIONS } from "@/lib/constants/specialty-options";
+import { stripDoctorNamePrefix } from "@/lib/provider/doctor-types";
+import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
 import type { Facility } from "@/types/facility";
 
@@ -163,6 +165,37 @@ export function filterDoctorsByQuery(
         doctor.availability,
         doctor.verificationStatus,
         doctor.telemedicineStatus,
+      ],
+      normalizedQuery,
+    ),
+  );
+}
+
+// Specialists sourced from facilities.doctors (see get-specialists.ts) — the
+// data actually shown on /specialists, distinct from the separate `doctors`-
+// table-backed Doctor[] above. Strips a leading title ("Dr.", "Dr", "Doctor")
+// from both the query and the stored name before comparing, consistent with
+// stripDoctorNamePrefix's use elsewhere, so "anteneh" and "dr anteneh" both
+// match a specialist saved as "Anteneh Tirusew".
+export function filterSpecialistsByQuery(
+  specialists: SpecialistListItem[],
+  query: string,
+): SpecialistListItem[] {
+  const normalizedQuery = normalizeQuery(stripDoctorNamePrefix(query));
+
+  if (!normalizedQuery) {
+    return specialists;
+  }
+
+  return specialists.filter((specialist) =>
+    matchesTokens(
+      [
+        stripDoctorNamePrefix(specialist.fullName),
+        specialist.specialty,
+        specialist.subspecialty,
+        specialist.facilityName,
+        specialist.facilityArea,
+        specialist.facilitySubCity,
       ],
       normalizedQuery,
     ),

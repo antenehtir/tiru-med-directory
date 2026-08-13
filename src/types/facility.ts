@@ -44,6 +44,12 @@ export type FacilityDoctor = {
   photo_url: string;
 };
 
+export type FacilityAppointmentModality = {
+  type: "phone" | "telegram" | "whatsapp" | "online" | "in_person";
+  label: string;
+  value: string;
+};
+
 export type Facility = {
   id: string;
   name: string;
@@ -76,6 +82,7 @@ export type Facility = {
   doctors?: FacilityDoctor[];
   emergencyType?: string | null;
   walkinAppointment?: string | null;
+  appointmentModalities?: FacilityAppointmentModality[];
   schedule?: FacilityScheduleRow[];
   paymentMethods?: string[];
   insuranceNote?: string | null;

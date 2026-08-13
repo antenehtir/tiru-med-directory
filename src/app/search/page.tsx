@@ -4,6 +4,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { SearchResultsPage } from "@/components/search-results/SearchResultsPage";
 import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { getSupabasePublicDoctorCards } from "@/lib/supabase/doctors-public-read";
+import { getAllSpecialists } from "@/lib/supabase/get-specialists";
 import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 import type { PublicProviderCard } from "@/types/public-listings";
 
@@ -17,15 +18,21 @@ export const metadata: Metadata = {
 };
 
 export default async function SearchPage() {
-  const [doctors, facilities] = await Promise.all([
+  // Two independent specialist sources (see the doctors-public-read.ts vs.
+  // get-specialists.ts split) — both are surfaced here rather than picking
+  // one, since the `doctors` table path may still hold real records
+  // independent of the facility-embedded specialists most providers add
+  // through onboarding.
+  const [doctors, specialists, facilities] = await Promise.all([
     getDoctorsForSearch(),
+    getAllSpecialists(),
     getFacilitiesFromDB(),
   ]);
 
   return (
     <PageShell>
       <Suspense>
-        <SearchResultsPage doctors={doctors} facilities={facilities} />
+        <SearchResultsPage doctors={doctors} facilities={facilities} specialists={specialists} />
       </Suspense>
     </PageShell>
   );

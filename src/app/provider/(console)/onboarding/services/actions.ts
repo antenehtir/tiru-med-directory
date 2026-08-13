@@ -43,6 +43,10 @@ export async function saveStep3(formData: FormData) {
   const insuranceNote = formData.get("insurance_note") as string;
   const categoryDataJson = formData.get("category_data_json") as string;
   const categoryData = categoryDataJson ? JSON.parse(categoryDataJson) : null;
+  const customServiceCategoriesJson = formData.get("custom_service_categories_json") as string;
+  const customServiceCategories = customServiceCategoriesJson
+    ? JSON.parse(customServiceCategoriesJson)
+    : null;
 
   const { error } = await supabase
     .from("facility_claims")
@@ -67,6 +71,7 @@ export async function saveStep3(formData: FormData) {
       proposed_insurance_accepted: insuranceAccepted,
       proposed_insurance_note: insuranceAccepted ? insuranceNote || null : null,
       proposed_category_data: categoryData,
+      proposed_custom_service_categories: customServiceCategories,
       submission_step: 4,
     })
     .eq("id", claimId);
@@ -125,6 +130,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_insurance_accepted",
     "proposed_insurance_note",
     "proposed_category_data",
+    "proposed_custom_service_categories",
   ];
 
   const updates: Record<string, unknown> = {};

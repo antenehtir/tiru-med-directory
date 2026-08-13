@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type {
   Facility,
+  FacilityAppointmentModality,
   FacilityContactChannel,
   FacilityContactChannelType,
   FacilityDoctor,
@@ -27,6 +28,7 @@ type DBFacility = {
   emergency_service: boolean;
   emergency_type: string | null;
   walkin_appointment: string | null;
+  appointment_modalities: unknown;
   services: unknown;
   special_services: unknown;
   logo_url: string | null;
@@ -146,6 +148,9 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     doctors: Array.isArray(row.doctors) ? (row.doctors as FacilityDoctor[]) : undefined,
     emergencyType: row.emergency_type ?? null,
     walkinAppointment: row.walkin_appointment ?? null,
+    appointmentModalities: Array.isArray(row.appointment_modalities)
+      ? (row.appointment_modalities as FacilityAppointmentModality[])
+      : undefined,
     schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,

@@ -54,6 +54,9 @@ export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, un
     checkup_note: claim.proposed_checkup_note,
     checkup_packages: claim.proposed_checkup_packages,
     appointment_modalities: claim.proposed_appointment_modalities,
+    // Category-tagged custom "other" service entries. Requires migration 035
+    // (facilities.custom_service_categories).
+    custom_service_categories: claim.proposed_custom_service_categories,
     payment_methods: claim.proposed_payment_methods,
     insurance_accepted: claim.proposed_insurance_accepted,
     insurance_note: claim.proposed_insurance_note,

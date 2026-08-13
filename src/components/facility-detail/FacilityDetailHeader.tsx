@@ -7,9 +7,19 @@ import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
-import type { Facility } from "@/types/facility";
+import type { Facility, FacilityAppointmentModality } from "@/types/facility";
 import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
+
+// Matches the icons providers see next to each option in Step3ServicesForm's
+// "How can patients book an appointment?" section.
+const APPOINTMENT_MODALITY_ICONS: Record<FacilityAppointmentModality["type"], string> = {
+  phone: "📞",
+  telegram: "✈️",
+  whatsapp: "💬",
+  online: "🌐",
+  in_person: "🏥",
+};
 
 type FacilityDetailHeaderProps = {
   facility: Facility;
@@ -107,6 +117,24 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
                 {facility.walkinAppointment}
               </Pill>
             ) : null}
+          </div>
+        ) : null}
+
+        {/* Appointment contact — captured alongside the walk-in/appointment
+            policy in onboarding but previously never surfaced publicly.
+            Shown whenever the policy involves booking ahead (mirrors the
+            same condition used to collect it in Step3ServicesForm). */}
+        {facility.walkinAppointment &&
+        facility.walkinAppointment !== "Walk-in only" &&
+        facility.appointmentModalities &&
+        facility.appointmentModalities.length > 0 ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground">
+            <span className="font-semibold">Appointments:</span>
+            {facility.appointmentModalities.map((modality) => (
+              <span className="text-muted-foreground" key={modality.type}>
+                {APPOINTMENT_MODALITY_ICONS[modality.type] ?? ""} {modality.value}
+              </span>
+            ))}
           </div>
         ) : null}
 

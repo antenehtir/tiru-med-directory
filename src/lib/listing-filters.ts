@@ -4,6 +4,7 @@ import {
   specialtyMatchesAliases,
   type FacilityCategoryFilter,
 } from "@/lib/frontend-search-filters";
+import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
 import type { Facility } from "@/types/facility";
 
@@ -130,6 +131,32 @@ export function doctorMatchesListingFilters(
     const keyword = normalize(extractSpecialtyMatchKeyword(filters.specialty));
 
     if (keyword && keyword !== "all specialties" && !normalize(doctor.specialty).includes(keyword)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function specialistMatchesListingFilters(
+  specialist: SpecialistListItem,
+  filters: ListingFilters,
+): boolean {
+  const locationText = normalize([specialist.facilityArea, specialist.facilitySubCity].join(" "));
+
+  if (filters.subCity && !locationText.includes(normalize(filters.subCity))) {
+    return false;
+  }
+
+  if (filters.area && !locationText.includes(normalize(filters.area))) {
+    return false;
+  }
+
+  if (filters.specialty) {
+    const keyword = normalize(extractSpecialtyMatchKeyword(filters.specialty));
+    const specialtyText = normalize([specialist.specialty, specialist.subspecialty].join(" "));
+
+    if (keyword && keyword !== "all specialties" && !specialtyText.includes(keyword)) {
       return false;
     }
   }

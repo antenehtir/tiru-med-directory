@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import {
-  BADGE_CHART_COLORS,
   BadgeDistributionChart,
   SubmissionsTrendChart,
   type SubmissionTrendDatum,
 } from "@/components/admin/AdminDashboardCharts";
+import { BADGE_STATUS_COLORS, BADGE_STATUS_LABELS } from "@/lib/admin/dashboard-colors";
 
 async function getDashboardStats() {
   const supabase = await createAdminSupabaseClient();
@@ -165,9 +165,21 @@ export default async function AdminDashboardPage() {
   ];
 
   const badgeDistribution = [
-    { name: "Community Submitted", value: stats.csCount, color: BADGE_CHART_COLORS.communitySubmitted },
-    { name: "Official", value: stats.officialCount, color: BADGE_CHART_COLORS.facilityOwned },
-    { name: "Verified", value: stats.verifiedCount, color: BADGE_CHART_COLORS.verified },
+    {
+      name: BADGE_STATUS_LABELS["community-submitted"],
+      value: stats.csCount,
+      color: BADGE_STATUS_COLORS["community-submitted"],
+    },
+    {
+      name: BADGE_STATUS_LABELS["facility-owned"],
+      value: stats.officialCount,
+      color: BADGE_STATUS_COLORS["facility-owned"],
+    },
+    {
+      name: BADGE_STATUS_LABELS.verified,
+      value: stats.verifiedCount,
+      color: BADGE_STATUS_COLORS.verified,
+    },
   ];
 
   return (

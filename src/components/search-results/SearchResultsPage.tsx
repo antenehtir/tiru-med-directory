@@ -8,17 +8,25 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
+import { SpecialistCard } from "@/components/specialists/SpecialistCard";
 import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
-import { filterDoctorsByQuery, filterFacilitiesByQuery } from "@/lib/frontend-search-filters";
+import {
+  filterDoctorsByQuery,
+  filterFacilitiesByQuery,
+  filterSpecialistsByQuery,
+} from "@/lib/frontend-search-filters";
 import {
   doctorMatchesListingFilters,
   facilityMatchesListingFilters,
+  specialistMatchesListingFilters,
 } from "@/lib/listing-filters";
+import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
 import type { Facility } from "@/types/facility";
 
 type SearchResultsPageProps = {
   doctors?: Doctor[];
+  specialists?: SpecialistListItem[];
   facilities?: Facility[];
 };
 
@@ -30,7 +38,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 }
 
-function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResultsPageProps) {
+function SearchResultsPageInner({
+  doctors = [],
+  specialists = [],
+  facilities = [],
+}: SearchResultsPageProps) {
   const searchParams = useSearchParams();
   const focusSearch = searchParams.get("focus") === "1";
 
@@ -52,8 +64,12 @@ function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResults
   const visibleDoctors = filterDoctorsByQuery(doctors, query).filter((doctor) =>
     doctorMatchesListingFilters(doctor, filters),
   );
+  const visibleSpecialists = filterSpecialistsByQuery(specialists, query).filter((specialist) =>
+    specialistMatchesListingFilters(specialist, filters),
+  );
 
-  const hasResults = visibleFacilities.length > 0 || visibleDoctors.length > 0;
+  const hasResults =
+    visibleFacilities.length > 0 || visibleDoctors.length > 0 || visibleSpecialists.length > 0;
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
@@ -84,13 +100,30 @@ function SearchResultsPageInner({ doctors = [], facilities = [] }: SearchResults
         />
 
         {hasResults ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleFacilities.map((facility) => (
-              <FacilityCard key={facility.id} facility={facility} />
-            ))}
-            {visibleDoctors.map((doctor) => (
-              <DoctorCard key={doctor.id} doctor={doctor} />
-            ))}
+          <div className="grid gap-8">
+            {(visibleFacilities.length > 0 || visibleDoctors.length > 0) && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleFacilities.map((facility) => (
+                  <FacilityCard key={facility.id} facility={facility} />
+                ))}
+                {visibleDoctors.map((doctor) => (
+                  <DoctorCard key={doctor.id} doctor={doctor} />
+                ))}
+              </div>
+            )}
+
+            {visibleSpecialists.length > 0 && (
+              <div>
+                <h2 className="mb-3 text-lg font-semibold text-foreground">
+                  Specialists ({visibleSpecialists.length})
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {visibleSpecialists.map((specialist) => (
+                    <SpecialistCard key={specialist.id} specialist={specialist} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <EmptyState

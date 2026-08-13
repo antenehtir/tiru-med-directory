@@ -39,6 +39,13 @@ import {
 
 type Claim = Record<string, unknown>;
 
+// Keyed the same way as customInputs (e.g. "basiclab-Basic Blood Workup",
+// "general", "specialty", "pharmacy") — records which category each custom
+// "other" entry was added under, so it can render inline instead of in one
+// shared bottom-of-page bucket. Values are still also pushed into the flat
+// `services` array so existing search/filter code that reads it is unaffected.
+type CustomServiceCategories = Record<string, string[]>;
+
 type CategoryData = {
   delivery_options?: string;
   coverage_areas?: string[];
@@ -117,6 +124,8 @@ function PillSelector({
   customValue,
   onCustomChange,
   onCustomAdd,
+  customEntries = [],
+  onRemoveCustom,
 }: {
   title: string;
   options: readonly string[];
@@ -126,6 +135,8 @@ function PillSelector({
   customValue: string;
   onCustomChange: (value: string) => void;
   onCustomAdd: () => void;
+  customEntries?: string[];
+  onRemoveCustom?: (value: string) => void;
 }) {
   const allSelected = options.every((o) => services.includes(o));
 
@@ -176,6 +187,19 @@ function PillSelector({
           Add
         </button>
       </div>
+
+      {customEntries.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {customEntries.map((custom) => (
+            <span className={getPillClassName("selected", "md")} key={custom}>
+              {custom}
+              <button onClick={() => onRemoveCustom?.(custom)} type="button">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -192,6 +216,8 @@ function BasicLabCategoryCard({
   customValue,
   onCustomChange,
   onCustomAdd,
+  customEntries = [],
+  onRemoveCustom,
 }: {
   category: string;
   tests: string[];
@@ -201,6 +227,8 @@ function BasicLabCategoryCard({
   customValue: string;
   onCustomChange: (value: string) => void;
   onCustomAdd: () => void;
+  customEntries?: string[];
+  onRemoveCustom?: (value: string) => void;
 }) {
   const allSelected = tests.every((t) => services.includes(t));
   const someSelected = !allSelected && tests.some((t) => services.includes(t));
@@ -259,6 +287,19 @@ function BasicLabCategoryCard({
           Add
         </button>
       </div>
+
+      {customEntries.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {customEntries.map((custom) => (
+            <span className={getPillClassName("selected", "md")} key={custom}>
+              {custom}
+              <button onClick={() => onRemoveCustom?.(custom)} type="button">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -274,6 +315,8 @@ function BasicLabSelector({
   customInputs,
   onCustomChange,
   onCustomAdd,
+  customServiceCategories,
+  onRemoveCustom,
 }: {
   services: string[];
   onToggleTest: (item: string) => void;
@@ -281,6 +324,8 @@ function BasicLabSelector({
   customInputs: Record<string, string>;
   onCustomChange: (key: string, value: string) => void;
   onCustomAdd: (key: string) => void;
+  customServiceCategories: CustomServiceCategories;
+  onRemoveCustom: (key: string, value: string) => void;
 }) {
   const otherKey = "basiclab-other-test";
 
@@ -300,11 +345,13 @@ function BasicLabSelector({
           return (
             <BasicLabCategoryCard
               category={category}
+              customEntries={customServiceCategories[key] ?? []}
               customValue={customInputs[key] ?? ""}
               key={category}
               onCategoryToggle={() => onSelectAllIn(tests)}
               onCustomAdd={() => onCustomAdd(key)}
               onCustomChange={(v) => onCustomChange(key, v)}
+              onRemoveCustom={(v) => onRemoveCustom(key, v)}
               onToggleTest={onToggleTest}
               services={services}
               tests={tests}
@@ -341,6 +388,19 @@ function BasicLabSelector({
             Add
           </button>
         </div>
+
+        {(customServiceCategories[otherKey] ?? []).length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(customServiceCategories[otherKey] ?? []).map((custom) => (
+              <span className={getPillClassName("selected", "md")} key={custom}>
+                {custom}
+                <button onClick={() => onRemoveCustom(otherKey, custom)} type="button">
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -439,6 +499,9 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     (claim.proposed_services as string[]) ?? [],
   );
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
+  const [customServiceCategories, setCustomServiceCategories] = useState<CustomServiceCategories>(
+    (claim.proposed_custom_service_categories as CustomServiceCategories) ?? {},
+  );
 
   const [categoryData, setCategoryData] = useState<CategoryData>(
     (claim.proposed_category_data as CategoryData) ?? {},
@@ -512,8 +575,24 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     if (!value || services.includes(value)) return;
     const next = [...services, value];
     setServices(next);
-    autoSave({ proposed_services: next });
+    const nextCategories = {
+      ...customServiceCategories,
+      [key]: [...(customServiceCategories[key] ?? []), value],
+    };
+    setCustomServiceCategories(nextCategories);
+    autoSave({ proposed_services: next, proposed_custom_service_categories: nextCategories });
     setCustomInput(key, "");
+  }
+
+  function removeCustomService(key: string, value: string) {
+    const next = services.filter((s) => s !== value);
+    setServices(next);
+    const nextCategories = {
+      ...customServiceCategories,
+      [key]: (customServiceCategories[key] ?? []).filter((v) => v !== value),
+    };
+    setCustomServiceCategories(nextCategories);
+    autoSave({ proposed_services: next, proposed_custom_service_categories: nextCategories });
   }
 
   function togglePayment(method: string) {
@@ -580,7 +659,15 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 ? [AMBULANCE_VEHICLE_TYPES]
                 : [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES];
   const allKnown = knownLists.flat();
-  const customEntries = services.filter((s) => !allKnown.includes(s));
+  // Entries already tracked under a specific category (rendered inline by
+  // that category's own PillSelector/BasicLabCategoryCard) are excluded here
+  // — this bucket is only for legacy data saved before category-tagging
+  // existed, so it can still surface (and remain editable) without being
+  // duplicated alongside the same entry's inline chip.
+  const categorizedCustomValues = new Set(Object.values(customServiceCategories).flat());
+  const customEntries = services.filter(
+    (s) => !allKnown.includes(s) && !categorizedCustomValues.has(s),
+  );
 
   const servicesHeading = isPharmacy
     ? "Pharmacy Services *"
@@ -609,6 +696,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         value={JSON.stringify(appointmentModalities)}
       />
       <input name="category_data_json" type="hidden" value={JSON.stringify(categoryData)} />
+      <input
+        name="custom_service_categories_json"
+        type="hidden"
+        value={JSON.stringify(customServiceCategories)}
+      />
       {services.map((svc) => (
         <input key={svc} name="services" type="hidden" value={svc} />
       ))}
@@ -631,9 +723,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         {isDefault && (
           <>
             <PillSelector
+              customEntries={customServiceCategories.general ?? []}
               customValue={customInputs.general ?? ""}
               onCustomAdd={() => addCustomService("general")}
               onCustomChange={(v) => setCustomInput("general", v)}
+              onRemoveCustom={(v) => removeCustomService("general", v)}
               onSelectAll={() => selectAllIn(MAIN_SERVICES)}
               onToggle={toggleService}
               options={MAIN_SERVICES}
@@ -641,9 +735,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               title="General services"
             />
             <PillSelector
+              customEntries={customServiceCategories.specialty ?? []}
               customValue={customInputs.specialty ?? ""}
               onCustomAdd={() => addCustomService("specialty")}
               onCustomChange={(v) => setCustomInput("specialty", v)}
+              onRemoveCustom={(v) => removeCustomService("specialty", v)}
               onSelectAll={() => selectAllIn(SPECIALTIES)}
               onToggle={toggleService}
               options={SPECIALTIES}
@@ -651,9 +747,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               title="Medical specialties"
             />
             <PillSelector
+              customEntries={customServiceCategories.imaging ?? []}
               customValue={customInputs.imaging ?? ""}
               onCustomAdd={() => addCustomService("imaging")}
               onCustomChange={(v) => setCustomInput("imaging", v)}
+              onRemoveCustom={(v) => removeCustomService("imaging", v)}
               onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
               onToggle={toggleService}
               options={IMAGING_SERVICES}
@@ -662,8 +760,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             />
             <BasicLabSelector
               customInputs={customInputs}
+              customServiceCategories={customServiceCategories}
               onCustomAdd={addCustomService}
               onCustomChange={setCustomInput}
+              onRemoveCustom={removeCustomService}
               onSelectAllIn={selectAllIn}
               onToggleTest={toggleService}
               services={services}
@@ -674,9 +774,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         {isPharmacy && (
           <>
             <PillSelector
+              customEntries={customServiceCategories.pharmacy ?? []}
               customValue={customInputs.pharmacy ?? ""}
               onCustomAdd={() => addCustomService("pharmacy")}
               onCustomChange={(v) => setCustomInput("pharmacy", v)}
+              onRemoveCustom={(v) => removeCustomService("pharmacy", v)}
               onSelectAll={() => selectAllIn(PHARMACY_CATEGORIES)}
               onToggle={toggleService}
               options={PHARMACY_CATEGORIES}
@@ -712,9 +814,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           <>
             {showLabPills && (
               <PillSelector
+                customEntries={customServiceCategories.lab ?? []}
                 customValue={customInputs.lab ?? ""}
                 onCustomAdd={() => addCustomService("lab")}
                 onCustomChange={(v) => setCustomInput("lab", v)}
+                onRemoveCustom={(v) => removeCustomService("lab", v)}
                 onSelectAll={() => selectAllIn(LAB_TESTS)}
                 onToggle={toggleService}
                 options={LAB_TESTS}
@@ -724,9 +828,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             )}
             {showDiagImagingPills && (
               <PillSelector
+                customEntries={customServiceCategories.imaging ?? []}
                 customValue={customInputs.imaging ?? ""}
                 onCustomAdd={() => addCustomService("imaging")}
                 onCustomChange={(v) => setCustomInput("imaging", v)}
+                onRemoveCustom={(v) => removeCustomService("imaging", v)}
                 onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
                 onToggle={toggleService}
                 options={IMAGING_SERVICES}
@@ -786,9 +892,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         {isHomeCare && (
           <>
             <PillSelector
+              customEntries={customServiceCategories.homecare ?? []}
               customValue={customInputs.homecare ?? ""}
               onCustomAdd={() => addCustomService("homecare")}
               onCustomChange={(v) => setCustomInput("homecare", v)}
+              onRemoveCustom={(v) => removeCustomService("homecare", v)}
               onSelectAll={() => selectAllIn(HOME_CARE_SERVICES)}
               onToggle={toggleService}
               options={HOME_CARE_SERVICES}
@@ -797,8 +905,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
             />
             <BasicLabSelector
               customInputs={customInputs}
+              customServiceCategories={customServiceCategories}
               onCustomAdd={addCustomService}
               onCustomChange={setCustomInput}
+              onRemoveCustom={removeCustomService}
               onSelectAllIn={selectAllIn}
               onToggleTest={toggleService}
               services={services}
@@ -851,9 +961,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         {isAmbulance && (
           <>
             <PillSelector
+              customEntries={customServiceCategories.ambulance ?? []}
               customValue={customInputs.ambulance ?? ""}
               onCustomAdd={() => addCustomService("ambulance")}
               onCustomChange={(v) => setCustomInput("ambulance", v)}
+              onRemoveCustom={(v) => removeCustomService("ambulance", v)}
               onSelectAll={() => selectAllIn(AMBULANCE_VEHICLE_TYPES)}
               onToggle={toggleService}
               options={AMBULANCE_VEHICLE_TYPES}
@@ -975,6 +1087,25 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 Add
               </button>
             </div>
+            {(customServiceCategories.other ?? []).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(customServiceCategories.other ?? []).map((custom) => (
+                  <span key={custom} className={getPillClassName("selected", "md")}>
+                    {custom}
+                    <button
+                      className="hover:text-red-200"
+                      onClick={() => removeCustomService("other", custom)}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Legacy entries saved before category-tagging existed — no
+                category key to attribute them to, so they stay in the flat
+                diff-based list and use the original direct-removal path. */}
             {customEntries.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {customEntries.map((custom) => (

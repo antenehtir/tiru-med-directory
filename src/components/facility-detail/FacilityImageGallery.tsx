@@ -35,6 +35,11 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
     return () => observer.disconnect();
   }, [images.length]);
 
+  function goTo(index: number) {
+    const clamped = Math.max(0, Math.min(images.length - 1, index));
+    itemRefs.current[clamped]?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+  }
+
   if (images.length <= 1) {
     return (
       <Image
@@ -76,13 +81,40 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
         ))}
       </div>
 
+      {/* Click-to-navigate arrows — the scroll-snap track alone only supports
+          touch swipe / click-drag, which desktop mouse users won't discover,
+          so additional photos beyond the first can otherwise go unseen. */}
+      {activeIndex > 0 && (
+        <button
+          aria-label="Previous photo"
+          className="absolute left-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+          onClick={() => goTo(activeIndex - 1)}
+          type="button"
+        >
+          ‹
+        </button>
+      )}
+      {activeIndex < images.length - 1 && (
+        <button
+          aria-label="Next photo"
+          className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+          onClick={() => goTo(activeIndex + 1)}
+          type="button"
+        >
+          ›
+        </button>
+      )}
+
       <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
         {images.map((url, index) => (
-          <span
+          <button
+            aria-label={`Go to photo ${index + 1}`}
             className={`size-1.5 rounded-full transition-colors ${
               index === activeIndex ? "bg-white" : "bg-white/50"
             }`}
             key={url}
+            onClick={() => goTo(index)}
+            type="button"
           />
         ))}
       </div>

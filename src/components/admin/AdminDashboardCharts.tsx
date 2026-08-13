@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { SUBMISSION_SERIES_COLORS } from "@/lib/admin/dashboard-colors";
 
 export type BadgeDistributionDatum = {
   name: string;
@@ -26,21 +27,6 @@ export type SubmissionTrendDatum = {
   newListings: number;
   claims: number;
 };
-
-// Matches the CS / Official / Verified badge colors used throughout the
-// admin UI (see BADGE_VARIANTS in AdminFacilityList.tsx and the color
-// mapping documented in src/lib/design-tokens.ts) so this chart reads as
-// the same system rather than an unrelated palette.
-export const BADGE_CHART_COLORS = {
-  communitySubmitted: "#F59E0B", // amber-500 — matches the CS "warning" badge family
-  facilityOwned: "#3B82F6", // blue-500 — matches the Official "info" badge
-  verified: "#10B981", // emerald-500 — matches the Verified "success" badge
-};
-
-// Matches the Listing Requests (violet) / Claims Pending (rose) stat card
-// accent colors from the dashboard's statCards array.
-const NEW_LISTINGS_COLOR = "#8B5CF6"; // violet-500
-const CLAIMS_COLOR = "#F43F5E"; // rose-500
 
 export function BadgeDistributionChart({ data }: { data: BadgeDistributionDatum[] }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -83,7 +69,14 @@ export function BadgeDistributionChart({ data }: { data: BadgeDistributionDatum[
           }}
         />
         <Legend
-          formatter={(value) => <span className="text-xs text-foreground">{value}</span>}
+          formatter={(value, entry) => {
+            const count = (entry?.payload as unknown as BadgeDistributionDatum | undefined)?.value ?? 0;
+            return (
+              <span className="text-xs text-foreground">
+                {value} ({count})
+              </span>
+            );
+          }}
           iconSize={8}
           iconType="circle"
         />
@@ -128,8 +121,20 @@ export function SubmissionsTrendChart({ data }: { data: SubmissionTrendDatum[] }
           iconSize={8}
           iconType="circle"
         />
-        <Bar dataKey="newListings" fill={NEW_LISTINGS_COLOR} name="New Listings" radius={[3, 3, 0, 0]} stackId="a" />
-        <Bar dataKey="claims" fill={CLAIMS_COLOR} name="Claims" radius={[3, 3, 0, 0]} stackId="a" />
+        <Bar
+          dataKey="newListings"
+          fill={SUBMISSION_SERIES_COLORS.newListings}
+          name="New Listings"
+          radius={[3, 3, 0, 0]}
+          stackId="a"
+        />
+        <Bar
+          dataKey="claims"
+          fill={SUBMISSION_SERIES_COLORS.claims}
+          name="Claims"
+          radius={[3, 3, 0, 0]}
+          stackId="a"
+        />
       </BarChart>
     </ResponsiveContainer>
   );

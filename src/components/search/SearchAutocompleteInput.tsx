@@ -46,7 +46,7 @@ export function SearchAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
-  const { suggestions } = useFacilitySuggestions(query);
+  const { suggestions } = useFacilitySuggestions(query, { includeSpecialists: true });
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -118,8 +118,15 @@ export function SearchAutocompleteInput({
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => selectSuggestion(suggestion)}
                   >
-                    <span className="w-full truncate text-sm font-semibold text-foreground">
-                      {suggestion.name}
+                    <span className="flex w-full min-w-0 items-center gap-1.5">
+                      <span className="min-w-0 truncate text-sm font-semibold text-foreground">
+                        {suggestion.name}
+                      </span>
+                      {suggestion.resultType === "specialist" ? (
+                        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          Specialist
+                        </span>
+                      ) : null}
                     </span>
                     {suggestion.metadata ? (
                       <span className="w-full truncate text-xs text-muted-foreground">
