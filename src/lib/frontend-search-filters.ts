@@ -205,7 +205,10 @@ export function filterSpecialistsByQuery(
 // Maps each UI filter value to the DB category strings it should match.
 // The `category` field on each Facility record comes directly from the source data
 // and is already correctly set — we match on it directly instead of text-searching.
-const FACILITY_CATEGORY_DB_MAP: Record<FacilityCategoryFilter, string[]> = {
+// Exported so consumers that need the category taxonomy itself (e.g. the
+// facility card's category badge) can derive it from this single map instead
+// of re-deriving their own category-guessing heuristic.
+export const FACILITY_CATEGORY_DB_MAP: Record<FacilityCategoryFilter, string[]> = {
   hospital: ["General Hospital"],
   specialty: ["Specialty Center", "Medical Plaza"],
   clinic: ["Clinic", "Healthcare Facility"],

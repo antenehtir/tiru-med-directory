@@ -63,6 +63,14 @@
 //   USAGE: Neutral chips, secondary text, disabled states, "Not uploaded" tags,
 //          Closed now badge, unselected filter pills.
 //
+// category    --category-{key}-bg/-border/-text — added Phase 6
+//   USAGE: One accent triad per facility category (hospital/specialty/clinic/
+//          diagnostics/pharmacy/ambulance/home-care/default), used ONLY by the
+//          FacilityCard category badge (facility-category-style.ts). Values
+//          follow the same bg/border/text triad pattern as --success-*/--info-*.
+//          Applied via Pill's `className` with `!` important-modifiers, since
+//          Pill's own variant classes have equal Tailwind specificity.
+//
 // ─── INCONSISTENCIES TO FIX IN FUTURE PHASES ────────────────────────────────
 //
 // - Official badge: currently blue (info) in some places, teal (primary) in
@@ -200,9 +208,10 @@ export type ColorVariant =
 // (src/components/ui/Skeleton.tsx) — added Phase 3
 // ─────────────────────────────────────────────────────────────
 // Skeleton is the base animate-pulse block. SkeletonCard mirrors
-// FacilityCard's exact structure (banner + title/location + pill row + hours
-// line + 4-button action row) so loading.tsx routes don't shift layout when
-// real content mounts. SkeletonSpecialistCard mirrors SpecialistCard's
+// FacilityCard's exact structure (aspect-[16/9] cover photo + name + address
+// line + service pill row + single full-width CTA) so loading.tsx routes
+// don't shift layout when real content mounts. SkeletonSpecialistCard mirrors
+// SpecialistCard's
 // different shape (avatar + text, no banner/action row) — do not reuse
 // SkeletonCard for specialist grids.
 //
@@ -227,7 +236,9 @@ export type ColorVariant =
 //   ✓ src/components/facility-detail/FacilityInformationSection.tsx
 //   ✓ src/components/facility-detail/FacilityServicesSection.tsx
 //   ✓ src/components/trust/VerificationBadge.tsx  (now delegates to Badge)
-//   ✓ src/components/cards/FacilityCard.tsx       (service pills, +N more overflow)
+//   ✓ src/components/cards/FacilityCard.tsx       (service pills, +N more overflow;
+//       Phase 6 — result-card redesign: category badge now uses the
+//       --category-* token set below instead of a plain white pill)
 //   ✓ src/components/nearby/NearbyPage.tsx        (toggle/category/specialty pills)
 //   ✓ src/components/specialists/SpecialistDetailPage.tsx  (Phase 4 — role/
 //       appointment/Official badges, language pills, kicker+title headers)

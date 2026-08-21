@@ -30,6 +30,34 @@
   --warning: #B7791F;
   --error: #B42318;
 
+  /* Category accent tokens — one per facility category, used by the result
+     card's category badge (see facility-category-style.ts). Bg/border/text
+     triads follow the same pattern as the success and info tokens above. */
+  --category-hospital-bg: #EFF6FF;
+  --category-hospital-border: #BFDBFE;
+  --category-hospital-text: #1D4ED8;
+  --category-specialty-bg: #F5F3FF;
+  --category-specialty-border: #DDD6FE;
+  --category-specialty-text: #6D28D9;
+  --category-clinic-bg: #F0FDFA;
+  --category-clinic-border: #99F6E4;
+  --category-clinic-text: #0F766E;
+  --category-diagnostics-bg: #ECFEFF;
+  --category-diagnostics-border: #A5F3FC;
+  --category-diagnostics-text: #0E7490;
+  --category-pharmacy-bg: #F0FDF4;
+  --category-pharmacy-border: #BBF7D0;
+  --category-pharmacy-text: #15803D;
+  --category-ambulance-bg: #FFFBEB;
+  --category-ambulance-border: #FDE68A;
+  --category-ambulance-text: #B45309;
+  --category-home-care-bg: #FDF2F8;
+  --category-home-care-border: #FBCFE8;
+  --category-home-care-text: #BE185D;
+  --category-default-bg: #F9FAFB;
+  --category-default-border: #E5E7EB;
+  --category-default-text: #374151;
+
   --card: var(--tiru-white);
   --card-foreground: var(--tiru-deep-ink);
 
@@ -66,6 +94,31 @@
   --warning: #FBBF24;
   --error: #FCA5A5;
 
+  --category-hospital-bg: #172554;
+  --category-hospital-border: #1D4ED8;
+  --category-hospital-text: #93C5FD;
+  --category-specialty-bg: #2E1065;
+  --category-specialty-border: #6D28D9;
+  --category-specialty-text: #C4B5FD;
+  --category-clinic-bg: #042F2E;
+  --category-clinic-border: #0D9488;
+  --category-clinic-text: #5EEAD4;
+  --category-diagnostics-bg: #083344;
+  --category-diagnostics-border: #0E7490;
+  --category-diagnostics-text: #67E8F9;
+  --category-pharmacy-bg: #052E16;
+  --category-pharmacy-border: #15803D;
+  --category-pharmacy-text: #86EFAC;
+  --category-ambulance-bg: #451A03;
+  --category-ambulance-border: #B45309;
+  --category-ambulance-text: #FCD34D;
+  --category-home-care-bg: #500724;
+  --category-home-care-border: #BE185D;
+  --category-home-care-text: #F9A8D4;
+  --category-default-bg: #1F2937;
+  --category-default-border: #4B5563;
+  --category-default-text: #D1D5DB;
+
   --card: #111827;
   --card-foreground: #F9FAFB;
 
@@ -98,6 +151,30 @@
   --color-info-text: var(--info-text);
   --color-warning: var(--warning);
   --color-error: var(--error);
+  --color-category-hospital-bg: var(--category-hospital-bg);
+  --color-category-hospital-border: var(--category-hospital-border);
+  --color-category-hospital-text: var(--category-hospital-text);
+  --color-category-specialty-bg: var(--category-specialty-bg);
+  --color-category-specialty-border: var(--category-specialty-border);
+  --color-category-specialty-text: var(--category-specialty-text);
+  --color-category-clinic-bg: var(--category-clinic-bg);
+  --color-category-clinic-border: var(--category-clinic-border);
+  --color-category-clinic-text: var(--category-clinic-text);
+  --color-category-diagnostics-bg: var(--category-diagnostics-bg);
+  --color-category-diagnostics-border: var(--category-diagnostics-border);
+  --color-category-diagnostics-text: var(--category-diagnostics-text);
+  --color-category-pharmacy-bg: var(--category-pharmacy-bg);
+  --color-category-pharmacy-border: var(--category-pharmacy-border);
+  --color-category-pharmacy-text: var(--category-pharmacy-text);
+  --color-category-ambulance-bg: var(--category-ambulance-bg);
+  --color-category-ambulance-border: var(--category-ambulance-border);
+  --color-category-ambulance-text: var(--category-ambulance-text);
+  --color-category-home-care-bg: var(--category-home-care-bg);
+  --color-category-home-care-border: var(--category-home-care-border);
+  --color-category-home-care-text: var(--category-home-care-text);
+  --color-category-default-bg: var(--category-default-bg);
+  --color-category-default-border: var(--category-default-border);
+  --color-category-default-text: var(--category-default-text);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);

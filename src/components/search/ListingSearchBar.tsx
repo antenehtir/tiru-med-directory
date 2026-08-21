@@ -162,7 +162,7 @@ export function ListingSearchBar({
         <input
           autoComplete="off"
           autoFocus={autoFocus}
-          className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-10 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
           onChange={(event) => {
             setLocalQuery(event.target.value);
@@ -225,7 +225,7 @@ export function ListingSearchBar({
         ) : null}
       </div>
       <button
-        className={`min-h-11 shrink-0 rounded-xl border px-4 flex items-center gap-2 text-sm font-medium transition-colors ${
+        className={`min-h-11 shrink-0 rounded-xl border px-4 flex items-center gap-2 text-sm font-medium shadow-sm transition-colors ${
           activeFilterCount > 0
             ? "border-primary bg-primary/10 text-primary"
             : "border-border bg-card text-foreground hover:border-primary/40"
