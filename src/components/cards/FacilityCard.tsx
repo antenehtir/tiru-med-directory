@@ -105,8 +105,8 @@ function ServicePillRow({ services }: { services: string[] }) {
 
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
-      {visible.map((service) => (
-        <Pill key={service} size="sm" variant="muted">
+      {visible.map((service, index) => (
+        <Pill key={`${service}-${index}`} size="sm" variant="muted">
           {service}
         </Pill>
       ))}
@@ -219,14 +219,16 @@ export function FacilityCard({ facility, distanceLabel }: FacilityCardProps) {
         </Link>
 
         {addressLine ? (
-          <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground sm:text-sm">
-            <MapPinIcon className="mt-0.5 size-3.5 shrink-0" />
-            <span className="line-clamp-1">
+          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+            <MapPinIcon className="size-3.5 shrink-0" />
+            <span className="min-w-0 flex-1 truncate" title={addressLine}>
               {addressLine}
-              {distanceLabel ? (
-                <span className="font-medium text-primary"> · {distanceLabel}</span>
-              ) : null}
             </span>
+            {distanceLabel ? (
+              <span className="shrink-0 whitespace-nowrap font-medium text-primary">
+                · {distanceLabel}
+              </span>
+            ) : null}
           </p>
         ) : null}
 

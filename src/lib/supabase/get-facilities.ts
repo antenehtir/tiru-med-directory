@@ -102,10 +102,14 @@ function mapDBRowToFacility(row: DBFacility): Facility {
   const workingHours = row.working_hours ?? "Contact provider for current hours.";
   const isOpen = workingHours.trim().toLowerCase() === "24/7";
 
-  const services = [
-    ...toStringArray(row.services),
-    ...toStringArray(row.special_services),
-  ].filter(Boolean);
+  // services and special_services are separate DB columns that can (and do,
+  // in real records) repeat the same entry — dedupe the merged list so it
+  // doesn't show/key the same service pill twice (React key collisions from
+  // this were the actual cause of a "duplicated element" rendering glitch on
+  // Nearby, previously mistaken for a broken tooltip).
+  const services = Array.from(
+    new Set([...toStringArray(row.services), ...toStringArray(row.special_services)]),
+  ).filter(Boolean);
 
   return {
     id: row.id,
