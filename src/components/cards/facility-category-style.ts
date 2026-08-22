@@ -25,17 +25,12 @@ export function resolveFacilityCardCategoryKey(
   return DB_CATEGORY_TO_KEY[facility.category] ?? "default";
 }
 
-// No-photo banner base — a single flat neutral for every category. A
-// same-category grid of no-photo cards used to look like duplicates because
-// the whole card washed in that category's tint; the neutral base plus the
-// small solid icon chip below (facilityFallbackIconChipClasses) is what now
-// carries the category signal instead.
-export const facilityBannerFallbackBaseClass = "bg-muted";
-
-// Solid icon-chip fill for the no-photo banner centerpiece — the category's
-// -text token (already the most saturated step in its triad), paired with a
-// white icon for contrast. Small and deliberate instead of a full-card wash.
-export const facilityFallbackIconChipClasses: Record<
+// Category spine — a 3px full-height rule down the card's leading edge.
+// Replaces the Phase 7 top-border accent, which died into the corner radius
+// at both ends and read as a rendering artifact. A vertical spine runs the
+// full flat edge, survives any card height, and gives a result grid a
+// scannable colour column down the left.
+export const facilityCategorySpineClasses: Record<
   FacilityCardCategoryKey,
   string
 > = {
@@ -48,6 +43,56 @@ export const facilityFallbackIconChipClasses: Record<
   "home-care": "bg-category-home-care-text",
   default: "bg-category-default-text",
 };
+
+// Monogram plate ground — the pale step of the category triad, used as the
+// field behind the facility's initials when no photo exists. Reuses the
+// existing --category-*-bg/-text tokens rather than introducing plate-only
+// colours, so it flips with the theme for free.
+export const facilityPlateClasses: Record<FacilityCardCategoryKey, string> = {
+  hospital: "bg-category-hospital-bg text-category-hospital-text",
+  specialty: "bg-category-specialty-bg text-category-specialty-text",
+  clinic: "bg-category-clinic-bg text-category-clinic-text",
+  diagnostics: "bg-category-diagnostics-bg text-category-diagnostics-text",
+  pharmacy: "bg-category-pharmacy-bg text-category-pharmacy-text",
+  ambulance: "bg-category-ambulance-bg text-category-ambulance-text",
+  "home-care": "bg-category-home-care-bg text-category-home-care-text",
+  default: "bg-category-default-bg text-category-default-text",
+};
+
+// Initials for the monogram plate. Deterministic from the facility name, so a
+// given facility always renders the same plate. Drops leading articles and
+// generic type words that would otherwise make half the directory read "GE"
+// (General ...) or "SP" (Specialty ...).
+const MONOGRAM_SKIP_WORDS = new Set([
+  "the",
+  "a",
+  "an",
+  "of",
+  "and",
+  "general",
+  "specialty",
+  "specialized",
+  "higher",
+  "primary",
+  "private",
+  "public",
+]);
+
+export function facilityMonogram(name: string): string {
+  const words = name
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const meaningful = words.filter(
+    (w) => !MONOGRAM_SKIP_WORDS.has(w.toLowerCase()),
+  );
+  const source = meaningful.length > 0 ? meaningful : words;
+
+  if (source.length === 0) return "?";
+  if (source.length === 1) return source[0].slice(0, 2).toUpperCase();
+  return (source[0][0] + source[1][0]).toUpperCase();
+}
 
 // Soft icon-chip fill for inline, small-scale category icons (e.g. the
 // "Browse by category" grid) — pale bg + saturated icon color, same triad as

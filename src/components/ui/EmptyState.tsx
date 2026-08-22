@@ -18,15 +18,20 @@ export function EmptyState({
   className = "",
 }: EmptyStateProps) {
   return (
+    // Sunken panel rather than a dashed outline: a dashed border is the
+    // universal look of unfinished software, and this is a state real users
+    // hit routinely (a filter combination with no matches), not a placeholder.
     <div
-      className={`flex flex-col items-center rounded-2xl border border-dashed border-border bg-card p-8 text-center sm:p-12 ${className}`}
+      className={`flex flex-col items-center rounded-card border border-border bg-sunken p-8 text-center sm:p-12 ${className}`}
     >
       {icon ? (
-        <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-card text-muted-foreground shadow-card">
           {icon}
         </div>
       ) : null}
-      <p className="text-lg font-medium text-foreground">{title}</p>
+      <p className="font-display text-lg font-semibold text-foreground">
+        {title}
+      </p>
       {description ? (
         <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
           {description}

@@ -7,10 +7,10 @@ export function HeroSearchSection() {
     <section className="bg-transparent">
       <PageContainer className="pb-6 pt-6 sm:pb-8 sm:pt-12 lg:pt-16">
         <div className="min-w-0">
-          <h1 className="max-w-3xl text-[2.15rem] font-semibold leading-[1.04] tracking-[-0.02em] text-balance text-foreground sm:text-5xl sm:leading-[1.02]">
+          <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.03em] text-balance text-foreground sm:text-[3.5rem] sm:leading-[1.0]">
             Find the care you need.
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base">
             Search hospitals, clinics, specialists, diagnostics and pharmacies
             across Addis Ababa.
           </p>
@@ -20,17 +20,14 @@ export function HeroSearchSection() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className="relative inline-flex">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-20" />
-              <Link
-                className="relative z-10 inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
-                href="/nearby"
-              >
-                Find nearby care
-              </Link>
-            </span>
             <Link
-              className="inline-flex min-h-11 items-center rounded-full border border-border bg-transparent px-5 text-sm font-semibold text-foreground transition hover:border-strong-border hover:bg-card"
+              className="inline-flex min-h-11 items-center rounded-control bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+              href="/nearby"
+            >
+              Find nearby care
+            </Link>
+            <Link
+              className="inline-flex min-h-11 items-center rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:border-strong-border hover:bg-muted"
               href="/search"
             >
               Browse with filter

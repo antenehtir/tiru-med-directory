@@ -16,7 +16,7 @@ const FACILITY_TYPE_OPTIONS: { value: FacilityCategoryFilter; label: string }[] 
 ];
 
 const selectClassName =
-  "min-h-12 w-full rounded-xl border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "min-h-12 w-full rounded-control border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 const labelClassName = "mb-1.5 block text-sm font-semibold text-foreground";
 
 type FilterModalProps = {
@@ -82,7 +82,7 @@ export function FilterModal({
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center">
-        <div className="filter-modal-panel flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-card p-5 sm:max-h-[85vh] sm:max-w-lg sm:rounded-3xl sm:p-6 sm:shadow-2xl">
+        <div className="filter-modal-panel flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-card p-5 sm:max-h-[85vh] sm:max-w-lg sm:rounded-card sm:p-6 sm:shadow-2xl">
           <div className="mx-auto mb-4 h-1 w-10 shrink-0 rounded-full bg-border sm:hidden" />
 
           <div className="flex items-center justify-between">
@@ -200,14 +200,14 @@ export function FilterModal({
 
           <div className="mt-6 flex gap-3">
             <button
-              className="min-h-12 flex-1 rounded-xl border border-border bg-card text-sm font-semibold text-foreground transition-colors hover:border-strong-border"
+              className="min-h-12 flex-1 rounded-control border border-border bg-card text-sm font-semibold text-foreground transition-colors hover:border-strong-border"
               onClick={handleReset}
               type="button"
             >
               Reset
             </button>
             <button
-              className="min-h-12 flex-1 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+              className="min-h-12 flex-1 rounded-control bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
               onClick={handleApply}
               type="button"
             >

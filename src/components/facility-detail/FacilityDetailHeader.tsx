@@ -1,6 +1,6 @@
 import {
-  facilityBannerFallbackBaseClass,
-  facilityFallbackIconChipClasses,
+  facilityMonogram,
+  facilityPlateClasses,
   facilityWatermarkIconKey,
   resolveFacilityCardCategoryKey,
 } from "@/components/cards/facility-category-style";
@@ -53,23 +53,23 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
     Boolean(facility.location?.trim()) || Boolean(branchLocations?.length);
 
   return (
-    <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
-      {/* Banner — real entrance photo when available, gradient placeholder otherwise */}
-      <div className="relative h-48 w-full overflow-hidden rounded-2xl sm:h-56">
+    <header className="rounded-card border border-border bg-card p-5 shadow-card sm:p-6 lg:p-8">
+      {/* Banner — real entrance photo when available, monogram plate otherwise.
+          Same plate treatment as the result card, scaled up: one fallback
+          language across the whole directory rather than a card version and a
+          detail-page version that drift apart. */}
+      <div className="relative h-48 w-full overflow-hidden rounded-card sm:h-56">
         {bannerPhotos.length > 0 ? (
           <FacilityImageGallery alt={`${facility.name} entrance`} images={bannerPhotos} />
         ) : (
           <div
-            className={`flex h-full w-full flex-col items-center justify-center gap-3 ${facilityBannerFallbackBaseClass}`}
+            aria-hidden="true"
+            className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}
           >
-            <span
-              className={`flex size-16 items-center justify-center rounded-full ${facilityFallbackIconChipClasses[categoryKey]}`}
-            >
-              <WatermarkIcon className="size-7 text-white" />
+            <span className="pointer-events-none absolute -left-2 top-1/2 -translate-y-1/2 select-none font-display text-[9rem] font-bold leading-none tracking-[-0.06em] opacity-[0.16] sm:text-[11rem]">
+              {facilityMonogram(facility.name)}
             </span>
-            <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm dark:bg-gray-900/60 dark:text-gray-100">
-              {facility.category}
-            </span>
+            <WatermarkIcon className="absolute right-6 size-12 opacity-35" />
           </div>
         )}
 
@@ -93,7 +93,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
         <p className="mb-3 inline-flex rounded-full border border-border bg-soft-accent px-3 py-2 text-sm font-medium text-primary">
           Facility details
         </p>
-        <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
           {facility.name}
         </h1>
         {(facility.subcategory || facility.address) ? (
@@ -160,7 +160,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
       {hasLocation ? (
         <div className="mt-6">
           {isMultiBranch && branchLocations ? (
-            <div className="rounded-2xl border border-border bg-background p-4">
+            <div className="rounded-card border border-border bg-background p-4">
               <p className="mb-2 text-sm font-semibold text-foreground">
                 Multiple branches
               </p>
@@ -184,7 +184,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               <p className="mt-1 text-xs text-muted-foreground">Location</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-border bg-background p-4">
+            <div className="rounded-card border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">
                 {facility.location}
               </p>

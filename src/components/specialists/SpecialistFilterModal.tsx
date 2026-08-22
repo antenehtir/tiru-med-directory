@@ -81,7 +81,7 @@ export function SpecialistFilterModal({
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center">
-        <div className="filter-modal-panel flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-card p-5 sm:max-h-[85vh] sm:max-w-lg sm:rounded-3xl sm:p-6 sm:shadow-2xl">
+        <div className="filter-modal-panel flex max-h-[85vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-card p-5 sm:max-h-[85vh] sm:max-w-lg sm:rounded-card sm:p-6 sm:shadow-2xl">
           <div className="mx-auto mb-4 h-1 w-10 shrink-0 rounded-full bg-border sm:hidden" />
 
           <div className="flex items-center justify-between">

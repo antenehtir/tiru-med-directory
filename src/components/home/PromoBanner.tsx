@@ -11,7 +11,7 @@ export async function PromoBanner() {
   }
 
   const cardClassName =
-    "relative block min-h-32 overflow-hidden rounded-2xl border border-border bg-card";
+    "relative block min-h-32 overflow-hidden rounded-card border border-border bg-card";
 
   const content = banner.imageUrl ? (
     <>

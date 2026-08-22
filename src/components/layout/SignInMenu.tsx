@@ -157,7 +157,7 @@ export function SignInMenu({ compact = false }: { compact?: boolean }) {
                       <span className="block font-medium leading-tight">{role.label}</span>
                       <span className="block truncate text-xs">{role.description}</span>
                     </span>
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
                       Coming soon
                     </span>
                   </div>

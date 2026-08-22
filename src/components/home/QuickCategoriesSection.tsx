@@ -101,10 +101,12 @@ const categories: {
 
 export function QuickCategoriesSection() {
   return (
-    <section className="bg-transparent">
+    // Sunken band — the second surface tier. Alternating grounds are what give
+    // the page vertical rhythm now that the decorative dot field is gone.
+    <section className="border-y border-border bg-sunken">
       <PageContainer className="py-8 sm:py-10 lg:py-12">
         <div>
-          <h2 className="text-2xl font-semibold leading-tight text-foreground">
+          <h2 className="font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
             Browse by category
           </h2>
           {/* auto-rows-fr keeps every row the same height: descriptions wrap to
@@ -120,18 +122,18 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-md active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
+                  className="flex min-w-0 items-center gap-3 rounded-card border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-px hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none"
                   href={category.href}
                   prefetch={true}
                 >
-                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${iconChipClass}`}>
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-control ${iconChipClass}`}>
                     <Icon />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words hyphens-auto text-sm font-semibold leading-tight text-foreground sm:text-base">
+                    <span className="block break-words hyphens-auto font-display text-[15px] font-semibold leading-tight text-foreground">
                       {category.label}
                     </span>
-                    <span className="mt-0.5 block line-clamp-2 text-xs leading-snug text-muted-foreground">
+                    <span className="mt-1 block line-clamp-2 text-[13px] leading-snug text-muted-foreground">
                       {category.description}
                     </span>
                   </span>

@@ -6,7 +6,7 @@ import { SignInMenu } from "@/components/layout/SignInMenu";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 border-b border-primary/10 bg-card/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center gap-2 px-3 min-[360px]:px-4 sm:gap-3 sm:px-6 lg:min-h-[4.25rem] lg:px-8">
         <div className="flex min-w-0 shrink-0 items-center">
           <BrandMark />
@@ -17,7 +17,7 @@ export function Header() {
         <SignInMenu />
 
         <Link
-          className="ml-2 hidden min-h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover lg:inline-flex"
+          className="ml-2 hidden min-h-9 items-center rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover lg:inline-flex"
           href="/provider/signup"
         >
           List your facility
@@ -72,7 +72,6 @@ export function Header() {
           <SignInMenu compact />
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
     </header>
   );
 }

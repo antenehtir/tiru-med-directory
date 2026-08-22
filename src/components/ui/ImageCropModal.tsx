@@ -81,7 +81,7 @@ export function ImageCropModal({ imageSrc, aspect, title, onCancel, onComplete }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-lg">
+      <div className="flex w-full max-w-lg flex-col gap-4 rounded-card border border-border bg-card p-5 shadow-lg">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-foreground">{title ?? "Crop image"}</h2>
           <button
@@ -98,7 +98,7 @@ export function ImageCropModal({ imageSrc, aspect, title, onCancel, onComplete }
             bg-muted rather than restricting zoom to always fill the frame —
             preserves the user's exact intended framing (e.g. showing a full
             logo or storefront) instead of forcing a crop they don't want. */}
-        <div className="relative h-72 w-full overflow-hidden rounded-xl bg-muted">
+        <div className="relative h-72 w-full overflow-hidden rounded-card bg-muted">
           <Cropper
             aspect={aspect}
             crop={crop}

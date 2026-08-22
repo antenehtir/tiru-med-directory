@@ -31,18 +31,18 @@ export function FacilityInformationSection({
   }
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+    <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Overview
       </p>
-      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+      <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
         Facility information
       </h2>
 
       {(hasSpecialties || visibleRows.length > 0) && (
         <div className="mt-4 grid gap-3">
           {hasSpecialties ? (
-            <div className="rounded-2xl border border-border bg-background p-4">
+            <div className="rounded-card border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">
                 {medicalSpecialties.join(", ")}
               </p>
@@ -51,7 +51,7 @@ export function FacilityInformationSection({
           ) : null}
           {visibleRows.map((row) => (
             <div
-              className="rounded-2xl border border-border bg-background p-4"
+              className="rounded-card border border-border bg-background p-4"
               key={row.label}
             >
               <p className="text-sm font-semibold text-foreground">
@@ -64,7 +64,7 @@ export function FacilityInformationSection({
       )}
 
       {hasPatientGroups && (
-        <div className="mt-4 rounded-2xl border border-border bg-background p-4">
+        <div className="mt-4 rounded-card border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
             Patient groups served
           </p>
@@ -79,7 +79,7 @@ export function FacilityInformationSection({
       )}
 
       {hasPayment && (
-        <div className="mt-4 rounded-2xl border border-border bg-background p-4">
+        <div className="mt-4 rounded-card border border-border bg-background p-4">
           <p className="text-sm font-semibold text-foreground">
             Payment &amp; Insurance
           </p>

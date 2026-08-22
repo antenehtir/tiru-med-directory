@@ -92,7 +92,7 @@ export function MobileBottomNavigation() {
               >
                 {Icon ? <Icon /> : null}
                 <span
-                  className={`max-w-full truncate text-[10px] ${
+                  className={`max-w-full truncate text-[11px] ${
                     isActive ? "font-semibold" : "font-medium"
                   }`}
                 >

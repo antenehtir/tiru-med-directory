@@ -7,13 +7,13 @@ type FacilityTrustSectionProps = {
 
 export function FacilityTrustSection({ facility }: FacilityTrustSectionProps) {
   return (
-    <section className="rounded-lg border border-border bg-muted p-5 shadow-sm sm:p-6">
+    <section className="rounded-card border border-border bg-sunken p-5 sm:p-6">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-normal text-primary">
             Trust and verification
           </p>
-          <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
+          <h2 className="mt-2 font-display text-2xl font-semibold leading-tight text-foreground">
             Verification is visible before action.
           </h2>
         </div>

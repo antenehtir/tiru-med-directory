@@ -14,7 +14,7 @@ export function SimilarFacilitiesSection({
         <p className="text-sm font-semibold uppercase tracking-normal text-primary">
           Similar facilities
         </p>
-        <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
+        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight text-foreground">
           Other healthcare options to compare
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">

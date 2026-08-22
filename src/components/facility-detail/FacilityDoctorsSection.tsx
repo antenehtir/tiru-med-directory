@@ -48,7 +48,7 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
   const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
 
   return (
-    <div className="flex gap-4 rounded-2xl border border-border bg-background p-5 shadow-sm transition hover:shadow-md sm:flex-row">
+    <div className="flex gap-4 rounded-card border border-border bg-background p-5 shadow-card transition hover:shadow-lift sm:flex-row">
       {/* Photo / initials avatar */}
       <div className="shrink-0">
         {doctor.photo_url ? (
@@ -123,11 +123,11 @@ export function FacilityDoctorsSection({ facility }: { facility: Facility }) {
   if (!doctors || doctors.length === 0) return null;
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+    <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Our team
       </p>
-      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+      <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
         Meet the specialists
       </h2>
       {doctors.length > 1 && (

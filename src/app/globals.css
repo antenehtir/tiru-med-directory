@@ -2,14 +2,29 @@
 @custom-variant dark (&:is([data-theme=dark] *));
 
 :root {
-  --tiru-deep-ink: #1F2937;
+  /* Neutrals are a WARM family (stone), not the blue-tinted grays this file
+     used through Phase 8. The old #6B7280/#E5E7EB/#F7F9FC set read as
+     fluorescent-clinical on a bright screen; warm neutrals keep the clinical
+     register while losing the sterility. These are the SAME semantic token
+     names as before, re-pointed — deliberately not a parallel --ink/--line
+     set, so every existing text-muted-foreground / border-border consumer
+     inherits the shift and there is only ever one neutral system. */
+  --tiru-deep-ink: #1C1917;
   --tiru-accent: #0F766E;
   --tiru-accent-hover: #0B5E58;
   --tiru-supporting-teal: #14B8A6;
   --tiru-soft-accent: #ECFEFF;
   --tiru-white: #FFFFFF;
 
-  --background: #F7F9FC;
+  /* Surface tiers: paper (page) → card (raised) → sunken (bands, wells) →
+     deep (footer + high-emphasis band). --deep is a near-black with teal in
+     it, derived from --tiru-accent, so the dark band belongs to this brand
+     rather than being generic slate. */
+  --background: #FAF9F7;
+  --sunken: #F4F2EF;
+  --deep: #0B2E2B;
+  --deep-foreground: #F5F5F4;
+  --deep-muted: #A8A29E;
   --foreground: var(--tiru-deep-ink);
 
   --primary: #0F766E;
@@ -61,30 +76,53 @@
   --card: var(--tiru-white);
   --card-foreground: var(--tiru-deep-ink);
 
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
+  --muted: #F4F2EF;
+  --muted-foreground: #57534E;
   --soft-accent: #ECFEFF;
 
-  --border: #E5E7EB;
-  --strong-border: #D1D5DB;
+  --border: #E7E5E4;
+  --strong-border: #D6D3D1;
   --input: var(--tiru-white);
   --ring: #0F766E;
-  --homepage-background: linear-gradient(180deg, #F7FBFA 0%, #FFFFFF 60%);
+  --homepage-background: linear-gradient(180deg, #F7F5F2 0%, #FAF9F7 55%);
 
-  /* Footer "Slate Ground" tokens — a fixed dark surface for the footer only,
-     independent of the light/dark theme toggle (intentionally NOT redefined
-     under [data-theme="dark"]) so the footer always reads as a distinct,
-     grounded zone rather than a tinted continuation of the page background. */
-  --footer-background: #111827;
-  --footer-foreground: #F9FAFB;
-  --footer-muted: #9CA3AF;
-  --footer-accent: #14B8A6;
-  --footer-accent-hover: #2DD4BF;
+  /* Elevation is warm-tinted (shadows on warm paper must carry the paper's
+     hue or they read as dirty gray) and always has offset + soft blur.
+     Raw values live here; @theme maps them to shadow-card / shadow-lift. */
+  --elevation-card: 0 1px 2px rgba(28, 25, 23, 0.04),
+    0 8px 24px -10px rgba(28, 25, 23, 0.10);
+  --elevation-lift: 0 2px 4px rgba(28, 25, 23, 0.05),
+    0 16px 32px -12px rgba(28, 25, 23, 0.14);
+
+  /* Three-tier radius language, replacing uniform rounded-2xl everywhere:
+     panels 14px, controls 10px, pills full. */
+  --r-card: 14px;
+  --r-control: 10px;
+
+  /* Footer tokens — a fixed dark surface for the footer only, independent of
+     the light/dark theme toggle (intentionally NOT redefined under
+     [data-theme="dark"]) so the footer always reads as a distinct, grounded
+     zone rather than a tinted continuation of the page background. As of
+     Phase 9 this points at --deep (#0B2E2B, teal-black) instead of #111827:
+     the old value was generic cold slate that belonged to no brand. */
+  --footer-background: var(--deep);
+  --footer-foreground: var(--deep-foreground);
+  --footer-muted: var(--deep-muted);
+  --footer-accent: #5EEAD4;
+  --footer-accent-hover: #99F6E4;
 }
 
 [data-theme="dark"] {
-  --background: #0F172A;
-  --foreground: #F9FAFB;
+  /* Warm-neutral counterparts (stone) to the light palette above — NOT the
+     cold slate this block used previously. Shipping warm light-mode neutrals
+     against cold dark-mode neutrals would be the same one-concept-two-systems
+     split that produced the four rival category-color maps. */
+  --background: #1C1917;
+  --sunken: #141110;
+  --deep: #0B2E2B;
+  --deep-foreground: #F5F5F4;
+  --deep-muted: #A8A29E;
+  --foreground: #FAFAF9;
 
   --primary: #14B8A6;
   --primary-hover: #0D9488;
@@ -129,18 +167,25 @@
   --category-default-border: #4B5563;
   --category-default-text: #D1D5DB;
 
-  --card: #111827;
-  --card-foreground: #F9FAFB;
+  --card: #292524;
+  --card-foreground: #FAFAF9;
 
-  --muted: #1F2937;
-  --muted-foreground: #9CA3AF;
-  --soft-accent: rgba(20, 184, 166, 0.12);
+  --muted: #292524;
+  --muted-foreground: #A8A29E;
+  --soft-accent: rgba(20, 184, 166, 0.14);
 
-  --border: #374151;
-  --strong-border: #4B5563;
-  --input: #111827;
+  --border: #44403C;
+  --strong-border: #57534E;
+  --input: #292524;
   --ring: #14B8A6;
-  --homepage-background: linear-gradient(180deg, #0F172A 0%, #111827 60%);
+  --homepage-background: linear-gradient(180deg, #141110 0%, #1C1917 55%);
+
+  /* On a dark ground a warm-tinted shadow is invisible; depth has to come
+     from near-black instead, at higher opacity than the light theme. */
+  --elevation-card: 0 1px 2px rgba(0, 0, 0, 0.32),
+    0 8px 24px -10px rgba(0, 0, 0, 0.52);
+  --elevation-lift: 0 2px 4px rgba(0, 0, 0, 0.38),
+    0 16px 32px -12px rgba(0, 0, 0, 0.62);
 }
 
 @theme inline {
@@ -199,8 +244,25 @@
   --color-footer-muted: var(--footer-muted);
   --color-footer-accent: var(--footer-accent);
   --color-footer-accent-hover: var(--footer-accent-hover);
-  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --color-sunken: var(--sunken);
+  --color-deep: var(--deep);
+  --color-deep-foreground: var(--deep-foreground);
+  --color-deep-muted: var(--deep-muted);
+
+  /* Archivo is a grotesque with signage/government-form heritage — sturdy and
+     institutional without being cold. Noto Sans Ethiopic follows in both
+     stacks so Ge'ez degrades to a designed face rather than a system
+     fallback; there is no Amharic in the UI today, this is groundwork. */
+  --font-display: var(--font-archivo), "Noto Sans Ethiopic", system-ui,
+    sans-serif;
+  --font-sans: var(--font-inter), "Noto Sans Ethiopic", Arial, Helvetica,
+    sans-serif;
   --font-mono: "Courier New", Courier, monospace;
+
+  --shadow-card: var(--elevation-card);
+  --shadow-lift: var(--elevation-lift);
+  --radius-card: var(--r-card);
+  --radius-control: var(--r-control);
 }
 
 * {
@@ -213,26 +275,29 @@ html {
   color-scheme: light;
 }
 
+/* Display face: tightened tracking is part of the scale, not per-element
+   styling — Archivo at headline sizes needs it to hold together. */
+.font-display {
+  font-family: var(--font-archivo), "Noto Sans Ethiopic", system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
 html[data-theme="dark"] {
   color-scheme: dark;
 }
 
 body {
-  background-color: #F7FBFA;
-  background-image: radial-gradient(#0F766E15 1px, transparent 1px);
-  background-size: 24px 24px;
+  /* The 24px teal dot field that used to live here was texture from nowhere —
+     not drawn from anything in this product's world — and it fought the new
+     surface tiers. Section rhythm now comes from paper/sunken/deep bands. */
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), "Noto Sans Ethiopic", Arial, Helvetica,
+    sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-
-html[data-theme="dark"] body {
-  background-color: #0F172A;
-  background-image: radial-gradient(#14B8A620 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 button,

@@ -7,10 +7,14 @@ export function BrandMark() {
       href="/"
       aria-label="Tiru home"
     >
-      <span className="text-[1.45rem] font-semibold leading-none tracking-normal text-foreground min-[380px]:text-[1.6rem] sm:text-[1.7rem]">
+      {/* Was three arbitrary rem one-offs (1.45/1.6/1.7) plus a 0.68rem
+          sub-label. Now the display face on the scale's 24→28 step, with the
+          sub-label on the 11px micro step shared with the card category
+          labels. */}
+      <span className="font-display text-2xl font-bold leading-none tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
         Tiru
       </span>
-      <span className="mt-1 max-w-[8.5rem] truncate text-[0.68rem] font-medium leading-none text-muted-foreground min-[380px]:max-w-none min-[380px]:text-xs">
+      <span className="mt-1 max-w-[8.5rem] truncate text-[11px] font-medium leading-none tracking-[0.01em] text-muted-foreground min-[380px]:max-w-none">
         Trace the right care.
       </span>
     </Link>

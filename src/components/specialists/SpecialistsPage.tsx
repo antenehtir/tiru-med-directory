@@ -82,7 +82,7 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
           <p className="mb-3 inline-flex rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground">
             Specialists directory
           </p>
-          <h1 className="text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
+          <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
             Find trusted specialists by specialty.
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
@@ -91,7 +91,7 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
           </p>
         </header>
 
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.025)]">
+        <section className="rounded-card border border-border bg-card p-4 shadow-[0_12px_30px_rgba(17,24,39,0.025)]">
           <p className="text-sm font-semibold text-foreground">Specialty filters</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {specialtyPills.map((label) => {

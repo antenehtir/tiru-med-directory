@@ -19,7 +19,7 @@ export function Homepage({ facilities }: { facilities: Facility[] }) {
       <section className="bg-transparent py-8 sm:py-10 lg:py-12">
         <PageContainer>
           <div className="mb-5 flex items-baseline justify-between gap-4">
-            <h2 className="text-2xl font-semibold leading-tight text-foreground">
+            <h2 className="font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
               Recently added
             </h2>
             <Link

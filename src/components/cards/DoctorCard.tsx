@@ -29,14 +29,14 @@ function DoctorPhoto({ doctor }: { doctor: Doctor }) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         alt=""
-        className="size-16 shrink-0 rounded-full border border-border bg-primary/10 object-cover"
+        className="size-16 shrink-0 rounded-full border border-border bg-soft-accent object-cover"
         src={doctor.photoUrl}
       />
     );
   }
 
   return (
-    <div className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-primary/10 text-xl font-bold text-primary">
+    <div className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-soft-accent font-display text-xl font-bold text-primary">
       {doctor.profileInitials}
     </div>
   );
@@ -47,8 +47,8 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
   const consultationModePills = getConsultationModePills(doctor.availability);
 
   return (
-    <article className="group relative rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-transparent p-[1px] transition hover:from-primary/40 active:scale-[0.98]">
-      <div className="flex h-full min-w-0 flex-col rounded-3xl bg-card p-4 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-5">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-px hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none">
+      <div className="flex h-full min-w-0 flex-col p-4 sm:p-5">
         <div className="flex flex-col items-start gap-3 min-[720px]:flex-row min-[720px]:justify-between">
           <div className="flex min-w-0 items-center gap-3 self-stretch">
             <DoctorPhoto doctor={doctor} />
@@ -56,7 +56,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
               <p className="text-sm font-semibold text-muted-foreground">
                 {doctor.specialty}
               </p>
-              <h3 className="mt-1 whitespace-normal text-lg font-semibold leading-snug text-card-foreground">
+              <h3 className="mt-1 whitespace-normal font-display text-[19px] font-semibold leading-[1.15] text-card-foreground">
                 {doctor.name}
               </h3>
               {doctor.facility ? (
@@ -99,7 +99,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
             slug={doctor.slug}
           />
           <Link
-            className="flex min-h-12 flex-[2] items-center justify-center rounded-2xl bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary-hover active:scale-95"
+            className="flex min-h-12 flex-[2] items-center justify-center rounded-control bg-primary px-3 text-center text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
             href={detailHref}
           >
             {doctor.profileActionLabel}

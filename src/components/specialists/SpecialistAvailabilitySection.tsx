@@ -32,13 +32,13 @@ export function SpecialistAvailabilitySection({
   if (!dayMap) return null;
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+    <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Availability
           </p>
-          <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+          <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
             Weekly schedule
           </h2>
         </div>

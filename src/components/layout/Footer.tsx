@@ -22,7 +22,7 @@ export function Footer() {
     <footer className="border-t border-white/10 bg-footer-background">
       <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-10 pb-28 text-sm text-footer-muted sm:px-6 sm:grid-cols-2 sm:gap-8 md:pb-10 lg:px-8">
         <nav aria-label="Footer quick links">
-          <p className="text-xs font-semibold uppercase tracking-wide text-footer-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-footer-foreground">
             Explore
           </p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1">
@@ -39,7 +39,7 @@ export function Footer() {
         </nav>
 
         <nav aria-label="Footer provider links">
-          <p className="text-xs font-semibold uppercase tracking-wide text-footer-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-footer-foreground">
             For Healthcare Providers
           </p>
           <div className="mt-3 grid gap-1">

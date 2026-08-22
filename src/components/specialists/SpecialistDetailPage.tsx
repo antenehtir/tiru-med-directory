@@ -46,7 +46,7 @@ export function SpecialistDetailPage({
       <div className="grid gap-8">
         {/* Header + sidebar */}
         <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
-          <header className="rounded-3xl border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
+          <header className="rounded-card border border-border bg-card p-5 shadow-[0_14px_34px_rgba(31,41,55,0.045)] sm:p-6 lg:p-8">
             <div className="flex flex-col items-start gap-4 sm:flex-row">
               {specialist.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -65,7 +65,7 @@ export function SpecialistDetailPage({
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Specialist profile
                 </p>
-                <h1 className="mt-1 text-3xl font-semibold leading-[1.08] text-foreground sm:text-4xl">
+                <h1 className="mt-1 font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
                   {formatDoctorDisplayName(specialist.title, specialist.fullName)}
                 </h1>
 
@@ -117,7 +117,7 @@ export function SpecialistDetailPage({
           </header>
 
           {/* Sidebar */}
-          <aside className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6 lg:sticky lg:top-24">
+          <aside className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6 lg:sticky lg:top-24">
             <div className="grid gap-3">
               {specialist.facilityPhone ? (
                 <a
@@ -150,11 +150,11 @@ export function SpecialistDetailPage({
         {/* Main content */}
         <div className="grid gap-8">
           {hasBio && (
-            <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+            <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 About
               </p>
-              <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+              <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
                 Background
               </h2>
               <p className="mt-4 text-base leading-7 text-muted-foreground">{specialist.bio}</p>
@@ -164,11 +164,11 @@ export function SpecialistDetailPage({
           <SpecialistAvailabilitySection schedule={specialist.availableSchedule} />
 
           {specialist.languages.length > 0 && (
-            <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+            <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Languages
               </p>
-              <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+              <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
                 Languages spoken
               </h2>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -181,14 +181,14 @@ export function SpecialistDetailPage({
             </section>
           )}
 
-          <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+          <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Practice location
             </p>
-            <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+            <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
               About {specialist.facilityName}
             </h2>
-            <div className="mt-4 rounded-2xl border border-border bg-background p-4">
+            <div className="mt-4 rounded-card border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">{specialist.facilityCategory}</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {[specialist.facilityArea, specialist.facilitySubCity].filter(Boolean).join(", ")}
@@ -213,7 +213,7 @@ export function SpecialistDetailPage({
               <p className="text-sm font-semibold uppercase tracking-normal text-primary">
                 Similar specialists
               </p>
-              <h2 className="mt-2 text-2xl font-semibold leading-tight text-foreground">
+              <h2 className="mt-2 font-display text-2xl font-semibold leading-tight text-foreground">
                 Other {specialist.specialty} specialists
               </h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">

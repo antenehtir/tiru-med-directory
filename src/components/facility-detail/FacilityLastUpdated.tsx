@@ -29,7 +29,7 @@ export function FacilityLastUpdated({ facility }: FacilityLastUpdatedProps) {
       Updated {formatted}
       <span
         aria-hidden="true"
-        className="inline-flex size-4 items-center justify-center rounded-full border border-primary/40 text-[10px]"
+        className="inline-flex size-4 items-center justify-center rounded-full border border-primary/40 text-[11px]"
         title="This facility manages its own listing on Tiru"
       >
         i

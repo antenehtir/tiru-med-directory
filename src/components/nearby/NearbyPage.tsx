@@ -307,14 +307,14 @@ export function NearbyPage({
     <main className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">
       <header>
         <p className="text-sm font-semibold text-primary">Near you</p>
-        <h1 className="mt-2 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
+        <h1 className="mt-2 font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
           Which care are you looking for?
         </h1>
       </header>
 
       <ListingStatusBanner />
 
-      <div className="flex max-w-full gap-2 rounded-2xl border border-border bg-card p-1.5">
+      <div className="flex max-w-full gap-2 rounded-card border border-border bg-card p-1.5">
         {(
           [
             { label: "Facilities", value: "facilities" },
@@ -367,7 +367,7 @@ export function NearbyPage({
       <div className="relative">
         <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="min-h-11 w-full rounded-control border border-border bg-card pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           onChange={(event) => setFacilitySearchQuery(event.target.value)}
           placeholder="Search by facility name..."
           type="text"
@@ -551,7 +551,7 @@ export function NearbyPage({
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
-              className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="min-h-11 w-full rounded-control border border-border bg-card pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               onChange={(event) => setSpecialistSearchQuery(event.target.value)}
               placeholder="Search by specialist name..."
               type="text"

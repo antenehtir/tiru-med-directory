@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MapPinIcon } from "@/components/cards/contact-icons";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { Badge } from "@/components/ui/Badge";
 import { Pill } from "@/components/ui/Pill";
@@ -39,28 +40,33 @@ export function SpecialistCard({
 
   return (
     <Link
-      className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
+      className="group flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-150 hover:-translate-y-px hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none"
       href={profileHref}
     >
       {distanceLabel && (
-        <p className="text-sm font-semibold text-primary">📍 {distanceLabel}</p>
+        <p className="flex items-center gap-1 text-[13px] font-medium text-foreground">
+          <MapPinIcon className="size-3.5 shrink-0 text-muted-foreground" />
+          {distanceLabel}
+        </p>
       )}
       <div className="flex items-start gap-3">
         {specialist.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt={specialist.fullName}
-            className="size-16 shrink-0 rounded-full object-cover ring-2 ring-primary/20 sm:size-[72px]"
+            className="size-16 shrink-0 rounded-full border border-border object-cover sm:size-[72px]"
             src={specialist.photoUrl}
           />
         ) : (
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-soft-accent text-lg font-bold text-primary ring-2 ring-primary/20 sm:size-[72px]">
+          // Same monogram idea as the facility plate: initials in the display
+          // face rather than a generic avatar glyph.
+          <div className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-soft-accent font-display text-lg font-bold text-primary sm:size-[72px]">
             {initials}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold leading-tight text-foreground">
+          <p className="truncate font-display text-[19px] font-semibold leading-[1.15] text-foreground">
             {formatDoctorDisplayName(specialist.title, specialist.fullName)}
           </p>
           {specialist.role && (

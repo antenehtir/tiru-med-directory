@@ -14,11 +14,11 @@ export function FacilityServicesSection({
   if (groups.length === 0) return null;
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+    <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Services
       </p>
-      <h2 className="mt-1 text-xl font-semibold leading-tight text-foreground">
+      <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-foreground">
         Available care information
       </h2>
       <div className="mt-4 flex flex-col gap-4">

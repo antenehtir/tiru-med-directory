@@ -75,7 +75,7 @@ function SearchResultsPageInner({
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
         <header>
-          <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
+          <h1 className="font-display text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
             Search healthcare
           </h1>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">

@@ -164,7 +164,7 @@ export function CategoryShowcaseSection() {
   return (
     <section className="bg-transparent">
       <PageContainer className="py-8 sm:py-10 lg:py-12">
-        <h2 className="mb-5 text-2xl font-semibold leading-tight text-foreground">
+        <h2 className="mb-5 font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
           Quick access
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -173,21 +173,23 @@ export function CategoryShowcaseSection() {
 
             return (
               <Link
-                className={`group relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 transition-transform duration-200 hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none lg:min-h-48 ${category.gradient}`}
+                className={`group relative flex min-h-40 flex-col justify-between overflow-hidden rounded-card bg-gradient-to-br p-6 transition-transform duration-200 hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none lg:min-h-48 ${category.gradient}`}
                 href={category.href}
                 key={category.title}
                 prefetch={true}
               >
                 <div className="absolute -top-8 -right-8 size-32 rounded-full bg-white/10 blur-2xl" />
-                <Icon className="relative z-10 size-10 text-white" />
+                <Icon className="relative z-10 size-9 text-white/90" />
                 <div className="relative z-10">
-                  <p className="text-xl font-semibold text-white">
+                  <p className="font-display text-xl font-semibold leading-tight text-white">
                     {category.title}
                   </p>
-                  <p className="mt-1 text-sm text-white/80">
+                  <p className="mt-1.5 text-[13px] leading-snug text-white/75">
                     {category.subtitle}
                   </p>
-                  <p className="mt-4 text-sm text-white/90">{category.cta}</p>
+                  <p className="mt-4 text-[13px] font-medium text-white">
+                    {category.cta}
+                  </p>
                 </div>
               </Link>
             );

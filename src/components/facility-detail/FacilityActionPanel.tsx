@@ -177,7 +177,7 @@ function ShareFacilityButton({ facility }: { facility: Facility }) {
 
   return (
     <button
-      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted active:scale-95"
+      className="flex w-full items-center justify-center gap-2 rounded-card border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted active:scale-95"
       onClick={handleShare}
       type="button"
     >
@@ -229,7 +229,7 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
   const [primaryPhone, ...secondaryPhones] = phoneActions;
 
   return (
-    <aside className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
+    <aside className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
       <div className="grid gap-3">
         {primaryPhone ? (
           <a

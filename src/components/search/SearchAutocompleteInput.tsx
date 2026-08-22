@@ -108,7 +108,7 @@ export function SearchAutocompleteInput({
         />
 
         {showSuggestions ? (
-          <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_34px_rgba(31,41,55,0.12)]">
+          <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-card border border-border bg-card shadow-[0_16px_34px_rgba(31,41,55,0.12)]">
             <ul className="max-h-72 overflow-y-auto py-1">
               {suggestions.map((suggestion) => (
                 <li key={suggestion.id}>
@@ -123,7 +123,7 @@ export function SearchAutocompleteInput({
                         {suggestion.name}
                       </span>
                       {suggestion.resultType === "specialist" ? (
-                        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
                           Specialist
                         </span>
                       ) : null}

@@ -48,7 +48,7 @@ export function FacilityCategoryFilters({
   activeCategory,
 }: FacilityCategoryFiltersProps) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <section className="rounded-card border border-border bg-card p-4 shadow-sm">
       <p className="text-sm font-semibold text-foreground">
         Facility categories
       </p>

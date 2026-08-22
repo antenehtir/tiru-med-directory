@@ -19,8 +19,38 @@
 // All tokens are defined in src/app/globals.css as CSS custom properties
 // and wired into Tailwind v4 via the @theme inline block.
 //
+// PHASE 9 — "Register" identity pass. Three things changed at this layer:
+//
+//   1. NEUTRALS ARE WARM. --foreground/--muted-foreground/--border/--background
+//      were re-pointed from blue-tinted grays (#1F2937/#6B7280/#E5E7EB/#F7F9FC)
+//      to a warm stone family (#1C1917/#57534E/#E7E5E4/#FAF9F7). The SAME token
+//      names were re-pointed rather than adding a parallel --ink/--line set, so
+//      there is exactly one neutral system and every existing consumer inherits
+//      the shift. Dark mode moved to warm stone in the same pass for the same
+//      reason. Contrast improved: muted-on-paper went 4.9:1 → 7.25:1.
+//
+//   2. SURFACE TIERS. --background (paper) → --card → --sunken → --deep.
+//      Section rhythm now comes from alternating these instead of the
+//      decorative radial dot field, which was removed.
+//
+//   3. ELEVATION + RADIUS are tokens now, not per-component one-offs:
+//      --elevation-card/-lift (warm-tinted, offset + blur) exposed as
+//      shadow-card/shadow-lift, and --r-card 14px / --r-control 10px exposed
+//      as rounded-card/rounded-control. Pills stay fully round. Declare
+//      elevation once — border OR shadow, never a 1px border under a wide
+//      soft shadow.
+//
 // MAPPING — semantic intent → CSS variable → light value → dark value
 // ──────────────────────────────────────────────────────────────────────
+//
+// surfaces    --background  #FAF9F7 (paper)      #1C1917 (warm near-black)
+//             --card        #FFFFFF              #292524
+//             --sunken      #F4F2EF              #141110
+//             --deep        #0B2E2B (both themes — a fixed teal-black)
+//   USAGE: --deep is the high-emphasis band (homepage TrustStats) and the
+//          footer. It is deliberately NOT theme-dependent: it is a brand
+//          surface, not a mode. Derived from --tiru-accent rather than being
+//          generic slate, which is what #111827 was through Phase 8.
 //
 // primary     --primary              #0F766E (teal-700)    #14B8A6 (teal-400)
 //   USAGE: CTAs, active states, links, focus rings, Official badge (target),
@@ -143,43 +173,41 @@ export type ColorVariant =
 
 // ─── 2. TYPOGRAPHY SCALE ─────────────────────────────────────────────────────
 //
-// Tailwind's default scale is used as-is. These are the SEMANTIC ASSIGNMENTS:
+// TWO FACES (Phase 9). Inter alone, at one weight range, is what made every
+// heading read as a larger size of the body text rather than a different
+// voice — the single biggest reason the site looked templated.
 //
-//   text-xs   (12px) — timestamps, small pills, meta labels, table sub-text
-//   text-sm   (14px) — body default, form labels, card body text, descriptions
-//   text-base (16px) — emphasized body, doctor names, larger card text
-//   text-lg   (18px) — section sub-headings (h4 equiv), sidebar section titles
-//   text-xl   (20px) — card titles, section headings (h3), form card headers
-//   text-2xl  (24px) — page section titles (h2), e.g. "Meet the specialists"
-//   text-3xl  (30px) — page hero headings (h1) at mobile breakpoint
+//   --font-display  Archivo (Google, wght 500/600/700) + Noto Sans Ethiopic
+//                   A grotesque with signage / government-form heritage:
+//                   sturdy and institutional without being cold. Applied via
+//                   the .font-display utility class. Headings and figures only.
+//   --font-sans     Inter (unchanged) + Noto Sans Ethiopic
+//                   Body, metadata, and dense record text. Genuinely better
+//                   than Archivo at 13px in a card.
 //
-// RESPONSIVE PATTERN for hero headings:
-//   text-3xl sm:text-4xl — standard hero h1 (most listing pages)
-//   text-3xl sm:text-4xl — facility detail h1 (same)
-//   EXCEPTION: Main home page hero uses text-[2.15rem] sm:text-5xl — intentional
-//              to achieve the larger impact heading. Document but leave as-is.
+// Noto Sans Ethiopic sits in BOTH stacks so Ge'ez degrades to a designed face
+// rather than a system fallback. There is no Amharic in the UI today — this is
+// groundwork, and it is far cheaper now than retrofitting later.
 //
-// AUDIT — OUTLIERS FOUND (do not fix in this commit):
-//   sm:text-4xl — used as responsive UP from text-3xl in hero h1s. This is
-//                 intentional and fine; not an outlier, it's the pattern.
-//   text-5xl    — HeroSearchSection home page only. Intentional one-off for
-//                 the largest heading on the site. Leave as-is.
-//   text-[2.15rem] — HeroSearchSection home, paired with text-5xl. One-off.
-//   text-[11px] — SignInMenu section label (tiny uppercase tracking label).
-//                 FIX IN: Phase 1, replace with text-xs tracking-wider.
-//   text-[10px] — MobileBottomNavigation labels, SpecialistCard Official badge.
-//                 FIX IN: Phase 1. Use text-[10px] → text-xs (close enough).
-//   text-[0.68rem] — BrandMark sub-label. Design intentional; leave as-is.
-//   text-[1.45rem] — BrandMark name. Design intentional; leave as-is.
-//   text-[1.6rem] — BrandMark responsive. Design intentional; leave as-is.
-//   text-[#0F766E] (color, not size) — CorrectionsPage, FeedbackPage.
-//                 FIX IN: Phase 1, replace with text-primary.
+// SCALE — intentional jumps, not timid increments. Previous scale ran
+// 48/24/20/16/14/12 and the 24→20→16 middle was mush.
 //
-// WEIGHT RULE (added Phase 7): font-bold is reserved for numerals/stat values
-//          only (e.g. TrustStatsSection's "105+"). Headings use font-semibold,
-//          never font-bold — CategoryShowcaseSection's tile titles were the
-//          one outlier (font-bold) and were brought in line with this rule.
-
+//   Display XL  56px  font-display 700  -0.03em  homepage hero h1
+//   Display L   44px  font-display 700  -0.03em  page h1 (listing/detail)
+//   Display M   32px  font-display 600  -0.02em  section h2
+//   Title       19px  font-display 600  -0.01em  card titles
+//   Body        15px  Inter 400                  prose
+//   Meta        13px  Inter 400/500              address, hours, distance
+//   Micro       11px  Inter 600  +0.08em upper   category labels, eyebrow caps
+//
+// The 11px micro step is the canonical smallest size. Phase 9 swept the
+// text-[10px] one-offs (MobileBottomNavigation, SignInMenu, the search
+// autocomplete badges, FacilityLastUpdated) onto it, and retired BrandMark's
+// text-[1.45rem]/[1.6rem]/[0.68rem] and the hero's text-[2.15rem].
+//
+// WEIGHT RULE (Phase 7, still holds): font-bold is for numerals, stat values,
+// and display headings. Body headings use font-semibold.
+//
 // ─── 3. SPACING RHYTHM ───────────────────────────────────────────────────────
 //
 // CARD PADDING:
