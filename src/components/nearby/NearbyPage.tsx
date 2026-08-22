@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FacilityCard } from "@/components/cards/FacilityCard";
 import { Badge } from "@/components/ui/Badge";
-import { EmptyState, MapPinOffIcon } from "@/components/ui/EmptyState";
+import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyState";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
@@ -44,6 +44,14 @@ type LocationState =
 
 const LOCATION_TIMEOUT_MS = 8000;
 
+// Nearby has no server-side radius/limit — without a render cap, a city with
+// 100+ active facilities renders as one unbroken multi-thousand-pixel grid,
+// which makes any specific facility (even a correctly-ranked, close one)
+// effectively invisible unless the user scrolls the whole thing. Show the
+// closest N by default and reveal more on demand instead.
+const DEFAULT_VISIBLE_COUNT = 20;
+const LOAD_MORE_STEP = 20;
+
 const categoryOptions = [
   { label: "All", value: "all" },
   { label: "General Hospitals", value: "hospital" },
@@ -64,6 +72,10 @@ export function NearbyPage({
   const [locationState, setLocationState] = useState<LocationState>("idle");
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
+  const [facilitySearchQuery, setFacilitySearchQuery] = useState("");
+  const [specialistSearchQuery, setSpecialistSearchQuery] = useState("");
+  const [visibleFacilityCount, setVisibleFacilityCount] = useState(DEFAULT_VISIBLE_COUNT);
+  const [visibleSpecialistCount, setVisibleSpecialistCount] = useState(DEFAULT_VISIBLE_COUNT);
   const hasRequestedLocationRef = useRef(false);
   const locationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const locationWatchRef = useRef<number | null>(null);
@@ -115,33 +127,81 @@ export function NearbyPage({
     });
   }, [categoryFacilities, selectedCategory, selectedNearbySpecialty]);
 
+  // Client-side name filter — runs over the already-fetched, already
+  // category-filtered list, no new query. Lets someone check "is [facility]
+  // in here at all" directly instead of scrolling a distance-sorted grid
+  // hoping to spot it, and doubles as a quick way to sanity-check the
+  // distance the app computes for a facility you're standing next to.
+  const nameFilteredFacilities = useMemo(() => {
+    const query = facilitySearchQuery.trim().toLowerCase();
+    if (!query) return specialtyFilteredFacilities;
+    return specialtyFilteredFacilities.filter((facility) =>
+      facility.name.toLowerCase().includes(query),
+    );
+  }, [specialtyFilteredFacilities, facilitySearchQuery]);
+
+  const nameFilteredSpecialists = useMemo(() => {
+    const query = specialistSearchQuery.trim().toLowerCase();
+    if (!query) return specialists;
+    return specialists.filter((specialist) =>
+      specialist.fullName.toLowerCase().includes(query),
+    );
+  }, [specialists, specialistSearchQuery]);
+
   const rankedFacilities = useMemo(() => {
     if (!userLocation) {
       return [];
     }
 
-    return specialtyFilteredFacilities
+    return nameFilteredFacilities
       .filter((facility) => facility.coordinates)
       .map((facility) => ({
         facility,
         distanceKm: calculateDistanceKm(userLocation, facility.coordinates!),
       }))
       .sort((left, right) => left.distanceKm - right.distanceKm);
-  }, [specialtyFilteredFacilities, userLocation]);
+  }, [nameFilteredFacilities, userLocation]);
 
   const rankedSpecialists = useMemo(() => {
     if (!userLocation) {
       return [];
     }
 
-    return specialists
+    return nameFilteredSpecialists
       .filter((specialist) => specialist.coordinates)
       .map((specialist) => ({
         specialist,
         distanceKm: calculateDistanceKm(userLocation, specialist.coordinates!),
       }))
       .sort((left, right) => left.distanceKm - right.distanceKm);
-  }, [specialists, userLocation]);
+  }, [nameFilteredSpecialists, userLocation]);
+
+  // Reset the reveal cap whenever the underlying result set changes shape —
+  // otherwise switching category/specialty/search could leave a stale high
+  // count from previous browsing. Adjusted during render (compare-and-set
+  // against a tracked previous value), matching the same pattern already
+  // used in ListingSearchBar, rather than a useEffect — an effect here would
+  // cause an extra, avoidable render pass just to reset a number.
+  const facilityFilterKey = `${selectedCategory}|${selectedNearbySpecialty}|${facilitySearchQuery}`;
+  const [prevFacilityFilterKey, setPrevFacilityFilterKey] = useState(facilityFilterKey);
+  if (facilityFilterKey !== prevFacilityFilterKey) {
+    setPrevFacilityFilterKey(facilityFilterKey);
+    setVisibleFacilityCount(DEFAULT_VISIBLE_COUNT);
+  }
+
+  const [prevSpecialistSearchQuery, setPrevSpecialistSearchQuery] = useState(
+    specialistSearchQuery,
+  );
+  if (specialistSearchQuery !== prevSpecialistSearchQuery) {
+    setPrevSpecialistSearchQuery(specialistSearchQuery);
+    setVisibleSpecialistCount(DEFAULT_VISIBLE_COUNT);
+  }
+
+  const visibleRankedFacilities = rankedFacilities.slice(0, visibleFacilityCount);
+  const hasMoreFacilities = rankedFacilities.length > visibleFacilityCount;
+
+  const visibleRankedSpecialists = rankedSpecialists.slice(0, visibleSpecialistCount);
+  const hasMoreSpecialists = rankedSpecialists.length > visibleSpecialistCount;
 
   const activeCategoryLabel =
     selectedCategory === "all"
@@ -304,6 +364,17 @@ export function NearbyPage({
         })}
       </div>
 
+      <div className="relative">
+        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          onChange={(event) => setFacilitySearchQuery(event.target.value)}
+          placeholder="Search by facility name..."
+          type="text"
+          value={facilitySearchQuery}
+        />
+      </div>
+
       {selectedCategory === "specialty" ? (
         <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
           {[{ display: "All", aliases: [] }, ...NEARBY_SPECIALTY_PILLS].map((pill) => {
@@ -391,11 +462,16 @@ export function NearbyPage({
         <section className="grid gap-3">
           {rankedFacilities.length > 0 ? (
             <>
-              <Badge className="w-fit" size="sm" variant="muted">
-                Sorted by distance
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="w-fit" size="sm" variant="muted">
+                  Sorted by distance
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Showing {visibleRankedFacilities.length} of {rankedFacilities.length}
+                </span>
+              </div>
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {rankedFacilities.map(({ facility, distanceKm }) => (
+                {visibleRankedFacilities.map(({ facility, distanceKm }) => (
                   <FacilityCard
                     distanceLabel={formatDistanceKm(distanceKm)}
                     facility={facility}
@@ -403,10 +479,37 @@ export function NearbyPage({
                   />
                 ))}
               </div>
-              <p className="text-sm leading-6 text-muted-foreground">
-                More providers coming to nearby soon.
-              </p>
+              {hasMoreFacilities ? (
+                <button
+                  className="mx-auto inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-card px-6 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() =>
+                    setVisibleFacilityCount((current) => current + LOAD_MORE_STEP)
+                  }
+                  type="button"
+                >
+                  Load more
+                </button>
+              ) : (
+                <p className="text-sm leading-6 text-muted-foreground">
+                  More providers coming to nearby soon.
+                </p>
+              )}
             </>
+          ) : facilitySearchQuery.trim() ? (
+            <EmptyState
+              action={
+                <button
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() => setFacilitySearchQuery("")}
+                  type="button"
+                >
+                  Clear search
+                </button>
+              }
+              description={`No ${activeCategoryLabel} facility matches "${facilitySearchQuery.trim()}" near you.`}
+              icon={<SearchIcon />}
+              title="No matches found"
+            />
           ) : (
             <EmptyState
               action={
@@ -445,13 +548,29 @@ export function NearbyPage({
 
       {locationState === "ready" && activeTab === "specialists" ? (
         <section className="grid gap-3">
+          <div className="relative">
+            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              className="min-h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              onChange={(event) => setSpecialistSearchQuery(event.target.value)}
+              placeholder="Search by specialist name..."
+              type="text"
+              value={specialistSearchQuery}
+            />
+          </div>
+
           {rankedSpecialists.length > 0 ? (
             <>
-              <Badge className="w-fit" size="sm" variant="muted">
-                Sorted by distance
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="w-fit" size="sm" variant="muted">
+                  Sorted by distance
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Showing {visibleRankedSpecialists.length} of {rankedSpecialists.length}
+                </span>
+              </div>
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {rankedSpecialists.map(({ specialist, distanceKm }) => (
+                {visibleRankedSpecialists.map(({ specialist, distanceKm }) => (
                   <SpecialistCard
                     distanceLabel={formatDistanceKm(distanceKm)}
                     key={specialist.id}
@@ -459,7 +578,33 @@ export function NearbyPage({
                   />
                 ))}
               </div>
+              {hasMoreSpecialists ? (
+                <button
+                  className="mx-auto inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-card px-6 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() =>
+                    setVisibleSpecialistCount((current) => current + LOAD_MORE_STEP)
+                  }
+                  type="button"
+                >
+                  Load more
+                </button>
+              ) : null}
             </>
+          ) : specialistSearchQuery.trim() ? (
+            <EmptyState
+              action={
+                <button
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
+                  onClick={() => setSpecialistSearchQuery("")}
+                  type="button"
+                >
+                  Clear search
+                </button>
+              }
+              description={`No specialist matches "${specialistSearchQuery.trim()}" near you.`}
+              icon={<SearchIcon />}
+              title="No matches found"
+            />
           ) : (
             <EmptyState
               description="Check back soon as we add more specialists in your area."
