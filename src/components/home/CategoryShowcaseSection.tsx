@@ -108,17 +108,19 @@ function FlaskIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// Gradients are keyed to the same hue family as the --category-*-text tokens
-// (e.g. ambulance = amber, diagnostics = cyan) instead of a fifth independent
-// color set — this section previously showed ambulance as red and
-// diagnostics as blue, clashing with the amber/cyan used everywhere else for
-// those categories. "Find a Specialist" isn't one of the 7 facility
-// categories (it links to the doctors directory), so it stays neutral slate
-// rather than borrowing the primary teal.
+// Each tile's light stop is the Tailwind step that its --category-*-text token
+// is literally set to (pharmacy #15803D = green-700, ambulance #B45309 =
+// amber-700, specialty #6D28D9 = violet-700, diagnostics #0E7490 = cyan-700),
+// so the row is the badge palette at display scale rather than a sixth
+// independent color set — this section previously showed ambulance as red and
+// diagnostics as blue. Running 700→900 instead of 500→700 also keeps five
+// saturated hues from reading as a rainbow, and deepens white-text contrast.
+// "Find a Specialist" isn't one of the 7 facility categories (it links to the
+// doctors directory), so it stays neutral slate rather than borrowing teal.
 const showcaseCategories = [
   {
     cta: "Browse specialists →",
-    gradient: "from-slate-600 to-slate-800",
+    gradient: "from-slate-700 to-slate-900",
     href: "/doctors",
     icon: StethoscopeIcon,
     subtitle: "Cardiology, Pediatrics, Dermatology and more",
@@ -126,7 +128,7 @@ const showcaseCategories = [
   },
   {
     cta: "Browse pharmacies →",
-    gradient: "from-green-500 to-green-700",
+    gradient: "from-green-700 to-green-900",
     href: "/pharmacies",
     icon: PillIcon,
     subtitle: "Medicine access points across Addis Ababa",
@@ -134,7 +136,7 @@ const showcaseCategories = [
   },
   {
     cta: "Find ambulance →",
-    gradient: "from-amber-500 to-amber-700",
+    gradient: "from-amber-700 to-amber-900",
     href: "/facilities?category=ambulance",
     icon: AmbulanceIcon,
     subtitle: "Ambulance providers across Addis Ababa",
@@ -142,7 +144,7 @@ const showcaseCategories = [
   },
   {
     cta: "Browse specialty centers →",
-    gradient: "from-violet-500 to-violet-700",
+    gradient: "from-violet-700 to-violet-900",
     href: "/facilities?category=specialty",
     icon: HeartPulseIcon,
     subtitle: "Focused specialist units across Addis Ababa",
@@ -150,7 +152,7 @@ const showcaseCategories = [
   },
   {
     cta: "Find diagnostics →",
-    gradient: "from-cyan-500 to-cyan-700",
+    gradient: "from-cyan-700 to-cyan-900",
     href: "/diagnostics",
     icon: FlaskIcon,
     subtitle: "Labs, imaging and diagnostic centers",
@@ -161,8 +163,8 @@ const showcaseCategories = [
 export function CategoryShowcaseSection() {
   return (
     <section className="bg-transparent">
-      <PageContainer className="py-6 sm:py-8 lg:py-10">
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
+      <PageContainer className="py-8 sm:py-10 lg:py-12">
+        <h2 className="mb-5 text-2xl font-semibold leading-tight text-foreground">
           Quick access
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -171,7 +173,7 @@ export function CategoryShowcaseSection() {
 
             return (
               <Link
-                className={`relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 transition-transform hover:scale-[1.02] lg:min-h-48 ${category.gradient}`}
+                className={`group relative flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br p-6 transition-transform duration-200 hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none lg:min-h-48 ${category.gradient}`}
                 href={category.href}
                 key={category.title}
                 prefetch={true}

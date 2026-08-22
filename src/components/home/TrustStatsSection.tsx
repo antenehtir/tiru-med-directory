@@ -7,7 +7,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-muted-foreground"
+        className="size-8 shrink-0 text-muted-foreground sm:mb-1"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -27,7 +27,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-muted-foreground"
+        className="size-8 shrink-0 text-muted-foreground sm:mb-1"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -46,7 +46,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-muted-foreground"
+        className="size-8 shrink-0 text-muted-foreground sm:mb-1"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -66,20 +66,31 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
 
 export function TrustStatsSection() {
   return (
-    <section className="mt-4 border-t border-border py-10">
+    <section className="py-8 sm:py-10 lg:py-12">
       <PageContainer>
-        <div className="flex gap-4">
+        {/* One container with internal rules rather than three separate boxed
+            cards: at 375px the old three-across flex row gave each card ~104px,
+            which wrapped "Ambulance Service Providers Listed" onto four lines
+            and forced all three to that height. Elevation is declared once
+            (border, no shadow) instead of border-plus-shadow. */}
+        <dl className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {trustStats.map(({ value, label, icon }) => (
             <div
-              className="flex-1 rounded-2xl border border-border bg-card p-4 text-center shadow-sm"
+              className="flex items-center gap-4 px-5 py-5 sm:flex-col sm:gap-1 sm:px-4 sm:text-center"
               key={label}
             >
               {icon}
-              <p className="text-2xl font-bold text-foreground">{value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+              <div className="min-w-0 sm:contents">
+                <dd className="text-2xl font-bold tabular-nums leading-none text-foreground">
+                  {value}
+                </dd>
+                <dt className="mt-1 text-xs leading-snug text-muted-foreground sm:mt-1.5 sm:text-balance">
+                  {label}
+                </dt>
+              </div>
             </div>
           ))}
-        </div>
+        </dl>
       </PageContainer>
     </section>
   );

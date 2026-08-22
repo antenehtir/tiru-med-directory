@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { SVGProps } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import {
-  facilityCategoryBorderTopClasses,
   facilityCategoryIconChipClasses,
   type FacilityCardCategoryKey,
 } from "@/components/cards/facility-category-style";
@@ -10,7 +9,6 @@ import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 
 // "Specialists" links to the doctors directory, not a facility category — it
 // gets a neutral treatment instead of borrowing one of the 7 category hues.
-const NEUTRAL_BORDER_TOP_CLASS = "border-t-strong-border";
 const NEUTRAL_ICON_CHIP_CLASS = "bg-muted text-muted-foreground";
 
 function CategoryIcon(props: SVGProps<SVGSVGElement>) {
@@ -104,17 +102,17 @@ const categories: {
 export function QuickCategoriesSection() {
   return (
     <section className="bg-transparent">
-      <PageContainer className="py-7 sm:py-10 lg:py-12">
+      <PageContainer className="py-8 sm:py-10 lg:py-12">
         <div>
           <h2 className="text-2xl font-semibold leading-tight text-foreground">
             Browse by category
           </h2>
-          <div className="mt-5 grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {/* auto-rows-fr keeps every row the same height: descriptions wrap to
+              different line counts, which previously staggered rows 121/103/87px
+              down the grid. */}
+          <div className="mt-5 grid auto-rows-fr gap-3 grid-cols-2 lg:grid-cols-4">
             {categories.map((category) => {
               const Icon = category.icon;
-              const borderTopClass = category.categoryKey
-                ? facilityCategoryBorderTopClasses[category.categoryKey]
-                : NEUTRAL_BORDER_TOP_CLASS;
               const iconChipClass = category.categoryKey
                 ? facilityCategoryIconChipClasses[category.categoryKey]
                 : NEUTRAL_ICON_CHIP_CLASS;
@@ -122,7 +120,7 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className={`flex min-w-0 items-center gap-3 rounded-2xl border border-border border-t-2 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-md active:scale-[0.98] ${borderTopClass}`}
+                  className="flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-md active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
                   href={category.href}
                   prefetch={true}
                 >

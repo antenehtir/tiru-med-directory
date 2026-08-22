@@ -1,13 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getActivePromoBanner } from "@/lib/supabase/promo-banners-public-read";
 
 export async function PromoBanner() {
-  console.log("PromoBanner component is rendering");
-
   const banner = await getActivePromoBanner();
-
-  console.log("[PromoBanner] fetched banner:", banner);
 
   if (!banner) {
     return null;
@@ -18,10 +15,12 @@ export async function PromoBanner() {
 
   const content = banner.imageUrl ? (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         alt=""
-        className="absolute inset-0 size-full object-cover"
+        className="object-cover"
+        fill
+        // The banner spans the container, which caps at max-w-6xl (1152px).
+        sizes="(max-width: 1152px) 100vw, 1152px"
         src={banner.imageUrl}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />

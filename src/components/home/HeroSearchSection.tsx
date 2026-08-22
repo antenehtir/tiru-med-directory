@@ -1,17 +1,13 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { HealthcareSearchBox } from "@/components/search/HealthcareSearchBox";
-import { Pill } from "@/components/ui/Pill";
 
 export function HeroSearchSection() {
   return (
     <section className="bg-transparent">
       <PageContainer className="pb-6 pt-6 sm:pb-8 sm:pt-12 lg:pt-16">
         <div className="min-w-0">
-          <Pill size="sm" variant="default">
-            Addis Ababa &middot; Private Healthcare
-          </Pill>
-          <h1 className="mt-4 max-w-3xl text-[2.15rem] font-semibold leading-[1.04] text-foreground sm:text-5xl sm:leading-[1.02]">
+          <h1 className="max-w-3xl text-[2.15rem] font-semibold leading-[1.04] tracking-[-0.02em] text-balance text-foreground sm:text-5xl sm:leading-[1.02]">
             Find the care you need.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">

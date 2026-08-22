@@ -11,11 +11,18 @@ export function FeaturedFacilityStrip({ facilities }: { facilities: Facility[] }
   // getFacilitiesFromDB() orders ascending by record_number (oldest first) —
   // take the tail and reverse it so "Recently added" shows the newest first.
   const showcasedFacilities = facilities.slice(-10).reverse();
-  const marqueeFacilities = [...showcasedFacilities, ...showcasedFacilities];
 
   if (showcasedFacilities.length === 0) {
     return null;
   }
+
+  const cards = showcasedFacilities.map((facility) => (
+    <CompactFacilityCard
+      className="w-[280px] min-w-[280px] shrink-0"
+      facility={facility}
+      key={facility.slug}
+    />
+  ));
 
   return (
     <>
@@ -25,13 +32,13 @@ export function FeaturedFacilityStrip({ facilities }: { facilities: Facility[] }
       {/* Desktop (md+): auto-scrolling marquee — pauses on hover, honors reduced motion */}
       <div className="hidden overflow-hidden md:block">
         <div className="homepage-facility-strip flex w-max flex-nowrap gap-4 pb-2">
-          {marqueeFacilities.map((facility, index) => (
-            <CompactFacilityCard
-              className="w-[280px] min-w-[280px] shrink-0"
-              facility={facility}
-              key={`${facility.slug}-${index}`}
-            />
-          ))}
+          <div className="flex flex-nowrap gap-4">{cards}</div>
+          {/* Second copy exists only so translateX(-50%) loops seamlessly. It is
+              the same facilities again, so it's hidden from assistive tech and
+              removed from the tab order rather than announced/focused twice. */}
+          <div aria-hidden="true" className="flex flex-nowrap gap-4" inert>
+            {cards}
+          </div>
         </div>
       </div>
     </>

@@ -68,25 +68,6 @@ export const facilityCategoryIconChipClasses: Record<
   default: "bg-category-default-bg text-category-default-text",
 };
 
-// Top-border accent for the "Browse by category" grid — was four independent
-// hardcoded hue sets across the codebase (this one included) that didn't
-// agree with each other or the badge tokens (e.g. ambulance showed red here,
-// amber everywhere else). Now derived from the same --category-*-text tokens
-// as the badge and fallback icon chip.
-export const facilityCategoryBorderTopClasses: Record<
-  FacilityCardCategoryKey,
-  string
-> = {
-  hospital: "border-t-category-hospital-text",
-  specialty: "border-t-category-specialty-text",
-  clinic: "border-t-category-clinic-text",
-  diagnostics: "border-t-category-diagnostics-text",
-  pharmacy: "border-t-category-pharmacy-text",
-  ambulance: "border-t-category-ambulance-text",
-  "home-care": "border-t-category-home-care-text",
-  default: "border-t-category-default-text",
-};
-
 export const facilityBorderGradientClasses: Record<
   FacilityCardCategoryKey,
   string

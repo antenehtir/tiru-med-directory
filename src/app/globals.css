@@ -279,6 +279,17 @@ a {
   .homepage-facility-strip {
     animation: none;
   }
+
+  /* Tailwind's animate-* utilities don't honor reduced-motion on their own.
+     Both of these are looping, indefinite animations (WCAG 2.2.2), and both
+     are purely decorative amplifiers: animate-ping is a halo behind a CTA
+     that is fully legible without it, and animate-pulse sits on the "open
+     now" status dot, whose meaning is carried by the dot's color and its
+     adjacent text label. Stopping them removes no state or hierarchy. */
+  .animate-ping,
+  .animate-pulse {
+    animation: none;
+  }
 }
 
 @keyframes homepage-facility-marquee {

@@ -91,15 +91,21 @@
 //          important-modified since Pill's own variant classes have equal
 //          Tailwind specificity), the no-photo banner's icon chip
 //          (facilityFallbackIconChipClasses — solid -text fill, white icon),
-//          the "Browse by category" grid's icon chip and top-border accent
-//          (facilityCategoryIconChipClasses / facilityCategoryBorderTopClasses
-//          — soft -bg fill + -text icon), and the homepage "Quick access"
-//          gradient tiles (same hue family, Tailwind palette classes at
-//          500/700 since those steps match the token hexes exactly).
+//          the "Browse by category" grid's icon chip
+//          (facilityCategoryIconChipClasses — soft -bg fill + -text icon), and
+//          the homepage "Quick access" gradient tiles, which run {hue}-700 →
+//          {hue}-900 so the light stop IS the token hex (pharmacy #15803D =
+//          green-700, ambulance #B45309 = amber-700, specialty #6D28D9 =
+//          violet-700, diagnostics #0E7490 = cyan-700).
 //          Previously these were four independent, disagreeing hardcoded hue
 //          sets (e.g. ambulance showed red in one place, amber in another) —
 //          consolidated in Phase 7. All in src/components/cards/
 //          facility-category-style.ts.
+//   NOTE (Phase 8): the "Browse by category" cards also carried a 2px
+//          category-colored top border. It was dropped — a 2px accent dying
+//          into a 16px corner radius reads as a rendering artifact, and the
+//          icon chip already carries the category signal unambiguously.
+//          facilityCategoryBorderTopClasses was removed with its only caller.
 //
 // no-photo fallback banner (Phase 7): previously a full-card gradient wash in
 //          the category's pale tint (facilityBannerGradientClasses, removed)
@@ -342,9 +348,8 @@ export type ColorVariant =
 //       facilityBannerGradientClasses (per-category wash) with
 //       facilityBannerFallbackBaseClass (flat neutral) +
 //       facilityFallbackIconChipClasses (solid icon chip); added
-//       facilityCategoryIconChipClasses / facilityCategoryBorderTopClasses to
-//       give QuickCategoriesSection a token-driven treatment instead of its
-//       own hardcoded hues.
+//       facilityCategoryIconChipClasses to give QuickCategoriesSection a
+//       token-driven treatment instead of its own hardcoded hues.
 //   ✓ src/components/cards/FacilityCard.tsx,
 //     src/components/facility-detail/FacilityDetailHeader.tsx — no-photo
 //       banner now neutral base + small solid category icon chip instead of
