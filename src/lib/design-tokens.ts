@@ -25,7 +25,27 @@
 // primary     --primary              #0F766E (teal-700)    #14B8A6 (teal-400)
 //   USAGE: CTAs, active states, links, focus rings, Official badge (target),
 //          Step progress indicators, onboarding highlight text.
+//   RULE (added Phase 7 — public-facing visual system pass): primary is
+//          reserved for things a user can click — buttons, active nav state,
+//          text links, focus rings. Never used for passive/decorative
+//          display (stat numbers, section-header labels, icons that aren't
+//          inside a control) — those use --foreground or --muted-foreground
+//          instead so color keeps meaning "you can click this."
 //   NOTE:  --primary-hover also defined for interactive states.
+//
+// footer      --footer-background     #111827 (= dark-mode --background)
+//             --footer-foreground     #F9FAFB
+//             --footer-muted          #9CA3AF
+//             --footer-accent         #14B8A6 (= dark-mode --primary)
+//             --footer-accent-hover   #2DD4BF
+//   USAGE: Footer only (src/components/layout/Footer.tsx) — added Phase 7.
+//          Fixed values, NOT redefined under [data-theme="dark"], so the
+//          footer is always a dark "grounded zone" regardless of site theme,
+//          instead of a primary-tinted wash over the page background. Section
+//          headers use --footer-foreground (uppercase caption style, not
+//          teal) so they read as labels, not links; --footer-accent is what
+//          actual footer links use, keeping "teal = clickable" true even on
+//          a dark surface.
 //
 // warning     --warning (text only)  #B7791F (amber-700)   #FBBF24 (amber-400)
 //   USAGE: Pre-approval states, CS badge, "Required for approval" tags,
@@ -65,11 +85,30 @@
 //
 // category    --category-{key}-bg/-border/-text — added Phase 6
 //   USAGE: One accent triad per facility category (hospital/specialty/clinic/
-//          diagnostics/pharmacy/ambulance/home-care/default), used ONLY by the
-//          FacilityCard category badge (facility-category-style.ts). Values
-//          follow the same bg/border/text triad pattern as --success-*/--info-*.
-//          Applied via Pill's `className` with `!` important-modifiers, since
-//          Pill's own variant classes have equal Tailwind specificity.
+//          diagnostics/pharmacy/ambulance/home-care/default). Originally
+//          badge-only; as of Phase 7 this is the SINGLE source for every
+//          category-color usage on the public site — badge (Pill, `!`
+//          important-modified since Pill's own variant classes have equal
+//          Tailwind specificity), the no-photo banner's icon chip
+//          (facilityFallbackIconChipClasses — solid -text fill, white icon),
+//          the "Browse by category" grid's icon chip and top-border accent
+//          (facilityCategoryIconChipClasses / facilityCategoryBorderTopClasses
+//          — soft -bg fill + -text icon), and the homepage "Quick access"
+//          gradient tiles (same hue family, Tailwind palette classes at
+//          500/700 since those steps match the token hexes exactly).
+//          Previously these were four independent, disagreeing hardcoded hue
+//          sets (e.g. ambulance showed red in one place, amber in another) —
+//          consolidated in Phase 7. All in src/components/cards/
+//          facility-category-style.ts.
+//
+// no-photo fallback banner (Phase 7): previously a full-card gradient wash in
+//          the category's pale tint (facilityBannerGradientClasses, removed)
+//          with an always-teal watermark icon that didn't even signal
+//          category. A grid of same-category no-photo cards read as
+//          duplicates. Now: flat neutral base (facilityBannerFallbackBaseClass
+//          = bg-muted) + a small solid icon chip in the category's -text
+//          color with a white icon — the chip is what signals category, the
+//          base no longer varies per category so repeated cards don't clash.
 //
 // ─── INCONSISTENCIES TO FIX IN FUTURE PHASES ────────────────────────────────
 //
@@ -129,6 +168,11 @@ export type ColorVariant =
 //   text-[1.6rem] — BrandMark responsive. Design intentional; leave as-is.
 //   text-[#0F766E] (color, not size) — CorrectionsPage, FeedbackPage.
 //                 FIX IN: Phase 1, replace with text-primary.
+//
+// WEIGHT RULE (added Phase 7): font-bold is reserved for numerals/stat values
+//          only (e.g. TrustStatsSection's "105+"). Headings use font-semibold,
+//          never font-bold — CategoryShowcaseSection's tile titles were the
+//          one outlier (font-bold) and were brought in line with this rule.
 
 // ─── 3. SPACING RHYTHM ───────────────────────────────────────────────────────
 //
@@ -283,6 +327,40 @@ export type ColorVariant =
 //     identical to Pill (shares getPillClassName) but keeps native form
 //     semantics — do NOT use plain <Pill onClick> where a field's value is
 //     read via formData.get()/getAll() rather than mirrored to a hidden input.
+//
+// Phase 7 — public-facing visual system pass (color-role + fallback-banner
+// consolidation across homepage, nav, footer, facility cards, facility
+// detail, Nearby, Specialists):
+//   ✓ src/components/layout/Footer.tsx — new fixed-dark "Slate Ground"
+//       surface (--footer-*) replacing the primary-tinted wash; section
+//       headers off teal onto footer-foreground, links keep teal (still the
+//       clickable-things color, just its dark-surface value).
+//   ✓ src/components/home/TrustStatsSection.tsx — stat icon/value off
+//       text-primary onto text-muted-foreground / text-foreground (passive
+//       display, not a click target, shouldn't borrow the interactive color).
+//   ✓ src/components/cards/facility-category-style.ts — replaced
+//       facilityBannerGradientClasses (per-category wash) with
+//       facilityBannerFallbackBaseClass (flat neutral) +
+//       facilityFallbackIconChipClasses (solid icon chip); added
+//       facilityCategoryIconChipClasses / facilityCategoryBorderTopClasses to
+//       give QuickCategoriesSection a token-driven treatment instead of its
+//       own hardcoded hues.
+//   ✓ src/components/cards/FacilityCard.tsx,
+//     src/components/facility-detail/FacilityDetailHeader.tsx — no-photo
+//       banner now neutral base + small solid category icon chip instead of
+//       a full-card category-tinted gradient with an always-teal watermark.
+//   ✓ src/components/home/QuickCategoriesSection.tsx — icon chip + top-border
+//       accent now come from the shared category tokens (was bg-soft-accent
+//       text-primary for every category, plus a fifth independent hue set for
+//       the border). "Specialists" (not a real category) gets a neutral
+//       treatment instead of a color.
+//   ✓ src/components/home/CategoryShowcaseSection.tsx — gradient tiles
+//       recolored to match the canonical category hue family (ambulance was
+//       red, now amber; diagnostics was blue, now cyan — both now agree with
+//       the badge/banner/grid); "Find a Specialist" tile off teal onto
+//       neutral slate; tile title font-bold → font-semibold.
+//   ✓ src/components/home/PromoBanner.tsx — hardcoded bg-teal-50 → bg-muted
+//       for the no-image fallback variant.
 //
 // Files to convert in future phases (still using inline pill/badge styles):
 //   Phase 6 — public-facing:

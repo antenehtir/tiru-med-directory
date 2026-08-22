@@ -70,6 +70,16 @@
   --input: var(--tiru-white);
   --ring: #0F766E;
   --homepage-background: linear-gradient(180deg, #F7FBFA 0%, #FFFFFF 60%);
+
+  /* Footer "Slate Ground" tokens — a fixed dark surface for the footer only,
+     independent of the light/dark theme toggle (intentionally NOT redefined
+     under [data-theme="dark"]) so the footer always reads as a distinct,
+     grounded zone rather than a tinted continuation of the page background. */
+  --footer-background: #111827;
+  --footer-foreground: #F9FAFB;
+  --footer-muted: #9CA3AF;
+  --footer-accent: #14B8A6;
+  --footer-accent-hover: #2DD4BF;
 }
 
 [data-theme="dark"] {
@@ -184,6 +194,11 @@
   --color-strong-border: var(--strong-border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-footer-background: var(--footer-background);
+  --color-footer-foreground: var(--footer-foreground);
+  --color-footer-muted: var(--footer-muted);
+  --color-footer-accent: var(--footer-accent);
+  --color-footer-accent-hover: var(--footer-accent-hover);
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
   --font-mono: "Courier New", Courier, monospace;
 }

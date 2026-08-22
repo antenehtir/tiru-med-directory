@@ -25,18 +25,66 @@ export function resolveFacilityCardCategoryKey(
   return DB_CATEGORY_TO_KEY[facility.category] ?? "default";
 }
 
-export const facilityBannerGradientClasses: Record<
+// No-photo banner base — a single flat neutral for every category. A
+// same-category grid of no-photo cards used to look like duplicates because
+// the whole card washed in that category's tint; the neutral base plus the
+// small solid icon chip below (facilityFallbackIconChipClasses) is what now
+// carries the category signal instead.
+export const facilityBannerFallbackBaseClass = "bg-muted";
+
+// Solid icon-chip fill for the no-photo banner centerpiece — the category's
+// -text token (already the most saturated step in its triad), paired with a
+// white icon for contrast. Small and deliberate instead of a full-card wash.
+export const facilityFallbackIconChipClasses: Record<
   FacilityCardCategoryKey,
   string
 > = {
-  hospital:    "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900",
-  specialty:   "bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900",
-  clinic:      "bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900",
-  diagnostics: "bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950 dark:to-cyan-900",
-  pharmacy:    "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900",
-  ambulance:   "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900",
-  "home-care": "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950 dark:to-pink-900",
-  default:     "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800",
+  hospital: "bg-category-hospital-text",
+  specialty: "bg-category-specialty-text",
+  clinic: "bg-category-clinic-text",
+  diagnostics: "bg-category-diagnostics-text",
+  pharmacy: "bg-category-pharmacy-text",
+  ambulance: "bg-category-ambulance-text",
+  "home-care": "bg-category-home-care-text",
+  default: "bg-category-default-text",
+};
+
+// Soft icon-chip fill for inline, small-scale category icons (e.g. the
+// "Browse by category" grid) — pale bg + saturated icon color, same triad as
+// the badge tokens. Kept separate from facilityFallbackIconChipClasses (solid
+// fill, white icon) since that treatment is for a large centerpiece, not an
+// inline row icon.
+export const facilityCategoryIconChipClasses: Record<
+  FacilityCardCategoryKey,
+  string
+> = {
+  hospital: "bg-category-hospital-bg text-category-hospital-text",
+  specialty: "bg-category-specialty-bg text-category-specialty-text",
+  clinic: "bg-category-clinic-bg text-category-clinic-text",
+  diagnostics: "bg-category-diagnostics-bg text-category-diagnostics-text",
+  pharmacy: "bg-category-pharmacy-bg text-category-pharmacy-text",
+  ambulance: "bg-category-ambulance-bg text-category-ambulance-text",
+  "home-care": "bg-category-home-care-bg text-category-home-care-text",
+  default: "bg-category-default-bg text-category-default-text",
+};
+
+// Top-border accent for the "Browse by category" grid — was four independent
+// hardcoded hue sets across the codebase (this one included) that didn't
+// agree with each other or the badge tokens (e.g. ambulance showed red here,
+// amber everywhere else). Now derived from the same --category-*-text tokens
+// as the badge and fallback icon chip.
+export const facilityCategoryBorderTopClasses: Record<
+  FacilityCardCategoryKey,
+  string
+> = {
+  hospital: "border-t-category-hospital-text",
+  specialty: "border-t-category-specialty-text",
+  clinic: "border-t-category-clinic-text",
+  diagnostics: "border-t-category-diagnostics-text",
+  pharmacy: "border-t-category-pharmacy-text",
+  ambulance: "border-t-category-ambulance-text",
+  "home-care": "border-t-category-home-care-text",
+  default: "border-t-category-default-text",
 };
 
 export const facilityBorderGradientClasses: Record<

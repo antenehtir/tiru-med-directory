@@ -7,7 +7,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-primary/60"
+        className="mx-auto mb-2 size-8 text-muted-foreground"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -27,7 +27,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-primary/60"
+        className="mx-auto mb-2 size-8 text-muted-foreground"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -46,7 +46,7 @@ const trustStats: { value: string; label: string; icon: React.ReactNode }[] = [
     icon: (
       <svg
         aria-hidden="true"
-        className="mx-auto mb-2 size-8 text-primary/60"
+        className="mx-auto mb-2 size-8 text-muted-foreground"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -75,7 +75,7 @@ export function TrustStatsSection() {
               key={label}
             >
               {icon}
-              <p className="text-2xl font-bold text-primary">{value}</p>
+              <p className="text-2xl font-bold text-foreground">{value}</p>
               <p className="mt-1 text-xs text-muted-foreground">{label}</p>
             </div>
           ))}

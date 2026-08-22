@@ -8,9 +8,10 @@ import {
   ShieldIcon,
 } from "@/components/cards/contact-icons";
 import {
-  facilityBannerGradientClasses,
+  facilityBannerFallbackBaseClass,
   facilityCategoryBadgeClasses,
   facilityCategoryBadgeLabels,
+  facilityFallbackIconChipClasses,
   facilityWatermarkIconKey,
   resolveFacilityCardCategoryKey,
 } from "@/components/cards/facility-category-style";
@@ -73,9 +74,13 @@ export function FacilityBanner({
         />
       ) : (
         <div
-          className={`flex h-full w-full items-center justify-center ${facilityBannerGradientClasses[categoryKey]}`}
+          className={`flex h-full w-full items-center justify-center ${facilityBannerFallbackBaseClass}`}
         >
-          <WatermarkIcon className="size-10 text-primary/40" />
+          <span
+            className={`flex size-11 items-center justify-center rounded-full ${facilityFallbackIconChipClasses[categoryKey]}`}
+          >
+            <WatermarkIcon className="size-5 text-white" />
+          </span>
         </div>
       )}
 

@@ -33,7 +33,7 @@ export async function PromoBanner() {
       </div>
     </>
   ) : (
-    <div className="flex h-full min-h-32 flex-col justify-center bg-teal-50 p-5">
+    <div className="flex h-full min-h-32 flex-col justify-center bg-muted p-5">
       <p className="text-lg font-semibold text-foreground">{banner.title}</p>
       {banner.subtitle ? (
         <p className="mt-1 text-sm text-muted-foreground">

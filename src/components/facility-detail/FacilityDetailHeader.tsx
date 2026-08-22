@@ -1,5 +1,6 @@
 import {
-  facilityBannerGradientClasses,
+  facilityBannerFallbackBaseClass,
+  facilityFallbackIconChipClasses,
   facilityWatermarkIconKey,
   resolveFacilityCardCategoryKey,
 } from "@/components/cards/facility-category-style";
@@ -59,9 +60,13 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           <FacilityImageGallery alt={`${facility.name} entrance`} images={bannerPhotos} />
         ) : (
           <div
-            className={`flex h-full w-full flex-col items-center justify-center gap-3 ${facilityBannerGradientClasses[categoryKey]}`}
+            className={`flex h-full w-full flex-col items-center justify-center gap-3 ${facilityBannerFallbackBaseClass}`}
           >
-            <WatermarkIcon className="size-14 text-primary/30" />
+            <span
+              className={`flex size-16 items-center justify-center rounded-full ${facilityFallbackIconChipClasses[categoryKey]}`}
+            >
+              <WatermarkIcon className="size-7 text-white" />
+            </span>
             <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm dark:bg-gray-900/60 dark:text-gray-100">
               {facility.category}
             </span>

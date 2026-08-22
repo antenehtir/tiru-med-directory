@@ -108,10 +108,17 @@ function FlaskIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Gradients are keyed to the same hue family as the --category-*-text tokens
+// (e.g. ambulance = amber, diagnostics = cyan) instead of a fifth independent
+// color set — this section previously showed ambulance as red and
+// diagnostics as blue, clashing with the amber/cyan used everywhere else for
+// those categories. "Find a Specialist" isn't one of the 7 facility
+// categories (it links to the doctors directory), so it stays neutral slate
+// rather than borrowing the primary teal.
 const showcaseCategories = [
   {
     cta: "Browse specialists →",
-    gradient: "from-teal-600 to-teal-800",
+    gradient: "from-slate-600 to-slate-800",
     href: "/doctors",
     icon: StethoscopeIcon,
     subtitle: "Cardiology, Pediatrics, Dermatology and more",
@@ -119,7 +126,7 @@ const showcaseCategories = [
   },
   {
     cta: "Browse pharmacies →",
-    gradient: "from-emerald-500 to-emerald-700",
+    gradient: "from-green-500 to-green-700",
     href: "/pharmacies",
     icon: PillIcon,
     subtitle: "Medicine access points across Addis Ababa",
@@ -127,7 +134,7 @@ const showcaseCategories = [
   },
   {
     cta: "Find ambulance →",
-    gradient: "from-red-500 to-red-700",
+    gradient: "from-amber-500 to-amber-700",
     href: "/facilities?category=ambulance",
     icon: AmbulanceIcon,
     subtitle: "Ambulance providers across Addis Ababa",
@@ -143,7 +150,7 @@ const showcaseCategories = [
   },
   {
     cta: "Find diagnostics →",
-    gradient: "from-blue-500 to-blue-700",
+    gradient: "from-cyan-500 to-cyan-700",
     href: "/diagnostics",
     icon: FlaskIcon,
     subtitle: "Labs, imaging and diagnostic centers",
@@ -172,7 +179,7 @@ export function CategoryShowcaseSection() {
                 <div className="absolute -top-8 -right-8 size-32 rounded-full bg-white/10 blur-2xl" />
                 <Icon className="relative z-10 size-10 text-white" />
                 <div className="relative z-10">
-                  <p className="text-xl font-bold text-white">
+                  <p className="text-xl font-semibold text-white">
                     {category.title}
                   </p>
                   <p className="mt-1 text-sm text-white/80">
