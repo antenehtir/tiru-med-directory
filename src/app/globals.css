@@ -384,7 +384,9 @@ a {
     #f59e0b00 358deg,
     transparent 360deg
   );
-  animation: tiru-beam-sweep 3.6s linear infinite;
+  /* 3.6s read as sluggish at button scale; 2.6s keeps it a deliberate sweep
+     rather than a flicker. */
+  animation: tiru-beam-sweep 2.6s linear infinite;
 }
 
 .tiru-beam__face {

@@ -81,15 +81,19 @@ export function FacilityBanner({
         />
       ) : (
         // Monogram plate: the facility's own initials set large in the display
-        // face, bleeding off the left edge, on the pale step of its category
-        // triad. Deterministic per facility. Reads as a typeset plate rather
-        // than a missing-image state — which matters when it is the default
-        // presentation for 98% of the directory, not an edge case.
+        // face on the pale step of its category triad. Deterministic per
+        // facility. Reads as a typeset plate rather than a missing-image
+        // state — which matters when it is the default presentation for 98%
+        // of the directory, not an edge case. Originally bled off the left
+        // edge (-left-1); pulled inward to left-3 because the card's category
+        // spine sits on top of this slot at z-10, and the negative offset ran
+        // the glyph straight into it. Still large and bold, just clear of the
+        // spine instead of colliding with it.
         <div
           aria-hidden="true"
           className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}
         >
-          <span className="pointer-events-none absolute -left-1 top-1/2 -translate-y-1/2 select-none font-display text-[3.25rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18] sm:text-6xl">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[3.25rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18] sm:text-6xl">
             {facilityMonogram(facility.name)}
           </span>
           <WatermarkIcon className="absolute right-3 size-6 opacity-40" />
