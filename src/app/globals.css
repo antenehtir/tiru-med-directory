@@ -413,22 +413,35 @@ a {
 
 /* Ambient light behind the hero so the paper reads as lit rather than flat.
    One soft source, off to the leading edge, at a strength you notice only if
-   you look for it. */
+   you look for it.
+
+   The glow used to be a ::before on .tiru-hero-light itself, with
+   overflow:hidden on that same section to stop its negative inset from
+   adding to document scroll width. But that section is also the containing
+   block for the search box's autocomplete dropdown — overflow:hidden clipped
+   the dropdown's bottom the instant it had enough results to extend past the
+   section's own content height (visible as suggestions cutting off with no
+   bottom edge, no shadow, mid-list). The glow now lives in its own layer with
+   its own clipping box, so the section itself stays overflow:visible and the
+   dropdown can extend past it freely. */
 .tiru-hero-light {
   position: relative;
   isolation: isolate;
-  /* The glow is inset negatively past the section edges; clipping here keeps
-     it from contributing to document scroll width. */
-  overflow: hidden;
 }
 
-.tiru-hero-light::before {
+.tiru-hero-light__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tiru-hero-light__glow::before {
   content: "";
   position: absolute;
   inset: -20% -10% auto -25%;
   height: 130%;
-  z-index: -1;
-  pointer-events: none;
   /* Same Lightning CSS caveat as the beam — a dedicated token with the alpha
      already baked in stays theme-aware AND compiles verbatim, where
      color-mix(… var() …) would have shipped as solid teal behind the H1. */

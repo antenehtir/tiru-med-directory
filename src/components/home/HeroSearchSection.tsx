@@ -5,6 +5,7 @@ import { HealthcareSearchBox } from "@/components/search/HealthcareSearchBox";
 export function HeroSearchSection() {
   return (
     <section className="tiru-hero-light bg-transparent">
+      <span aria-hidden="true" className="tiru-hero-light__glow" />
       <PageContainer className="pb-6 pt-6 sm:pb-8 sm:pt-12 lg:pt-16">
         <div className="min-w-0">
           <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.03em] text-balance text-foreground sm:text-[3.5rem] sm:leading-[1.0]">
