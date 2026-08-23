@@ -343,14 +343,20 @@ a {
 
    Mechanic: a conic gradient painted on an oversized square that rotates,
    clipped by the wrapper's radius + overflow, with the button itself sitting
-   on top so only the 2px rim shows. Plain transform rotation on a composited
-   layer — no @property, so it degrades cleanly on older engines. */
+   on top so only the rim shows. Plain transform rotation on a composited
+   layer — no @property, so it degrades cleanly on older engines.
+
+   COLOUR: originally a teal ramp on the teal button face — invisible by
+   construction, no contrast between the beam and what it traces. Moved to
+   gold/amber, the button's direct complement, so the rim reads against the
+   fill instead of disappearing into it. THICKNESS: rim was 2px, too thin to
+   register at button scale; now 3px. */
 .tiru-beam {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   border-radius: var(--r-control);
-  padding: 2px;
+  padding: 3px;
 }
 
 .tiru-beam__sweep {
@@ -365,17 +371,17 @@ a {
      var() does not survive the Lightning CSS pass in this Next build — it is
      rewritten to the bare colour at FULL opacity, which turns the beam's
      feathered tail into a hard edge. Explicit 8-digit hex compiles verbatim.
-     Steps are the teal ramp: 5EEAD4 (teal-300) → 99F6E4 (teal-200) → white. */
+     Gold ramp: F59E0B (amber-500) → FCD34D (amber-300) → white hot core. */
   background: conic-gradient(
     from 0deg,
-    transparent 0deg 196deg,
-    #5eead400 214deg,
-    #5eead44d 250deg,
-    #99f6e4cc 292deg,
+    transparent 0deg 188deg,
+    #f59e0b00 206deg,
+    #f59e0b73 244deg,
+    #fcd34dee 290deg,
     #ffffff 302deg,
-    #99f6e4cc 312deg,
-    #5eead44d 344deg,
-    #5eead400 356deg,
+    #fcd34dee 314deg,
+    #f59e0b73 352deg,
+    #f59e0b00 358deg,
     transparent 360deg
   );
   animation: tiru-beam-sweep 3.6s linear infinite;
@@ -385,7 +391,7 @@ a {
   position: relative;
   z-index: 1;
   /* rim thickness subtracted so the inner corner stays concentric */
-  border-radius: calc(var(--r-control) - 2px);
+  border-radius: calc(var(--r-control) - 3px);
 }
 
 @keyframes tiru-beam-sweep {
@@ -399,7 +405,7 @@ a {
      stop the travel. Reduced motion means less movement, not less meaning. */
   .tiru-beam__sweep {
     animation: none;
-    background: #5eead48c;
+    background: #fbbf24c0;
   }
 }
 
