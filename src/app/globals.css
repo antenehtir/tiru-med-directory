@@ -94,6 +94,12 @@
   --elevation-lift: 0 2px 4px rgba(28, 25, 23, 0.05),
     0 16px 32px -12px rgba(28, 25, 23, 0.14);
 
+  /* Ambient light behind the hero. Alpha is baked into the token rather than
+     applied with color-mix() at the use site, because color-mix() wrapping a
+     var() is rewritten to the bare colour by this build's CSS minifier — a
+     solid teal blob behind the H1. See .tiru-hero-light. */
+  --hero-glow: rgba(15, 118, 110, 0.11);
+
   /* Three-tier radius language, replacing uniform rounded-2xl everywhere:
      panels 14px, controls 10px, pills full. */
   --r-card: 14px;
@@ -179,6 +185,8 @@
   --input: #292524;
   --ring: #14B8A6;
   --homepage-background: linear-gradient(180deg, #141110 0%, #1C1917 55%);
+
+  --hero-glow: rgba(20, 184, 166, 0.10);
 
   /* On a dark ground a warm-tinted shadow is invisible; depth has to come
      from near-black instead, at higher opacity than the light theme. */
@@ -324,6 +332,99 @@ a {
 .homepage-clinical-bg {
   background: var(--homepage-background);
   min-height: 100vh;
+}
+
+/* ── Locator beam ────────────────────────────────────────────────────────────
+   The one authored motion on the public site, and it belongs to exactly one
+   control: "Find nearby care". A single light completes a circuit of the
+   button's edge — the visual language of a sweep locating something, which is
+   literally what the control does. Deliberately not applied anywhere else;
+   the moment stops meaning anything the second a second button wears it.
+
+   Mechanic: a conic gradient painted on an oversized square that rotates,
+   clipped by the wrapper's radius + overflow, with the button itself sitting
+   on top so only the 2px rim shows. Plain transform rotation on a composited
+   layer — no @property, so it degrades cleanly on older engines. */
+.tiru-beam {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--r-control);
+  padding: 2px;
+}
+
+.tiru-beam__sweep {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 190%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  z-index: 0;
+  /* Alpha is baked into the hex literals on purpose. color-mix() wrapping a
+     var() does not survive the Lightning CSS pass in this Next build — it is
+     rewritten to the bare colour at FULL opacity, which turns the beam's
+     feathered tail into a hard edge. Explicit 8-digit hex compiles verbatim.
+     Steps are the teal ramp: 5EEAD4 (teal-300) → 99F6E4 (teal-200) → white. */
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 196deg,
+    #5eead400 214deg,
+    #5eead44d 250deg,
+    #99f6e4cc 292deg,
+    #ffffff 302deg,
+    #99f6e4cc 312deg,
+    #5eead44d 344deg,
+    #5eead400 356deg,
+    transparent 360deg
+  );
+  animation: tiru-beam-sweep 3.6s linear infinite;
+}
+
+.tiru-beam__face {
+  position: relative;
+  z-index: 1;
+  /* rim thickness subtracted so the inner corner stays concentric */
+  border-radius: calc(var(--r-control) - 2px);
+}
+
+@keyframes tiru-beam-sweep {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the rim — it is what marks this control as the primary one — but
+     stop the travel. Reduced motion means less movement, not less meaning. */
+  .tiru-beam__sweep {
+    animation: none;
+    background: #5eead48c;
+  }
+}
+
+/* Ambient light behind the hero so the paper reads as lit rather than flat.
+   One soft source, off to the leading edge, at a strength you notice only if
+   you look for it. */
+.tiru-hero-light {
+  position: relative;
+  isolation: isolate;
+  /* The glow is inset negatively past the section edges; clipping here keeps
+     it from contributing to document scroll width. */
+  overflow: hidden;
+}
+
+.tiru-hero-light::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -25%;
+  height: 130%;
+  z-index: -1;
+  pointer-events: none;
+  /* Same Lightning CSS caveat as the beam — a dedicated token with the alpha
+     already baked in stays theme-aware AND compiles verbatim, where
+     color-mix(… var() …) would have shipped as solid teal behind the H1. */
+  background: radial-gradient(60% 55% at 22% 30%, var(--hero-glow) 0%, transparent 70%);
 }
 
 .homepage-facility-strip {

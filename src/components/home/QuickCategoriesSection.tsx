@@ -122,18 +122,26 @@ export function QuickCategoriesSection() {
               return (
                 <Link
                   key={category.label}
-                  className="flex min-w-0 items-center gap-3 rounded-card border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-px hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none"
+                  // Stacked at 2-col mobile, horizontal from sm. Icon-beside-
+                  // text left ~82px for the label in a 166px card, which
+                  // broke "General Hospitals" onto two lines and the
+                  // description onto three. Stacking gives the text the full
+                  // card width.
+                  className="flex min-w-0 flex-col items-start gap-2.5 rounded-card border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-px hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none sm:flex-row sm:items-center sm:gap-3"
                   href={category.href}
                   prefetch={true}
                 >
-                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-control ${iconChipClass}`}>
+                  <span className={`flex size-9 shrink-0 items-center justify-center rounded-control sm:size-10 ${iconChipClass}`}>
                     <Icon />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words hyphens-auto font-display text-[15px] font-semibold leading-tight text-foreground">
+                    <span className="block text-balance font-display text-sm font-semibold leading-[1.25] text-foreground sm:text-[15px]">
                       {category.label}
                     </span>
-                    <span className="mt-1 block line-clamp-2 text-[13px] leading-snug text-muted-foreground">
+                    {/* Hidden at 2-col mobile: a 12px description wrapping to
+                        three lines in a 134px column is noise, and the label
+                        already names the destination. */}
+                    <span className="mt-1 hidden line-clamp-2 text-[13px] leading-snug text-muted-foreground sm:block">
                       {category.description}
                     </span>
                   </span>

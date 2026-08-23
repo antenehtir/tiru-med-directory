@@ -22,7 +22,12 @@ export function TalkToUsButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
-      className="fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/20 transition-transform hover:scale-105 md:bottom-6"
+      // WhatsApp green is kept deliberately: it is a recognition affordance
+      // telling people which app opens, not a decorative colour choice. What
+      // changed is the mounting — a paper-coloured ring separates it from
+      // whatever it floats over, and the shadow is the warm token instead of
+      // flat black, which read as a sticker on the warm background.
+      className="fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 flex size-13 items-center justify-center rounded-full bg-[#1EBE5A] text-white ring-4 ring-background shadow-lift transition-transform hover:scale-105 motion-reduce:transform-none md:bottom-6 md:size-14"
     >
       <svg
         aria-hidden="true"
