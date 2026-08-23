@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { FacilityCard } from "@/components/cards/FacilityCard";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyState";
@@ -9,11 +9,8 @@ import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
 import { matchesAnyAlias } from "@/lib/frontend-search-filters";
-import {
-  calculateDistanceKm,
-  formatDistanceKm,
-  type Coordinates,
-} from "@/lib/nearby-distance";
+import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
+import { useGeolocation } from "@/lib/useGeolocation";
 import { SpecialistCard } from "@/components/specialists/SpecialistCard";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Facility } from "@/types/facility";
@@ -33,16 +30,6 @@ type NearbyPageProps = {
 };
 
 type NearbyTab = "facilities" | "specialists";
-
-type LocationState =
-  | "idle"
-  | "loading"
-  | "timeout"
-  | "ready"
-  | "denied"
-  | "unsupported";
-
-const LOCATION_TIMEOUT_MS = 8000;
 
 // Nearby has no server-side radius/limit — without a render cap, a city with
 // 100+ active facilities renders as one unbroken multi-thousand-pixel grid,
@@ -69,16 +56,12 @@ export function NearbyPage({
   const [activeTab, setActiveTab] = useState<NearbyTab>("facilities");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedNearbySpecialty, setSelectedNearbySpecialty] = useState("");
-  const [locationState, setLocationState] = useState<LocationState>("idle");
-  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const { locationState, userLocation, requestLocation } = useGeolocation();
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
   const [facilitySearchQuery, setFacilitySearchQuery] = useState("");
   const [specialistSearchQuery, setSpecialistSearchQuery] = useState("");
   const [visibleFacilityCount, setVisibleFacilityCount] = useState(DEFAULT_VISIBLE_COUNT);
   const [visibleSpecialistCount, setVisibleSpecialistCount] = useState(DEFAULT_VISIBLE_COUNT);
-  const hasRequestedLocationRef = useRef(false);
-  const locationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const locationWatchRef = useRef<number | null>(null);
 
   const searchedFacilities = facilities;
 
@@ -208,100 +191,6 @@ export function NearbyPage({
       ? "healthcare"
       : categoryOptions.find((category) => category.value === selectedCategory)
           ?.label ?? "healthcare";
-
-  const clearLocationTimeout = useCallback(() => {
-    if (locationTimeoutRef.current) {
-      clearTimeout(locationTimeoutRef.current);
-      locationTimeoutRef.current = null;
-    }
-  }, []);
-
-  const requestLocation = useCallback(() => {
-    if (!("geolocation" in navigator)) {
-      setLocationState("unsupported");
-      return;
-    }
-
-    clearLocationTimeout();
-    setLocationState("loading");
-    locationTimeoutRef.current = setTimeout(() => {
-      setLocationState((current) => (current === "loading" ? "timeout" : current));
-    }, LOCATION_TIMEOUT_MS);
-
-    let bestAccuracy = Infinity;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        clearLocationTimeout();
-
-        // Only update if this reading is more accurate than the last
-        if (position.coords.accuracy < bestAccuracy) {
-          bestAccuracy = position.coords.accuracy;
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        }
-        setLocationState("ready");
-
-        // Once we have a good fix (under 50m), stop refining
-        if (position.coords.accuracy <= 50) {
-          navigator.geolocation.clearWatch(watchId);
-        }
-      },
-      () => {
-        clearLocationTimeout();
-        setLocationState("denied");
-        setUserLocation(null);
-      },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
-    );
-
-    locationWatchRef.current = watchId;
-    setTimeout(() => {
-      navigator.geolocation.clearWatch(watchId);
-    }, 20000);
-  }, [clearLocationTimeout]);
-
-  useEffect(() => {
-    if (hasRequestedLocationRef.current) {
-      return;
-    }
-
-    hasRequestedLocationRef.current = true;
-
-    async function requestInitialLocation() {
-      if (!("geolocation" in navigator)) {
-        setLocationState("unsupported");
-        return;
-      }
-
-      try {
-        const permission = await navigator.permissions?.query({
-          name: "geolocation" as PermissionName,
-        });
-
-        if (permission?.state === "denied") {
-          setLocationState("denied");
-          return;
-        }
-      } catch {
-        // Some browsers do not expose geolocation permission state before prompt.
-      }
-
-      requestLocation();
-    }
-
-    void requestInitialLocation();
-
-    return () => {
-      clearLocationTimeout();
-
-      if (locationWatchRef.current !== null) {
-        navigator.geolocation.clearWatch(locationWatchRef.current);
-      }
-    };
-  }, [clearLocationTimeout, requestLocation]);
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">

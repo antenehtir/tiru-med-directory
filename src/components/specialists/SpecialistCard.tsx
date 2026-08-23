@@ -3,18 +3,9 @@ import { MapPinIcon } from "@/components/cards/contact-icons";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { Badge } from "@/components/ui/Badge";
 import { Pill } from "@/components/ui/Pill";
+import { personInitials } from "@/lib/person-initials";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
-
-function getInitials(name: string): string {
-  return name
-    .replace(/^dr\.?\s+/i, "")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-}
 
 const OFFICIAL_BADGE_STATUSES = new Set(["facility-owned", "verified"]);
 
@@ -29,7 +20,7 @@ export function SpecialistCard({
   specialist: SpecialistListItem;
   distanceLabel?: string;
 }) {
-  const initials = getInitials(specialist.fullName);
+  const initials = personInitials(specialist.fullName);
   const locationLine = [specialist.facilityArea, specialist.facilitySubCity]
     .filter(Boolean)
     .join(", ");

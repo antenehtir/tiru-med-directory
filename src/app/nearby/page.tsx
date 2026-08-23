@@ -7,8 +7,11 @@ import {
 } from "@/components/nearby/NearbyPage";
 import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 import { getAllSpecialists, type SpecialistListItem } from "@/lib/supabase/get-specialists";
-import { resolveFacilityCoordinates } from "@/lib/nearby-distance";
-import type { Facility, FacilityContactChannel } from "@/types/facility";
+import {
+  resolveNearbyFacilityCoordinates,
+  resolveNearbySpecialistCoordinates,
+} from "@/lib/nearby-coordinates";
+import type { Facility } from "@/types/facility";
 
 export const revalidate = 60;
 
@@ -46,13 +49,7 @@ export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
 function mapSpecialistToNearbySpecialist(specialist: SpecialistListItem): NearbySpecialist {
   return {
     ...specialist,
-    coordinates: resolveFacilityCoordinates(
-      {
-        latitude: specialist.facilityLatitude ?? undefined,
-        longitude: specialist.facilityLongitude ?? undefined,
-      },
-      undefined,
-    ),
+    coordinates: resolveNearbySpecialistCoordinates(specialist),
   };
 }
 
@@ -74,17 +71,8 @@ function normalizeCategoryParam(value: string | string[] | undefined): string {
 }
 
 function mapFacilityToNearbyFacility(facility: Facility): NearbyFacility {
-  const mapsText = (facility.contactChannels ?? [])
-    .filter((channel) => channel.channelType === "maps")
-    .map(createCoordinateSearchText)
-    .join(" ");
-
   return {
     ...facility,
-    coordinates: resolveFacilityCoordinates(facility, mapsText),
+    coordinates: resolveNearbyFacilityCoordinates(facility),
   };
-}
-
-function createCoordinateSearchText(channel: FacilityContactChannel): string {
-  return [channel.href, channel.value].filter(Boolean).join(" ");
 }
