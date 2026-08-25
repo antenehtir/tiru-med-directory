@@ -7,7 +7,6 @@ import {
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
-import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility, FacilityAppointmentModality } from "@/types/facility";
 import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
@@ -36,7 +35,6 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const isMultiBranch = facility.subCity?.toLowerCase() === "multiple" || (facility.location?.includes("/") ?? false);
   const branchLocations = isMultiBranch && facility.location ? facility.location.split("/").map((branch) => branch.trim()).filter(Boolean) : null;
   const mapsHref = facility.contactChannels?.find((channel) => channel.channelType === "maps")?.href;
-  const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
   const bannerPhotos = (facility.photoUrls?.length ? facility.photoUrls : facility.photoUrl ? [facility.photoUrl] : []).map((url) => url?.trim()).filter((url): url is string => Boolean(url));
   const hasLocation = Boolean(facility.location?.trim()) || Boolean(branchLocations?.length);
 
@@ -81,8 +79,6 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             {facility.appointmentModalities.map((modality) => <span className="text-muted-foreground" key={modality.type}>{APPOINTMENT_MODALITY_ICONS[modality.type] ?? ""} {modality.value}</span>)}
           </div>
         ) : null}
-
-        {medicalSpecialties.length > 0 ? <div className="mt-3 flex flex-wrap gap-2">{medicalSpecialties.map((specialty) => <Pill key={specialty} variant="default">{specialty}</Pill>)}</div> : null}
       </div>
 
       {hasLocation ? <div className="mt-5 sm:mt-6">
