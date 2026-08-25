@@ -13,13 +13,7 @@ export type LocationState =
 
 const LOCATION_TIMEOUT_MS = 8000;
 
-// Extracted from NearbyPage.tsx unchanged (same watchPosition/permission/
-// timeout logic, same 8s timeout, same 50m accuracy threshold to stop
-// refining, same 20s hard watch cleanup) — was ~90 lines living only inside
-// NearbyPage, which meant the homepage's "Near you" strip would otherwise
-// have had to duplicate or subtly reinvent it. One geolocation
-// implementation now, shared by both.
-export function useGeolocation() {
+export function useGeolocation(autoStart = true) {
   const [locationState, setLocationState] = useState<LocationState>("idle");
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const hasRequestedLocationRef = useRef(false);
@@ -39,6 +33,7 @@ export function useGeolocation() {
       return;
     }
 
+    hasRequestedLocationRef.current = true;
     clearLocationTimeout();
     setLocationState("loading");
     locationTimeoutRef.current = setTimeout(() => {
@@ -46,12 +41,9 @@ export function useGeolocation() {
     }, LOCATION_TIMEOUT_MS);
 
     let bestAccuracy = Infinity;
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         clearLocationTimeout();
-
-        // Only update if this reading is more accurate than the last
         if (position.coords.accuracy < bestAccuracy) {
           bestAccuracy = position.coords.accuracy;
           setUserLocation({
@@ -60,11 +52,7 @@ export function useGeolocation() {
           });
         }
         setLocationState("ready");
-
-        // Once we have a good fix (under 50m), stop refining
-        if (position.coords.accuracy <= 50) {
-          navigator.geolocation.clearWatch(watchId);
-        }
+        if (position.coords.accuracy <= 50) navigator.geolocation.clearWatch(watchId);
       },
       () => {
         clearLocationTimeout();
@@ -75,17 +63,11 @@ export function useGeolocation() {
     );
 
     locationWatchRef.current = watchId;
-    setTimeout(() => {
-      navigator.geolocation.clearWatch(watchId);
-    }, 20000);
+    setTimeout(() => navigator.geolocation.clearWatch(watchId), 20000);
   }, [clearLocationTimeout]);
 
   useEffect(() => {
-    if (hasRequestedLocationRef.current) {
-      return;
-    }
-
-    hasRequestedLocationRef.current = true;
+    if (!autoStart || hasRequestedLocationRef.current) return;
 
     async function requestInitialLocation() {
       if (!("geolocation" in navigator)) {
@@ -94,16 +76,13 @@ export function useGeolocation() {
       }
 
       try {
-        const permission = await navigator.permissions?.query({
-          name: "geolocation" as PermissionName,
-        });
-
+        const permission = await navigator.permissions?.query({ name: "geolocation" as PermissionName });
         if (permission?.state === "denied") {
           setLocationState("denied");
           return;
         }
       } catch {
-        // Some browsers do not expose geolocation permission state before prompt.
+        // Some browsers do not expose permission state before a prompt.
       }
 
       requestLocation();
@@ -113,12 +92,9 @@ export function useGeolocation() {
 
     return () => {
       clearLocationTimeout();
-
-      if (locationWatchRef.current !== null) {
-        navigator.geolocation.clearWatch(locationWatchRef.current);
-      }
+      if (locationWatchRef.current !== null) navigator.geolocation.clearWatch(locationWatchRef.current);
     };
-  }, [clearLocationTimeout, requestLocation]);
+  }, [autoStart, clearLocationTimeout, requestLocation]);
 
   return { locationState, userLocation, requestLocation };
 }
