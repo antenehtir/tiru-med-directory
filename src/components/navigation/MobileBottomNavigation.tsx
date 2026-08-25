@@ -64,10 +64,10 @@ export function MobileBottomNavigation() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
-      aria-label="Mobile primary"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
+      aria-label="Primary mobile navigation"
     >
-      <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+      <div className="mx-auto grid max-w-md grid-cols-5 gap-0.5">
         {mobileNavigationItems.map((item) => {
           const isActive = isActiveRoute(pathname, item.href);
           const Icon = navIcons[item.href];
@@ -75,18 +75,18 @@ export function MobileBottomNavigation() {
           return (
             <Link
               key={item.href}
-              className="flex min-h-16 flex-col items-center justify-center px-1"
+              className="flex min-h-16 touch-manipulation flex-col items-center justify-center rounded-xl px-1 py-1 outline-none transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-primary/30"
               href={item.href}
               aria-current={isActive ? "page" : undefined}
               prefetch={true}
             >
               <span
-                className={`mx-auto mb-1 h-[3px] w-5 rounded-full ${
+                className={`mb-1 h-[3px] w-5 rounded-full ${
                   isActive ? "bg-primary" : "bg-transparent"
                 }`}
               />
               <span
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-1 transition-colors ${
+                className={`flex min-w-12 flex-col items-center gap-1 rounded-xl px-2 py-1 transition-colors ${
                   isActive ? "bg-primary/8 text-primary" : "text-muted-foreground"
                 }`}
               >
