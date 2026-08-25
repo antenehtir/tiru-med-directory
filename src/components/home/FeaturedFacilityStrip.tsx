@@ -4,44 +4,33 @@ import { useEffect, useRef, useState } from "react";
 import { CompactFacilityCard } from "@/components/cards/FacilityCard";
 import type { Facility } from "@/types/facility";
 
-// Cap the scroll-position dots so very long lists don't sprout a dense dot row.
 const MAX_DOTS = 8;
+const AUTO_SCROLL_MS = 4200;
 
 export function FeaturedFacilityStrip({ facilities }: { facilities: Facility[] }) {
-  // getFacilitiesFromDB() orders ascending by record_number (oldest first) —
-  // take the tail and reverse it so "Recently added" shows the newest first.
   const showcasedFacilities = facilities.slice(-10).reverse();
-
-  if (showcasedFacilities.length === 0) {
-    return null;
-  }
+  if (showcasedFacilities.length === 0) return null;
 
   const cards = showcasedFacilities.map((facility) => (
-    <CompactFacilityCard
-      className="w-[280px] min-w-[280px] shrink-0"
-      facility={facility}
-      key={facility.slug}
-    />
+    <CompactFacilityCard className="w-[280px] min-w-[280px] shrink-0" facility={facility} key={facility.slug} />
   ));
 
   return (
     <>
-      {/* Mobile (below md): touch-swipeable carousel with peek affordance + dots */}
       <MobileFacilityCarousel facilities={showcasedFacilities} />
-
-      {/* Desktop (md+): auto-scrolling marquee — pauses on hover, honors reduced motion */}
-      <div className="hidden overflow-hidden md:block">
-        <div className="homepage-facility-strip flex w-max flex-nowrap gap-4 pb-2">
-          <div className="flex flex-nowrap gap-4">{cards}</div>
-          {/* Second copy exists only so translateX(-50%) loops seamlessly. It is
-              the same facilities again, so it's hidden from assistive tech and
-              removed from the tab order rather than announced/focused twice. */}
-          <div aria-hidden="true" className="flex flex-nowrap gap-4" inert>
-            {cards}
-          </div>
-        </div>
-      </div>
+      <DesktopFacilityMarquee cards={cards} />
     </>
+  );
+}
+
+function DesktopFacilityMarquee({ cards }: { cards: React.ReactNode[] }) {
+  return (
+    <div className="hidden overflow-hidden md:block">
+      <div className="homepage-facility-strip flex w-max flex-nowrap gap-4 pb-2">
+        <div className="flex flex-nowrap gap-4">{cards}</div>
+        <div aria-hidden="true" className="flex flex-nowrap gap-4" inert>{cards}</div>
+      </div>
+    </div>
   );
 }
 
@@ -49,40 +38,41 @@ function MobileFacilityCarousel({ facilities }: { facilities: Facility[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
-
-    // Highlight whichever card is most in view as the user swipes.
     const observer = new IntersectionObserver(
       (entries) => {
         let best: IntersectionObserverEntry | null = null;
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          if (!best || entry.intersectionRatio > best.intersectionRatio) {
-            best = entry;
-          }
+          if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
         }
         if (best) {
-          const idx = Number((best.target as HTMLElement).dataset.index);
-          if (!Number.isNaN(idx)) setActiveIndex(idx);
+          const index = Number((best.target as HTMLElement).dataset.index);
+          if (!Number.isNaN(index)) setActiveIndex(index);
         }
       },
-      { root, threshold: [0.5, 0.75] },
+      { root, threshold: [0.55, 0.8] },
     );
-
-    const cards = cardRefs.current.filter(Boolean) as HTMLDivElement[];
-    cards.forEach((card) => observer.observe(card));
+    cardRefs.current.filter(Boolean).forEach((card) => observer.observe(card!));
     return () => observer.disconnect();
   }, [facilities.length]);
 
+  useEffect(() => {
+    if (facilities.length < 2 || paused) return;
+    const timer = window.setInterval(() => {
+      const next = (activeIndex + 1) % facilities.length;
+      cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+      setActiveIndex(next);
+    }, AUTO_SCROLL_MS);
+    return () => window.clearInterval(timer);
+  }, [activeIndex, facilities.length, paused]);
+
   const dotCount = Math.min(facilities.length, MAX_DOTS);
-  // Map the active card onto the (possibly capped) dot row proportionally.
-  const activeDot =
-    facilities.length <= 1
-      ? 0
-      : Math.round((activeIndex / (facilities.length - 1)) * (dotCount - 1));
+  const activeDot = facilities.length <= 1 ? 0 : Math.round((activeIndex / (facilities.length - 1)) * (dotCount - 1));
 
   return (
     <div className="md:hidden">
@@ -90,30 +80,24 @@ function MobileFacilityCarousel({ facilities }: { facilities: Facility[] }) {
         ref={scrollRef}
         className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ WebkitOverflowScrolling: "touch" }}
+        onPointerDown={() => setPaused(true)}
+        onTouchStart={() => setPaused(true)}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
       >
         {facilities.map((facility, index) => (
-          <div
-            className="w-[85%] shrink-0 snap-start"
-            data-index={index}
-            key={facility.id}
-            ref={(el) => {
-              cardRefs.current[index] = el;
-            }}
-          >
+          <div className="w-[85%] shrink-0 snap-start" data-index={index} key={facility.id} ref={(el) => { cardRefs.current[index] = el; }}>
             <CompactFacilityCard className="h-full w-full" facility={facility} />
           </div>
         ))}
       </div>
 
       {facilities.length > 1 && (
-        <div aria-hidden="true" className="mt-3 flex justify-center gap-1.5">
+        <div className="mt-3 flex items-center justify-center gap-1.5" aria-label="Recently added facilities carousel position">
           {Array.from({ length: dotCount }).map((_, i) => (
-            <span
-              className={`size-1.5 rounded-full transition-colors ${
-                i === activeDot ? "bg-primary" : "bg-muted-foreground/30"
-              }`}
-              key={i}
-            />
+            <span className={`size-1.5 rounded-full transition-colors ${i === activeDot ? "bg-primary" : "bg-muted-foreground/30"}`} key={i} />
           ))}
         </div>
       )}
