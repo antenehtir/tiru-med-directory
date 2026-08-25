@@ -23,8 +23,8 @@ export function FacilityBanner({ facility, heightClassName = "aspect-[16/5]" }: 
   const coverPhotoUrl = facility.photoUrls?.find((url) => url?.trim())?.trim() || facility.photoUrl?.trim() || undefined;
   const showBadge = BANNER_BADGE_STATUSES.has(facility.verificationStatus);
   return (
-    <div className={`relative w-full shrink-0 overflow-hidden bg-muted ${heightClassName}`}>
-      {coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div aria-hidden="true" className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[3.25rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18] sm:text-6xl">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute right-3 size-6 opacity-40" /></div>}
+    <div aria-hidden="true" className={`pointer-events-none relative w-full shrink-0 overflow-hidden bg-muted ${heightClassName}`}>
+      {coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[3.25rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18] sm:text-6xl">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute right-3 size-6 opacity-40" /></div>}
       {showBadge ? <div className="absolute right-2 top-2 drop-shadow-sm"><VerificationBadge status={facility.verificationStatus} /></div> : null}
     </div>
   );
@@ -59,18 +59,19 @@ export function FacilityCard({ facility, distanceLabel }: FacilityCardProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   return (
-    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-px hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none">
-      <span aria-hidden="true" className={`absolute inset-y-0 left-0 z-10 w-[3px] ${facilityCategorySpineClasses[categoryKey]}`} />
+    <article className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-px hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none">
+      <Link aria-label={`View ${facility.name}`} className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} />
+      <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-[3px] ${facilityCategorySpineClasses[categoryKey]}`} />
       <FacilityBanner facility={facility} />
-      <div className="flex flex-1 flex-col pb-4 pl-5 pr-4 pt-3">
+      <div className="relative z-10 flex flex-1 pointer-events-none flex-col pb-4 pl-5 pr-4 pt-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</p>
-        <Link className="mt-1.5 break-words font-display text-[19px] font-semibold leading-[1.15] text-foreground hover:text-primary" href={detailHref}>{facility.name}</Link>
+        <Link className="pointer-events-auto mt-1.5 break-words font-display text-[19px] font-semibold leading-[1.15] text-foreground hover:text-primary focus-visible:underline" href={detailHref}>{facility.name}</Link>
         {addressLine ? <p className="mt-1.5 flex items-center gap-1 text-[13px] text-muted-foreground"><MapPinIcon className="size-3.5 shrink-0" /><span className="min-w-0 flex-1 truncate" title={addressLine}>{addressLine}</span>{distanceLabel ? <span className="shrink-0 whitespace-nowrap font-medium text-foreground">· {distanceLabel}</span> : null}</p> : null}
         <AvailabilityLine facility={facility} />
         <StatRow facility={facility} />
         <ServicePillRow services={facility.services} />
-        <div className="relative z-10 mt-auto flex items-center gap-2 border-t border-border pt-3">
-          {callAction ? <a className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control border border-border bg-card text-sm font-semibold text-foreground transition-colors hover:border-strong-border hover:bg-muted" href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
+        <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
+          {callAction ? <a aria-label={`Call ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control border border-border bg-card text-sm font-semibold text-foreground transition-colors hover:border-strong-border hover:bg-muted" href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
           <Link className="flex min-h-11 flex-1 items-center justify-center rounded-control bg-primary text-center text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover" href={detailHref}>View details</Link>
         </div>
       </div>
