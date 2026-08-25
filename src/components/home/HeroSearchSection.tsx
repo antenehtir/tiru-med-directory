@@ -6,44 +6,39 @@ export function HeroSearchSection() {
   return (
     <section className="tiru-hero-light bg-transparent">
       <span aria-hidden="true" className="tiru-hero-light__glow" />
-      <PageContainer className="pb-6 pt-6 sm:pb-8 sm:pt-12 lg:pt-16">
-        <div className="min-w-0">
-          <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.03em] text-balance text-foreground sm:text-[3.5rem] sm:leading-[1.0]">
-            Find the care you need.
+      <PageContainer className="pb-7 pt-7 sm:pb-10 sm:pt-14 lg:pb-12 lg:pt-20">
+        <div className="mx-auto max-w-5xl text-center">
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
+            <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+            Tiru Medical Directory · Addis Ababa
+          </div>
+          <h1 className="mx-auto max-w-4xl font-display text-[2.7rem] font-bold leading-[0.98] tracking-[-0.04em] text-balance text-foreground sm:text-6xl lg:text-7xl">
+            Find the right care.
           </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base">
-            Search hospitals, clinics, specialists, diagnostics and pharmacies
-            across Addis Ababa.
+          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
+            Trusted healthcare information to help you find hospitals, clinics,
+            specialists, diagnostics and pharmacies across Addis Ababa.
           </p>
-
-          <div className="mt-6 max-w-4xl">
+          <div className="mx-auto mt-7 max-w-3xl text-left sm:mt-8">
             <HealthcareSearchBox />
           </div>
-
-          <div className="mt-6 flex flex-wrap items-stretch gap-2">
-            {/* Locator beam — see .tiru-beam in globals.css. Nearby is the
-                sharpest thing this product does, so it is the one control
-                that gets authored motion. */}
-            {/* Both CTAs share the row evenly below sm and size to content
-                from sm up. Relying on their natural widths fitting left ~2px
-                of headroom at 360px, which is a real phone width — this can't
-                break. */}
-            <span className="tiru-beam inline-flex flex-1 basis-36 sm:flex-none sm:basis-auto">
-              <span aria-hidden="true" className="tiru-beam__sweep" />
-              <Link
-                className="tiru-beam__face inline-flex min-h-11 flex-1 items-center justify-center bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-                href="/nearby"
-              >
-                Find nearby care
-              </Link>
-            </span>
+          <div className="mx-auto mt-4 flex max-w-3xl flex-col gap-2 sm:flex-row sm:justify-center">
             <Link
-              className="inline-flex min-h-11 flex-1 basis-36 items-center justify-center rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:border-strong-border hover:bg-muted sm:flex-none sm:basis-auto"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex-none"
+              href="/nearby"
+            >
+              Find care near me
+            </Link>
+            <Link
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-sm transition hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex-none"
               href="/search"
             >
-              Browse with filter
+              Browse all care
             </Link>
           </div>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Search by facility, specialist, service or pharmacy.
+          </p>
         </div>
       </PageContainer>
     </section>
