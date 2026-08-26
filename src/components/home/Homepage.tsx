@@ -4,7 +4,7 @@ import type { NearbyFacility, NearbySpecialist } from "@/components/nearby/Nearb
 import type { Facility } from "@/types/facility";
 import { FeaturedFacilityStrip } from "./FeaturedFacilityStrip";
 import { HeroSearchSection } from "./HeroSearchSection";
-import { NearMeSection } from "./NearMeSection";
+import { NearMeGroup } from "./NearMeGroup";
 import { PromoBanner } from "./PromoBanner";
 import { QuickCategoriesSection } from "./QuickCategoriesSection";
 import { TrustStatsSection } from "./TrustStatsSection";
@@ -13,7 +13,7 @@ export function Homepage({ facilities, nearbyFacilities, nearbySpecialists }: { 
   return (
     <div className="homepage-clinical-bg">
       <HeroSearchSection />
-      <NearMeSection facilities={nearbyFacilities} specialists={nearbySpecialists} />
+      <NearMeGroup facilities={nearbyFacilities} specialists={nearbySpecialists} />
       <QuickCategoriesSection />
       <PromoBanner />
       <TrustStatsSection />

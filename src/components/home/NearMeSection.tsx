@@ -9,8 +9,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import type { NearbyFacility, NearbySpecialist } from "@/components/nearby/NearbyPage";
 import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
 import { personInitials } from "@/lib/person-initials";
-import { calculateDistanceKm, formatDistanceKm } from "@/lib/nearby-distance";
-import { useGeolocation } from "@/lib/useGeolocation";
+import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
+import type { LocationState } from "@/lib/useGeolocation";
 
 const MAX_RESULTS = 8;
 
@@ -18,9 +18,23 @@ type RankedItem =
   | { kind: "facility"; distanceKm: number; facility: NearbyFacility }
   | { kind: "specialist"; distanceKm: number; specialist: NearbySpecialist };
 
-export function NearMeSection({ facilities, specialists }: { facilities: NearbyFacility[]; specialists: NearbySpecialist[] }) {
-  const { locationState, userLocation, requestLocation } = useGeolocation(false);
-
+// Location is no longer requested here — it's requested once by the shared
+// NearMeGroup wrapper and passed down, so "Use my location" anywhere in the
+// near-you group of sections unlocks all of them together instead of each
+// section needing its own separate click.
+export function NearMeSection({
+  facilities,
+  specialists,
+  locationState,
+  userLocation,
+  requestLocation,
+}: {
+  facilities: NearbyFacility[];
+  specialists: NearbySpecialist[];
+  locationState: LocationState;
+  userLocation: Coordinates | null;
+  requestLocation: () => void;
+}) {
   const ranked = useMemo<RankedItem[]>(() => {
     if (!userLocation) return [];
     const facilityItems: RankedItem[] = facilities.filter((f) => f.coordinates).map((facility) => ({ kind: "facility", distanceKm: calculateDistanceKm(userLocation, facility.coordinates!), facility }));

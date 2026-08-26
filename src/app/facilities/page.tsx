@@ -33,8 +33,16 @@ export default async function FacilitiesRoute({
   const params = await searchParams;
   const category = normalizeFacilityCategoryParam(params?.category);
   const query = normalizeSearchParam(params?.q);
-  const specialty =
-    category === "specialty" ? normalizeSearchParam(params?.specialty) : "";
+  // Was gated behind category === "specialty", so a specialty deep link
+  // (e.g. from the homepage's specialty sections) without that category also
+  // set silently filtered nothing. category and specialty are independent,
+  // composable filters (filterFacilitiesByCategory and
+  // filterFacilitiesBySpecialtyKeyword don't depend on each other) — a
+  // specialty like "Internal Medicine" is offered across hospitals, clinics,
+  // and specialty centers alike, so restricting it to one category would
+  // also have undercounted results relative to what a cross-category
+  // audit finds.
+  const specialty = normalizeSearchParam(params?.specialty);
   const allFacilities = await getFacilitiesFromDB();
   const facilities = filterFacilitiesBySpecialtyKeyword(
     filterFacilitiesByQuery(
