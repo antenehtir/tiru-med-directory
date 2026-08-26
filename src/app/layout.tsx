@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
+import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 import { TalkToUsButton } from "@/components/layout/TalkToUsButton";
 import "./globals.css";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       className={`h-full antialiased ${inter.variable} ${archivo.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ScrollRestoration />
         {children}
         <TalkToUsButton />
       </body>
