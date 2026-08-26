@@ -26,6 +26,6 @@ export const mobileNavigationItems = [
   { label: "Home", href: ROUTES.home, shortLabel: "Home" },
   { label: "Search", href: ROUTES.search, shortLabel: "Search" },
   { label: "Nearby", href: ROUTES.nearby, shortLabel: "Nearby" },
+  { label: "Facilities", href: ROUTES.facilities, shortLabel: "Facility" },
   { label: "Specialists", href: ROUTES.specialists, shortLabel: "Specialists" },
-  { label: "Facilities", href: ROUTES.facilities, shortLabel: "Care" },
 ];
