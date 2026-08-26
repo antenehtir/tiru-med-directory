@@ -50,7 +50,15 @@ export function FacilityTrustSection({ facility }: FacilityTrustSectionProps) {
 
   return (
     <section className="rounded-card border border-border bg-sunken p-5 sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      {/* items-start is required on the BASE, not just at sm:. Without it a
+          column flex container defaults to align-items: stretch, which
+          blockifies the VerificationBadge and stretches it to full width —
+          the badge rendered as a full-width bar with its label alone at the
+          left on mobile. The badge's own `inline-flex` cannot prevent this:
+          flex items are blockified and the parent's cross-axis alignment
+          wins. Matches DoctorCard, which already sets items-start on its
+          equivalent base flex-col. */}
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
             Trust & verification
