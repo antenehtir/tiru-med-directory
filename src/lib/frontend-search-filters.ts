@@ -1,4 +1,4 @@
-import { SPECIALTY_OPTIONS } from "@/lib/constants/specialty-options";
+import { SPECIALTY_OPTIONS, SURGERY_ALIASES } from "@/lib/constants/specialty-options";
 import { stripDoctorNamePrefix } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
@@ -21,8 +21,12 @@ const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   "Internal Medicine": ["internal medicine"],
   "Pediatrics": ["pediatric", "paediatric", "paeds", "nicu", "neonatolog"],
   "Maternal & Child Health": ["maternal", "child health", "mch"],
-  "Gynecology & Obstetrics": ["gynecology", "gynaecology", "obstetric", "gyn-obs", "gyni-obs"],
-  "General Surgery": ["general surgery", "surgical"],
+  // Added "obgyn"/"ob-gyn"/"ob/gyn": Habari Medical Plaza tags itself "OBGYN"
+  // and matched none of the five original aliases, silently undercounting.
+  "Gynecology & Obstetrics": ["gynecology", "gynaecology", "obstetric", "gyn-obs", "gyni-obs", "obgyn", "ob-gyn", "ob/gyn"],
+  // Canonical list shared with the Nearby page's "Surgery" pill — see
+  // SURGERY_ALIASES in specialty-options.ts for why.
+  "General Surgery": SURGERY_ALIASES,
   "Cardiology": ["cardiology", "cardiac", "cardiovascular"],
   "Orthopedics": ["orthopedic", "orthopaedic"],
   "ENT (Ear, Nose, Throat)": ["ent", "e.n.t", "ear, nose", "otolaryngol", "otorino"],

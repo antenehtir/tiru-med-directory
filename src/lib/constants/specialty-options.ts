@@ -19,6 +19,24 @@ export const SPECIALTY_OPTIONS = [
   "Other",
 ] as const;
 
+// Canonical Surgery alias list — the single source for both this Nearby pill
+// and SPECIALTY_ALIAS_MAP["General Surgery"] in frontend-search-filters.ts.
+// Previously each defined its own literal array (7 vs 18 matching facilities
+// on the live data), so a user got a different "Surgery" depending on which
+// page they were on. "neurosurgery" and "surgeon" are explicit entries
+// rather than relying on word-boundary matching on "surgery": the shared
+// matcher requires a word boundary before an alias, and "surgery" occurring
+// mid-word inside "neurosurgery" has no boundary there, while "surgeon" isn't
+// a substring of "surgery" at all (they diverge at the 6th letter).
+export const SURGERY_ALIASES = [
+  "general surgery",
+  "surgical",
+  "surgery",
+  "laparoscopic",
+  "neurosurgery",
+  "surgeon",
+];
+
 // Nearby page specialty pills — organized by actual Addis Ababa
 // healthcare patterns, not the generic filter modal list.
 // Each entry: display label shown on pill, and the keyword aliases
@@ -39,7 +57,7 @@ export const NEARBY_SPECIALTY_PILLS: {
   },
   {
     display: "Surgery",
-    aliases: ["general surgery", "surgical", "laparoscopic", "surgery"],
+    aliases: SURGERY_ALIASES,
   },
   {
     display: "ENT",
