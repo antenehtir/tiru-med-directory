@@ -34,11 +34,35 @@ function DesktopFacilityMarquee({ cards }: { cards: React.ReactNode[] }) {
   );
 }
 
+// Scrolls the strip horizontally to bring `card` to the same resting position
+// the first card occupies, by adjusting ONLY the container's own scrollLeft.
+//
+// This deliberately does not use element.scrollIntoView(): that API walks every
+// scrollable ancestor including the document, so with the strip below the fold
+// it scrolled the whole page down to reveal the card — landing the viewport
+// mid-way through the stats block above. There is no option to constrain
+// scrollIntoView to one axis or one container, so the only reliable fix is to
+// drive the container's scroll offset directly, which cannot move the page.
+//
+// Measured against the container's live rects rather than offsetLeft so it is
+// independent of the offsetParent chain, and compensates for the container's
+// own horizontal padding. Scroll-snap then settles it exactly on the card.
+function scrollCardIntoStrip(
+  root: HTMLDivElement,
+  card: HTMLDivElement,
+  behavior: ScrollBehavior = "smooth",
+) {
+  const delta = card.getBoundingClientRect().left - root.getBoundingClientRect().left;
+  const paddingLeft = Number.parseFloat(getComputedStyle(root).paddingLeft) || 0;
+  root.scrollTo({ left: root.scrollLeft + delta - paddingLeft, behavior });
+}
+
 function MobileFacilityCarousel({ facilities }: { facilities: Facility[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -61,15 +85,32 @@ function MobileFacilityCarousel({ facilities }: { facilities: Facility[] }) {
     return () => observer.disconnect();
   }, [facilities.length]);
 
+  // Only auto-advance while the strip is actually on screen. Correct on its own
+  // merits (no reason to animate an off-screen carousel, and it saves battery),
+  // and it means an off-screen strip cannot affect the page even if the scroll
+  // call above ever regresses.
   useEffect(() => {
-    if (facilities.length < 2 || paused) return;
+    const root = scrollRef.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.2 },
+    );
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (facilities.length < 2 || paused || !isInView) return;
     const timer = window.setInterval(() => {
+      const root = scrollRef.current;
       const next = (activeIndex + 1) % facilities.length;
-      cardRefs.current[next]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+      const card = cardRefs.current[next];
+      if (root && card) scrollCardIntoStrip(root, card);
       setActiveIndex(next);
     }, AUTO_SCROLL_MS);
     return () => window.clearInterval(timer);
-  }, [activeIndex, facilities.length, paused]);
+  }, [activeIndex, facilities.length, paused, isInView]);
 
   const dotCount = Math.min(facilities.length, MAX_DOTS);
   const activeDot = facilities.length <= 1 ? 0 : Math.round((activeIndex / (facilities.length - 1)) * (dotCount - 1));
