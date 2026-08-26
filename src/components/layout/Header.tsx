@@ -33,8 +33,16 @@ export function Header() {
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 lg:hidden">
           <ThemeToggle />
           <Link className={actionClassName} href="/search?focus=1" aria-label="Search">
-            <svg aria-hidden="true" className="size-4" fill="none" viewBox="0 0 24 24">
-              <path d="m20 20-4.2-4.2m1.2-5.3a6.5 6.5 0 1 1-13 0Z" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+            {/* Same circle+handle construction as SearchAutocompleteInput's and
+                EmptyState's SearchIcon. The previous single fused <path> tried
+                to draw the lens with one elliptical-arc command whose endpoint
+                sat exactly opposite its start — that only sweeps a 180° arc,
+                so the lens rendered as a half-circle (bounding box 16x9.5
+                instead of the ~13x13 a full r=6.5 circle needs), closed with a
+                straight chord — the "clipped" look. */}
+            <svg aria-hidden="true" className="size-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m16.5 16.5 4 4" />
             </svg>
           </Link>
           <Link className={actionClassName} href="/provider/signup" aria-label="List your facility">

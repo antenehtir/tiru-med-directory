@@ -21,13 +21,6 @@ const APPOINTMENT_MODALITY_ICONS: Record<FacilityAppointmentModality["type"], st
 
 type FacilityDetailHeaderProps = { facility: Facility };
 
-const trustCopy: Record<Facility["verificationStatus"], string> = {
-  verified: "Tiru has independently confirmed key listing information.",
-  "facility-owned": "This provider manages its listing and keeps its information up to date.",
-  "community-submitted": "This listing was community sourced. Please confirm important details with the provider.",
-  pending: "This listing is currently undergoing verification.",
-};
-
 export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
@@ -58,15 +51,15 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
         <h1 className="font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">{facility.name}</h1>
         {facility.address ? <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">{facility.address}</p> : null}
 
-        <div className="mt-3 rounded-card border border-border bg-background p-3.5 sm:p-4">
-          <div className="flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2"><VerificationBadge status={facility.verificationStatus} /><span className="text-sm font-semibold text-foreground">Information confidence</span></div>
-              <p className="mt-1.5 text-xs leading-5 text-muted-foreground sm:text-sm">{trustCopy[facility.verificationStatus]}</p>
-              <FacilityLastUpdated facility={facility} />
-            </div>
-          </div>
-        </div>
+        {/* The "Information confidence" panel that used to live here (badge +
+            label + a per-status description) duplicated FacilityTrustSection
+            further down the page word-for-word — both are always rendered,
+            neither is behind a collapsible toggle, so it was a genuine
+            duplicate, not two views of different scope. Removed in favor of
+            the fuller Trust & verification section. FacilityLastUpdated is
+            kept: it doesn't appear in FacilityTrustSection and carries real,
+            non-duplicated information (the provider's last-edit date). */}
+        <FacilityLastUpdated facility={facility} />
 
         {(facility.emergencyType || facility.walkinAppointment) ? <div className="mt-3 flex flex-wrap gap-2">
           {facility.emergencyType ? <Pill variant="danger" dot>{facility.emergencyType}</Pill> : null}
