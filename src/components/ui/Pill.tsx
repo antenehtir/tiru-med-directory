@@ -3,16 +3,18 @@ import type { PillVariant, PillSize } from "@/lib/design-tokens";
 
 // Base classes shared by all pill variants — compact, rounded-full, inline-flex
 const base =
-  "inline-flex items-center font-medium leading-none rounded-full transition-colors";
+  "inline-flex items-center font-medium leading-none rounded-full transition-all duration-150";
 
 const variantClasses: Record<PillVariant, string> = {
   // Neutral bordered chip — use for tag clouds, filter pills (unselected),
   // language tags, informational labels with no urgency
   default:
-    "border border-border bg-card text-foreground",
-  // Active/selected state — use for pressed filter pills, chosen categories
+    "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted",
+  // Active/selected state — Tiru teal with a restrained elevation cue so
+  // selected tabs remain obvious without turning the interface into a rainbow
+  // of competing accents.
   selected:
-    "border border-primary bg-primary text-primary-foreground",
+    "border border-primary bg-primary text-primary-foreground shadow-[0_2px_8px_rgba(15,118,110,0.18)]",
   // Subdued neutral — use for "Not uploaded", disabled states, closed indicators
   muted:
     "border border-border bg-muted text-muted-foreground",
@@ -40,21 +42,16 @@ const sizeClasses: Record<PillSize, string> = {
   lg: "px-3 py-1.5 text-sm gap-2",
 };
 
-// Colored dot matching the variant — for status indicators ("Available now", etc.)
 const dotClasses: Record<PillVariant, string> = {
-  default:  "bg-foreground",
+  default: "bg-foreground",
   selected: "bg-primary-foreground",
-  muted:    "bg-muted-foreground",
-  warning:  "bg-amber-500 dark:bg-amber-400",
-  danger:   "bg-red-500 dark:bg-red-400",
-  success:  "bg-success",
-  info:     "bg-info",
+  muted: "bg-muted-foreground",
+  warning: "bg-amber-500 dark:bg-amber-400",
+  danger: "bg-red-500 dark:bg-red-400",
+  success: "bg-success",
+  info: "bg-info",
 };
 
-// Exposes Pill's exact class generation so form-native wrappers (e.g.
-// PillOption/PillRadioOption in the provider portal, which must keep real
-// <input type="checkbox"/"radio"> elements for FormData semantics) can look
-// byte-identical to <Pill> without duplicating the variant/size class maps.
 export function getPillClassName(
   variant: PillVariant = "default",
   size: PillSize = "md",
