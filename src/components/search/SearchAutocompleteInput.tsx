@@ -56,6 +56,7 @@ export function SearchAutocompleteInput({
     input.focus({ preventScroll: true });
   }, [autoFocus]);
 
+  const listboxId = `${id}-suggestions`;
   const showSuggestions = isOpen && query.trim().length > 0 && suggestions.length > 0;
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
@@ -94,6 +95,9 @@ export function SearchAutocompleteInput({
         <input
           id={id}
           ref={inputRef}
+          aria-autocomplete="list"
+          aria-controls={listboxId}
+          aria-expanded={showSuggestions}
           autoComplete="off"
           className={inputClassName}
           placeholder={placeholder}
@@ -105,15 +109,16 @@ export function SearchAutocompleteInput({
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
+          role="combobox"
         />
 
         {showSuggestions ? (
           <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-card border border-border bg-card shadow-[0_16px_34px_rgba(31,41,55,0.12)]">
-            <ul className="max-h-72 overflow-y-auto py-1">
+            <ul className="max-h-72 overflow-y-auto py-1" id={listboxId} role="listbox" aria-label={`${label} suggestions`}>
               {suggestions.map((suggestion) => (
-                <li key={suggestion.id}>
+                <li key={suggestion.id} role="option" aria-selected="false">
                   <button
-                    className="flex w-full min-w-0 flex-col items-start gap-1 px-4 py-3 text-left transition-colors hover:bg-muted focus:bg-muted"
+                    className="flex w-full min-w-0 flex-col items-start gap-1 px-4 py-3 text-left transition-colors hover:bg-muted focus:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => selectSuggestion(suggestion)}
@@ -127,6 +132,15 @@ export function SearchAutocompleteInput({
                           Specialist
                         </span>
                       ) : null}
+
+        {/* Sighted users see the list appear; this is the equivalent cue
+            for screen-reader users, who otherwise get no signal that
+            typing produced results. */}
+        <span aria-live="polite" className="sr-only" role="status">
+          {showSuggestions
+            ? `${suggestions.length} ${suggestions.length === 1 ? "suggestion" : "suggestions"} available`
+            : ""}
+        </span>
                     </span>
                     {suggestion.metadata ? (
                       <span className="w-full truncate text-xs text-muted-foreground">
