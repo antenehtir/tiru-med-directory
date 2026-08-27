@@ -22,8 +22,12 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: "Tiru — Healthcare in Addis Ababa",
+  // Reflects what the directory actually holds: 25 hospitals, 68 specialty
+  // centres, 7 diagnostic centres. "Clinics" led the old copy but zero
+  // facilities are categorised as such, and pharmacies (2) and specialists
+  // (2 records) are too thin to headline.
   description:
-    "Find hospitals, clinics, specialists, diagnostics and pharmacies across Addis Ababa.",
+    "Find hospitals, specialty centres and diagnostic labs across Addis Ababa, with contact details, opening hours and services for every listing.",
 };
 
 export default function RootLayout({

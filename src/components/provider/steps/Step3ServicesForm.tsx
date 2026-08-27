@@ -558,7 +558,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     !facilityType || (DEFAULT_STEP3_FACILITY_TYPES as readonly string[]).includes(facilityType);
   const isOther = facilityType === "Other";
   const isPharmacy = facilityType === "Pharmacy";
-  const isDiagnostic = facilityType === "Laboratory / Diagnostics";
+  const isDiagnostic = facilityType === "Diagnostic Center";
   const isHomeCare = facilityType === "Home Care";
   const isAmbulance = facilityType === "Ambulance Service";
 

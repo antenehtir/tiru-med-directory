@@ -2,6 +2,7 @@ import {
   extractSpecialtyMatchKeyword,
   filterFacilitiesByCategory,
   specialtyMatchesAliases,
+  subCityMatches,
   type FacilityCategoryFilter,
 } from "@/lib/frontend-search-filters";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
@@ -73,16 +74,13 @@ export function facilityMatchesListingFilters(
   }
 
   if (filters.subCity) {
-    const needle = normalize(filters.subCity);
     // Empty subCities means the facility covers all sub-cities (multi-branch or online)
-    // — always include it regardless of sub-city filter
+    // — always include it regardless of sub-city filter.
+    // subCityMatches is the shared matcher also used by free-text search, so
+    // the dropdown and the search box cannot drift apart again.
     const matchesSubCity =
       facility.subCities.length === 0 ||
-      facility.subCities.some((sc) => {
-        const normSc = normalize(sc);
-        // Match if either contains the other (handles "kolfe" <-> "kolfe keranio")
-        return normSc.includes(needle) || needle.includes(normSc);
-      });
+      facility.subCities.some((sc) => subCityMatches(sc, filters.subCity));
 
     if (!matchesSubCity) {
       return false;

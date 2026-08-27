@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Tiru — Healthcare in Addis Ababa",
   description:
-    "Find hospitals, clinics, specialists, diagnostics and pharmacies across Addis Ababa.",
+    "Search hospitals, specialty centres and diagnostic labs across Addis Ababa, or find the care closest to you.",
 };
 
 export default async function Home() {

@@ -129,8 +129,15 @@ export function filterFacilitiesByQuery(
     return facilities;
   }
 
-  return facilities.filter((facility) =>
-    matchesTokens(
+  return facilities.filter(
+    (facility) =>
+      // Sub-cities are matched with the shared matcher rather than the plain
+      // substring scan below, so canonical names like "Kolfe Keranio" resolve
+      // against the short form actually stored ("kolfe").
+      (facility.subCities ?? []).some((subCity) =>
+        subCityMatches(subCity, normalizedQuery),
+      ) ||
+      matchesTokens(
       [
         facility.name,
         facility.category,
@@ -222,6 +229,31 @@ export const FACILITY_CATEGORY_DB_MAP: Record<FacilityCategoryFilter, string[]> 
   "home-care": ["Home Care"],
 };
 
+// Canonical category values, DERIVED from FACILITY_CATEGORY_DB_MAP rather
+// than retyped. The first entry for each key is the value new records must
+// store; later entries are legacy synonyms that still map but are not offered
+// as choices (e.g. "Medical Plaza", "Healthcare Facility").
+//
+// Anything a provider can pick at signup MUST come from here. The signup form
+// previously kept its own list with "Hospital", "Laboratory / Diagnostics"
+// and "Other", none of which are in the map — approving those claims wrote an
+// unmappable facilities.category, so the facility never appeared under any
+// category filter.
+export const FACILITY_CATEGORY_OPTIONS: string[] = Object.values(
+  FACILITY_CATEGORY_DB_MAP,
+).map((dbNames) => dbNames[0]);
+
+// True when a stored category resolves to a real category key. Used at the
+// claim-approval boundary so an unmappable value is caught before it becomes
+// an invisible facility row.
+export function isMappedFacilityCategory(category: string | null | undefined): boolean {
+  if (!category) return false;
+  const needle = category.trim().toLowerCase();
+  return Object.values(FACILITY_CATEGORY_DB_MAP).some((dbNames) =>
+    dbNames.some((dbName) => dbName.toLowerCase() === needle),
+  );
+}
+
 export function filterFacilitiesByCategory(
   facilities: Facility[],
   category: FacilityCategoryFilter | undefined,
@@ -290,6 +322,30 @@ export function getFacilityCategoryLabel(
 
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
+}
+
+// The single sub-city matcher, shared by free-text search
+// (filterFacilitiesByQuery) and the filter dropdown
+// (facilityMatchesListingFilters). These had drifted: the dropdown compared
+// bidirectionally and found all 8 "kolfe" facilities when asked for the
+// canonical "Kolfe Keranio", while search compared one way only and returned
+// zero for the same term.
+//
+// The reverse direction is word-boundary guarded. A plain
+// query.includes(stored) would make a search for "yekatit hospital" match
+// every facility in "yeka", because "yeka" is a substring of "yekatit".
+export function subCityMatches(storedSubCity: string, needle: string): boolean {
+  const stored = normalizeQuery(storedSubCity);
+  const query = normalizeQuery(needle);
+  if (!stored || !query) return false;
+
+  // stored value contains the query: "kolfe / nifas silk-lafto" vs "kolfe"
+  if (stored.includes(query)) return true;
+
+  // stored value is a short form of the query: "kolfe" vs "kolfe keranio"
+  if (!query.startsWith(stored)) return false;
+  const nextChar = query.charAt(stored.length);
+  return nextChar === "" || !/[a-z0-9]/.test(nextChar);
 }
 
 function matchesTokens(values: string[], query: string): boolean {

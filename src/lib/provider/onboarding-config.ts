@@ -13,18 +13,12 @@ export const TOTAL_STEPS = ONBOARDING_STEPS.length;
 export const OFFICIAL_BADGE_THRESHOLD_PCT = 70;
 
 // Provider category options
-export const PROVIDER_CATEGORIES = [
-  "General Hospital",
-  "Specialty Center",
-  "Clinic",
-  "Diagnostic Center",
-  "Pharmacy",
-  "Ambulance Service",
-  "Home Care Provider",
-  "Telemedicine Provider",
-  "Medical Plaza",
-  "Other",
-] as const;
+// The one non-category choice offered at signup. Kept because real cases
+// exist that the 7-category taxonomy does not cover (the live data has a
+// telemedicine provider and a healthcare-financing service). It is NOT a
+// storable facilities.category — approval refuses to publish it and asks
+// an admin to choose a real category first.
+export const OTHER_FACILITY_TYPE = "Other";
 
 export const OWNERSHIP_TYPES = [
   "Private",
@@ -186,17 +180,6 @@ export const BASIC_LAB_CATEGORIES: Record<string, string[]> = {
 
 export const ALL_BASIC_LAB_TESTS: string[] = Object.values(BASIC_LAB_CATEGORIES).flat();
 
-export const FACILITY_TYPES = [
-  "Hospital",
-  "Specialty Center",
-  "Clinic",
-  "Pharmacy",
-  "Laboratory / Diagnostics",
-  "Home Care",
-  "Ambulance Service",
-  "Other",
-] as const;
-
 export const DIAGNOSTIC_SUBTYPE_OPTIONS = [
   { value: "lab", label: "Laboratory only" },
   { value: "imaging", label: "Imaging only" },
@@ -306,7 +289,7 @@ export const RESPONSE_TIME_OPTIONS = [
 
 // Facility types that show the default Step 3 view (general services,
 // specialties, imaging, schedule, emergency, walk-in/appointment, check-up).
-export const DEFAULT_STEP3_FACILITY_TYPES = ["Hospital", "Specialty Center", "Clinic", "Other"] as const;
+export const DEFAULT_STEP3_FACILITY_TYPES = ["General Hospital", "Specialty Center", "Clinic", "Other"] as const;
 
 export const WORKING_DAYS_OPTIONS = [
   "Monday – Friday",

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isMappedFacilityCategory } from "@/lib/frontend-search-filters";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/facility-field-mapping";
 import { toSlug } from "@/lib/slugify";
@@ -140,6 +141,38 @@ export async function approveClaim(
       ? `${baseSlug}-${(claim.id as string).slice(0, 6)}`
       : baseSlug;
 
+    // A claim carries the provider-chosen facility_type, which is written
+    // straight through as facilities.category below. If that value is not in
+    // FACILITY_CATEGORY_DB_MAP the row publishes but resolves to "default",
+    // so it never appears under any category filter — invisible to browse and
+    // to the homepage discovery chips, with nothing surfacing the problem.
+    // That is exactly how the live "Hospital" / "Telemedicine" /
+    // "Healthcare Financing" rows got there.
+    //
+    // Signup now only offers canonical values plus "Other", so this should
+    // only trigger for "Other" or a legacy claim. Rather than guess a
+    // category (any guess is wrong and permanent), abort the approval.
+    //
+    // The claim is deliberately LEFT at pending_review rather than flipped to
+    // approved. Approving it while no facilities row exists would tell the
+    // provider they are live while they are absent from the directory —
+    // the same silent invisibility this guard exists to prevent, just moved
+    // somewhere harder to notice. pending_review is the status the admin
+    // claims queue lists (src/app/admin/(protected)/claims/page.tsx), so the
+    // claim stays visible and actionable until someone assigns a real
+    // category, and the provider correctly still reads as under review.
+    const claimCategory = (claim.facility_type as string | null) ?? null;
+    if (!isMappedFacilityCategory(claimCategory)) {
+      return {
+        warning:
+          `Not approved — this claim needs a category first. ` +
+          `"${claimCategory ?? "(none)"}" is not one of the listed categories` +
+          (claim.facility_type_other ? ` (provider described it as "${claim.facility_type_other as string}")` : "") +
+          `. Set a supported category on the claim, then approve again. ` +
+          `The claim stays in this queue and the provider remains under review.`,
+      };
+    }
+
     const filteredFields = filterNonEmpty(buildFacilityFieldsFromClaim(claim));
 
     // Assign the next record_number so the admin Facility Directory shows a #.
@@ -157,7 +190,7 @@ export async function approveClaim(
         ...filteredFields,
         name: proposedName,
         slug,
-        category: (claim.facility_type as string | null) ?? "Other",
+        category: claimCategory as string,
         verification_status: "facility-owned",
         record_number: nextRecordNumber,
         updated_at: new Date().toISOString(),

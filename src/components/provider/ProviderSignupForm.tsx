@@ -3,6 +3,8 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignUp } from "@/app/provider/signup/actions";
+import { FACILITY_CATEGORY_OPTIONS } from "@/lib/frontend-search-filters";
+import { OTHER_FACILITY_TYPE } from "@/lib/provider/onboarding-config";
 import { PasswordStrengthHint } from "./PasswordStrengthHint";
 import { SubmitButton } from "./SubmitButton";
 
@@ -16,16 +18,15 @@ const ROLE_OPTIONS = [
   "Other",
 ];
 
-const FACILITY_TYPE_OPTIONS = [
-  "Hospital",
-  "Specialty Center",
-  "Clinic",
-  "Pharmacy",
-  "Laboratory / Diagnostics",
-  "Home Care",
-  "Ambulance Service",
-  "Other",
-];
+// Derived from FACILITY_CATEGORY_DB_MAP so a provider can only pick a value
+// that actually maps to a category. This form previously kept its own list
+// with "Hospital" and "Laboratory / Diagnostics", neither of which is in the
+// map, so approving those claims wrote an unmappable facilities.category and
+// the facility never appeared under any category filter.
+//
+// OTHER_FACILITY_TYPE is appended deliberately and is NOT a storable
+// category — see resolveClaimFacilityCategory() in the admin claims action.
+const FACILITY_TYPE_OPTIONS = [...FACILITY_CATEGORY_OPTIONS, OTHER_FACILITY_TYPE];
 
 const DIAGNOSTIC_SUBTYPE_OPTIONS = [
   { value: "lab", label: "Laboratory only" },
@@ -113,7 +114,7 @@ function ProviderSignupFormInner() {
             name="facility_type"
             onChange={(e) => {
               setFacilityType(e.target.value);
-              if (e.target.value !== "Laboratory / Diagnostics") setDiagnosticSubtype("");
+              if (e.target.value !== "Diagnostic Center") setDiagnosticSubtype("");
             }}
             required
             value={facilityType}
@@ -127,7 +128,7 @@ function ProviderSignupFormInner() {
               </option>
             ))}
           </select>
-          {facilityType === "Other" && (
+          {facilityType === OTHER_FACILITY_TYPE && (
             <input
               className={inputClass}
               id="facility_type_other"
@@ -138,7 +139,7 @@ function ProviderSignupFormInner() {
             />
           )}
 
-          {facilityType === "Laboratory / Diagnostics" && (
+          {facilityType === "Diagnostic Center" && (
             <div className="mt-2 flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
               <p className="text-sm font-medium text-foreground">
                 What services does your facility offer? *

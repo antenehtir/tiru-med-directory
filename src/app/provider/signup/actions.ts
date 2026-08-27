@@ -17,7 +17,7 @@ export async function providerSignUp(formData: FormData) {
   const facilityType = formData.get("facility_type") as string;
   const facilityTypeOther = formData.get("facility_type_other") as string;
   const diagnosticSubtype =
-    facilityType === "Laboratory / Diagnostics"
+    facilityType === "Diagnostic Center"
       ? (formData.get("diagnostic_subtype") as string)
       : null;
   const termsAccepted = formData.get("terms") === "on";
