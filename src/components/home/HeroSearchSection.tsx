@@ -39,12 +39,8 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
 
           <div className="mx-auto mt-5 flex max-w-3xl flex-col gap-2 sm:flex-row sm:justify-center">
             <HeroLocationButton />
-            {/* text-primary needs the important modifier here because
-                globals.css sets `a { color: inherit }` outside any @layer —
-                unlayered CSS outranks every Tailwind utility, so a plain
-                `text-primary` on an anchor is silently dropped. */}
             <Link
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-primary! transition-colors hover:border-strong-border hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-primary transition-colors hover:border-strong-border hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
               href="/facilities"
             >
               Browse all care
