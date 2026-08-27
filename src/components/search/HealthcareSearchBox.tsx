@@ -4,6 +4,14 @@ import { SearchAutocompleteInput } from "./SearchAutocompleteInput";
 // hero: a 56px field on mobile (well above the 44px touch minimum) rising to
 // 64px from sm, on its own raised surface, with a ring-based focus state
 // strong enough to read against the warm paper background.
+//
+// The placeholder is measured against the field, not estimated. The previous
+// copy ("Search for a facility, doctor, service or area") rendered 325.6px
+// wide into a 237px content box at a 390px viewport and truncated mid-word at
+// "servic...". The current copy measures 202.2px, clearing 390px by 34.8px and
+// still fitting a 360px screen. The hint line under the field is what
+// demonstrates the wider reach — an area, a specialty, a service — so the
+// placeholder only has to name the field.
 export function HealthcareSearchBox() {
   return (
     <div className="w-full max-w-full rounded-card bg-card p-3 shadow-lift sm:p-4">
@@ -15,7 +23,7 @@ export function HealthcareSearchBox() {
         isIconButton
         label="Search healthcare"
         labelClassName="sr-only"
-        placeholder="Search for a facility, doctor, service or area"
+        placeholder="Search facilities or doctors"
       />
     </div>
   );

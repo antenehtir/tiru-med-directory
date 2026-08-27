@@ -56,11 +56,18 @@ export default async function Home() {
     (facility) => (facility.workingHours ?? "").trim().toLowerCase() === "24/7",
   ).length;
 
+  // Rendered as a floor with a trailing "+" rather than as an exact figure.
+  // The count moves whenever a listing is added or deactivated, and a precise
+  // number invites the reader to treat it as an audited total. Math.floor is a
+  // no-op on today's integer count; it is here so that if this ever derives
+  // from a non-integer source the label can only ever under-claim.
+  const mappedFacilityLabel = `${Math.floor(mappedFacilityCount)}+`;
+
   return (
     <PageShell>
       <Homepage
         facilities={facilities}
-        mappedFacilityCount={mappedFacilityCount}
+        mappedFacilityLabel={mappedFacilityLabel}
         nearbyFacilities={nearbyFacilities}
         openAllHoursCount={openAllHoursCount}
         subCityCount={subCityCount}

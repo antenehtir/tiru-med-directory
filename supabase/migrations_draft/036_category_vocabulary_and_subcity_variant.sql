@@ -1,5 +1,7 @@
 -- Run in Supabase SQL Editor (project: jsknvmfqmawamqtewcdl)
--- DRAFT — DO NOT RUN UNTIL REVIEWED. Leave for manual execution.
+-- APPLIED 2026-08-27. Kept for the record — do not re-run as a whole.
+-- (Both writes are guarded on their pre-state, so a re-run would be a no-op,
+-- but the STEP 1 inspection queries below now return zero rows by design.)
 --
 -- Two data corrections found by the category / sub-city audit.
 --
@@ -75,10 +77,24 @@
 -- WHERE  facility_id = (SELECT id FROM facilities WHERE slug = 'test-center');
 --
 -- -- audit_log rows are retained on purpose; listed here only for awareness.
+-- --
+-- -- CORRECTED after this file was run: audit_log.entity_id is TEXT, not uuid,
+-- -- so comparing it to facilities.id fails with
+-- --   ERROR: operator does not exist: text = uuid
+-- -- unless one side is cast. audit_log is polymorphic (entity_type +
+-- -- entity_id, no foreign key) and holds ids from facilities, admin_users,
+-- -- provider_accounts and correction_requests, which is why entity_id is
+-- -- text. Any hand-written SQL touching it needs an explicit ::text cast.
+-- --
+-- -- General form, while the facility still exists:
+-- --   AND  entity_id = (SELECT id::text FROM facilities WHERE slug = '...');
+-- --
+-- -- The facility row is now deleted, so that subquery returns NULL. Use the
+-- -- literal id to find the historical entries:
 -- SELECT id, action, entity_type, entity_id, created_at
 -- FROM   audit_log
 -- WHERE  entity_type = 'facility'
---   AND  entity_id   = (SELECT id FROM facilities WHERE slug = 'test-center');
+--   AND  entity_id   = '11ad9ff5-c6e5-4cc0-b31d-6d6e76b21ed4';
 
 
 -- ── STEP 2 — detach dependants, then delete ───────────────────────────────

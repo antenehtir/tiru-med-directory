@@ -3,11 +3,14 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { HealthcareSearchBox } from "@/components/search/HealthcareSearchBox";
 import { HeroLocationButton } from "./HeroLocationButton";
 
-// Hierarchy is search > location > browse, expressed through weight rather
+// Hierarchy is search > location > browse, expressed through surface rather
 // than three competing filled buttons: the search box is the only element in
-// its own raised surface, location is a bordered secondary control, and
-// browse is a plain tertiary link.
-export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount: number }) {
+// its own raised surface, location is a bordered control on a card fill with
+// a lift shadow, and browse is the same bordered control with neither fill nor
+// shadow. Browse used to carry no resting treatment at all — no border, no
+// background, no shadow — so on a touch screen it read as a line of text until
+// it was already being pressed.
+export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel: string }) {
   return (
     <section className="tiru-hero-light bg-transparent">
       <span aria-hidden="true" className="tiru-hero-light__glow" />
@@ -36,8 +39,12 @@ export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount
 
           <div className="mx-auto mt-5 flex max-w-3xl flex-col gap-2 sm:flex-row sm:justify-center">
             <HeroLocationButton />
+            {/* text-primary needs the important modifier here because
+                globals.css sets `a { color: inherit }` outside any @layer —
+                unlayered CSS outranks every Tailwind utility, so a plain
+                `text-primary` on an anchor is silently dropped. */}
             <Link
-              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control px-5 text-sm font-semibold text-primary transition-colors hover:bg-soft-accent hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
+              className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-primary! transition-colors hover:border-strong-border hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
               href="/facilities"
             >
               Browse all care
@@ -47,9 +54,14 @@ export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount
           {/* Real count from the rendered dataset, not a hardcoded figure —
               "mapped" is the number with resolvable coordinates, which is what
               actually determines whether a facility can be placed on a map or
-              distance-sorted. */}
-          <p className="mt-5 text-xs text-muted-foreground">
-            {mappedFacilityCount} healthcare facilities mapped across Addis Ababa
+              distance-sorted. Set at 14px with the figure itself in foreground
+              weight: at 12px in muted grey this read as a caption on the CTA
+              above it rather than as a claim about the directory. */}
+          <p className="mx-auto mt-6 max-w-md text-sm leading-6 text-balance text-muted-foreground">
+            <span className="font-semibold tabular-nums text-foreground">
+              {mappedFacilityLabel}
+            </span>{" "}
+            healthcare facilities mapped across Addis Ababa
           </p>
         </div>
       </PageContainer>

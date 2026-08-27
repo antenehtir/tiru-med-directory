@@ -100,20 +100,26 @@ export function NearbyCareSection({ facilities }: { facilities: NearbyFacility[]
   return (
     <section aria-labelledby="nearby-care-heading" className="bg-transparent" id="nearby-care">
       <PageContainer className="py-8 sm:py-10 lg:py-12">
-        <div className="mb-5 flex items-end justify-between gap-4">
+        {/* Stacked below sm. As a row, justify-between gave the shrink-0
+            link its 199px first and left the heading 143px to wrap into, so
+            "Care near you" broke across two lines and the link came to rest
+            level with the third line of the description rather than with the
+            heading it belongs to. The -ml-2 cancels the link's own px-2 so its
+            text sits on the same optical left edge as the heading. */}
+        <div className="mb-5 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
             <h2
-              className="font-display text-[1.75rem] font-semibold leading-tight text-foreground sm:text-3xl"
+              className="font-display text-[1.75rem] font-semibold leading-tight text-balance text-foreground sm:text-3xl"
               id="nearby-care-heading"
             >
               Care near you
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Facilities closest to your location, sorted by distance.
             </p>
           </div>
           <Link
-            className="inline-flex shrink-0 items-center rounded-lg px-2 py-2 text-sm font-semibold text-primary transition-colors hover:bg-soft-accent hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="-ml-2 inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-semibold text-primary transition-colors hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:ml-0"
             href="/nearby"
           >
             View all nearby facilities <span aria-hidden="true" className="ml-1">→</span>

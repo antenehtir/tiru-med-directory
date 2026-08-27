@@ -26,7 +26,7 @@ export function TrustStatsSection({
       icon: (
         <svg
           aria-hidden="true"
-          className="size-8 shrink-0 text-deep-muted sm:mb-2"
+          className="size-6 shrink-0 text-deep-muted sm:mb-2"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
@@ -45,7 +45,7 @@ export function TrustStatsSection({
       icon: (
         <svg
           aria-hidden="true"
-          className="size-8 shrink-0 text-deep-muted sm:mb-2"
+          className="size-6 shrink-0 text-deep-muted sm:mb-2"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
@@ -60,6 +60,13 @@ export function TrustStatsSection({
     },
   ];
 
+  // Mobile spacing runs 4 / 16 / 32 / 48: 4px holds the figure to its own
+  // label, 16px separates the icon from that pair, 32px (py-4 on each row)
+  // separates the two stats, and the section's py-12 puts 48px between the
+  // band and the page. It previously ran 4 / 16 / 40 / 48, where the gap
+  // between the two stats was nearly the gap between the whole band and the
+  // rest of the page — so the stats read as two loose items sharing a dark
+  // rectangle rather than as one group.
   return (
     // The deep band. One dark, branded anchor mid-page breaks the long run of
     // paper sections and gives the scroll a rhythm; --deep is a teal-black
@@ -69,7 +76,7 @@ export function TrustStatsSection({
         <dl className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           {trustStats.map(({ value, label, icon }) => (
             <div
-              className="flex items-center gap-4 py-5 sm:flex-col sm:gap-1 sm:px-4 sm:py-0 sm:text-center"
+              className="flex items-center gap-4 py-4 sm:flex-col sm:gap-1 sm:px-4 sm:py-0 sm:text-center"
               key={label}
             >
               {icon}
