@@ -45,7 +45,7 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => resolveFacilityCardCategoryKey(f) === "hospital",
   },
   {
-    label: "Specialty centers",
+    label: "Multi-specialty",
     href: "/facilities?category=specialty",
     iconKey: "specialty",
     matches: (f) => resolveFacilityCardCategoryKey(f) === "specialty",
@@ -80,6 +80,30 @@ const CANDIDATES: ChipCandidate[] = [
     iconKey: "diagnostics",
     matches: (f) => resolveFacilityCardCategoryKey(f) === "diagnostics",
   },
+  {
+    label: "ENT",
+    href: `/facilities?specialty=${encodeURIComponent("ENT (Ear, Nose, Throat)")}`,
+    iconKey: "specialty",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "ENT (Ear, Nose, Throat)"),
+  },
+  {
+    label: "Ophthalmology",
+    href: `/facilities?specialty=${encodeURIComponent("Ophthalmology (Eye Care)")}`,
+    iconKey: "specialty",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Ophthalmology (Eye Care)"),
+  },
+  {
+    label: "Dermatology",
+    href: `/facilities?specialty=${encodeURIComponent("Dermatology")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Dermatology"),
+  },
+  {
+    label: "Psychiatry",
+    href: `/facilities?specialty=${encodeURIComponent("Psychiatry & Mental Health")}`,
+    iconKey: "home-care",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Psychiatry & Mental Health"),
+  },
 ];
 
 export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
@@ -107,7 +131,7 @@ export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
             negative margin lets the row bleed to the screen edge so the last
             chip is visibly cut off — the affordance that tells you it scrolls
             — while padding keeps the first chip aligned to the page gutter. */}
-        <ul className="-mx-3 mt-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-3 pb-2 min-[360px]:-mx-4 min-[360px]:px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-3 mt-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-3 pb-2 min-[360px]:-mx-4 min-[360px]:px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 md:grid-cols-3 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
           {chips.map((chip) => {
             const Icon = facilityCategoryIcons[chip.iconKey];
             return (

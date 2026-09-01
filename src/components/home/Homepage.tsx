@@ -9,8 +9,15 @@ import { HomeLocationProvider } from "./HomeLocationProvider";
 import { NearbyCareSection } from "./NearbyCareSection";
 import { TrustStatsSection } from "./TrustStatsSection";
 
-// Hierarchy, top to bottom: search (hero) -> location (one CTA feeding one
-// nearby section) -> browse (discovery chips, then the rest of the directory).
+// Hierarchy, top to bottom: search (hero) -> browse (category chips, placed
+// directly under the search field so the two read as one "find something"
+// block) -> location (the hero CTA feeding one nearby section) -> the rest of
+// the directory.
+//
+// The chips sit above the nearby section by explicit decision. The trade-off
+// accepted: browse now precedes location, so the hero CTA and the chip row
+// both compete for the tap after search. The chips carry live counts and the
+// location CTA does not, which is what keeps them distinguishable.
 //
 // HomeLocationProvider wraps everything because the single location action in
 // the hero and the results in NearbyCareSection sit in different branches of
@@ -33,8 +40,8 @@ export function Homepage({
     <div className="homepage-clinical-bg">
       <HomeLocationProvider>
         <HeroSearchSection mappedFacilityLabel={mappedFacilityLabel} />
-        <NearbyCareSection facilities={nearbyFacilities} />
         <DiscoveryRow facilities={facilities} />
+        <NearbyCareSection facilities={nearbyFacilities} />
         <TrustStatsSection openAllHoursCount={openAllHoursCount} subCityCount={subCityCount} />
         <section
           aria-labelledby="recently-added-heading"

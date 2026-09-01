@@ -97,3 +97,23 @@ export function ShareIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+// A navigation arrow, deliberately NOT the map pin. The pin already means
+// "this is where the place is" on the same card; reusing it for the action
+// would make the address line and the button look like the same affordance.
+export function DirectionsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.75}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path d="M21.5 2.5L2.5 9.5l8 3.5 3.5 8 7.5-18.5z" />
+    </svg>
+  );
+}

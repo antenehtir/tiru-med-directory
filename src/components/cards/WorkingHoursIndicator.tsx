@@ -22,16 +22,9 @@ export function WorkingHoursIndicator({ hours }: WorkingHoursIndicatorProps) {
     return null;
   }
 
-  const isEmergency = normalized.toLowerCase().includes("24");
-
-  if (isEmergency) {
-    return (
-      <span className="flex items-center text-xs font-medium text-red-600">
-        <span className="mr-1.5 inline-block size-2 shrink-0 animate-pulse rounded-full bg-red-500" />
-        24/7 Emergency Service
-      </span>
-    );
-  }
-
+  // The round-the-clock case is handled upstream by FacilityCard's
+  // AvailabilityLine, which renders it with the same green availability dot
+  // the structured-schedule path uses. This component now has exactly one
+  // job: render free-text opening hours that are not round-the-clock.
   return <span className="text-xs text-muted-foreground">{normalized}</span>;
 }

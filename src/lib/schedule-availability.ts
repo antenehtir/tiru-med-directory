@@ -128,3 +128,16 @@ export function getAvailabilityStatus<T extends ScheduleRow>(
 
   return { state: "unavailable" };
 }
+
+// Round-the-clock detection for facilities that publish free-text hours
+// instead of a structured schedule[] — which is almost all of them: 1 of 106
+// active facilities has a structured schedule, 102 have only this text.
+//
+// Deliberately stricter than a bare `includes("24")`: that would also match
+// a closing time like "8:00-24:00". On today's data both tests return the
+// same 74 facilities, so this is guarding against future rows rather than
+// fixing a present miscount.
+export function isRoundTheClockHours(hours: string | null | undefined): boolean {
+  if (!hours) return false;
+  return /\b24\s*[\/x-]\s*7\b|\b24\s*hours?\b|\bround[- ]the[- ]clock\b/i.test(hours);
+}
