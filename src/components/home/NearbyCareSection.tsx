@@ -33,8 +33,16 @@ function mergedTags(facility: Facility): string {
 // their alias lists were consolidated and the OBGYN spelling was added, so
 // all four are backed by verified matching.
 //
-// Clinics are deliberately absent: the taxonomy has a "clinic" key but zero
-// live facilities resolve to it, so that filter would always come back empty.
+// Every category is offered, by explicit request, including the thin ones:
+// home care has 2 listings, pharmacy and ambulance 1 each. Clinic stays out
+// because zero live facilities resolve to it, so that filter could never
+// return anything.
+//
+// Worth knowing about Pharmacies specifically: the single pharmacy listing
+// has sub_city "online", so it is excluded from coordinate resolution and
+// this filter will return nothing regardless of where the user is standing.
+// That lands on the section's own "Nothing in this category near you yet"
+// empty state, which is an honest answer rather than a broken one.
 const FILTERS: {
   id: string;
   label: string;
@@ -48,13 +56,28 @@ const FILTERS: {
   },
   {
     id: "specialty",
-    label: "Specialty centers",
+    label: "Multi-specialty",
     match: (f) => resolveFacilityCardCategoryKey(f) === "specialty",
   },
   {
     id: "diagnostics",
     label: "Diagnostics",
     match: (f) => resolveFacilityCardCategoryKey(f) === "diagnostics",
+  },
+  {
+    id: "home-care",
+    label: "Home care",
+    match: (f) => resolveFacilityCardCategoryKey(f) === "home-care",
+  },
+  {
+    id: "pharmacy",
+    label: "Pharmacies",
+    match: (f) => resolveFacilityCardCategoryKey(f) === "pharmacy",
+  },
+  {
+    id: "ambulance",
+    label: "Ambulance",
+    match: (f) => resolveFacilityCardCategoryKey(f) === "ambulance",
   },
   {
     id: "pediatrics",
@@ -185,57 +208,42 @@ export function NearbyCareSection({ facilities }: { facilities: NearbyFacility[]
   );
 }
 
-// The single location request lives in the hero, so this section never
-// renders a location button of its own — a second "Use my location" here is
-// exactly the duplicate action this restructure removes. It explains the
-// current state and offers only a non-location escape hatch; retrying is done
-// with the hero control, which re-offers itself for every non-ready state.
+// One job: tell someone how to turn location on. The request itself still
+// lives only in the hero button, so this never renders a second
+// "Use my location" of its own.
+//
+// Two states rather than four. Idle, timeout and unsupported all collapse
+// into the same instruction, because pressing the hero button is what
+// resolves all of them. A refusal is the one genuinely different case: once
+// a browser has stored a denial the button cannot re-prompt, so telling
+// someone to press it again would leave them stuck with no way forward.
+//
+// The "Browse all facilities" escape hatch that used to sit here is gone.
+// The page already offers that route twice above this point — the hero's
+// "Browse all care" and the category chip row — and this section's own
+// header carries "View all nearby facilities". A fourth was noise.
 function LocationPrompt({ locationState }: { locationState: LocationState }) {
-  const copy =
-    locationState === "denied"
-      ? {
-          title: "Location access is off",
-          detail:
-            "Enable location permission in your browser settings, then use the location button above to see the facilities closest to you.",
-        }
-      : locationState === "unsupported"
-        ? {
-            title: "Location is not supported in this browser",
-            detail: "You can still search the directory or browse all facilities.",
-          }
-        : locationState === "timeout"
-          ? {
-              title: "Could not get a location fix",
-              detail:
-                "Try the location button above again, or browse the full directory instead.",
-            }
-          : {
-              title: "See the care closest to you",
-              detail:
-                "Use the location button above and this section will list nearby facilities, sorted by distance.",
-            };
-
-  const isPrompt = locationState === "idle";
+  const isDenied = locationState === "denied";
 
   return (
-    <div className="flex flex-col gap-4 rounded-card border border-dashed border-strong-border bg-sunken px-5 py-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-start gap-3 rounded-card border border-dashed border-strong-border bg-sunken px-5 py-6">
+      {isDenied ? (
+        <MapPinOffIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+      ) : (
+        <MapPinIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+      )}
       <div className="min-w-0">
-        <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          {isPrompt ? (
-            <MapPinIcon aria-hidden="true" className="size-4 shrink-0 text-primary" />
-          ) : (
-            <MapPinOffIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-          )}
-          {copy.title}
+        <p className="text-sm font-semibold text-foreground">
+          {isDenied
+            ? "Location is turned off for this site"
+            : "Turn on location to see care near you"}
         </p>
-        <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">{copy.detail}</p>
+        <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+          {isDenied
+            ? "Your browser is blocking location for this site. Allow it in your browser settings, then use \u201CUse my location\u201D at the top of the page."
+            : "Use \u201CUse my location\u201D at the top of the page, and this section will list the facilities closest to you, sorted by distance."}
+        </p>
       </div>
-      <Link
-        className="inline-flex min-h-11 shrink-0 items-center rounded-control border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        href="/facilities"
-      >
-        Browse all facilities
-      </Link>
     </div>
   );
 }

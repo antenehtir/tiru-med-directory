@@ -9,14 +9,17 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { specialtyMatchesAliases } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
-// A chip is only worth showing if tapping it lands on a populated result set.
-// A live audit found Ambulance = 1, Pharmacy = 2, Home Care = 2 and Clinic = 0
-// facilities out of 108, so those categories are deliberately not offered
-// here — a chip that leads to one result (or none) reads as broken. Counts are
-// computed from the same data the page renders rather than hardcoded, so a
-// category that fills up later starts appearing on its own, and one that
-// empties out disappears instead of going stale.
-const MIN_FACILITIES_FOR_CHIP = 5;
+// Every category the directory actually holds is offered, by explicit
+// request — including the thin ones. Measured against 106 active facilities:
+// Multi-specialty 68, Hospitals 25, Hospitals-adjacent Diagnostics 7, Home
+// care 2, Pharmacy 1, Ambulance 1, Clinic 0.
+//
+// The threshold is 1 rather than 0: a chip is a promise that tapping it shows
+// something, so a category with no listings at all is still withheld. Counts
+// are computed from the same data the page renders, never hardcoded, so a
+// category that fills up appears on its own and one that empties out
+// disappears rather than going stale.
+const MIN_FACILITIES_FOR_CHIP = 1;
 
 // Matches the merged tag list used by the specialty audit and by
 // filterFacilitiesBySpecialtyKeyword — services + special_services (already
@@ -53,13 +56,13 @@ const CANDIDATES: ChipCandidate[] = [
   {
     label: "Pediatrics",
     href: `/facilities?specialty=${encodeURIComponent("Pediatrics")}`,
-    iconKey: "home-care",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Pediatrics"),
   },
   {
     label: "Surgery",
     href: `/facilities?specialty=${encodeURIComponent("General Surgery")}`,
-    iconKey: "specialty",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "General Surgery"),
   },
   {
@@ -71,7 +74,7 @@ const CANDIDATES: ChipCandidate[] = [
   {
     label: "Gynecology & obstetrics",
     href: `/facilities?specialty=${encodeURIComponent("Gynecology & Obstetrics")}`,
-    iconKey: "home-care",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Gynecology & Obstetrics"),
   },
   {
@@ -81,15 +84,33 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => resolveFacilityCardCategoryKey(f) === "diagnostics",
   },
   {
+    label: "Home care",
+    href: "/facilities?category=home-care",
+    iconKey: "home-care",
+    matches: (f) => resolveFacilityCardCategoryKey(f) === "home-care",
+  },
+  {
+    label: "Pharmacies",
+    href: "/facilities?category=pharmacy",
+    iconKey: "pharmacy",
+    matches: (f) => resolveFacilityCardCategoryKey(f) === "pharmacy",
+  },
+  {
+    label: "Ambulance",
+    href: "/facilities?category=ambulance",
+    iconKey: "ambulance",
+    matches: (f) => resolveFacilityCardCategoryKey(f) === "ambulance",
+  },
+  {
     label: "ENT",
     href: `/facilities?specialty=${encodeURIComponent("ENT (Ear, Nose, Throat)")}`,
-    iconKey: "specialty",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "ENT (Ear, Nose, Throat)"),
   },
   {
     label: "Ophthalmology",
     href: `/facilities?specialty=${encodeURIComponent("Ophthalmology (Eye Care)")}`,
-    iconKey: "specialty",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Ophthalmology (Eye Care)"),
   },
   {
@@ -101,7 +122,7 @@ const CANDIDATES: ChipCandidate[] = [
   {
     label: "Psychiatry",
     href: `/facilities?specialty=${encodeURIComponent("Psychiatry & Mental Health")}`,
-    iconKey: "home-care",
+    iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Psychiatry & Mental Health"),
   },
 ];
