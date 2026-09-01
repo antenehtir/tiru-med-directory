@@ -6,6 +6,7 @@ import {
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { ChipScroller } from "./ChipScroller";
 import { specialtyMatchesAliases } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
@@ -142,17 +143,18 @@ export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
           className="font-display text-[1.75rem] font-semibold leading-tight text-foreground sm:text-3xl"
           id="discovery-heading"
         >
-          Filters
+          Browse by category
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Jump straight to the care you need.
+          Jump straight to the care you need. Swipe for more.
         </p>
 
         {/* Horizontally scrollable on mobile, wrapping grid from sm up. The
             negative margin lets the row bleed to the screen edge so the last
             chip is visibly cut off — the affordance that tells you it scrolls
             — while padding keeps the first chip aligned to the page gutter. */}
-        <ul className="-mx-3 mt-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-3 pb-2 min-[360px]:-mx-4 min-[360px]:px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <div className="mt-5">
+        <ChipScroller ariaLabel="Browse facilities by category">
           {chips.map((chip) => {
             const Icon = facilityCategoryIcons[chip.iconKey];
             return (
@@ -172,7 +174,8 @@ export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
               </li>
             );
           })}
-        </ul>
+        </ChipScroller>
+        </div>
       </PageContainer>
     </section>
   );

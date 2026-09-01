@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { SUB_CITIES } from "@/lib/constants/specialty-options";
 import {
   useFacilitySuggestions,
   type FacilitySuggestion,
@@ -20,7 +19,6 @@ type SearchAutocompleteInputProps = {
   buttonClassName: string;
   buttonText?: string;
   formClassName: string;
-  showSubCitySelect?: boolean;
   id: string;
   initialQuery?: string;
   isIconButton?: boolean;
@@ -36,7 +34,6 @@ export function SearchAutocompleteInput({
   buttonClassName,
   buttonText = "Search",
   formClassName,
-  showSubCitySelect = false,
   id,
   initialQuery = "",
   isIconButton = false,
@@ -48,7 +45,6 @@ export function SearchAutocompleteInput({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
-  const [subCity, setSubCity] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const { suggestions } = useFacilitySuggestions(query, { includeSpecialists: true });
 
@@ -72,17 +68,7 @@ export function SearchAutocompleteInput({
     const trimmedQuery = value.trim();
     setIsOpen(false);
     if (trimmedQuery.length === 0) {
-      if (subCity) {
-        router.push(`/facilities?subCity=${encodeURIComponent(subCity)}`);
-        return;
-      }
       router.push("/search");
-      return;
-    }
-    if (subCity) {
-      router.push(
-        `/facilities?q=${encodeURIComponent(trimmedQuery)}&subCity=${encodeURIComponent(subCity)}`,
-      );
       return;
     }
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
@@ -169,26 +155,6 @@ export function SearchAutocompleteInput({
         ) : null}
       </div>
 
-      {showSubCitySelect ? (
-        <div className="relative min-w-0">
-          <label className="sr-only" htmlFor={`${id}-sub-city`}>
-            Sub-city
-          </label>
-          <select
-            className="min-h-14 w-full min-w-0 appearance-none rounded-control border border-border bg-input px-4 text-base text-foreground outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/30 sm:min-h-16"
-            id={`${id}-sub-city`}
-            onChange={(event) => setSubCity(event.target.value)}
-            value={subCity}
-          >
-            <option value="">All sub-cities</option>
-            {SUB_CITIES.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
 
       <button
         aria-label={isIconButton ? buttonLabel : undefined}

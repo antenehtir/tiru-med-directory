@@ -15,7 +15,7 @@ const HomeLocationContext = createContext<HomeLocationValue | null>(null);
 // ONE geolocation subscription for the whole homepage.
 //
 // The homepage previously had two separate location affordances — "Find care
-// near me" in the hero and "Use my location" in the nearby section — which
+// near me" in the hero and one in the nearby section — which
 // meant granting permission in one place left the other still prompting. A
 // context rather than prop-drilling because the two consumers sit in
 // different branches of the tree (hero vs. the nearby section further down),

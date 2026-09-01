@@ -208,41 +208,55 @@ export function NearbyCareSection({ facilities }: { facilities: NearbyFacility[]
   );
 }
 
-// One job: tell someone how to turn location on. The request itself still
-// lives only in the hero button, so this never renders a second
-// "Use my location" of its own.
+// This is where location is actually asked for. The hero keeps a shortcut,
+// but this section is the one that can explain the offer in place: it is
+// sitting on the empty results the permission would fill, so the promise and
+// the payoff are the same piece of screen.
 //
-// Two states rather than four. Idle, timeout and unsupported all collapse
-// into the same instruction, because pressing the hero button is what
-// resolves all of them. A refusal is the one genuinely different case: once
-// a browser has stored a denial the button cannot re-prompt, so telling
-// someone to press it again would leave them stuck with no way forward.
+// Nothing requests location on load (HomeLocationProvider passes
+// autoStart: false), so a visitor can read the entire homepage without ever
+// being prompted. This button is the first thing that can trigger it.
 //
-// The "Browse all facilities" escape hatch that used to sit here is gone.
-// The page already offers that route twice above this point — the hero's
-// "Browse all care" and the category chip row — and this section's own
-// header carries "View all nearby facilities". A fourth was noise.
+// Two states, not four. Idle, timeout and unsupported all collapse into the
+// same offer, because pressing the button is what resolves all three. A
+// refusal is genuinely different: once a browser has stored a denial the
+// button cannot re-prompt, so it is replaced with the only instruction that
+// can still work.
 function LocationPrompt({ locationState }: { locationState: LocationState }) {
+  const { requestLocation } = useHomeLocation();
   const isDenied = locationState === "denied";
 
   return (
-    <div className="flex items-start gap-3 rounded-card border border-dashed border-strong-border bg-sunken px-5 py-6">
-      {isDenied ? (
-        <MapPinOffIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-      ) : (
-        <MapPinIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-      )}
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">
-          {isDenied
-            ? "Location is turned off for this site"
-            : "Turn on location to see care near you"}
-        </p>
-        <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
-          {isDenied
-            ? "Your browser is blocking location for this site. Allow it in your browser settings, then use \u201CUse my location\u201D at the top of the page."
-            : "Use \u201CUse my location\u201D at the top of the page, and this section will list the facilities closest to you, sorted by distance."}
-        </p>
+    <div className="rounded-card border border-dashed border-strong-border bg-sunken px-5 py-6">
+      <div className="flex items-start gap-3">
+        {isDenied ? (
+          <MapPinOffIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+        ) : (
+          <MapPinIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+        )}
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">
+            {isDenied
+              ? "Location is turned off for this site"
+              : "See which facilities are closest to you"}
+          </p>
+          <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+            {isDenied
+              ? "Your browser is blocking location for this site. Allow it in your browser settings, then reload this page."
+              : "Share your location and this section fills with the nearest facilities, sorted by distance, with how far each one is on its card. Nothing is stored, and the rest of the directory works without it."}
+          </p>
+          {isDenied ? null : (
+            <button
+              className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={locationState === "loading"}
+              onClick={requestLocation}
+              type="button"
+            >
+              <MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
+              {locationState === "loading" ? "Finding you…" : "Find near me"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

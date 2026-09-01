@@ -35,11 +35,11 @@ export function HeroLocationButton() {
       type="button"
     >
       <MapPinIcon aria-hidden="true" className="size-4 shrink-0 text-primary" />
-      {isLoading ? "Finding your location…" : "Use my location"}
+      {isLoading ? "Finding you…" : "Find near me"}
       {/* Politely announced so a screen-reader user learns the outcome of
           pressing this without having to hunt for the section it affects. */}
       <span aria-live="polite" className="sr-only">
-        {isLoading ? "Finding your location" : ""}
+        {isLoading ? "Finding you" : ""}
       </span>
     </button>
   );
