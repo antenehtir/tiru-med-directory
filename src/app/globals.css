@@ -308,11 +308,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+/* Inside @layer base, NOT unlayered - same reason as the `a` rule below.
+   Unlayered CSS outranks every Tailwind utility regardless of specificity,
+   and `font:` is a shorthand, so this one line was resetting font-size,
+   font-weight, font-family, font-style AND line-height on every button,
+   input, textarea and select that tried to set them with a utility class.
+   Measured: controls marked `text-sm font-semibold` rendered 16px/400/24px
+   instead of 14px/600/20px. Every control carrying a font utility was
+   affected, on every page.
+
+   Note: .font-display was never affected, because it is an unlayered class
+   (0,1,0) and so already outranked this element selector (0,0,1) on
+   specificity. Only Tailwind's layered utilities lost. */
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
 }
 
 /* Inside @layer base, NOT unlayered. This rule exists to neutralise the
