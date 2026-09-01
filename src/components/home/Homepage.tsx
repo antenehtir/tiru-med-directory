@@ -60,7 +60,7 @@ export function Homepage({
                   className="font-display text-[1.75rem] font-semibold leading-tight text-balance text-foreground sm:text-3xl"
                   id="recently-added-heading"
                 >
-                  Recently added
+                  Recently Added
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   New healthcare providers joining the directory.

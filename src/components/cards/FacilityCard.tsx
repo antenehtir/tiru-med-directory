@@ -96,16 +96,24 @@ type CompactFacilityCardProps = { facility: Facility; className?: string };
 export function CompactFacilityCard({ facility, className = "" }: CompactFacilityCardProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const showTrust = BANNER_BADGE_STATUSES.has(facility.verificationStatus);
+  const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
+  const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
+  const directionsHref = facilityDirectionsHref(facility);
   return (
-    <Link className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-px hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none ${className}`} href={facility.detailHref ?? `/facilities/${facility.slug}`}>
+    <article className={`group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-px hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none ${className}`}>
+      <Link aria-label={`View ${facility.name}`} className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} />
       <span aria-hidden="true" className={`absolute inset-y-0 left-0 z-10 w-[3px] ${facilityCategorySpineClasses[categoryKey]}`} />
       <FacilityBanner facility={facility} heightClassName="h-24" />
-      <div className="flex flex-1 flex-col pb-3 pl-4 pr-3 pt-3">
+      <div className="pointer-events-none relative z-10 flex flex-1 flex-col pb-3 pl-4 pr-3 pt-3">
         <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</span>{showTrust ? <span className="max-w-[46%] truncate"><VerificationBadge status={facility.verificationStatus} /></span> : null}</div>
         <h3 className="mt-1.5 line-clamp-2 break-words font-display text-[17px] font-semibold leading-[1.15] text-foreground">{facility.name}</h3>
         <p className="mt-1 line-clamp-1 text-[13px] text-muted-foreground">{facility.location}</p>
         <AvailabilityLine facility={facility} />
+        <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-2.5">
+          {callAction ? <a aria-label={`Call ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={callAction.href}><PhoneIcon className="size-3.5 shrink-0" />Call Now</a> : null}
+          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={directionsHref} rel="noopener noreferrer" target="_blank"><DirectionsIcon className="size-3.5 shrink-0" />Directions</a> : null}
+        </div>
       </div>
-    </Link>
+    </article>
   );
 }

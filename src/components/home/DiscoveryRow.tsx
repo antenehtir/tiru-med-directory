@@ -142,7 +142,7 @@ export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
           className="font-display text-[1.75rem] font-semibold leading-tight text-foreground sm:text-3xl"
           id="discovery-heading"
         >
-          What are you looking for?
+          Filters
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Jump straight to the care you need.
@@ -152,28 +152,22 @@ export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {
             negative margin lets the row bleed to the screen edge so the last
             chip is visibly cut off — the affordance that tells you it scrolls
             — while padding keeps the first chip aligned to the page gutter. */}
-        <ul className="-mx-3 mt-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-3 pb-2 min-[360px]:-mx-4 min-[360px]:px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 md:grid-cols-3 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-3 mt-5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-3 pb-2 min-[360px]:-mx-4 min-[360px]:px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
           {chips.map((chip) => {
             const Icon = facilityCategoryIcons[chip.iconKey];
             return (
               <li className="snap-start" key={chip.label}>
                 <Link
-                  className="flex h-full min-h-14 w-max min-w-[9.5rem] items-center gap-3 rounded-card border border-border bg-card px-4 py-3 shadow-card transition-all duration-150 hover:-translate-y-px hover:border-strong-border hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none sm:w-auto sm:min-w-0"
+                  className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   href={chip.href}
+                  title={`${chip.count} ${chip.count === 1 ? "facility" : "facilities"}`}
                 >
                   <span
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-control ${facilityCategoryIconChipClasses[chip.iconKey]}`}
+                    className={`flex size-6 shrink-0 items-center justify-center rounded-full ${facilityCategoryIconChipClasses[chip.iconKey]}`}
                   >
-                    <Icon aria-hidden="true" />
+                    <Icon aria-hidden="true" className="size-3.5" />
                   </span>
-                  <span className="min-w-0">
-                    <span className="block font-display text-[15px] font-semibold leading-tight text-foreground">
-                      {chip.label}
-                    </span>
-                    <span className="mt-0.5 block text-[13px] text-muted-foreground">
-                      {chip.count} {chip.count === 1 ? "facility" : "facilities"}
-                    </span>
-                  </span>
+                  {chip.label}
                 </Link>
               </li>
             );
