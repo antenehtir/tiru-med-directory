@@ -6,6 +6,10 @@ type VerificationBadgeProps = {
   status: VerificationStatus;
   entityType?: "facility" | "doctor";
   size?: "sm" | "lg";
+  // Renders the community state as "CS" instead of the full phrase. Only for
+  // surfaces that also show the legend defining it — an unexplained
+  // abbreviation is worse than the words it saves.
+  compact?: boolean;
 };
 
 // Exactly two user-facing labels. The internal statuses are an implementation
@@ -30,8 +34,30 @@ const badgeContent: Record<VerificationStatus, { label: string; variant: BadgeVa
   verified: { label: "Official", variant: "success", title: "Official — managed directly by the facility and confirmed by Tiru" },
 };
 
-export function VerificationBadge({ status, size = "sm" }: VerificationBadgeProps) {
+export function VerificationBadge({ status, size = "sm", compact = false }: VerificationBadgeProps) {
   const badge = badgeContent[status];
   const badgeSize: PillSize = size === "lg" ? "lg" : "sm";
-  return <Badge className="!font-semibold" size={badgeSize} title={badge.title} variant={badge.variant}>{badge.label}</Badge>;
+  // Only the long label abbreviates; "Official" is already short and rare.
+  // The full phrase stays in visually-hidden text and in the title attribute,
+  // so nothing is lost to a screen reader or to a hover. Badge does not accept
+  // aria-label, and widening its API for one caller is not worth it.
+  const isCommunity = badge.label === "Community sourced";
+  const abbreviated = compact && isCommunity;
+  return (
+    <Badge
+      className="!font-semibold"
+      size={badgeSize}
+      title={badge.title}
+      variant={badge.variant}
+    >
+      {abbreviated ? (
+        <>
+          <span aria-hidden="true">CS</span>
+          <span className="sr-only">{badge.label}</span>
+        </>
+      ) : (
+        badge.label
+      )}
+    </Badge>
+  );
 }

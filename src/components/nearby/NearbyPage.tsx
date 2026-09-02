@@ -9,6 +9,7 @@ import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
 import { matchesAnyAlias } from "@/lib/frontend-search-filters";
+import { isFacilityOpenNow } from "@/lib/schedule-availability";
 import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { SpecialistCard } from "@/components/specialists/SpecialistCard";
@@ -59,6 +60,7 @@ export function NearbyPage({
   const { locationState, userLocation, requestLocation } = useGeolocation();
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
   const [facilitySearchQuery, setFacilitySearchQuery] = useState("");
+  const [openOnly, setOpenOnly] = useState(false);
   const [specialistSearchQuery, setSpecialistSearchQuery] = useState("");
   const [visibleFacilityCount, setVisibleFacilityCount] = useState(DEFAULT_VISIBLE_COUNT);
   const [visibleSpecialistCount, setVisibleSpecialistCount] = useState(DEFAULT_VISIBLE_COUNT);
@@ -123,6 +125,14 @@ export function NearbyPage({
     );
   }, [specialtyFilteredFacilities, facilitySearchQuery]);
 
+  // Same question, same answer as the specialty pages: isFacilityOpenNow is
+  // shared rather than reimplemented here, because two copies of "is this
+  // open" is exactly how the two surfaces would start disagreeing.
+  const openFilteredFacilities = useMemo(
+    () => (openOnly ? nameFilteredFacilities.filter(isFacilityOpenNow) : nameFilteredFacilities),
+    [nameFilteredFacilities, openOnly],
+  );
+
   const nameFilteredSpecialists = useMemo(() => {
     const query = specialistSearchQuery.trim().toLowerCase();
     if (!query) return specialists;
@@ -136,14 +146,14 @@ export function NearbyPage({
       return [];
     }
 
-    return nameFilteredFacilities
+    return openFilteredFacilities
       .filter((facility) => facility.coordinates)
       .map((facility) => ({
         facility,
         distanceKm: calculateDistanceKm(userLocation, facility.coordinates!),
       }))
       .sort((left, right) => left.distanceKm - right.distanceKm);
-  }, [nameFilteredFacilities, userLocation]);
+  }, [openFilteredFacilities, userLocation]);
 
   const rankedSpecialists = useMemo(() => {
     if (!userLocation) {
@@ -262,6 +272,18 @@ export function NearbyPage({
           type="text"
           value={facilitySearchQuery}
         />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Pill
+          ariaPressed={openOnly}
+          className="min-h-11"
+          onClick={() => setOpenOnly((value) => !value)}
+          size="lg"
+          variant={openOnly ? "selected" : "default"}
+        >
+          Open now
+        </Pill>
       </div>
 
       {selectedCategory === "specialty" ? (

@@ -8,7 +8,7 @@ import { Pill } from "@/components/ui/Pill";
 import { MapPinIcon } from "@/components/cards/contact-icons";
 import { resolveNearbyFacilityCoordinates } from "@/lib/nearby-coordinates";
 import { calculateDistanceKm, formatDistanceKm } from "@/lib/nearby-distance";
-import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
+import { isFacilityOpenNow } from "@/lib/schedule-availability";
 import {
   MENTAL_HEALTH_SPECIALTY,
   matchedServiceLabel,
@@ -33,13 +33,6 @@ const TYPE_LABELS: Record<Exclude<TypeKey, "all">, string> = {
   clinic: "Clinics",
   diagnostics: "Diagnostics / Lab",
 };
-
-function isOpenNow(facility: Facility): boolean {
-  if (facility.schedule?.length) {
-    return getAvailabilityStatus(facility.schedule).state === "open-now";
-  }
-  return isRoundTheClockHours(facility.workingHours);
-}
 
 export function SpecialtyResults({
   facilities,
@@ -77,7 +70,7 @@ export function SpecialtyResults({
   const results = useMemo(() => {
     let list = facilities.filter((facility) => {
       if (typeKey !== "all" && resolveFacilityCardCategoryKey(facility) !== typeKey) return false;
-      if (openOnly && !isOpenNow(facility)) return false;
+      if (openOnly && !isFacilityOpenNow(facility)) return false;
       if (branch !== "all" && !matchesMentalHealthBranch(facility, branch)) return false;
       return true;
     });

@@ -141,3 +141,19 @@ export function isRoundTheClockHours(hours: string | null | undefined): boolean 
   if (!hours) return false;
   return /\b24\s*[\/x-]\s*7\b|\b24\s*hours?\b|\bround[- ]the[- ]clock\b/i.test(hours);
 }
+
+// The single "is this open right now" test, shared by the specialty pages
+// and /nearby. It lived inside SpecialtyResults; /nearby needed the same
+// question answered and a second copy is how the two would drift.
+//
+// Structured schedule first, free-text hours as the fallback — which is the
+// path almost every listing takes, since only 1 of 106 carries a schedule.
+export function isFacilityOpenNow(facility: {
+  schedule?: ScheduleRow[] | null;
+  workingHours?: string | null;
+}): boolean {
+  if (facility.schedule?.length) {
+    return getAvailabilityStatus(facility.schedule).state === "open-now";
+  }
+  return isRoundTheClockHours(facility.workingHours);
+}

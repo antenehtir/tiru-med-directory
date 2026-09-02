@@ -50,13 +50,21 @@ export function ListingStatusBanner() {
 
   return (
     <div className="mb-4 flex items-start justify-between gap-4 rounded-card border border-border bg-card px-4 py-3">
+      {/* Defines the two markers a card can carry. It previously asserted a
+          fact about the directory — "listings are community sourced" — which
+          told nobody what the CS on a card meant, or what would be different
+          if it said Official. The badges here are the same components the
+          cards render, so the legend cannot drift from what it explains. */}
       <p className="text-xs leading-5 text-muted-foreground">
-        Listings are community sourced — please confirm details with the
-        provider. Facilities marked{" "}
-        <Badge className="mx-0.5 align-middle" size="sm" variant="info">
+        <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
+          CS
+        </Badge>{" "}
+        means we gathered the details from public sources — confirm them with
+        the facility.{" "}
+        <Badge className="mx-0.5 align-middle" size="sm" variant="success">
           Official
         </Badge>{" "}
-        are managed directly by the facility.
+        means the facility manages the listing itself.
       </p>
 
       <button

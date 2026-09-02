@@ -26,14 +26,13 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
               only screen the visitor can see without scrolling. It returns
               intact from sm up, where the space is not contested. */}
           <p className="mx-auto mt-3 hidden max-w-2xl text-[15px] leading-7 text-muted-foreground sm:block sm:text-base lg:text-lg">
-            Trusted healthcare information for facilities, specialists and
-            services across Addis Ababa.
+            Helping you trace the right private health care across Addis Ababa.
           </p>
 
           <div className="mx-auto mt-5 max-w-3xl text-left sm:mt-8">
             <HealthcareSearchBox />
             <p className="mt-2.5 px-1 text-xs leading-5 text-muted-foreground">
-              Try &ldquo;Bole&rdquo;, &ldquo;pediatrics&rdquo; or &ldquo;dialysis&rdquo;
+              Try &ldquo;lab&rdquo;, &ldquo;pediatrics&rdquo; or &ldquo;dialysis&rdquo;
             </p>
           </div>
 
