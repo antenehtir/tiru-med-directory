@@ -57,6 +57,7 @@ export default async function FacilitiesRoute({
       <FacilitiesPage
         activeCategory={category}
         activeCategoryLabel={getFacilityCategoryLabel(category)}
+        activeSpecialty={specialty}
         facilities={facilities}
       />
     </PageShell>

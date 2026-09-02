@@ -61,6 +61,15 @@ export function matchesAnyAlias(text: string, aliases: string[]): boolean {
   return aliases.some((alias) => buildAliasPattern(alias).test(text));
 }
 
+// Read-only accessor for a specialty's alias list. The map itself stays
+// private so it has exactly one owner, but the specialty landing page needs
+// the same aliases to decide which listed service caused a match and which
+// facilities are specialist-focused — reimplementing them there is how the
+// two would drift apart.
+export function getSpecialtyAliases(label: string): string[] {
+  return SPECIALTY_ALIAS_MAP[label] ?? [];
+}
+
 export function specialtyMatchesAliases(text: string, label: string): boolean {
   const aliases = SPECIALTY_ALIAS_MAP[label];
   if (!aliases || aliases.length === 0) return false;
@@ -302,7 +311,7 @@ export function getFacilityCategoryLabel(
   }
 
   if (category === "diagnostics") {
-    return "Diagnostics";
+    return "Diagnostics / Lab";
   }
 
   if (category === "pharmacy") {

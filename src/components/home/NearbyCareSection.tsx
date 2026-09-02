@@ -61,7 +61,7 @@ const FILTERS: {
   },
   {
     id: "diagnostics",
-    label: "Diagnostics",
+    label: "Diagnostics / Lab",
     match: (f) => resolveFacilityCardCategoryKey(f) === "diagnostics",
   },
   {

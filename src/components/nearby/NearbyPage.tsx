@@ -44,7 +44,7 @@ const categoryOptions = [
   { label: "General Hospitals", value: "hospital" },
   { label: "Specialty Centers", value: "specialty" },
   { label: "Clinics", value: "clinic" },
-  { label: "Diagnostics", value: "diagnostics" },
+  { label: "Diagnostics / Lab", value: "diagnostics" },
   { label: "Pharmacies", value: "pharmacies" },
 ];
 

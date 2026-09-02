@@ -181,7 +181,7 @@ export const facilityCategoryBadgeLabels: Record<FacilityCardCategoryKey, string
   hospital: "Hospital",
   specialty: "Specialty Center",
   clinic: "Clinic",
-  diagnostics: "Diagnostics",
+  diagnostics: "Diagnostics / Lab",
   pharmacy: "Pharmacy",
   ambulance: "Ambulance",
   "home-care": "Home Care",

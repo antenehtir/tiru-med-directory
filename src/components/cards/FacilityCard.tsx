@@ -16,7 +16,7 @@ import type { Facility } from "@/types/facility";
 const MAX_VISIBLE_SERVICE_PILLS = 3;
 const BANNER_BADGE_STATUSES = new Set(["facility-owned", "verified", "pending"]);
 
-type FacilityCardProps = { facility: Facility; distanceLabel?: string };
+type FacilityCardProps = { facility: Facility; distanceLabel?: string; highlightLabel?: string };
 type FacilityBannerProps = { facility: Facility; heightClassName?: string };
 
 export function FacilityBanner({ facility, heightClassName }: FacilityBannerProps) {
@@ -53,11 +53,16 @@ function AvailabilityLine({ facility }: { facility: Facility }) {
   return null;
 }
 
-function ServicePillRow({ services }: { services: string[] }) {
-  if (!services.length) return null;
-  const visible = services.slice(0, MAX_VISIBLE_SERVICE_PILLS);
-  const overflowCount = services.length - visible.length;
-  return <div className="mt-3 flex flex-wrap gap-1.5">{visible.map((service, index) => <Pill key={`${service}-${index}`} size="sm" variant="muted">{service}</Pill>)}{overflowCount > 0 ? <Pill size="sm" variant="muted">+{overflowCount} more</Pill> : null}</div>;
+// highlightLabel is the service that caused this facility to match the active
+// specialty filter. It is pulled to the front and given the accent variant so
+// a general hospital appearing in an eye-care list visibly earns its place.
+function ServicePillRow({ services, highlightLabel }: { services: string[]; highlightLabel?: string }) {
+  const rest = highlightLabel ? services.filter((s) => s !== highlightLabel) : services;
+  if (!rest.length && !highlightLabel) return null;
+  const room = highlightLabel ? MAX_VISIBLE_SERVICE_PILLS - 1 : MAX_VISIBLE_SERVICE_PILLS;
+  const visible = rest.slice(0, room);
+  const overflowCount = rest.length - visible.length;
+  return <div className="mt-3 flex flex-wrap gap-1.5">{highlightLabel ? <Pill size="sm" variant="info">{highlightLabel}</Pill> : null}{visible.map((service, index) => <Pill key={`${service}-${index}`} size="sm" variant="muted">{service}</Pill>)}{overflowCount > 0 ? <Pill size="sm" variant="muted">+{overflowCount} more</Pill> : null}</div>;
 }
 
 function StatRow({ facility }: { facility: Facility }) {
@@ -65,7 +70,7 @@ function StatRow({ facility }: { facility: Facility }) {
   return <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldIcon className="size-3.5 shrink-0 text-primary/70" />Insurance accepted</div>;
 }
 
-export function FacilityCard({ facility, distanceLabel }: FacilityCardProps) {
+export function FacilityCard({ facility, distanceLabel, highlightLabel }: FacilityCardProps) {
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const addressLine = facility.location || facility.address;
   const categoryKey = resolveFacilityCardCategoryKey(facility);
@@ -94,7 +99,7 @@ export function FacilityCard({ facility, distanceLabel }: FacilityCardProps) {
         {addressLine ? <p className="mt-1.5 truncate text-[13px] text-muted-foreground" title={addressLine}>{addressLine}</p> : null}
         <AvailabilityLine facility={facility} />
         <StatRow facility={facility} />
-        <ServicePillRow services={facility.services} />
+        <ServicePillRow highlightLabel={highlightLabel} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
           {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${callLeads ? "bg-primary text-primary-foreground hover:bg-primary-hover" : "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted"}`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
           {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title="Directions"><DirectionsIcon className="size-4 shrink-0" /></a> : null}

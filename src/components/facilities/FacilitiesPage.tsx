@@ -8,18 +8,81 @@ import { facilityCategoryIcons } from "./category-icons";
 import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
 import { FacilityCategoryHero } from "./FacilityCategoryHero";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
+import { specialtyDisplayLabel } from "@/lib/specialty-match";
+import { SpecialtyResults } from "./SpecialtyResults";
 
 type FacilitiesPageProps = {
   activeCategory?: FacilityCategoryFilter;
   activeCategoryLabel?: string;
+  activeSpecialty?: string;
   facilities?: Facility[];
 };
 
 export function FacilitiesPage({
   activeCategory,
   activeCategoryLabel,
+  activeSpecialty,
   facilities = [],
 }: FacilitiesPageProps) {
+  // A specialty deep link gets its own page state. Previously it fell
+  // through to the generic browse view, which announced "Browse trusted
+  // healthcare facilities" above a category row with "All" highlighted —
+  // actively contradicting the filter that was doing the work.
+  if (activeSpecialty) {
+    const label = specialtyDisplayLabel(activeSpecialty);
+    const count = facilities.length;
+    return (
+      <PageContainer className="py-8 sm:py-10 lg:py-14">
+        <div className="grid gap-6">
+          <ListingStatusBanner />
+
+          {/* Breadcrumb doubles as the way out: the filter is named, and the
+              route back to unfiltered browse is one tap on the same line. */}
+          <nav aria-label="Breadcrumb" className="text-sm">
+            <ol className="flex flex-wrap items-center gap-1.5 text-muted-foreground">
+              <li>
+                <Link className="font-medium underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href="/facilities">
+                  All facilities
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li aria-current="page" className="font-semibold text-foreground">
+                {label}
+              </li>
+            </ol>
+          </nav>
+
+          <header className="max-w-3xl">
+            <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
+              {label}
+            </h1>
+            <p className="mt-2 text-base leading-7 text-muted-foreground">
+              {count === 0
+                ? `No facilities currently list ${label.toLowerCase()} in Addis Ababa.`
+                : `${count} ${count === 1 ? "facility" : "facilities"} offering this service in Addis Ababa.`}
+            </p>
+            <Link className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href="/facilities">
+              <span aria-hidden="true">&larr;</span> Clear this filter
+            </Link>
+          </header>
+
+          <SpecialtyResults
+            facilities={facilities}
+            specialty={activeSpecialty}
+            specialtyLabel={label}
+          />
+
+          <p className="text-sm text-muted-foreground">
+            Is your facility missing?{" "}
+            <Link className="font-semibold text-primary" href="/provider/signup">
+              List your facility &rarr;
+            </Link>
+          </p>
+        </div>
+      </PageContainer>
+    );
+  }
+
   if (activeCategory) {
     const categoryLabel = activeCategoryLabel ?? activeCategory;
     const CategoryIcon = facilityCategoryIcons[activeCategory];
