@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ClockIcon, DirectionsIcon, MapPinIcon, PhoneIcon, ShieldIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryBadgeLabels, facilityCategorySpineClasses, facilityMonogram, facilityPlateClasses, facilityWatermarkIconKey, resolveFacilityCardCategoryKey } from "@/components/cards/facility-category-style";
@@ -56,13 +57,35 @@ function AvailabilityLine({ facility }: { facility: Facility }) {
 // highlightLabel is the service that caused this facility to match the active
 // specialty filter. It is pulled to the front and given the accent variant so
 // a general hospital appearing in an eye-care list visibly earns its place.
+// The overflow counter is a real <button>, not a decorative pill: it said
+// "+17 more" and did nothing, which reads as a broken control. Expanding
+// happens in place — the whole card is already a link to the detail page, so
+// navigating away to read a service list would throw away the comparison the
+// visitor is in the middle of making. preventDefault/stopPropagation keep the
+// press off the card-wide overlay link underneath.
 function ServicePillRow({ services, highlightLabel }: { services: string[]; highlightLabel?: string }) {
+  const [expanded, setExpanded] = useState(false);
   const rest = highlightLabel ? services.filter((s) => s !== highlightLabel) : services;
   if (!rest.length && !highlightLabel) return null;
   const room = highlightLabel ? MAX_VISIBLE_SERVICE_PILLS - 1 : MAX_VISIBLE_SERVICE_PILLS;
-  const visible = rest.slice(0, room);
-  const overflowCount = rest.length - visible.length;
-  return <div className="mt-3 flex flex-wrap gap-1.5">{highlightLabel ? <Pill size="sm" variant="info">{highlightLabel}</Pill> : null}{visible.map((service, index) => <Pill key={`${service}-${index}`} size="sm" variant="muted">{service}</Pill>)}{overflowCount > 0 ? <Pill size="sm" variant="muted">+{overflowCount} more</Pill> : null}</div>;
+  const visible = expanded ? rest : rest.slice(0, room);
+  const overflowCount = rest.length - Math.min(rest.length, room);
+  return (
+    <div className="mt-3 flex flex-wrap gap-1.5">
+      {highlightLabel ? <Pill size="sm" variant="info">{highlightLabel}</Pill> : null}
+      {visible.map((service, index) => <Pill key={`${service}-${index}`} size="sm" variant="muted">{service}</Pill>)}
+      {overflowCount > 0 ? (
+        <button
+          aria-expanded={expanded}
+          className="pointer-events-auto relative z-20 inline-flex min-h-11 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-primary transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); setExpanded((value) => !value); }}
+          type="button"
+        >
+          {expanded ? "Show fewer" : `+${overflowCount} more`}
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 function StatRow({ facility }: { facility: Facility }) {

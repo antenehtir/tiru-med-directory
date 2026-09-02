@@ -49,25 +49,15 @@ export function ListingStatusBanner() {
   }
 
   return (
-    <div className="mb-4 flex items-center justify-between gap-4 rounded-card border border-border bg-card px-4 py-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-        <div className="flex items-center gap-2">
-          <Badge size="sm" variant="warning">
-            CS
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            Community sourced — verify with provider
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge size="sm" variant="info">
-            Official
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            Official — managed directly by the facility
-          </span>
-        </div>
-      </div>
+    <div className="mb-4 flex items-start justify-between gap-4 rounded-card border border-border bg-card px-4 py-3">
+      <p className="text-xs leading-5 text-muted-foreground">
+        Listings are community sourced — please confirm details with the
+        provider. Facilities marked{" "}
+        <Badge className="mx-0.5 align-middle" size="sm" variant="info">
+          Official
+        </Badge>{" "}
+        are managed directly by the facility.
+      </p>
 
       <button
         aria-label="Dismiss"

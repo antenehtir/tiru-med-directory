@@ -14,30 +14,25 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
   return (
     <section className="tiru-hero-light bg-transparent">
       <span aria-hidden="true" className="tiru-hero-light__glow" />
-      <PageContainer className="pb-7 pt-7 sm:pb-10 sm:pt-14 lg:pb-12 lg:pt-20">
+      <PageContainer className="pb-6 pt-5 sm:pb-10 sm:pt-12 lg:pb-12 lg:pt-16">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-primary" />
-            Tiru Medical Directory · Addis Ababa
-          </div>
-
           <h1 className="mx-auto max-w-4xl font-display text-[2.7rem] font-bold leading-[0.98] tracking-[-0.04em] text-balance text-foreground sm:text-6xl lg:text-7xl">
             Find the right care.
           </h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
+          <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
             Trusted healthcare information for facilities, specialists and
             services across Addis Ababa.
           </p>
 
-          <div className="mx-auto mt-7 max-w-3xl text-left sm:mt-8">
+          <div className="mx-auto mt-5 max-w-3xl text-left sm:mt-8">
             <HealthcareSearchBox />
             <p className="mt-2.5 px-1 text-xs leading-5 text-muted-foreground">
               Try &ldquo;Bole&rdquo;, &ldquo;pediatrics&rdquo; or &ldquo;dialysis&rdquo;
             </p>
           </div>
 
-          <div className="mx-auto mt-5 flex max-w-3xl flex-col gap-2 sm:flex-row sm:justify-center">
+          <div className="mx-auto mt-4 flex max-w-3xl flex-col gap-2 sm:flex-row sm:justify-center">
             <HeroLocationButton />
             <Link
               className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-primary transition-colors hover:border-strong-border hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
@@ -53,7 +48,7 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
               distance-sorted. Set at 14px with the figure itself in foreground
               weight: at 12px in muted grey this read as a caption on the CTA
               above it rather than as a claim about the directory. */}
-          <p className="mx-auto mt-6 max-w-md text-sm leading-6 text-balance text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-balance text-muted-foreground">
             <span className="font-semibold tabular-nums text-foreground">
               {mappedFacilityLabel}
             </span>{" "}

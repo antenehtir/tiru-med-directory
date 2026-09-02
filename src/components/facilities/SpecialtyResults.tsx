@@ -7,7 +7,7 @@ import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import { Pill } from "@/components/ui/Pill";
 import { MapPinIcon } from "@/components/cards/contact-icons";
 import { resolveNearbyFacilityCoordinates } from "@/lib/nearby-coordinates";
-import { calculateDistanceKm } from "@/lib/nearby-distance";
+import { calculateDistanceKm, formatDistanceKm } from "@/lib/nearby-distance";
 import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
 import { matchedServiceLabel, rankBySpecialtyFocus } from "@/lib/specialty-match";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -92,6 +92,19 @@ export function SpecialtyResults({
   }, [results, specialty, specialtyLabel]);
 
   const distanceReady = locationState === "ready" && Boolean(userLocation);
+
+  // Once coordinates exist the card's locality slot should carry the distance,
+  // exactly as it does on the homepage, rather than continuing to show the
+  // sub-city the visitor has just superseded by asking for nearest-first.
+  const distanceByFacilityId = useMemo(() => {
+    if (!userLocation) return undefined;
+    const map: Record<string, string> = {};
+    for (const facility of results) {
+      const coords = resolveNearbyFacilityCoordinates(facility);
+      if (coords) map[facility.id] = formatDistanceKm(calculateDistanceKm(userLocation, coords));
+    }
+    return map;
+  }, [results, userLocation]);
 
   return (
     <section aria-labelledby="specialty-refinements">
@@ -179,6 +192,7 @@ export function SpecialtyResults({
       <div className="mt-5">
         {results.length > 0 ? (
           <FacilityCardGrid
+            distanceByFacilityId={distanceByFacilityId}
             facilities={results}
             highlightByFacilityId={highlightByFacilityId}
           />

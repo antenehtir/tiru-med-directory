@@ -9,6 +9,7 @@ import { FacilityCategoryFilters } from "./FacilityCategoryFilters";
 import { FacilityCategoryHero } from "./FacilityCategoryHero";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { specialtyDisplayLabel } from "@/lib/specialty-match";
+import { specialtyPublicLabel } from "@/lib/specialty-labels";
 import { SpecialtyResults } from "./SpecialtyResults";
 
 type FacilitiesPageProps = {
@@ -30,6 +31,10 @@ export function FacilitiesPage({
   // actively contradicting the filter that was doing the work.
   if (activeSpecialty) {
     const label = specialtyDisplayLabel(activeSpecialty);
+    // Headline and breadcrumb carry the plain-language pair; the pill
+    // fallback and the empty state keep the short form, where the bracket
+    // would be repeated noise inside a sentence.
+    const publicLabel = specialtyPublicLabel(activeSpecialty);
     const count = facilities.length;
     return (
       <PageContainer className="py-8 sm:py-10 lg:py-14">
@@ -47,14 +52,14 @@ export function FacilitiesPage({
               </li>
               <li aria-hidden="true">/</li>
               <li aria-current="page" className="font-semibold text-foreground">
-                {label}
+                {publicLabel}
               </li>
             </ol>
           </nav>
 
           <header className="max-w-3xl">
             <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
-              {label}
+              {publicLabel}
             </h1>
             <p className="mt-2 text-base leading-7 text-muted-foreground">
               {count === 0
