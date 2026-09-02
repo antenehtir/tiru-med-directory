@@ -3,6 +3,7 @@ import { DesktopNavigation } from "@/components/navigation/DesktopNavigation";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SignInMenu } from "@/components/layout/SignInMenu";
+import { EmergencyLink } from "@/components/layout/EmergencyLink";
 
 const actionClassName =
   "flex size-10 shrink-0 items-center justify-center rounded-control border border-border/80 bg-card/95 text-foreground shadow-sm transition-all hover:-translate-y-px hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:translate-y-0";
@@ -19,6 +20,10 @@ export function Header() {
 
         <SignInMenu />
 
+        <div className="ml-2 hidden lg:flex">
+          <EmergencyLink />
+        </div>
+
         <Link
           className="ml-2 hidden min-h-9 items-center rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-px hover:bg-primary-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 lg:inline-flex"
           href="/provider/signup"
@@ -31,6 +36,7 @@ export function Header() {
         </div>
 
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 lg:hidden">
+          <EmergencyLink />
           <ThemeToggle />
           <Link className={actionClassName} href="/search?focus=1" aria-label="Search">
             {/* Same circle+handle construction as SearchAutocompleteInput's and

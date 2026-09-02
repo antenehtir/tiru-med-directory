@@ -8,7 +8,7 @@ import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyStat
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
-import { matchesAnyAlias } from "@/lib/frontend-search-filters";
+import { matchesAnyAlias, type FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { isFacilityOpenNow } from "@/lib/schedule-availability";
 import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -40,13 +40,25 @@ type NearbyTab = "facilities" | "specialists";
 const DEFAULT_VISIBLE_COUNT = 20;
 const LOAD_MORE_STEP = 20;
 
-const categoryOptions = [
+// Static list, and that is the whole reason Ambulance was missing here while
+// /facilities offered it: nothing derives this from the taxonomy, so a
+// category added to FACILITY_CATEGORY_DB_MAP never reaches /nearby until
+// someone edits this array by hand.
+//
+// The same staleness hid a live bug: "Pharmacies" carried the value
+// "pharmacies", which is not a key in FACILITY_CATEGORY_DB_MAP (the key is
+// "pharmacy"). filterFacilitiesByCategory returns the unfiltered list when it
+// cannot resolve a key, so selecting Pharmacies quietly showed every facility
+// instead of the one pharmacy. The values below are now the taxonomy's own
+// keys, so a typo becomes a TypeScript error rather than a silent no-op.
+const categoryOptions: { label: string; value: FacilityCategoryFilter | "all" }[] = [
   { label: "All", value: "all" },
   { label: "General Hospitals", value: "hospital" },
   { label: "Specialty Centers", value: "specialty" },
   { label: "Clinics", value: "clinic" },
   { label: "Diagnostics / Lab", value: "diagnostics" },
-  { label: "Pharmacies", value: "pharmacies" },
+  { label: "Pharmacies", value: "pharmacy" },
+  { label: "Ambulance", value: "ambulance" },
 ];
 
 export function NearbyPage({

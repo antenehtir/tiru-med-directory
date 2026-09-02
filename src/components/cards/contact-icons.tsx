@@ -98,9 +98,13 @@ export function ShareIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// A navigation arrow, deliberately NOT the map pin. The pin already means
-// "this is where the place is" on the same card; reusing it for the action
-// would make the address line and the button look like the same affordance.
+// A route that turns — the arrow leaves a road and heads off to the right.
+//
+// It replaces a filled paper-plane triangle, which read as send/share rather
+// than directions: the same shape messaging apps use for their send button.
+// Deliberately still NOT the map pin, because the pin already means "this is
+// where the place is" on the address line and the distance badge of the same
+// card, and reusing it would make a destination and an action look alike.
 export function DirectionsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -113,7 +117,8 @@ export function DirectionsIcon(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       {...props}
     >
-      <path d="M21.5 2.5L2.5 9.5l8 3.5 3.5 8 7.5-18.5z" />
+      <path d="M6 20v-7a4 4 0 0 1 4-4h7" />
+      <path d="m14 5.5 3.5 3.5-3.5 3.5" />
     </svg>
   );
 }

@@ -23,7 +23,7 @@ export function HealthcareSearchBox() {
         isIconButton
         label="Search healthcare"
         labelClassName="sr-only"
-        placeholder="Service, facility, specialist"
+        placeholder="Search a service or facility"
       />
     </div>
   );

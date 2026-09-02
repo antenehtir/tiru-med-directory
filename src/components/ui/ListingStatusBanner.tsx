@@ -56,15 +56,18 @@ export function ListingStatusBanner() {
           if it said Official. The badges here are the same components the
           cards render, so the legend cannot drift from what it explains. */}
       <p className="text-xs leading-5 text-muted-foreground">
+        <strong className="font-semibold text-foreground">Community sourced</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
           CS
-        </Badge>{" "}
-        means we gathered the details from public sources — confirm them with
-        the facility.{" "}
+        </Badge>
+        : gathered independently, not yet confirmed by the facility.{" "}
+        {/* No spelled-out term before this badge: unlike CS, the Official
+            marker already IS the word, so pairing them printed "Official
+            Official". */}
         <Badge className="mx-0.5 align-middle" size="sm" variant="success">
           Official
-        </Badge>{" "}
-        means the facility manages the listing itself.
+        </Badge>
+        : the facility manages this listing directly.
       </p>
 
       <button

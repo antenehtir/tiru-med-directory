@@ -17,7 +17,7 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
       <PageContainer className="pb-6 pt-5 sm:pb-10 sm:pt-12 lg:pb-12 lg:pt-16">
         <div className="mx-auto max-w-5xl text-center">
           <h1 className="mx-auto max-w-4xl font-display text-[2.7rem] font-bold leading-[0.98] tracking-[-0.04em] text-balance text-foreground sm:text-6xl lg:text-7xl">
-            Find the right care.
+            Find the right care, right now
           </h1>
 
           {/* Hidden below sm so the chip row clears the fold on a 390x844
@@ -26,13 +26,14 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
               only screen the visitor can see without scrolling. It returns
               intact from sm up, where the space is not contested. */}
           <p className="mx-auto mt-3 hidden max-w-2xl text-[15px] leading-7 text-muted-foreground sm:block sm:text-base lg:text-lg">
-            Helping you trace the right private health care across Addis Ababa.
+            Discover and connect with trusted private healthcare facilities
+            across Addis Ababa.
           </p>
 
           <div className="mx-auto mt-5 max-w-3xl text-left sm:mt-8">
             <HealthcareSearchBox />
             <p className="mt-2.5 px-1 text-xs leading-5 text-muted-foreground">
-              Try &ldquo;lab&rdquo;, &ldquo;pediatrics&rdquo; or &ldquo;dialysis&rdquo;
+              Try &ldquo;ambulance&rdquo;, &ldquo;pediatrics&rdquo; or &ldquo;dialysis&rdquo;
             </p>
           </div>
 
