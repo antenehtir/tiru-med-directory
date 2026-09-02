@@ -1,68 +1,26 @@
-"use client";
-
-import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { MapPinIcon } from "@/components/cards/contact-icons";
-import { useHomeLocation } from "./HomeLocationProvider";
 
-const SHARED =
-  "inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-sm transition hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none";
-
-// One action, one outcome: press it and you end up looking at nearby results.
+// Goes to /nearby rather than filling a section on the homepage.
 //
-// It used to become a second button — "View nearby results" — once permission
-// was granted, which handed the visitor a second decision as the reward for
-// making the first one. Now the grant itself carries them to the results, and
-// pressing it again when location is already known scrolls straight there
-// without re-requesting anything.
+// The homepage version cost a step and never left "/": results appeared
+// below the fold, so the visitor was on the homepage looking at nearby
+// results while the Home tab in the bottom navigation showed as the current
+// page. Tapping Home then did nothing, because it already was Home — a dead
+// control at the exact moment someone wanted to get back out.
+//
+// /nearby already owns this job properly: it has the Facilities/Specialists
+// toggle, the full filter set, and it requests location on arrival, which is
+// the right moment to ask — the visitor has just said that is what they want.
+// Nothing on the homepage touches geolocation any more.
 export function HeroLocationButton() {
-  const { locationState, requestLocation } = useHomeLocation();
-  const pendingScrollRef = useRef(false);
-
-  const scrollToResults = () => {
-    const target = document.getElementById("nearby-care");
-    if (!target) return;
-    // Honour reduced motion: someone who has asked the system to stop animating
-    // should be moved to the results, not glided there.
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-  };
-
-  // Only scrolls for a grant this button asked for. Without the ref, a page
-  // that already had permission would yank the visitor down the page on load.
-  //
-  // Scrolls straight from the effect rather than deferring to
-  // requestAnimationFrame. The effect already runs after the DOM is committed,
-  // so the target is present and laid out — and rAF does not fire at all while
-  // a tab is hidden, which would silently swallow the scroll for anyone who
-  // granted permission in a background tab and then switched back.
-  useEffect(() => {
-    if (locationState !== "ready" || !pendingScrollRef.current) return;
-    pendingScrollRef.current = false;
-    scrollToResults();
-  }, [locationState]);
-
-  const isLoading = locationState === "loading";
-  const isReady = locationState === "ready";
-
   return (
-    <button
-      className={SHARED}
-      disabled={isLoading}
-      onClick={() => {
-        if (isReady) {
-          scrollToResults();
-          return;
-        }
-        pendingScrollRef.current = true;
-        requestLocation();
-      }}
-      type="button"
+    <Link
+      className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-sm transition hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:flex-none"
+      href="/nearby"
     >
       <MapPinIcon aria-hidden="true" className="size-4 shrink-0 text-primary" />
-      {isLoading ? "Finding you…" : "Find near me"}
-      <span aria-live="polite" className="sr-only">
-        {isLoading ? "Finding you" : isReady ? "Nearby results ready" : ""}
-      </span>
-    </button>
+      Find near me
+    </Link>
   );
 }

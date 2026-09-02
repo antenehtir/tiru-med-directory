@@ -13,19 +13,21 @@ type VerificationBadgeProps = {
 // visitor — the facility stands behind this listing — so both read "Official".
 // The words "facility owned" never reach the UI.
 //
-// 105 of 106 listings are community sourced, so that state is deliberately
-// quiet: muted, the same weight as the surrounding metadata. Official is the
-// exception and is the only one carrying colour. A badge on every card is
-// only worth its space if the rare state is the one that catches the eye.
+// Amber for community sourced, green for Official — the scheme this project
+// has used since the badge existed. A previous pass made community sourced a
+// muted grey on the theory that the common state should recede; that removed
+// the amber "check this yourself" cue, which is the more useful signal on a
+// directory where 105 of 106 listings are unverified. Amber earns its place by
+// saying something, not by being rare.
 //
 // "pending" reads as Community sourced on purpose: until a claim completes,
 // the listing has exactly the provenance it started with, and saying anything
 // stronger would promise a review that has not happened.
 const badgeContent: Record<VerificationStatus, { label: string; variant: BadgeVariant; title: string }> = {
-  "community-submitted": { label: "Community sourced", variant: "muted", title: "Community sourced — please confirm details with the provider" },
-  pending: { label: "Community sourced", variant: "muted", title: "Community sourced — a provider claim is in review" },
-  "facility-owned": { label: "Official", variant: "info", title: "Official — managed directly by the facility" },
-  verified: { label: "Official", variant: "info", title: "Official — managed directly by the facility and confirmed by Tiru" },
+  "community-submitted": { label: "Community sourced", variant: "warning", title: "Community sourced — please confirm details with the provider" },
+  pending: { label: "Community sourced", variant: "warning", title: "Community sourced — a provider claim is in review" },
+  "facility-owned": { label: "Official", variant: "success", title: "Official — managed directly by the facility" },
+  verified: { label: "Official", variant: "success", title: "Official — managed directly by the facility and confirmed by Tiru" },
 };
 
 export function VerificationBadge({ status, size = "sm" }: VerificationBadgeProps) {

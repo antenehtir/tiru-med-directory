@@ -114,14 +114,24 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
       <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-[3px] ${facilityCategorySpineClasses[categoryKey]}`} />
       <FacilityBanner facility={facility} />
       <div className="relative z-10 flex flex-1 pointer-events-none flex-col pb-4 pl-5 pr-4 pt-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</p>
+        {/* Distance leads the card when it exists. It used to sit below the
+            name as a 12px pill, the same shape and weight as the sub-city it
+            replaced, which made the single most decision-relevant fact on a
+            nearby result the easiest thing to skim past. It now sits on the
+            first line where scanning starts, right-aligned against the
+            category, at 13px bold in the accent tint — louder than the
+            sub-city pill, still quieter than the 19px facility name. */}
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</p>
+          {distanceLabel ? <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-soft-accent px-2.5 py-1 text-[13px] font-bold leading-none text-primary"><MapPinIcon className="size-3.5 shrink-0" />{distanceLabel}</span> : null}
+        </div>
         <Link className="pointer-events-auto mt-1.5 line-clamp-2 min-h-[2.3em] break-words font-display text-[19px] font-semibold leading-[1.15] text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} title={facility.name}>{facility.name}</Link>
         {/* One locality slot, never empty and never a placeholder gap.
             Location is optional, so most cards carry no distance most of the
             time: the slot shows the sub-city then, and swaps to the distance
             the moment coordinates exist. Both states are a filled pill of the
             same shape, so a row of cards keeps its rhythm either way. */}
-        {localityLabel ? <p className="mt-1.5 flex items-center gap-1.5"><span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold ${distanceLabel ? "bg-soft-accent text-primary" : "bg-muted text-muted-foreground"}`}><MapPinIcon className="size-3 shrink-0" />{localityLabel}</span></p> : null}
+        {!distanceLabel && localityLabel ? <p className="mt-1.5 flex items-center gap-1.5"><span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground"><MapPinIcon className="size-3 shrink-0" />{localityLabel}</span></p> : null}
         {addressLine ? <p className="mt-1.5 truncate text-[13px] text-muted-foreground" title={addressLine}>{addressLine}</p> : null}
         <AvailabilityLine facility={facility} />
         <StatRow facility={facility} />

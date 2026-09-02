@@ -19,7 +19,7 @@ export default async function Home() {
   // Coordinates are resolved once, server-side, via the exact same helper
   // /nearby uses, so the two surfaces can never quietly disagree about which
   // facilities are positionable.
-  const nearbyFacilities = facilities.map((facility) => ({
+  const positionable = facilities.map((facility) => ({
     ...facility,
     coordinates: resolveNearbyFacilityCoordinates(facility),
   }));
@@ -27,7 +27,7 @@ export default async function Home() {
   // Drives the hero trust line. Counts facilities that actually resolve to
   // coordinates rather than the raw row count, because that is what "mapped"
   // means here: the ones that can be placed and distance-sorted.
-  const mappedFacilityCount = nearbyFacilities.filter(
+  const mappedFacilityCount = positionable.filter(
     (facility) => facility.coordinates,
   ).length;
 
@@ -68,7 +68,6 @@ export default async function Home() {
       <Homepage
         facilities={facilities}
         mappedFacilityLabel={mappedFacilityLabel}
-        nearbyFacilities={nearbyFacilities}
         openAllHoursCount={openAllHoursCount}
         subCityCount={subCityCount}
       />
