@@ -61,7 +61,7 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Pediatrics"),
   },
   {
-    label: "Surgery (Operations)",
+    label: "Surgery",
     href: `/facilities?specialty=${encodeURIComponent("General Surgery")}`,
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "General Surgery"),
@@ -121,7 +121,7 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Dermatology"),
   },
   {
-    label: "Psychiatry (Psychological care)",
+    label: "Mental health care",
     href: `/facilities?specialty=${encodeURIComponent("Psychiatry & Mental Health")}`,
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Psychiatry & Mental Health"),

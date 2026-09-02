@@ -53,6 +53,36 @@ export function matchedServiceLabel(
   return direct ?? fallbackLabel;
 }
 
+// The one specialty presented as a merged discipline. Psychiatry and
+// psychology are separate professions but the listings do not separate them
+// cleanly — 4 of the 10 matching facilities carry terms from both — and
+// someone looking for help rarely arrives knowing which one they need. They
+// share a chip; the specialty page offers this refinement for those who do.
+//
+// "counselling" alone is deliberately NOT a psychology term: it matched
+// "Fertility counseling" at an OB/GYN clinic, which is not mental health
+// care. Only the qualified forms count.
+export const MENTAL_HEALTH_SPECIALTY = "Psychiatry & Mental Health";
+const PSYCHIATRY_TERMS = ["psychiatry", "psychiatric"];
+const PSYCHOLOGY_TERMS = ["psychology", "psychological", "psychotherapy"];
+
+export type MentalHealthBranch = "psychiatry" | "psychology";
+
+export function matchesMentalHealthBranch(
+  facility: Facility,
+  branch: MentalHealthBranch,
+): boolean {
+  const custom = Object.values(facility.customServiceCategories ?? {}).flat();
+  const text = [
+    facility.name,
+    facility.category,
+    facility.subcategory,
+    ...(facility.services ?? []),
+    ...custom,
+  ].filter(Boolean).join(" ");
+  return matchesAnyAlias(text, branch === "psychiatry" ? PSYCHIATRY_TERMS : PSYCHOLOGY_TERMS);
+}
+
 // Short display label for a specialty key. The keys carry parenthetical
 // disambiguation ("Ophthalmology (Eye Care)") that reads as clutter in a
 // headline or a pill.

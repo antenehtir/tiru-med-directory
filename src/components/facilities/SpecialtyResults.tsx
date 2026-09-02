@@ -9,7 +9,13 @@ import { MapPinIcon } from "@/components/cards/contact-icons";
 import { resolveNearbyFacilityCoordinates } from "@/lib/nearby-coordinates";
 import { calculateDistanceKm, formatDistanceKm } from "@/lib/nearby-distance";
 import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
-import { matchedServiceLabel, rankBySpecialtyFocus } from "@/lib/specialty-match";
+import {
+  MENTAL_HEALTH_SPECIALTY,
+  matchedServiceLabel,
+  matchesMentalHealthBranch,
+  rankBySpecialtyFocus,
+  type MentalHealthBranch,
+} from "@/lib/specialty-match";
 import { useGeolocation } from "@/lib/useGeolocation";
 import type { Facility } from "@/types/facility";
 
@@ -47,7 +53,18 @@ export function SpecialtyResults({
   const [typeKey, setTypeKey] = useState<TypeKey>("all");
   const [openOnly, setOpenOnly] = useState(false);
   const [nearestFirst, setNearestFirst] = useState(false);
+  const [branch, setBranch] = useState<MentalHealthBranch | "all">("all");
   const { locationState, userLocation, requestLocation } = useGeolocation(false);
+
+  // Only offered when the merged mental-health specialty is active AND both
+  // sides actually have facilities — a refinement that can only ever return
+  // everything, or nothing, is not a refinement.
+  const branchCounts = useMemo(() => {
+    if (specialty !== MENTAL_HEALTH_SPECIALTY) return null;
+    const psychiatry = facilities.filter((f) => matchesMentalHealthBranch(f, "psychiatry")).length;
+    const psychology = facilities.filter((f) => matchesMentalHealthBranch(f, "psychology")).length;
+    return psychiatry > 0 && psychology > 0 ? { psychiatry, psychology } : null;
+  }, [facilities, specialty]);
 
   const availableTypes = useMemo(() => {
     const present = new Set<string>();
@@ -61,6 +78,7 @@ export function SpecialtyResults({
     let list = facilities.filter((facility) => {
       if (typeKey !== "all" && resolveFacilityCardCategoryKey(facility) !== typeKey) return false;
       if (openOnly && !isOpenNow(facility)) return false;
+      if (branch !== "all" && !matchesMentalHealthBranch(facility, branch)) return false;
       return true;
     });
 
@@ -81,7 +99,7 @@ export function SpecialtyResults({
       list = rankBySpecialtyFocus(list, specialty);
     }
     return list;
-  }, [facilities, typeKey, openOnly, nearestFirst, userLocation, specialty]);
+  }, [facilities, typeKey, openOnly, nearestFirst, userLocation, specialty, branch]);
 
   const highlightByFacilityId = useMemo(() => {
     const map: Record<string, string> = {};
@@ -150,6 +168,39 @@ export function SpecialtyResults({
                 : "Nearest first"}
         </Pill>
 
+        {branchCounts ? (
+          <>
+            <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-border" />
+            <Pill
+              ariaPressed={branch === "all"}
+              className="min-h-11"
+              onClick={() => setBranch("all")}
+              size="lg"
+              variant={branch === "all" ? "selected" : "default"}
+            >
+              Both
+            </Pill>
+            <Pill
+              ariaPressed={branch === "psychiatry"}
+              className="min-h-11"
+              onClick={() => setBranch("psychiatry")}
+              size="lg"
+              variant={branch === "psychiatry" ? "selected" : "default"}
+            >
+              Psychiatry
+            </Pill>
+            <Pill
+              ariaPressed={branch === "psychology"}
+              className="min-h-11"
+              onClick={() => setBranch("psychology")}
+              size="lg"
+              variant={branch === "psychology" ? "selected" : "default"}
+            >
+              Psychology
+            </Pill>
+          </>
+        ) : null}
+
         {availableTypes.length > 1 ? (
           <>
             <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-border" />
@@ -199,12 +250,13 @@ export function SpecialtyResults({
         ) : (
           <EmptyState
             action={
-              openOnly || typeKey !== "all" ? (
+              openOnly || typeKey !== "all" || branch !== "all" ? (
                 <button
                   className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   onClick={() => {
                     setOpenOnly(false);
                     setTypeKey("all");
+                    setBranch("all");
                   }}
                   type="button"
                 >

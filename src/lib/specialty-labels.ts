@@ -13,13 +13,18 @@ const PUBLIC_LABELS: Record<string, string> = {
   // Supplied wording.
   "Ophthalmology (Eye Care)": "Ophthalmology (Eye care)",
   "Dermatology": "Dermatology (Skin care)",
-  "Psychiatry & Mental Health": "Psychiatry (Psychological care)",
+  // One label covering both disciplines. The data does not separate them
+  // cleanly and a visitor looking for help does not arrive knowing which one
+  // they need; the specialty page carries a refinement for those who do.
+  "Psychiatry & Mental Health": "Mental health care (Psychology and Psychiatry)",
   "ENT (Ear, Nose, Throat)": "ENT (Head and neck care)",
 
   // Proposed wording, following the same rule: name the body part or the
   // person, not the discipline, and keep it to two or three words.
   "Pediatrics": "Pediatrics (Children's care)",
-  "General Surgery": "Surgery (Operations)",
+  // No bracket. "Surgery (Operations)" could be read as "operations only",
+  // which misdescribes centres that also run clinics and follow-up care.
+  "General Surgery": "Surgery",
   "Internal Medicine": "Internal Medicine (Adult general care)",
   "Gynecology & Obstetrics": "Gynecology & Obstetrics (Women's health)",
   "Maternal & Child Health": "Maternal & Child Health (Mother and baby care)",

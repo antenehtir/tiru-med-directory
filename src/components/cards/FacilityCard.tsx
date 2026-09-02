@@ -15,7 +15,10 @@ import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-avai
 import type { Facility } from "@/types/facility";
 
 const MAX_VISIBLE_SERVICE_PILLS = 3;
-const BANNER_BADGE_STATUSES = new Set(["facility-owned", "verified", "pending"]);
+// Every card carries its provenance now, not only the exceptions. The legend
+// on /facilities described a badge that no card drew; rather than delete the
+// explanation, the badge earns it. See VerificationBadge for why the common
+// state is the quiet one.
 
 type FacilityCardProps = { facility: Facility; distanceLabel?: string; highlightLabel?: string };
 type FacilityBannerProps = { facility: Facility; heightClassName?: string };
@@ -24,7 +27,7 @@ export function FacilityBanner({ facility, heightClassName }: FacilityBannerProp
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
   const coverPhotoUrl = facility.photoUrls?.find((url) => url?.trim())?.trim() || facility.photoUrl?.trim() || undefined;
-  const showBadge = BANNER_BADGE_STATUSES.has(facility.verificationStatus);
+  const showBadge = true;
   const frameClassName = heightClassName ?? (coverPhotoUrl ? "aspect-[16/5]" : "h-14");
   return (
     <div aria-hidden="true" className={`pointer-events-none relative w-full shrink-0 overflow-hidden bg-muted ${frameClassName}`}>
@@ -137,7 +140,7 @@ type CompactFacilityCardProps = { facility: Facility; className?: string };
 
 export function CompactFacilityCard({ facility, className = "" }: CompactFacilityCardProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
-  const showTrust = BANNER_BADGE_STATUSES.has(facility.verificationStatus);
+  const showTrust = true;
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   const directionsHref = facilityDirectionsHref(facility);

@@ -20,7 +20,12 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
             Find the right care.
           </h1>
 
-          <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
+          {/* Hidden below sm so the chip row clears the fold on a 390x844
+              phone. The h1 and the search placeholder already say what this
+              site is; on a phone this paragraph restated it for 68px of the
+              only screen the visitor can see without scrolling. It returns
+              intact from sm up, where the space is not contested. */}
+          <p className="mx-auto mt-3 hidden max-w-2xl text-[15px] leading-7 text-muted-foreground sm:block sm:text-base lg:text-lg">
             Trusted healthcare information for facilities, specialists and
             services across Addis Ababa.
           </p>
