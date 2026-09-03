@@ -250,6 +250,25 @@ export function filterSpecialistsByQuery(
   );
 }
 
+// The one place that adds up "how many results does this query return" across
+// all three result types. /search's own result count and the autocomplete's
+// service-tag suggestions both need this number and must agree on it — a
+// service row promising "5 facilities" for a query /search itself resolves to
+// 6 (5 facilities + 1 specialist) is a visible, confusing seam. Call this
+// rather than summing the three filter calls inline a second time.
+export function countQueryMatches(
+  facilities: Facility[],
+  doctors: Doctor[],
+  specialists: SpecialistListItem[],
+  query: string,
+): number {
+  return (
+    filterFacilitiesByQuery(facilities, query).length +
+    filterDoctorsByQuery(doctors, query).length +
+    filterSpecialistsByQuery(specialists, query).length
+  );
+}
+
 // Maps each UI filter value to the DB category strings it should match.
 // The `category` field on each Facility record comes directly from the source data
 // and is already correctly set — we match on it directly instead of text-searching.

@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabasePublicClient } from "@/lib/supabase/public-client";
+import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
+import { matchesQueryTokens, splitQueryTokens } from "@/lib/frontend-search-filters";
 
+// Backs the facility rows in the general search autosuggest dropdown, and is
+// also called directly by the provider "claim your facility" search
+// (ClaimFacilityForm.tsx) — the response shape (snake_case sub_city and
+// verification_status) is that older contract and is kept as-is even though
+// the fields now come off the typed Facility model.
+//
+// Previously matched name/area/sub_city/category with a raw SQL ilike
+// substring, which is why "ent" matched "Adera Medical and Surgical CENTer"
+// and 9 other false positives — the same class of bug /search had before its
+// matcher was fixed. Now reads through getFacilitiesFromDB() (the same
+// 60-second-cached list /search itself uses) and applies
+// matchesQueryTokens/splitQueryTokens — the same word-boundary-aware matcher
+// /search runs — rather than adding a second SQL-shaped implementation of it.
 export async function GET(request: NextRequest) {
   const q = (request.nextUrl.searchParams.get("q") ?? "").trim();
 
@@ -8,43 +22,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ facilities: [] });
   }
 
-  const supabase = getSupabasePublicClient();
+  const tokens = splitQueryTokens(q);
+  const facilities = await getFacilitiesFromDB();
 
-  if (!supabase) {
-    return NextResponse.json({ facilities: [], error: "no client" });
-  }
+  const matches = facilities
+    .filter((facility) => {
+      const haystack = [facility.name, facility.category, facility.area, facility.subCity]
+        .filter(Boolean)
+        .join(" ");
+      return matchesQueryTokens(haystack, tokens);
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 10)
+    .map((facility) => ({
+      id: facility.id,
+      slug: facility.slug,
+      name: facility.name,
+      category: facility.category,
+      area: facility.area ?? null,
+      sub_city: facility.subCity ?? null,
+      verification_status: facility.verificationStatus,
+    }));
 
-  // PostgREST's .or() filter syntax splits on "," and groups on "()" — strip
-  // those out of the raw query so free-typed input can't break the filter.
-  const safeQ = q.replace(/[,()]/g, "");
-  const orFilter = `name.ilike.%${safeQ}%,area.ilike.%${safeQ}%,sub_city.ilike.%${safeQ}%,category.ilike.%${safeQ}%`;
-
-  // Try with is_active filter (requires migration 023); fall back without it
-  // if the column doesn't exist yet.
-  let data: Record<string, unknown>[] | null = null;
-  let error: { message: string } | null = null;
-
-  ({ data, error } = await supabase
-    .from("facilities")
-    .select("id, slug, name, category, area, sub_city, verification_status")
-    .eq("is_active", true)
-    .or(orFilter)
-    .order("name")
-    .limit(10) as { data: Record<string, unknown>[] | null; error: { message: string } | null });
-
-  if (error?.message?.includes("is_active")) {
-    // Column not yet added — retry without the filter.
-    ({ data, error } = await supabase
-      .from("facilities")
-      .select("id, slug, name, category, area, sub_city, verification_status")
-      .or(orFilter)
-      .order("name")
-      .limit(10) as { data: Record<string, unknown>[] | null; error: { message: string } | null });
-  }
-
-  if (error) {
-    return NextResponse.json({ facilities: [], error: error.message });
-  }
-
-  return NextResponse.json({ facilities: data ?? [] });
+  return NextResponse.json({ facilities: matches });
 }

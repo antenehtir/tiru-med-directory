@@ -46,7 +46,10 @@ export function SearchAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
-  const { suggestions } = useFacilitySuggestions(query, { includeSpecialists: true });
+  const { suggestions } = useFacilitySuggestions(query, {
+    includeSpecialists: true,
+    includeServices: true,
+  });
 
   useEffect(() => {
     if (!autoFocus) return;

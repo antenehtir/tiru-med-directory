@@ -12,6 +12,7 @@ import { SpecialistCard } from "@/components/specialists/SpecialistCard";
 import { matchedServiceForQuery } from "@/lib/specialty-match";
 import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import {
+  countQueryMatches,
   filterDoctorsByQuery,
   filterFacilitiesByQuery,
   filterSpecialistsByQuery,
@@ -59,18 +60,35 @@ function SearchResultsPageInner({
     activeFilterCount,
   } = useListingFilterModal();
 
-  const visibleFacilities = filterFacilitiesByQuery(facilities, query).filter((facility) =>
+  // Kept separate from the filtered lists below so the result count can
+  // report "N of M" — M is what the query alone would return, before the
+  // Filter modal narrows it further.
+  const queryMatchedFacilities = filterFacilitiesByQuery(facilities, query);
+  const queryMatchedDoctors = filterDoctorsByQuery(doctors, query);
+  const queryMatchedSpecialists = filterSpecialistsByQuery(specialists, query);
+
+  const visibleFacilities = queryMatchedFacilities.filter((facility) =>
     facilityMatchesListingFilters(facility, filters),
   );
-  const visibleDoctors = filterDoctorsByQuery(doctors, query).filter((doctor) =>
+  const visibleDoctors = queryMatchedDoctors.filter((doctor) =>
     doctorMatchesListingFilters(doctor, filters),
   );
-  const visibleSpecialists = filterSpecialistsByQuery(specialists, query).filter((specialist) =>
+  const visibleSpecialists = queryMatchedSpecialists.filter((specialist) =>
     specialistMatchesListingFilters(specialist, filters),
   );
 
   const hasResults =
     visibleFacilities.length > 0 || visibleDoctors.length > 0 || visibleSpecialists.length > 0;
+
+  const visibleCount = visibleFacilities.length + visibleDoctors.length + visibleSpecialists.length;
+  // The one canonical "total matches for this query" function — the
+  // autocomplete's service-tag suggestions call the same one, so a tag's
+  // promised count and this page's own count can't drift apart.
+  const queryMatchedCount = countQueryMatches(facilities, doctors, specialists, query);
+  // Filters can only ever narrow the query-matched set, never grow it, so
+  // this is the one direction that needs checking: the "of M" half is only
+  // worth printing when it says something the first number doesn't.
+  const filtersAreNarrowing = visibleCount < queryMatchedCount;
 
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
@@ -99,6 +117,20 @@ function SearchResultsPageInner({
           onClose={close}
           onReset={resetFilters}
         />
+
+        {/* Quiet reassurance that the query did something — /search filters
+            live rather than navigating, so the results are the primary
+            feedback and this stays out of their way instead of overlaying
+            them the way a dropdown would. Same aria-live="polite" pattern
+            SpecialtyResults uses for its count, made visible here since
+            there is no other confirmation on this page that typing worked. */}
+        {query.trim() && hasResults ? (
+          <p aria-live="polite" className="text-sm text-muted-foreground" role="status">
+            {filtersAreNarrowing
+              ? `${visibleCount} of ${queryMatchedCount} ${queryMatchedCount === 1 ? "facility" : "facilities"}`
+              : `${visibleCount} ${visibleCount === 1 ? "facility" : "facilities"}`}
+          </p>
+        ) : null}
 
         {hasResults ? (
           <div className="grid gap-8">
