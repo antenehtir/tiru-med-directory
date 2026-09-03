@@ -9,6 +9,7 @@ import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
 import { SpecialistCard } from "@/components/specialists/SpecialistCard";
+import { matchedServiceForQuery } from "@/lib/specialty-match";
 import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import {
   filterDoctorsByQuery,
@@ -103,8 +104,17 @@ function SearchResultsPageInner({
           <div className="grid gap-8">
             {(visibleFacilities.length > 0 || visibleDoctors.length > 0) && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Same treatment the specialty pages use: the service that
+                    caused the match is pulled to the front of the pill row so a
+                    general hospital returned for "EEG" visibly earns its place,
+                    instead of hiding the reason behind "+N more". The helper is
+                    shared with those pages rather than reimplemented. */}
                 {visibleFacilities.map((facility) => (
-                  <FacilityCard key={facility.id} facility={facility} />
+                  <FacilityCard
+                    facility={facility}
+                    highlightLabel={matchedServiceForQuery(facility, query)}
+                    key={facility.id}
+                  />
                 ))}
                 {visibleDoctors.map((doctor) => (
                   <DoctorCard key={doctor.id} doctor={doctor} />

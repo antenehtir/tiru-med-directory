@@ -2034,13 +2034,13 @@ export function RegisterPage() {
   if (submitState === "success") {
     return (
       <div className="mx-auto max-w-xl px-4 py-10 sm:py-16">
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
-          <h1 className="text-lg font-semibold text-green-800">✓ Submission received.</h1>
-          <p className="mt-2 text-sm leading-6 text-green-800">
+        <div className="rounded-2xl border border-success-border bg-success-bg p-6 text-center">
+          <h1 className="text-lg font-semibold text-success-text">✓ Submission received.</h1>
+          <p className="mt-2 text-sm leading-6 text-success-text">
             Our team will review your information and contact you at the details you provided
             before your listing goes live. This usually takes 24–48 hours.
           </p>
-          <Link className="mt-5 inline-flex text-sm font-semibold text-green-800 underline" href="/">
+          <Link className="mt-5 inline-flex text-sm font-semibold text-success-text underline" href="/">
             ← Back to home
           </Link>
         </div>

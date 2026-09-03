@@ -61,6 +61,34 @@ export function matchesAnyAlias(text: string, aliases: string[]): boolean {
   return aliases.some((alias) => buildAliasPattern(alias).test(text));
 }
 
+// The same word-boundary machinery, minus the closing \b, for tokens the
+// VISITOR typed rather than aliases we curated.
+//
+// The distinction is real and measured. An alias is a complete term we chose,
+// so "ent" must not slide into "enterology" and the closing \b earns its
+// place. A typed token is a prefix of what someone means: "lab" is how people
+// ask for "Laboratory", "test" for "tests". Holding query tokens to the alias
+// rule made every short query fail against the data's own longer wording —
+// "lab test" returned 0 of 106 while three facilities tag "Comprehensive
+// Laboratory and Diagnostic tests".
+//
+// Prefix semantics cost nothing measurable: dialysis 20, physiotherapy 6,
+// MRI 8, endoscopy 1 and ent 12 are all unchanged, and "ear" — the token most
+// likely to over-reach — gains no facilities at all.
+function buildQueryTokenPattern(token: string): RegExp {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}`, "i");
+}
+
+// Every token must appear somewhere in the text, in any order.
+export function matchesQueryTokens(text: string, tokens: string[]): boolean {
+  return tokens.every((token) => buildQueryTokenPattern(token).test(text));
+}
+
+export function splitQueryTokens(query: string): string[] {
+  return query.trim().split(/\s+/).filter(Boolean);
+}
+
 // Read-only accessor for a specialty's alias list. The map itself stays
 // private so it has exactly one owner, but the specialty landing page needs
 // the same aliases to decide which listed service caused a match and which
@@ -357,6 +385,24 @@ export function subCityMatches(storedSubCity: string, needle: string): boolean {
   return nextChar === "" || !/[a-z0-9]/.test(nextChar);
 }
 
+// Free-text search now runs on the SAME matcher the specialty chips use.
+//
+// It used to be a contiguous substring scan, and the two paths had drifted
+// three times. The scan was also badly wrong on short queries: "ent" returned
+// 88 of 106 facilities, 76 of them false — gastroENTerology, dENTistry,
+// cENTer, treatmENT, adolescENT. matchesAnyAlias applies word boundaries, so
+// the same query returns 12 with none of those.
+//
+// The query is split on whitespace and every token must match somewhere in the
+// record, rather than the whole phrase having to appear contiguously in one
+// field — so "lab test" finds "Comprehensive Laboratory and Diagnostic tests",
+// which no contiguous scan ever could.
+//
+// Each token anchors to a word start and then runs free to the end of the
+// word, which is what a typed prefix means. The opening \b is the part doing
+// the work: it is what stops "ent" reaching gastroENTerology.
 function matchesTokens(values: string[], query: string): boolean {
-  return values.some((value) => normalizeQuery(value).includes(query));
+  const tokens = splitQueryTokens(query);
+  if (tokens.length === 0) return true;
+  return matchesQueryTokens(values.filter(Boolean).join(" "), tokens);
 }

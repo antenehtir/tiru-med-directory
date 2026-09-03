@@ -1,4 +1,9 @@
-import { getSpecialtyAliases, matchesAnyAlias } from "@/lib/frontend-search-filters";
+import {
+  getSpecialtyAliases,
+  matchesAnyAlias,
+  matchesQueryTokens,
+  splitQueryTokens,
+} from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
 // A facility is "specialist-focused" for a specialty when the specialty is in
@@ -40,17 +45,51 @@ export function rankBySpecialtyFocus(facilities: Facility[], specialty: string):
 // appearing in an eye-care list can show why it earned its place. Falls back to
 // the specialty's own display label when the match came from the facility name
 // rather than from a listed service.
+// The one implementation of "which listed service caused this match", shared
+// by the specialty landing pages and free-text search. Search asked the same
+// question the specialty pages already answered, so it calls this rather than
+// growing a second copy that would drift.
+function listedServices(facility: Facility): string[] {
+  const custom = Object.values(facility.customServiceCategories ?? {}).flat();
+  return [...(facility.services ?? []), ...custom].filter(Boolean);
+}
+
+export function matchedServiceForAliases(
+  facility: Facility,
+  aliases: string[],
+): string | undefined {
+  if (!aliases.length) return undefined;
+  return listedServices(facility).find((service) => matchesAnyAlias(service, aliases));
+}
+
+// Free-text form. Uses the query-token rule rather than the alias rule, for
+// the same reason the result filter does: the visitor typed a prefix, and a
+// card that matched on "lab" should be able to point at "Laboratory".
+//
+// The first service matching ANY token wins, not all of them — a facility can
+// satisfy "lab test" across two separate tags, and showing one real tag beats
+// showing none. "eeg" surfaces the EEG tag on a general hospital that would
+// otherwise look unexplained in the results.
+export function matchedServiceForQuery(
+  facility: Facility,
+  query: string,
+): string | undefined {
+  const tokens = splitQueryTokens(query);
+  if (!tokens.length) return undefined;
+  const services = listedServices(facility);
+  for (const token of tokens) {
+    const hit = services.find((service) => matchesQueryTokens(service, [token]));
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 export function matchedServiceLabel(
   facility: Facility,
   specialty: string,
   fallbackLabel: string,
 ): string {
-  const aliases = getSpecialtyAliases(specialty);
-  if (!aliases.length) return fallbackLabel;
-  const custom = Object.values(facility.customServiceCategories ?? {}).flat();
-  const services = [...(facility.services ?? []), ...custom].filter(Boolean);
-  const direct = services.find((service) => matchesAnyAlias(service, aliases));
-  return direct ?? fallbackLabel;
+  return matchedServiceForAliases(facility, getSpecialtyAliases(specialty)) ?? fallbackLabel;
 }
 
 // The one specialty presented as a merged discipline. Psychiatry and

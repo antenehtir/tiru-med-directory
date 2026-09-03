@@ -17,7 +17,9 @@ export function HeroLocationButton() {
   return (
     <Link
       className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-sm transition hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:flex-none"
-      href="/nearby"
+      // locate=1 tells /nearby the visitor asked for location, so it may prompt
+      // on arrival. Without it that page shows the list and offers the button.
+      href="/nearby?locate=1"
     >
       <MapPinIcon aria-hidden="true" className="size-4 shrink-0 text-primary" />
       Find near me

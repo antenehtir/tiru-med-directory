@@ -24,12 +24,24 @@ export const metadata: Metadata = {
 type NearbyRouteProps = {
   searchParams?: Promise<{
     category?: string | string[];
+    locate?: string | string[];
   }>;
 };
 
 export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
   const params = await searchParams;
   const selectedCategory = normalizeCategoryParam(params?.category);
+  // Location is requested on arrival ONLY when the visitor asked for it —
+  // "Find near me" links here as /nearby?locate=1. Reaching this page from
+  // the bottom navigation or a shared link shows the list and offers the
+  // button, rather than firing a permission prompt at someone who was just
+  // browsing. That is the deferred-permission rule the homepage already
+  // follows; /nearby was the one surface still ignoring it.
+  //
+  // A query parameter rather than a referrer check: referrers are stripped by
+  // privacy settings and absent on a fresh tab, and this stays correct when
+  // the link is shared or bookmarked.
+  const autoLocate = params?.locate === "1";
   const [allFacilities, allSpecialists] = await Promise.all([
     getFacilitiesFromDB(),
     getAllSpecialists(),
@@ -39,6 +51,7 @@ export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
     <PageShell>
       <NearbyPage
         facilities={allFacilities.map(mapFacilityToNearbyFacility)}
+        autoLocate={autoLocate}
         initialCategory={selectedCategory}
         specialists={allSpecialists.map(mapSpecialistToNearbySpecialist)}
       />
