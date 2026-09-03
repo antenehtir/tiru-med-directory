@@ -8,14 +8,36 @@ import type { PublicProviderCard } from "@/types/public-listings";
 // doctors-public-read.ts vs. get-specialists.ts split) — both are surfaced
 // since the `doctors` table path may still hold real records independent of
 // the facility-embedded specialists most providers add through onboarding.
-export async function getDoctorsForSearch(): Promise<Doctor[]> {
-  const supabaseResult = await getSupabasePublicDoctorCards();
+//
+// Same in-memory-cache-with-TTL pattern as getFacilitiesFromDB() and
+// getAllSpecialists(). Missing this was a real bug, not a stylistic gap:
+// /api/search/services started calling this on every autocomplete keystroke
+// once it needed doctors for its result count, and an uncached Supabase
+// round trip measured ~165-225ms warm — the entire perceived delay on the
+// service-suggestion row, dwarfing the ~4ms the route's own ranking and
+// counting logic costs. The table is empty today, so this was 165ms spent
+// fetching zero rows, every keystroke.
+let cachedDoctors: Doctor[] | null = null;
+let cacheTime = 0;
+const CACHE_TTL = 60 * 1000;
 
-  if (supabaseResult.status !== "success" || supabaseResult.cards.length === 0) {
-    return [];
+export async function getDoctorsForSearch(): Promise<Doctor[]> {
+  if (cachedDoctors && Date.now() - cacheTime < CACHE_TTL) {
+    return cachedDoctors;
   }
 
-  return supabaseResult.cards.map(mapPublicDoctorCardToDoctor);
+  const supabaseResult = await getSupabasePublicDoctorCards();
+
+  if (supabaseResult.status !== "success") {
+    // A real fetch failure — serve the last good list rather than an
+    // empty one, same fallback getAllSpecialists() uses.
+    return cachedDoctors ?? [];
+  }
+
+  const fresh = supabaseResult.cards.map(mapPublicDoctorCardToDoctor);
+  cachedDoctors = fresh;
+  cacheTime = Date.now();
+  return fresh;
 }
 
 function mapPublicDoctorCardToDoctor(card: PublicProviderCard): Doctor {

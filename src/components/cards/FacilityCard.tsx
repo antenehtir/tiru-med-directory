@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClockIcon, DirectionsIcon, MapPinIcon, PhoneIcon, ShieldIcon } from "@/components/cards/contact-icons";
+import { ClockIcon, MapPinIcon, PhoneIcon, ShieldIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryBadgeLabels, facilityCategorySpineClasses, facilityMonogram, facilityPlateClasses, facilityWatermarkIconKey, resolveFacilityCardCategoryKey } from "@/components/cards/facility-category-style";
 import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
@@ -138,7 +138,7 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
         <ServicePillRow highlightLabel={highlightLabel} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
           {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${callLeads ? "bg-primary text-primary-foreground hover:bg-primary-hover" : "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted"}`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
-          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title="Directions"><DirectionsIcon className="size-4 shrink-0" /></a> : null}
+          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title="Directions"><MapPinIcon className="size-4 shrink-0" /></a> : null}
           <Link className={`flex min-h-11 flex-1 items-center justify-center rounded-control text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${callLeads ? "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted" : "bg-primary text-primary-foreground hover:bg-primary-hover"}`} href={detailHref}>View details</Link>
         </div>
       </div>
@@ -167,7 +167,7 @@ export function CompactFacilityCard({ facility, className = "" }: CompactFacilit
         <AvailabilityLine facility={facility} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-2.5">
           {callAction ? <a aria-label={`Call ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={callAction.href}><PhoneIcon className="size-3.5 shrink-0" />Call Now</a> : null}
-          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={directionsHref} rel="noopener noreferrer" target="_blank"><DirectionsIcon className="size-3.5 shrink-0" />Directions</a> : null}
+          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={directionsHref} rel="noopener noreferrer" target="_blank"><MapPinIcon className="size-3.5 shrink-0" />Directions</a> : null}
         </div>
       </div>
     </article>

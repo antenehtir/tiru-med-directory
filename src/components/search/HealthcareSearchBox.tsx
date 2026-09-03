@@ -19,7 +19,7 @@ export function HealthcareSearchBox() {
         buttonClassName="flex size-14 shrink-0 items-center justify-center rounded-control bg-primary text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:size-16"
         formClassName="grid min-w-0 grid-cols-[minmax(0,1fr)_3.5rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_4rem] sm:gap-3"
         id="home-healthcare-search"
-        inputClassName="min-h-14 w-full min-w-0 rounded-control border border-border bg-input px-4 text-base text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30 sm:min-h-16"
+        inputClassName="min-h-14 w-full min-w-0 rounded-control border border-border bg-input pl-4 pr-10 text-base text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30 sm:min-h-16"
         isIconButton
         label="Search healthcare"
         labelClassName="sr-only"

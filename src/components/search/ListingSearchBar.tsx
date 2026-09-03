@@ -24,7 +24,11 @@ function FilterIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function Spinner(props: SVGProps<SVGSVGElement>) {
+// Exported so SearchAutocompleteInput (the homepage hero) can show the same
+// loading cue this dropdown already does — the isLoading state
+// useFacilitySuggestions returns was previously read here but discarded
+// there, so a slow response looked identical to no results yet.
+export function Spinner(props: SVGProps<SVGSVGElement>) {
   return (
     <svg aria-hidden="true" className="size-4 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24" {...props}>
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

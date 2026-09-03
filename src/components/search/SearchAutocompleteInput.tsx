@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "./ListingSearchBar";
 import {
   useFacilitySuggestions,
   type FacilitySuggestion,
@@ -46,7 +47,7 @@ export function SearchAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
-  const { suggestions } = useFacilitySuggestions(query, {
+  const { suggestions, isLoading } = useFacilitySuggestions(query, {
     includeSpecialists: true,
     includeServices: true,
   });
@@ -114,6 +115,16 @@ export function SearchAutocompleteInput({
           onKeyDown={handleKeyDown}
           role="combobox"
         />
+
+        {/* isLoading was already returned by the shared hook and already
+            shown here on the /search dropdown (ListingSearchBar) — this
+            input discarded it, so the ~150ms debounce plus fetch time read
+            as the input just sitting there rather than as it working. */}
+        {isLoading ? (
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+            <Spinner />
+          </span>
+        ) : null}
 
         {showSuggestions ? (
           <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-card border border-border bg-card shadow-[0_16px_34px_rgba(31,41,55,0.12)]">
