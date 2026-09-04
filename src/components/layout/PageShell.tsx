@@ -17,7 +17,10 @@ export function PageShell({ children }: PageShellProps) {
         Skip to main content
       </a>
       <Header />
-      <main id="main-content" className="flex-1 pb-20 md:pb-0">
+      {/* xl, not md — matched to MobileBottomNavigation's own breakpoint.
+          Clears the fixed bottom bar for as long as it's on screen; see that
+          component for why its own cutoff moved. */}
+      <main id="main-content" className="flex-1 pb-20 xl:pb-0">
         {children}
       </main>
       <Footer />

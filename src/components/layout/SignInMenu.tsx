@@ -127,7 +127,7 @@ export function SignInMenu({ compact = false }: { compact?: boolean }) {
         className={
           compact
             ? "flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 min-[380px]:size-10"
-            : "ml-2 hidden min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 lg:inline-flex"
+            : "ml-2 hidden min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 xl:inline-flex"
         }
       >
         <UserIcon className="size-4 shrink-0" />

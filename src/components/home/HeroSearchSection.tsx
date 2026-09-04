@@ -17,7 +17,7 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
       <PageContainer className="pb-6 pt-5 sm:pb-10 sm:pt-12 lg:pb-12 lg:pt-16">
         <div className="mx-auto max-w-5xl text-center">
           <h1 className="mx-auto max-w-4xl font-display text-[2.7rem] font-bold leading-[0.98] tracking-[-0.04em] text-balance text-foreground sm:text-6xl lg:text-7xl">
-            Find the right care, right now
+            Find the right care.
           </h1>
 
           {/* Hidden below sm so the chip row clears the fold on a 390x844

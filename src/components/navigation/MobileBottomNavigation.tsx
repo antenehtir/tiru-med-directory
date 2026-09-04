@@ -59,12 +59,20 @@ const navIcons: Record<string, (props: SVGProps<SVGSVGElement>) => ReactElement>
   ),
 };
 
+// Hides at xl (1280px), matching Header's own collapse point — not the more
+// obvious md (768px) — because the header drops its full primary-nav row to
+// a compact utility strip below xl and relies on this bar to cover Home /
+// Search / Nearby / Facilities / Specialists in that entire range. Moving
+// this independently of the header would reopen a 768-1279px dead zone
+// where neither one shows primary navigation. PageShell's `xl:pb-0` on
+// <main> has to move with this — it is the clearance padding that stops
+// this fixed bar from covering the last 80px of page content.
 export function MobileBottomNavigation() {
   const pathname = usePathname();
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden"
       aria-label="Primary mobile navigation"
     >
       <div className="mx-auto grid max-w-md grid-cols-5 gap-0.5">

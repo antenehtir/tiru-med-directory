@@ -12,14 +12,14 @@ export function DesktopNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="ml-auto hidden items-center gap-0.5 lg:flex" aria-label="Primary">
+    <nav className="ml-auto hidden items-center gap-0.5 xl:flex" aria-label="Primary">
       {mainNavigationItems.map((item) => {
         const isActive = isActiveRoute(pathname, item.href);
 
         return (
           <Link
             key={item.href}
-            className={`rounded-full px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground xl:px-3 ${
+            className={`rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
               isActive ? "bg-soft-accent text-primary" : "text-muted-foreground"
             }`}
             href={item.href}
