@@ -41,6 +41,8 @@ type DBFacility = {
   facebook: string | null;
   telegram: string | null;
   whatsapp: string | null;
+  tiktok: string | null;
+  linkedin: string | null;
   latitude: number | null;
   longitude: number | null;
   verification_status: string;
@@ -92,6 +94,15 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     makeChannel(row.slug, "social", "Telegram", row.telegram, ""),
     makeChannel(row.slug, "social", "Instagram", row.instagram, row.instagram ?? ""),
     makeChannel(row.slug, "social", "Facebook", row.facebook, row.facebook ?? ""),
+    // TikTok and LinkedIn have real columns and real onboarding fields (both
+    // saved via Step2LocationForm's normalizeUrl(), same as Instagram and
+    // Facebook above) but were missing here — the reason a populated
+    // facilities.tiktok/linkedin value could never reach FacilityActionPanel's
+    // "Also available on" row: this array, not that component, is where it
+    // was dropped. Href passed as the value itself, matching Instagram/
+    // Facebook's pattern, since normalizeUrl() already guarantees a full URL.
+    makeChannel(row.slug, "social", "TikTok", row.tiktok, row.tiktok ?? ""),
+    makeChannel(row.slug, "social", "LinkedIn", row.linkedin, row.linkedin ?? ""),
     makeChannel(row.slug, "appointment", "Booking", row.booking_link, row.booking_link ?? ""),
   ].filter((c): c is FacilityContactChannel => c !== null);
 
