@@ -28,8 +28,11 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
               125px to spare (browseTop 609px), so it's back for every
               width rather than only from sm up. */}
           <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
-            Discover and connect with trusted private healthcare facilities
-            across Addis Ababa.
+            Discover and connect with trusted private healthcare facilities across{" "}
+            {/* The city name is one proper noun and was splitting across two
+                lines at desktop widths, where this line lands just past the
+                max-w-2xl measure. Held together rather than reworded. */}
+            <span className="whitespace-nowrap">Addis Ababa.</span>
           </p>
 
           <div className="mx-auto mt-5 max-w-3xl text-left sm:mt-8">
