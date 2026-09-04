@@ -35,11 +35,18 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
 
-  const isMultiBranch = facility.subCity?.toLowerCase() === "multiple" || (facility.location?.includes("/") ?? false);
-  const branchLocations = isMultiBranch && facility.location ? facility.location.split("/").map((branch) => branch.trim()).filter(Boolean) : null;
+  // Real branch data, not the old heuristic (subCity === "multiple" or a
+  // "/"-separated location string) — that convention was never written by
+  // onboarding and never matched a single live facility. A branch entry
+  // still needs a name or area to count as real; the onboarding form no
+  // longer saves blank ones, but this stays defensive against older rows.
+  const branches = (facility.branches ?? []).filter(
+    (branch) => branch.name.trim() || branch.area.trim(),
+  );
+  const hasMultipleBranches = branches.length > 0;
   const mapsHref = facility.contactChannels?.find((channel) => channel.channelType === "maps")?.href;
   const bannerPhotos = (facility.photoUrls?.length ? facility.photoUrls : facility.photoUrl ? [facility.photoUrl] : []).map((url) => url?.trim()).filter((url): url is string => Boolean(url));
-  const hasLocation = Boolean(facility.location?.trim()) || Boolean(branchLocations?.length);
+  const hasLocation = Boolean(facility.location?.trim()) || hasMultipleBranches;
 
   return (
     <header className="rounded-card border border-border bg-card p-4 shadow-card sm:p-6 lg:p-8">
@@ -85,11 +92,28 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
       </div>
 
       {hasLocation ? <div className="mt-5 sm:mt-6">
-        {isMultiBranch && branchLocations ? (
+        {hasMultipleBranches ? (
           <div className="rounded-card border border-border bg-background p-4">
             <p className="mb-2 text-sm font-semibold text-foreground">Multiple branches</p>
             <div className="flex flex-col gap-2">
-              {branchLocations.map((branch, index) => <div className="flex items-center justify-between gap-2" key={index}><p className="text-sm text-muted-foreground">{branch}</p>{mapsHref ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={mapsHref} rel="noopener noreferrer" target="_blank">Map →</a> : null}</div>)}
+              {facility.location ? (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm text-muted-foreground">{facility.location}</p>
+                    <p className="text-xs text-muted-foreground/70">Main location</p>
+                  </div>
+                  {mapsHref ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={mapsHref} rel="noopener noreferrer" target="_blank">Map →</a> : null}
+                </div>
+              ) : null}
+              {branches.map((branch, index) => (
+                <div className="flex items-center justify-between gap-2" key={index}>
+                  <div className="min-w-0">
+                    <p className="text-sm text-muted-foreground">{branch.name || branch.area}</p>
+                    {branch.landmark ? <p className="text-xs text-muted-foreground/70">{branch.landmark}</p> : null}
+                  </div>
+                  {branch.maps_link ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={branch.maps_link} rel="noopener noreferrer" target="_blank">Map →</a> : null}
+                </div>
+              ))}
             </div>
           </div>
         ) : (

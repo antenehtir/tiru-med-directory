@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type {
   Facility,
   FacilityAppointmentModality,
+  FacilityBranch,
   FacilityContactChannel,
   FacilityContactChannelType,
   FacilityDoctor,
@@ -51,6 +52,8 @@ type DBFacility = {
   insurance_note: string | null;
   patient_groups: unknown;
   updated_at: string | null;
+  branch_count: number | null;
+  branches: unknown;
 };
 
 function makeChannel(
@@ -164,6 +167,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,
     patientGroups: toStringArray(row.patient_groups),
+    branchCount: row.branch_count ?? undefined,
+    branches: Array.isArray(row.branches) ? (row.branches as FacilityBranch[]) : undefined,
   };
 }
 

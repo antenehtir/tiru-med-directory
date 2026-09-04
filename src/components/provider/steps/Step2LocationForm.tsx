@@ -56,6 +56,14 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   // Pre-populate empty branch blocks for fixed counts (2-6) so they appear
   // immediately, without waiting for the user to click "Add branch".
   // Unbounded counts (99) start empty since there's no fixed number to fill.
+  //
+  // Local state only — deliberately NOT auto-saved. This used to call
+  // autoSave({ branches: initial }) here too, which wrote N blank branch
+  // objects to facility_claims the instant a provider picked a branch
+  // count, before they had typed anything. That is exactly the shape found
+  // in the one real claim that ever had branch data: every field blank.
+  // persistBranches (below) is what actually decides what reaches the
+  // database from here on.
   useEffect(() => {
     if (branchCount > 1 && branchCount !== 99 && branches.length === 0) {
       const initial = Array.from({ length: branchCount - 1 }, () => ({
@@ -68,7 +76,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
         phone: "",
       }));
       setBranches(initial);
-      autoSave({ branches: initial });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -78,6 +85,25 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
       await autoSaveStep2(partial);
       setLastSaved(new Date());
     });
+  }
+
+  // A branch is real once it says where it is — a name alone ("Bole
+  // Branch") or an area alone is enough to be worth keeping; an entry with
+  // neither is still just an empty block the provider hasn't gotten to
+  // yet, not data. Applied at every save site below rather than blocking
+  // Step 2 from completing while a block is blank: a provider who picked
+  // "3 branches" but only has 2 ready shouldn't have to explicitly delete
+  // the third one before they can continue. It just never gets written.
+  function hasBranchContent(branch: Branch): boolean {
+    return branch.name.trim().length > 0 || branch.area.trim().length > 0;
+  }
+
+  // Updates local state (every rendered block, including blank ones the
+  // provider hasn't reached yet, so nothing disappears while they're
+  // mid-form) and separately autosaves only the entries worth keeping.
+  function persistBranches(next: Branch[]) {
+    setBranches(next);
+    autoSave({ branches: next.filter(hasBranchContent) });
   }
 
   const handleMapChange = useCallback(
@@ -96,8 +122,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   function updateBranch(index: number, partial: Partial<Branch>) {
     const next = [...branches];
     next[index] = { ...next[index], ...partial };
-    setBranches(next);
-    autoSave({ branches: next });
+    persistBranches(next);
   }
 
   function addBranch() {
@@ -105,8 +130,10 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
       ...branches,
       { name: "", area: "", landmark: "", latitude: null, longitude: null, maps_link: "", phone: "" },
     ];
-    setBranches(next);
-    autoSave({ branches: next });
+    // The new block is blank by definition — setBranches shows it
+    // immediately so there's somewhere to type; persistBranches' own filter
+    // is what keeps it out of the database until it says something.
+    persistBranches(next);
   }
 
   function useBranchLocation(index: number) {
@@ -315,8 +342,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                     className="text-xs text-red-500 hover:text-red-600"
                     onClick={() => {
                       const next = branches.filter((_, idx) => idx !== i);
-                      setBranches(next);
-                      autoSave({ branches: next });
+                      persistBranches(next);
                     }}
                     type="button"
                   >

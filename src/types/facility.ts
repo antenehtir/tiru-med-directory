@@ -50,6 +50,21 @@ export type FacilityAppointmentModality = {
   value: string;
 };
 
+// Field names (including the snake_case maps_link) match the shape the
+// onboarding repeater has always saved into facility_claims.proposed_branches
+// and, on approval, facilities.branches — kept as-is here rather than
+// translated to camelCase, the same way FacilityDoctor's nested JSON fields
+// (full_name, available_schedule) are left in their stored shape.
+export type FacilityBranch = {
+  name: string;
+  area: string;
+  landmark: string;
+  latitude: number | null;
+  longitude: number | null;
+  maps_link: string;
+  phone: string;
+};
+
 export type Facility = {
   id: string;
   name: string;
@@ -91,4 +106,10 @@ export type Facility = {
   paymentMethods?: string[];
   insuranceNote?: string | null;
   patientGroups?: string[];
+  /** Additional locations beyond the primary one — the entry-count a
+   *  provider chose during onboarding (2, "more than 6", etc.), one less
+   *  than the number of physical branches since the primary location isn't
+   *  repeated here. Undefined/0 means a single-location facility. */
+  branchCount?: number;
+  branches?: FacilityBranch[];
 };
