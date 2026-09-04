@@ -25,10 +25,6 @@ export type NearbySpecialist = SpecialistListItem & {
 };
 
 type NearbyPageProps = {
-  // True only when the visitor asked for location (arriving via
-  // /nearby?locate=1). Browsing here from the bottom nav must not trigger a
-  // permission prompt.
-  autoLocate?: boolean;
   facilities: NearbyFacility[];
   initialCategory: string;
   specialists: NearbySpecialist[];
@@ -67,7 +63,6 @@ const categoryOptions: { label: string; value: FacilityCategoryFilter | "all" }[
 ];
 
 export function NearbyPage({
-  autoLocate = false,
   facilities,
   initialCategory,
   specialists,
@@ -75,7 +70,10 @@ export function NearbyPage({
   const [activeTab, setActiveTab] = useState<NearbyTab>("facilities");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedNearbySpecialty, setSelectedNearbySpecialty] = useState("");
-  const { locationState, userLocation, requestLocation } = useGeolocation(autoLocate);
+  // Requests on arrival unconditionally — bottom nav, a direct link, or
+  // "Find near me" all land here the same way now. useGeolocation's own
+  // default (autoStart = true) already does this; no prop needed.
+  const { locationState, userLocation, requestLocation } = useGeolocation();
   const [isLocationTipOpen, setIsLocationTipOpen] = useState(false);
   const [facilitySearchQuery, setFacilitySearchQuery] = useState("");
   const [openOnly, setOpenOnly] = useState(false);
@@ -332,28 +330,17 @@ export function NearbyPage({
       </>
       ) : null}
 
-      {locationState === "loading" ? (
+      {/* "idle" is the brief tick before the mount effect's permission check
+          resolves — a real, if usually short, render (navigator.permissions
+          .query is async) — not a decision the visitor is being asked to
+          make anymore now that every arrival auto-requests. The old copy
+          here ("Share your location...") described a choice; showing the
+          same in-flight message loading already uses is what's actually
+          true instead. */}
+      {locationState === "loading" || locationState === "idle" ? (
         <p className="inline-flex w-fit items-center rounded-full bg-soft-accent px-4 py-2 text-sm font-semibold text-primary">
           Finding your location...
         </p>
-      ) : null}
-
-      {/* Idle is now a real state rather than a moment in transit: someone who
-          arrived without asking for location sees the offer and decides. */}
-      {locationState === "idle" ? (
-        <div className="flex flex-col gap-3 rounded-card border border-dashed border-strong-border bg-sunken px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Share your location to sort these by distance and see how far each
-            one is.
-          </p>
-          <button
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            onClick={requestLocation}
-            type="button"
-          >
-            Find near me
-          </button>
-        </div>
       ) : null}
 
       {locationState === "timeout" ? (

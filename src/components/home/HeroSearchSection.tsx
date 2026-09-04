@@ -20,12 +20,14 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
             Find the right care.
           </h1>
 
-          {/* Hidden below sm so the chip row clears the fold on a 390x844
-              phone. The h1 and the search placeholder already say what this
-              site is; on a phone this paragraph restated it for 68px of the
-              only screen the visitor can see without scrolling. It returns
-              intact from sm up, where the space is not contested. */}
-          <p className="mx-auto mt-3 hidden max-w-2xl text-[15px] leading-7 text-muted-foreground sm:block sm:text-base lg:text-lg">
+          {/* Was hidden below sm so "Browse by category" would clear the fold
+              on a 390x844 phone — measured then at pushing it past the
+              ~734px usable budget (accounting for mobile browser chrome).
+              The headline shortening to "Find the right care." (from "...,
+              right now") freed enough height that this now clears with
+              125px to spare (browseTop 609px), so it's back for every
+              width rather than only from sm up. */}
+          <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
             Discover and connect with trusted private healthcare facilities
             across Addis Ababa.
           </p>
