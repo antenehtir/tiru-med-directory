@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DoctorCard } from "@/components/cards/DoctorCard";
 import { FacilityCard } from "@/components/cards/FacilityCard";
+import { ListingRefinementPills } from "@/components/facilities/ListingRefinementPills";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
@@ -18,10 +19,16 @@ import {
   filterSpecialistsByQuery,
 } from "@/lib/frontend-search-filters";
 import {
+  applyListingRefinements,
+  availableListingTypes,
+  distanceLabelsByFacilityId,
+} from "@/lib/listing-refinements";
+import {
   doctorMatchesListingFilters,
   facilityMatchesListingFilters,
   specialistMatchesListingFilters,
 } from "@/lib/listing-filters";
+import { useGeolocation } from "@/lib/useGeolocation";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
 import type { Facility } from "@/types/facility";
@@ -60,6 +67,12 @@ function SearchResultsPageInner({
     activeFilterCount,
   } = useListingFilterModal();
 
+  // Open now / Nearest first — new here, not URL-persisted, matching
+  // SpecialtyResults' own local-state treatment of the same two controls.
+  const [openOnly, setOpenOnly] = useState(false);
+  const [nearestFirst, setNearestFirst] = useState(false);
+  const { locationState, userLocation, requestLocation } = useGeolocation(false);
+
   // Kept separate from the filtered lists below so the result count can
   // report "N of M" — M is what the query alone would return, before the
   // Filter modal narrows it further.
@@ -67,9 +80,29 @@ function SearchResultsPageInner({
   const queryMatchedDoctors = filterDoctorsByQuery(doctors, query);
   const queryMatchedSpecialists = filterSpecialistsByQuery(specialists, query);
 
-  const visibleFacilities = queryMatchedFacilities.filter((facility) =>
+  const typeFilteredFacilities = queryMatchedFacilities.filter((facility) =>
     facilityMatchesListingFilters(facility, filters),
   );
+  // Types available among the Filter modal's OWN narrowing (query + subCity
+  // + area + specialty), independent of type itself and of open-now/nearest-
+  // first — the same "ignore the refinement being offered, not the others"
+  // rule SpecialtyResults applies when computing its own availableTypes.
+  const availableTypes = availableListingTypes(
+    queryMatchedFacilities.filter((facility) =>
+      facilityMatchesListingFilters(facility, { ...filters, type: "" }),
+    ),
+  );
+  // Type itself is already applied above via the existing Filter modal /
+  // URL-params pipeline (filters.type) — passing "" here means this second
+  // pass only adds open-now and nearest-first on top, not a redundant type
+  // filter running twice.
+  const visibleFacilities = applyListingRefinements(typeFilteredFacilities, {
+    typeKey: "",
+    openOnly,
+    nearestFirst,
+    userLocation,
+  });
+  const distanceByFacilityId = distanceLabelsByFacilityId(visibleFacilities, userLocation);
   const visibleDoctors = queryMatchedDoctors.filter((doctor) =>
     doctorMatchesListingFilters(doctor, filters),
   );
@@ -118,6 +151,34 @@ function SearchResultsPageInner({
           onReset={resetFilters}
         />
 
+        {/* Same refinement set and the same shared component the specialty
+            pages use — Open now / Nearest first / Type — gated the same way
+            the result count below is: only once there's an active query
+            with at least one facility to refine. Type stays wired to the
+            existing filters.type (the Filter modal's own "Type of care"
+            select) rather than a second, parallel state, so the two
+            controls can never show different selections for the same
+            thing. */}
+        {query.trim() && queryMatchedFacilities.length > 0 ? (
+          <ListingRefinementPills
+            availableTypes={availableTypes}
+            locationState={locationState}
+            nearestFirst={nearestFirst}
+            onSelectType={(type) => applyFilters({ ...filters, type })}
+            onToggleNearestFirst={() => {
+              if (locationState === "ready") {
+                setNearestFirst((value) => !value);
+                return;
+              }
+              setNearestFirst(true);
+              requestLocation();
+            }}
+            onToggleOpenOnly={() => setOpenOnly((value) => !value)}
+            openOnly={openOnly}
+            typeKey={filters.type}
+          />
+        ) : null}
+
         {/* Quiet reassurance that the query did something — /search filters
             live rather than navigating, so the results are the primary
             feedback and this stays out of their way instead of overlaying
@@ -143,6 +204,7 @@ function SearchResultsPageInner({
                     shared with those pages rather than reimplemented. */}
                 {visibleFacilities.map((facility) => (
                   <FacilityCard
+                    distanceLabel={distanceByFacilityId?.[facility.id]}
                     facility={facility}
                     highlightLabel={matchedServiceForQuery(facility, query)}
                     key={facility.id}
@@ -170,10 +232,14 @@ function SearchResultsPageInner({
         ) : (
           <EmptyState
             action={
-              activeFilterCount > 0 || query ? (
+              activeFilterCount > 0 || query || openOnly || nearestFirst ? (
                 <button
                   className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:border-strong-border"
-                  onClick={() => resetFilters()}
+                  onClick={() => {
+                    setOpenOnly(false);
+                    setNearestFirst(false);
+                    resetFilters();
+                  }}
                   type="button"
                 >
                   Clear filters

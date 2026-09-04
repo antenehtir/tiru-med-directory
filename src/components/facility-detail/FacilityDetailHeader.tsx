@@ -1,4 +1,5 @@
 import {
+  facilityCategoryBadgeLabels,
   facilityMonogram,
   facilityPlateClasses,
   facilityWatermarkIconKey,
@@ -64,7 +65,22 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
       </div>
 
       <div className="mt-5 min-w-0 sm:mt-6">
-        <p className="mb-2 inline-flex rounded-full border border-border bg-soft-accent px-3 py-1.5 text-xs font-semibold text-primary">{facility.subcategory || "Facility details"}</p>
+        {/* Was facility.subcategory — meant as a short classification, but
+            for 28 of 106 facilities (mostly Specialty Centers) that field
+            holds a full comma-separated specialty list instead, e.g.
+            "Internal Medicine, Gastroenterology, Cardiology, ...". Rendered
+            here it looked like — and for the affected facilities, WAS — an
+            exact duplicate of the "Clinical specialties" pills further down
+            the page, which read from a different field (services) with the
+            same content. subcategory is a real, useful search-matching
+            field elsewhere (frontend-search-filters.ts, specialty-match.ts)
+            and is intentionally left alone there — only this one display
+            site was wrong. facility.category replaces it: never shown
+            anywhere else on this page, and drawn from a small fixed
+            taxonomy (General Hospital, Specialty Center, Clinic, ...) that
+            cannot reproduce this failure mode the way free-text subcategory
+            can. Same label convention FacilityCard already uses. */}
+        <p className="mb-2 inline-flex rounded-full border border-border bg-soft-accent px-3 py-1.5 text-xs font-semibold text-primary">{facilityCategoryBadgeLabels[categoryKey] || "Facility details"}</p>
         <h1 className="font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">{facility.name}</h1>
         {facility.address ? <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">{facility.address}</p> : null}
 
