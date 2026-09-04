@@ -302,6 +302,12 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                       )}
                       <a
                         className="text-xs text-primary hover:underline"
+                        href={`/admin/facilities/${facility.id}/edit`}
+                      >
+                        Edit
+                      </a>
+                      <a
+                        className="text-xs text-primary hover:underline"
                         href={`/facilities/${facility.slug}`}
                         rel="noopener noreferrer"
                         target="_blank"

@@ -11,6 +11,17 @@ async function getAuditLog() {
   return data ?? [];
 }
 
+// Entries are written by several different admin actions, and not all of
+// them store a flat {field: scalar} pair the way updateFacilityBadge does —
+// a value that is an array or a nested object would otherwise throw
+// "Objects are not valid as a React child" and take the whole page down.
+function firstValueText(value: Record<string, unknown>): string {
+  const first = Object.values(value)[0];
+  if (first === null || first === undefined) return "—";
+  if (typeof first === "object") return JSON.stringify(first);
+  return String(first);
+}
+
 const ACTION_LABELS: Record<string, string> = {
   update_badge: "Badge updated",
   approve_listing: "Listing approved",
@@ -18,6 +29,8 @@ const ACTION_LABELS: Record<string, string> = {
   approve_claim: "Claim approved",
   reject_claim: "Claim rejected",
   correction_reviewed: "Correction reviewed",
+  facility_services_edited: "Services edited",
+  facility_contact_edited: "Contact edited",
 };
 
 export default async function AdminAuditLogPage() {
@@ -54,8 +67,8 @@ export default async function AdminAuditLogPage() {
             <tbody>
               {entries.map((entry: Record<string, unknown>) => {
                 const admin = entry.admin_users as Record<string, string> | null;
-                const oldVal = entry.old_value as Record<string, string> | null;
-                const newVal = entry.new_value as Record<string, string> | null;
+                const oldVal = entry.old_value as Record<string, unknown> | null;
+                const newVal = entry.new_value as Record<string, unknown> | null;
 
                 return (
                   <tr
@@ -84,9 +97,9 @@ export default async function AdminAuditLogPage() {
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {oldVal && newVal ? (
                         <span>
-                          <span className="text-red-500">{Object.values(oldVal)[0]}</span>
+                          <span className="text-red-500">{firstValueText(oldVal)}</span>
                           {" → "}
-                          <span className="text-teal-600">{Object.values(newVal)[0]}</span>
+                          <span className="text-teal-600">{firstValueText(newVal)}</span>
                         </span>
                       ) : "—"}
                     </td>

@@ -31,7 +31,14 @@ export function FacilityBanner({ facility, heightClassName }: FacilityBannerProp
   const frameClassName = heightClassName ?? (coverPhotoUrl ? "aspect-[16/5]" : "h-14");
   return (
     <div aria-hidden="true" className={`pointer-events-none relative w-full shrink-0 overflow-hidden bg-muted ${frameClassName}`}>
-      {coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[2rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18]">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute right-3 size-6 opacity-40" /></div>}
+      {/* Watermark and badge were built in separate rounds to anchor the
+          same top-right corner: at size-6 vertically centered in this 56px
+          (h-14) banner the icon sat directly under the badge, its tip
+          poking out below "CS". The badge is a real trust signal so it keeps
+          the corner; the icon is 40%-opacity ambient texture, so it moves.
+          Two 24px elements cannot clear each other in 56px, hence the shrink
+          to size-4 too: badge now runs y=8-26, icon y=34-50, ~8px apart. */}
+      {coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[2rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18]">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute bottom-1.5 right-3 size-4 opacity-40" /></div>}
       {showBadge ? <div className="absolute right-2 top-2 drop-shadow-sm"><VerificationBadge compact status={facility.verificationStatus} /></div> : null}
     </div>
   );

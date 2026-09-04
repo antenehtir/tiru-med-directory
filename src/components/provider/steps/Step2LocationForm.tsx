@@ -6,6 +6,7 @@ import { saveStep2, autoSaveStep2 } from "@/app/provider/(console)/onboarding/lo
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
+import { normalizeUrl } from "@/lib/normalize-url";
 
 const MapPinPicker = dynamic(
   () => import("@/components/provider/MapPinPicker").then((m) => m.MapPinPicker),
@@ -170,13 +171,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value),
       onBlur: () => autoSave(dbKey),
     };
-  }
-
-  function normalizeUrl(value: string): string {
-    const trimmed = value.trim();
-    if (!trimmed) return "";
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
   }
 
   return (
