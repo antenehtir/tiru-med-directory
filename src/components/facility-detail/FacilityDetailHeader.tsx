@@ -4,6 +4,7 @@ import {
   facilityWatermarkIconKey,
   resolveFacilityCardCategoryKey,
 } from "@/components/cards/facility-category-style";
+import { TelegramIcon, WhatsAppIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
@@ -11,13 +12,22 @@ import type { Facility, FacilityAppointmentModality } from "@/types/facility";
 import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
-const APPOINTMENT_MODALITY_ICONS: Record<FacilityAppointmentModality["type"], string> = {
+// Phone/online/in-person have no single brand to represent, so an emoji
+// stays the simplest option there. Telegram and WhatsApp do have one — an
+// emoji speech bubble doesn't carry WhatsApp's identity the way its own
+// mark does, so those two render the same branded icons used everywhere
+// else on the site rather than a generic emoji standing in for a brand.
+const GENERIC_MODALITY_EMOJI: Partial<Record<FacilityAppointmentModality["type"], string>> = {
   phone: "📞",
-  telegram: "✈️",
-  whatsapp: "💬",
   online: "🌐",
   in_person: "🏥",
 };
+
+function AppointmentModalityMark({ type }: { type: FacilityAppointmentModality["type"] }) {
+  if (type === "whatsapp") return <WhatsAppIcon className="inline size-3.5 shrink-0 -translate-y-px text-[#1EBE5A]" />;
+  if (type === "telegram") return <TelegramIcon className="inline size-3.5 shrink-0 -translate-y-px text-[#26A5E4]" />;
+  return <>{GENERIC_MODALITY_EMOJI[type] ?? ""}</>;
+}
 
 type FacilityDetailHeaderProps = { facility: Facility };
 
@@ -69,7 +79,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
         {facility.walkinAppointment && facility.walkinAppointment !== "Walk-in only" && facility.appointmentModalities?.length ? (
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground">
             <span className="font-semibold">Appointments:</span>
-            {facility.appointmentModalities.map((modality) => <span className="text-muted-foreground" key={modality.type}>{APPOINTMENT_MODALITY_ICONS[modality.type] ?? ""} {modality.value}</span>)}
+            {facility.appointmentModalities.map((modality) => <span className="inline-flex items-center gap-1 text-muted-foreground" key={modality.type}><AppointmentModalityMark type={modality.type} /> {modality.value}</span>)}
           </div>
         ) : null}
       </div>

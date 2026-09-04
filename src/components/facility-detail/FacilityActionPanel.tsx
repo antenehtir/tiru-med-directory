@@ -3,6 +3,16 @@
 import { useState, type SVGProps } from "react";
 import type { Facility } from "@/types/facility";
 import {
+  FacebookIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  MapPinIcon,
+  PhoneIcon,
+  TelegramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from "@/components/cards/contact-icons";
+import {
   createPublicContactActions,
   getExternalLinkProps,
   type PublicContactAction,
@@ -11,63 +21,6 @@ import {
 type FacilityActionPanelProps = {
   facility: Facility;
 };
-
-function TelegramIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <line x1="22" x2="11" y1="2" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  );
-}
-
-function WhatsAppIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-    </svg>
-  );
-}
-
-function FacebookIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <path d="M15 8.5h2.5V5H15a4 4 0 00-4 4v2H8.5v3.5H11V21h3.5v-6.5h2.5l1-3.5h-3.5V9a.5.5 0 01.5-.5z" />
-    </svg>
-  );
-}
-
-function InstagramIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <rect height="18" rx="5" width="18" x="3" y="3" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" fill="currentColor" r="0.75" stroke="none" />
-    </svg>
-  );
-}
-
-function TikTokIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <path d="M9 18V5l9-2v13" />
-      <circle cx="6" cy="18" r="3" />
-      <circle cx="18" cy="16" r="3" />
-    </svg>
-  );
-}
-
-function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} viewBox="0 0 24 24" {...props}>
-      <rect height="18" rx="2" width="18" x="3" y="3" />
-      <line x1="8" x2="8" y1="11" y2="16" />
-      <line x1="8" x2="8" y1="8" y2="8.01" />
-      <line x1="12" x2="12" y1="11" y2="16" />
-      <path d="M12 13.5a2 2 0 014 0V16" />
-    </svg>
-  );
-}
 
 function EmailIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -109,6 +62,21 @@ const socialPlatformIcons: Record<
   instagram: InstagramIcon,
   tiktok: TikTokIcon,
   linkedin: LinkedInIcon,
+};
+
+// Each platform's real badge color, standing in for the shape-only icons
+// above. WhatsApp's green is the exact value TalkToUsButton already uses —
+// not the more common #25D366 — so the same platform reads as the same
+// color everywhere on the site. Instagram gets its real four-stop gradient
+// rather than a flattened single tone; TikTok's badge stays black, matching
+// the app icon, since its brand color is really an absence of one.
+const socialPlatformBadgeClassName: Record<string, string> = {
+  telegram: "bg-[#26A5E4] text-white",
+  whatsapp: "bg-[#1EBE5A] text-white",
+  facebook: "bg-[#1877F2] text-white",
+  instagram: "bg-gradient-to-br from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white",
+  tiktok: "bg-black text-white",
+  linkedin: "bg-[#0A66C2] text-white",
 };
 
 const tertiaryIcons: Record<
@@ -233,20 +201,22 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
       <div className="grid gap-3">
         {primaryPhone ? (
           <a
-            className="flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-center font-semibold text-primary-foreground transition hover:bg-primary-hover"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-center font-semibold text-primary-foreground transition hover:bg-primary-hover"
             href={primaryPhone.href}
             {...getExternalLinkProps(primaryPhone)}
           >
-            📞 Call
+            <PhoneIcon className="size-4 shrink-0" />
+            Call
           </a>
         ) : null}
         {mapsAction ? (
           <a
-            className="flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-primary text-center font-semibold text-primary transition hover:bg-primary/5"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-primary text-center font-semibold text-primary transition hover:bg-primary/5"
             href={mapsAction.href}
             {...getExternalLinkProps(mapsAction)}
           >
-            📍 Get Directions
+            <MapPinIcon className="size-4 shrink-0" />
+            Get Directions
           </a>
         ) : null}
         <ShareFacilityButton facility={facility} />
@@ -305,11 +275,13 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
             {socialActions.map(({ action, platform }) => {
               const Icon = socialPlatformIcons[platform];
               const platformLabel = capitalize(platform);
+              const badgeClassName =
+                socialPlatformBadgeClassName[platform] ?? "border border-border text-foreground";
 
               return (
                 <a
                   aria-label={platformLabel}
-                  className="flex size-10 items-center justify-center rounded-full border border-border text-foreground transition hover:border-strong-border hover:bg-muted"
+                  className={`flex size-10 items-center justify-center rounded-full transition hover:opacity-90 ${badgeClassName}`}
                   href={action.href}
                   key={action.id}
                   title={platformLabel}
