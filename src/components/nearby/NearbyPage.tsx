@@ -8,7 +8,11 @@ import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyStat
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
 import { NEARBY_SPECIALTY_PILLS } from "@/lib/constants/specialty-options";
-import { matchesAnyAlias, type FacilityCategoryFilter } from "@/lib/frontend-search-filters";
+import {
+  filterFacilitiesByCategory,
+  matchesAnyAlias,
+  type FacilityCategoryFilter,
+} from "@/lib/frontend-search-filters";
 import { isFacilityOpenNow } from "@/lib/schedule-availability";
 import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -83,8 +87,18 @@ export function NearbyPage({
 
   const searchedFacilities = facilities;
 
+  // Shared with every other listing surface rather than a private copy. This
+  // file used to keep its own NEARBY_CATEGORY_DB_MAP, which still carried the
+  // pre-taxonomy key "pharmacies" and had no ambulance or home-care entry at
+  // all — so after the chips were corrected to the canonical keys, three of
+  // them (Pharmacies, Ambulance, Home Care) resolved to nothing and silently
+  // returned all 106 facilities instead of filtering.
   const categoryFacilities = useMemo(
-    () => filterFacilitiesByCategory(searchedFacilities, selectedCategory),
+    () =>
+      filterFacilitiesByCategory(
+        searchedFacilities,
+        selectedCategory === "all" ? undefined : (selectedCategory as FacilityCategoryFilter),
+      ),
     [searchedFacilities, selectedCategory],
   );
 
@@ -157,9 +171,17 @@ export function NearbyPage({
     );
   }, [specialists, specialistSearchQuery]);
 
-  const rankedFacilities = useMemo(() => {
+  // Returning [] without a location was why the name search produced nothing
+  // at all when location was denied or still pending: search, the category
+  // chips and Open now are all perfectly meaningful unlocated, but every one
+  // of them fed this ranking step and died here. Unlocated the list still
+  // renders — alphabetically, and with no distance label, since an unknown
+  // distance should read as absent rather than as zero.
+  const rankedFacilities = useMemo((): { facility: NearbyFacility; distanceKm?: number }[] => {
     if (!userLocation) {
-      return [];
+      return [...openFilteredFacilities]
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((facility) => ({ facility }));
     }
 
     return openFilteredFacilities
@@ -168,7 +190,7 @@ export function NearbyPage({
         facility,
         distanceKm: calculateDistanceKm(userLocation, facility.coordinates!),
       }))
-      .sort((left, right) => left.distanceKm - right.distanceKm);
+      .sort((left, right) => (left.distanceKm ?? 0) - (right.distanceKm ?? 0));
   }, [openFilteredFacilities, userLocation]);
 
   const rankedSpecialists = useMemo(() => {
@@ -392,13 +414,13 @@ export function NearbyPage({
         />
       ) : null}
 
-      {locationState === "ready" && activeTab === "facilities" ? (
+      {activeTab === "facilities" ? (
         <section className="grid gap-3">
           {rankedFacilities.length > 0 ? (
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="w-fit" size="sm" variant="muted">
-                  Sorted by distance
+                  {userLocation ? "Sorted by distance" : "Sorted by name"}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
                   Showing {visibleRankedFacilities.length} of {rankedFacilities.length}
@@ -407,7 +429,9 @@ export function NearbyPage({
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleRankedFacilities.map(({ facility, distanceKm }) => (
                   <FacilityCard
-                    distanceLabel={formatDistanceKm(distanceKm)}
+                    distanceLabel={
+                      distanceKm === undefined ? undefined : formatDistanceKm(distanceKm)
+                    }
                     facility={facility}
                     key={facility.id}
                   />
@@ -447,7 +471,7 @@ export function NearbyPage({
           ) : (
             <EmptyState
               action={
-                selectedCategory === "pharmacies" ? (
+                selectedCategory === "pharmacy" ? (
                   <div className="flex flex-wrap justify-center gap-3">
                     <Link
                       className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
@@ -552,30 +576,3 @@ export function NearbyPage({
   );
 }
 
-// Maps each Nearby category chip value to the DB category strings it should match.
-// The `category` field on each Facility record is already correctly set in the source
-// data — match on it directly instead of text-searching name/services/subcategory.
-const NEARBY_CATEGORY_DB_MAP: Record<string, string[]> = {
-  hospital: ["General Hospital"],
-  specialty: ["Specialty Center", "Medical Plaza"],
-  clinic: ["Clinic", "Healthcare Facility"],
-  diagnostics: ["Diagnostic Center"],
-  pharmacies: ["Pharmacy"],
-};
-
-function filterFacilitiesByCategory(
-  facilities: NearbyFacility[],
-  category: string,
-): NearbyFacility[] {
-  if (category === "all") {
-    return facilities;
-  }
-
-  const allowedCategories = NEARBY_CATEGORY_DB_MAP[category];
-
-  if (!allowedCategories) {
-    return facilities;
-  }
-
-  return facilities.filter((facility) => allowedCategories.includes(facility.category));
-}

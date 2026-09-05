@@ -6,6 +6,7 @@ import {
   type NearbySpecialist,
 } from "@/components/nearby/NearbyPage";
 import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
+import { normalizeFacilityCategoryParam } from "@/lib/frontend-search-filters";
 import { getAllSpecialists, type SpecialistListItem } from "@/lib/supabase/get-specialists";
 import {
   resolveNearbyFacilityCoordinates,
@@ -29,7 +30,8 @@ type NearbyRouteProps = {
 
 export default async function NearbyRoute({ searchParams }: NearbyRouteProps) {
   const params = await searchParams;
-  const selectedCategory = normalizeCategoryParam(params?.category);
+  // undefined means "no category named", which /nearby renders as the All chip.
+  const selectedCategory = normalizeFacilityCategoryParam(params?.category) ?? "all";
   const [allFacilities, allSpecialists] = await Promise.all([
     getFacilitiesFromDB(),
     getAllSpecialists(),
@@ -51,23 +53,6 @@ function mapSpecialistToNearbySpecialist(specialist: SpecialistListItem): Nearby
     ...specialist,
     coordinates: resolveNearbySpecialistCoordinates(specialist),
   };
-}
-
-function normalizeCategoryParam(value: string | string[] | undefined): string {
-  const source = Array.isArray(value) ? value[0] : value;
-  const normalized = source?.trim().toLowerCase() ?? "";
-
-  return [
-    "all",
-    "hospital",
-    "specialty",
-    "clinic",
-    "doctors",
-    "diagnostics",
-    "pharmacies",
-  ].includes(normalized)
-    ? normalized
-    : "all";
 }
 
 function mapFacilityToNearbyFacility(facility: Facility): NearbyFacility {

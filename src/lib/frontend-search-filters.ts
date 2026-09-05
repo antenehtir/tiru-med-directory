@@ -135,25 +135,30 @@ export function filterFacilitiesBySpecialtyKeyword(
   return facilities.filter((facility) => specialtyMatchesAliases(searchText(facility), specialty));
 }
 
+// URL spellings that are not themselves taxonomy keys. Deliberately separate
+// from the derived set below, so adding an alias stays an explicit decision
+// rather than something that arrives by copying the key list.
+const FACILITY_CATEGORY_PARAM_ALIASES: Record<string, FacilityCategoryFilter> = {
+  laboratory: "diagnostics",
+};
+
+// Derived from FACILITY_CATEGORY_DB_MAP rather than re-listing its keys. Every
+// hand-maintained copy of that list in this codebase has drifted from the
+// taxonomy at least once, and the failure mode is silent rather than loud:
+// filterFacilitiesByCategory returns the UNFILTERED list for a key it cannot
+// resolve, so a stale value shows every facility instead of raising anything.
+// Deriving means a category added to the map is understood here immediately.
 export function normalizeFacilityCategoryParam(
   value: string | string[] | undefined,
 ): FacilityCategoryFilter | undefined {
   const normalized = normalizeSearchParam(value).toLowerCase();
+  if (!normalized) return undefined;
 
-  if (
-    normalized === "hospital" ||
-    normalized === "specialty" ||
-    normalized === "clinic" ||
-    normalized === "diagnostics" ||
-    normalized === "laboratory" ||
-    normalized === "pharmacy" ||
-    normalized === "ambulance" ||
-    normalized === "home-care"
-  ) {
-    return normalized === "laboratory" ? "diagnostics" : normalized;
+  if (Object.prototype.hasOwnProperty.call(FACILITY_CATEGORY_DB_MAP, normalized)) {
+    return normalized as FacilityCategoryFilter;
   }
 
-  return undefined;
+  return FACILITY_CATEGORY_PARAM_ALIASES[normalized];
 }
 
 export function filterFacilitiesByQuery(
@@ -310,10 +315,13 @@ export function isMappedFacilityCategory(category: string | null | undefined): b
   );
 }
 
-export function filterFacilitiesByCategory(
-  facilities: Facility[],
+// Generic over the facility shape so callers carrying extra fields (e.g.
+// /nearby's NearbyFacility, which adds resolved coordinates) can share this
+// one implementation instead of keeping a private copy that drifts.
+export function filterFacilitiesByCategory<T extends Pick<Facility, "category">>(
+  facilities: T[],
   category: FacilityCategoryFilter | undefined,
-): Facility[] {
+): T[] {
   if (!category) {
     return facilities;
   }
