@@ -74,6 +74,13 @@ async function seed() {
       instagram:           profile.instagram || null,
       facebook:            profile.facebook || null,
       telegram:            profile.telegram || null,
+      // Omitted when this script first ran (2026-06-23): the columns did not
+      // exist until the social-media work landed six days later, so the 16
+      // tiktok and 9 linkedin values in the source JSON were silently dropped
+      // while every other social field imported cleanly. Backfilled by
+      // migrations_draft/041; listed here so a re-run cannot repeat it.
+      tiktok:              profile.tiktok || null,
+      linkedin:            profile.linkedin || null,
       latitude:            facility.latitude ?? null,
       longitude:           facility.longitude ?? null,
       verification_status: "community-submitted",
