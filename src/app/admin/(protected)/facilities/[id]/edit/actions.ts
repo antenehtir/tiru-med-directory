@@ -134,6 +134,75 @@ export async function updateFacilityServices(
   revalidatePath("/facilities/[slug]", "page");
 }
 
+const LOCATION_COLUMNS = "name, latitude, longitude, maps_link, sub_city, area";
+
+// Same partial contract as the other two sections.
+type FacilityLocationFields = Partial<{
+  latitude: number | null;
+  longitude: number | null;
+  maps_link: string | null;
+  sub_city: string | null;
+  area: string | null;
+}>;
+
+// Matches the bounds /api/provider/resolve-maps-link already enforces, so a
+// coordinate cannot be saved here that the picker itself would have rejected.
+function isWithinAddis(lat: number, lng: number): boolean {
+  return lat >= 8.7 && lat <= 9.3 && lng >= 38.5 && lng <= 39.0;
+}
+
+export async function updateFacilityLocation(
+  facilityId: string,
+  fields: FacilityLocationFields,
+) {
+  const adminUser = await getAdminUser();
+  if (!adminUser) throw new Error("Unauthorized");
+
+  if (Object.keys(fields).length === 0) return;
+
+  // Latitude and longitude only ever move together — a row carrying one
+  // without the other cannot be placed on a map at all.
+  const movingLat = fields.latitude !== undefined;
+  const movingLng = fields.longitude !== undefined;
+  if (movingLat !== movingLng) {
+    throw new Error("Latitude and longitude must be set together.");
+  }
+  if (movingLat && movingLng) {
+    const { latitude, longitude } = fields;
+    if (typeof latitude !== "number" || typeof longitude !== "number") {
+      throw new Error("Coordinates must both be numbers.");
+    }
+    if (!isWithinAddis(latitude, longitude)) {
+      throw new Error(
+        `${latitude}, ${longitude} is outside Addis Ababa — check the map link before saving.`,
+      );
+    }
+  }
+
+  const supabase = await createAdminSupabaseClient();
+  const before = await loadFacilitySnapshot(supabase, facilityId, LOCATION_COLUMNS);
+
+  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
+  if (error) throw new Error(error.message);
+
+  await logFacilityEdit(
+    supabase,
+    adminUser.id,
+    facilityId,
+    "facility_location_edited",
+    before,
+    fields,
+    before?.name as string | undefined,
+  );
+
+  revalidatePath("/admin/facilities");
+  revalidatePath(`/admin/facilities/${facilityId}/edit`);
+  revalidatePath("/facilities/[slug]", "page");
+  // /nearby ranks by these coordinates, so a stale cache there is the whole
+  // point of this edit going unnoticed.
+  revalidatePath("/nearby");
+}
+
 const CONTACT_COLUMNS =
   "name, phone, phone_2, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin";
 

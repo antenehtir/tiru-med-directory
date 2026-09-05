@@ -31,6 +31,7 @@ const ACTION_LABELS: Record<string, string> = {
   correction_reviewed: "Correction reviewed",
   facility_services_edited: "Services edited",
   facility_contact_edited: "Contact edited",
+  facility_location_edited: "Location edited",
 };
 
 export default async function AdminAuditLogPage() {

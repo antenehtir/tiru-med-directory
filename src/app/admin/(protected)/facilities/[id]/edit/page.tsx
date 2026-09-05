@@ -7,7 +7,7 @@ async function getFacility(id: string) {
   const { data, error } = await supabase
     .from("facilities")
     .select(
-      "id, slug, name, category, verification_status, record_number, services, special_services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, phone, phone_2, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin",
+      "id, slug, name, category, verification_status, record_number, services, special_services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, phone, phone_2, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin, latitude, longitude, maps_link, sub_city, area",
     )
     .eq("id", id)
     .single();

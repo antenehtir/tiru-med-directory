@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminFacilityServicesEditor } from "@/components/admin/AdminFacilityServicesEditor";
 import { AdminFacilityContactEditor } from "@/components/admin/AdminFacilityContactEditor";
+import { AdminFacilityLocationEditor } from "@/components/admin/AdminFacilityLocationEditor";
 
-type Section = "services" | "contact";
+type Section = "services" | "contact" | "location";
 
 // Sectioned, not a sequential wizard: an admin lands on whichever section the
 // URL names (deep-linkable via ?section=) and can jump to the other one
@@ -14,7 +15,9 @@ type Section = "services" | "contact";
 export function AdminFacilityEditor({ facility }: { facility: Record<string, unknown> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initial = searchParams.get("section") === "contact" ? "contact" : "services";
+  const param = searchParams.get("section");
+  const initial: Section =
+    param === "contact" ? "contact" : param === "location" ? "location" : "services";
   const [section, setSection] = useState<Section>(initial);
 
   function selectSection(next: Section) {
@@ -49,12 +52,25 @@ export function AdminFacilityEditor({ facility }: { facility: Record<string, unk
         >
           Contact & Social
         </button>
+        <button
+          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
+            section === "location"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => selectSection("location")}
+          type="button"
+        >
+          Location
+        </button>
       </div>
 
       {section === "services" ? (
         <AdminFacilityServicesEditor facility={facility} />
-      ) : (
+      ) : section === "contact" ? (
         <AdminFacilityContactEditor facility={facility} />
+      ) : (
+        <AdminFacilityLocationEditor facility={facility} />
       )}
     </div>
   );
