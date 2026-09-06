@@ -16,6 +16,14 @@ type MapPinPickerProps = {
   // press — the primary location's warning callout says not to use it, but a
   // warning beside a button is weaker than no button.
   showGeolocation?: boolean;
+  // Renders the picker's own "Pin your facility location *" heading. Onboarding
+  // needs it — there the picker is the whole step and the asterisk marks a
+  // required field. A caller that already labels the picker should pass false:
+  // the admin editor heads the section "Map location" and each branch block
+  // "Branch location", so the internal heading repeated the label and called a
+  // branch a facility while marking required something that is not a form
+  // field there.
+  showHeading?: boolean;
 };
 
 function ConfirmationMap({
@@ -120,6 +128,7 @@ export function MapPinPicker({
   initialMapsLink,
   onChange,
   showGeolocation = true,
+  showHeading = true,
 }: MapPinPickerProps) {
   const hasInitial = !!(initialLat && initialLng);
   const [option, setOption] = useState<LocationOption>(
@@ -243,16 +252,18 @@ export function MapPinPicker({
 
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-sm font-medium text-foreground">
-          Pin your facility location *
-        </p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {showGeolocation
-            ? "Choose the method that works best for you"
-            : "Paste the Google Maps link for this entrance"}
-        </p>
-      </div>
+      {showHeading && (
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Pin your facility location *
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {showGeolocation
+              ? "Choose the method that works best for you"
+              : "Paste the Google Maps link for this entrance"}
+          </p>
+        </div>
+      )}
 
       {/* Already confirmed */}
       {option === "confirmed" && confirmedLat && confirmedLng && (

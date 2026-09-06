@@ -187,6 +187,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           initialMapsLink={mapsLink}
           onChange={handleMapChange}
           showGeolocation={false}
+          showHeading={false}
         />
       </div>
 
@@ -263,6 +264,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
               key={`branch-map-${index}`}
               onChange={setCoordinates}
               showGeolocation={false}
+              showHeading={false}
             />
           </div>
         )}
