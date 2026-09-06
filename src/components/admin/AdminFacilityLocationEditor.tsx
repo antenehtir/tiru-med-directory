@@ -158,13 +158,6 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           )}
         </div>
 
-        {/* The picker also offers "use my current location". That is written
-            for a provider standing at their own entrance; from an admin desk
-            it would pin the facility to this office. */}
-        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-          Use the maps-link option, not &ldquo;current location&rdquo; — that captures
-          where you are sitting, not where the facility is.
-        </p>
 
         <div className="mb-4 grid gap-2 rounded-lg border border-border bg-background p-3 text-sm sm:grid-cols-2">
           <div>
@@ -184,11 +177,16 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           </div>
         </div>
 
+        {/* No GPS option in admin. "I am at the facility right now" reads the
+            browser's own location, so from this desk it pins the facility to
+            this desk. A warning next to the button used to stand here; not
+            rendering the button is the stronger version of that warning. */}
         <MapPinPicker
           initialLat={lat}
           initialLng={lng}
           initialMapsLink={mapsLink}
           onChange={handleMapChange}
+          showGeolocation={false}
         />
       </div>
 
@@ -264,6 +262,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
               initialMapsLink={branch.maps_link}
               key={`branch-map-${index}`}
               onChange={setCoordinates}
+              showGeolocation={false}
             />
           </div>
         )}

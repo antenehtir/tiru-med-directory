@@ -9,6 +9,13 @@ type MapPinPickerProps = {
   initialLng?: number | null;
   initialMapsLink?: string;
   onChange: (lat: number, lng: number, mapsLink?: string) => void;
+  // Offers "I am at the facility right now", which reads the browser's own
+  // GPS. Right for a provider standing at their entrance during onboarding,
+  // and wrong everywhere else: pressed from the admin desk it pins the
+  // facility to the desk. Admin passes false so the button is not there to
+  // press — the primary location's warning callout says not to use it, but a
+  // warning beside a button is weaker than no button.
+  showGeolocation?: boolean;
 };
 
 function ConfirmationMap({
@@ -112,6 +119,7 @@ export function MapPinPicker({
   initialLng,
   initialMapsLink,
   onChange,
+  showGeolocation = true,
 }: MapPinPickerProps) {
   const hasInitial = !!(initialLat && initialLng);
   const [option, setOption] = useState<LocationOption>(
@@ -240,7 +248,9 @@ export function MapPinPicker({
           Pin your facility location *
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Choose the method that works best for you
+          {showGeolocation
+            ? "Choose the method that works best for you"
+            : "Paste the Google Maps link for this entrance"}
         </p>
       </div>
 
@@ -286,6 +296,7 @@ export function MapPinPicker({
       {option === "none" && (
         <div className="space-y-3">
           {/* Option 1: GPS */}
+          {showGeolocation && (
           <div className="rounded-xl border border-border bg-background p-4">
             <p className="mb-1 text-sm font-semibold text-foreground">
               Option 1 — I am at the facility right now
@@ -313,18 +324,23 @@ export function MapPinPicker({
               <p className="mt-2 text-xs text-red-500">{gpsError}</p>
             )}
           </div>
+          )}
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
+          {/* Divider — only meaningful when there are two options to divide */}
+          {showGeolocation && (
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          )}
 
           {/* Option 2: Google Maps link */}
           <div className="rounded-xl border border-border bg-background p-4">
             <p className="mb-1 text-sm font-semibold text-foreground">
-              Option 2 — Paste a Google Maps link
+              {showGeolocation
+                ? "Option 2 — Paste a Google Maps link"
+                : "Paste a Google Maps link"}
             </p>
             <p className="mb-3 text-xs text-muted-foreground">
               Open Google Maps, search for your facility, tap Share →
