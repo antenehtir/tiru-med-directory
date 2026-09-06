@@ -178,15 +178,24 @@ export function BranchRepeater({
                 placeholder="e.g. next to Edna Mall"
                 value={branch.landmark}
               />
-              <BranchField
-                help="Paste the Google Maps link for this branch entrance"
-                label="Google Maps link"
-                onChange={(v) => update(i, { maps_link: v })}
-                onCommit={(v) => commit(update(i, { maps_link: v }))}
-                placeholder="https://maps.app.goo.gl/..."
-                type="url"
-                value={branch.maps_link}
-              />
+              {/* Only when there is no coordinate editor. A caller that passes
+                  one already offers a maps-link box inside it, and that one
+                  resolves the link to a latitude and longitude before storing
+                  it. Showing both put two identical-looking paste bars in the
+                  same block where only the lower one produced coordinates —
+                  a link pasted into this field would leave the branch looking
+                  located while staying invisible to distance search. */}
+              {!renderCoordinateEditor && (
+                <BranchField
+                  help="Paste the Google Maps link for this branch entrance"
+                  label="Google Maps link"
+                  onChange={(v) => update(i, { maps_link: v })}
+                  onCommit={(v) => commit(update(i, { maps_link: v }))}
+                  placeholder="https://maps.app.goo.gl/..."
+                  type="url"
+                  value={branch.maps_link}
+                />
+              )}
               <BranchField
                 label="Branch phone number"
                 onChange={(v) => update(i, { phone: v })}
