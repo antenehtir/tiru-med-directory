@@ -155,7 +155,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const knownLists: readonly (readonly string[])[] = isPharmacy
     ? [PHARMACY_CATEGORIES]
     : isDiagnostic
-      ? [LAB_TESTS, IMAGING_SERVICES]
+      ? [LAB_TESTS, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
       : isHomeCare
         ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
         : isAmbulance
@@ -346,6 +346,20 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               options={IMAGING_SERVICES}
               services={services}
               title="Imaging & Diagnostics"
+            />
+            {/* The panels a laboratory actually runs. Withheld from this
+                branch until now, while general hospitals were shown them —
+                which is backwards, and is why the live Diagnostic Centers
+                hand-typed test names the catalogue already had. */}
+            <BasicLabSelector
+              customInputs={customInputs}
+              customServiceCategories={customServiceCategories}
+              onCustomAdd={addCustomService}
+              onCustomChange={setCustomInput}
+              onRemoveCustom={removeCustomService}
+              onSelectAllIn={selectAllIn}
+              onToggleTest={toggleService}
+              services={services}
             />
           </>
         )}

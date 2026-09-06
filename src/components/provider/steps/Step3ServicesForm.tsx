@@ -430,11 +430,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     : isPharmacy
       ? [PHARMACY_CATEGORIES]
       : isDiagLabOnly
-        ? [LAB_TESTS]
+        ? [LAB_TESTS, ALL_BASIC_LAB_TESTS]
         : isDiagImagingOnly
           ? [IMAGING_SERVICES]
           : isDiagBoth
-            ? [LAB_TESTS, IMAGING_SERVICES]
+            ? [LAB_TESTS, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
             : isHomeCare
               ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
               : isAmbulance
@@ -620,6 +620,22 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 options={IMAGING_SERVICES}
                 services={services}
                 title="Imaging & Diagnostics"
+              />
+            )}
+
+            {/* The same panels the general branch has always offered. A lab
+                that runs a panel ticks it once; the individual tests appear
+                only so it can deselect the few it does not run. */}
+            {showLabPills && (
+              <BasicLabSelector
+                customInputs={customInputs}
+                customServiceCategories={customServiceCategories}
+                onCustomAdd={addCustomService}
+                onCustomChange={setCustomInput}
+                onRemoveCustom={removeCustomService}
+                onSelectAllIn={selectAllIn}
+                onToggleTest={toggleService}
+                services={services}
               />
             )}
 

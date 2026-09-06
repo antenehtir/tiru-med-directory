@@ -166,16 +166,39 @@ export const IMAGING_SERVICES = [
   "Interventional Radiology",
 ] as const;
 
+// Each key is a panel a lab either runs or does not, which is how a lab
+// actually thinks about its own menu — the UI ticks the whole panel from one
+// checkbox and only then reveals the individual tests to deselect. That is why
+// adding panels here makes the form shorter to fill in rather than longer: ten
+// checkboxes replace a hundred pills, and the pills stay available for the lab
+// that runs eight of a panel's ten tests.
+//
+// The panels below the original nine were added after the live data showed
+// Diagnostic Centers hand-typing entries this list already covered — "Organ
+// function test", "Serum electrolite", "Autoimmuine markers", "Urine
+// analysis", "stool test", all five from one facility, two misspelled, one
+// ("Urine analysis") duplicating a Urinalysis pill it had already ticked. They
+// were typing because the diagnostic branch of the form never showed them this
+// catalogue, not because the catalogue lacked the concepts. The gaps that were
+// real are the panels a referring doctor asks for by name and no group here
+// held: coagulation, cardiac markers, iron studies, tumour markers, and the
+// blood bank work any lab of ICL's size does daily.
 export const BASIC_LAB_CATEGORIES: Record<string, string[]> = {
   "Basic Blood Workup": ["CBC", "ESR", "CRP", "RBS", "FBS", "HbA1c", "Lipid Profile", "Peripheral Blood Film"],
-  "Basic Serum Chemistry": ["Electrolytes (Na/K/Cl)", "LFT (AST/ALT/ALP/Bilirubin)", "RFT (BUN/Creatinine)", "Uric Acid", "Total Protein/Albumin", "Calcium", "Phosphorus"],
-  "Hormonal Workup": ["TSH", "Free T3", "Free T4", "FSH", "LH", "Prolactin", "Testosterone", "Cortisol", "Insulin", "Vitamin D"],
-  "Basic Urine-based Tests": ["Urinalysis", "Pregnancy Test (Urine hCG)", "Microalbumin", "Urine Protein/Creatinine Ratio"],
+  "Basic Serum Chemistry": ["Electrolytes (Na/K/Cl)", "LFT (AST/ALT/ALP/Bilirubin)", "RFT (BUN/Creatinine)", "Uric Acid", "Total Protein/Albumin", "Calcium", "Phosphorus", "Magnesium", "Amylase", "Lipase"],
+  "Coagulation Profile": ["PT / INR", "APTT", "D-dimer", "Fibrinogen", "Bleeding Time", "Clotting Time"],
+  "Cardiac Markers": ["Troponin I/T", "CK-MB", "CK Total", "LDH", "BNP / NT-proBNP"],
+  "Anaemia & Iron Studies": ["Serum Ferritin", "Serum Iron", "TIBC", "Vitamin B12", "Folate", "Reticulocyte Count", "Sickling Test", "Haemoglobin Electrophoresis"],
+  "Hormonal Workup": ["TSH", "Free T3", "Free T4", "Anti-TPO", "FSH", "LH", "Prolactin", "Testosterone", "Progesterone", "Estradiol", "Beta-hCG (Serum)", "Cortisol", "Insulin", "Parathyroid Hormone (PTH)", "Vitamin D"],
+  "Tumour Markers": ["PSA", "CA-125", "CEA", "AFP", "CA 19-9", "CA 15-3"],
+  "Basic Urine-based Tests": ["Urinalysis", "Pregnancy Test (Urine hCG)", "Microalbumin", "Urine Protein/Creatinine Ratio", "24-hour Urine Protein"],
   "Basic Stool Test": ["Stool Direct/Microscopy", "H. pylori Antigen", "Occult Blood"],
-  "Culture & Sensitivity": ["Blood Culture", "Urine Culture", "Stool Culture", "Body Fluid Culture", "Wound/Swab Culture", "Throat Culture"],
+  "Culture & Sensitivity": ["Blood Culture", "Urine Culture", "Stool Culture", "Body Fluid Culture", "Wound/Swab Culture", "Throat Culture", "Sputum Culture"],
   "Body Fluid Analysis": ["Pleural Fluid", "Peritoneal (Ascitic) Fluid", "CSF Analysis", "Synovial Fluid"],
   "Autoimmune Markers": ["ANA", "P-ANCA", "C-ANCA", "RF", "Anti-dsDNA", "Anti-CCP"],
-  "Serology & Infectious Disease Screening": ["HIV", "RPR/VDRL", "HBsAg", "Anti-HCV", "Widal Test", "Malaria (RDT/Blood Film)", "TB (GeneXpert/AFB)"],
+  "Serology & Infectious Disease Screening": ["HIV", "RPR/VDRL", "HBsAg", "HBeAg", "Anti-HBs", "Anti-HCV", "Hepatitis A IgM", "Widal Test", "Brucella (Rose Bengal)", "Toxoplasma IgG/IgM", "Rubella IgG/IgM", "Malaria (RDT/Blood Film)", "TB (GeneXpert/AFB)"],
+  "Transfusion & Blood Bank": ["Blood Group & Rh", "Cross-matching", "Direct Coombs", "Indirect Coombs", "Antibody Screening"],
+  "Other Specialised Tests": ["Semen Analysis", "Allergy Panel (Total/Specific IgE)", "Procalcitonin", "Serum Protein Electrophoresis", "Therapeutic Drug Monitoring", "ELISA-based Assays"],
 };
 
 export const ALL_BASIC_LAB_TESTS: string[] = Object.values(BASIC_LAB_CATEGORIES).flat();
