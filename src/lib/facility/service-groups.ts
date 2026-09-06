@@ -24,15 +24,21 @@ type ServiceGroupDef = {
 // catalog values from onboarding (src/lib/provider/onboarding-config.ts),
 // not user data, so the grouping is derived from the same static lists
 // Step 3 uses, in the same order they appear there.
+// Laboratory before imaging, everywhere. The two forms render the sections in
+// this order and so does this page, because a reader comparing two facilities
+// should meet the same sequence in the editor, in onboarding, and in the
+// listing. Nothing in IMAGING_SERVICES also appears in BASIC_LAB_CATEGORIES,
+// so moving imaging below the lab panels changes only the order groups are
+// shown in, never which group claims a service.
 const SERVICE_GROUP_DEFS: ServiceGroupDef[] = [
   { key: "general", label: "General Services", predefined: MAIN_SERVICES },
-  { key: "imaging", label: "Imaging & Diagnostics", predefined: IMAGING_SERVICES },
   ...Object.entries(BASIC_LAB_CATEGORIES).map(([category, tests]) => ({
     key: `basiclab-${category}`,
     label: category,
     predefined: tests,
   })),
   { key: "basiclab-other-test", label: "Other Lab Tests" },
+  { key: "imaging", label: "Imaging & Diagnostics", predefined: IMAGING_SERVICES },
   { key: "pharmacy", label: "Medication Categories", predefined: PHARMACY_CATEGORIES },
   { key: "lab", label: "Tests & Procedures", predefined: LAB_TESTS },
   { key: "homecare", label: "Home Care Services", predefined: HOME_CARE_SERVICES },

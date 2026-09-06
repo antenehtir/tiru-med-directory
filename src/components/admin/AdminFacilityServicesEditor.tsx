@@ -291,6 +291,16 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               services={services}
               title="Medical specialties"
             />
+            <BasicLabSelector
+              customInputs={customInputs}
+              customServiceCategories={customServiceCategories}
+              onCustomAdd={addCustomService}
+              onCustomChange={setCustomInput}
+              onRemoveCustom={removeCustomService}
+              onSelectAllIn={selectAllIn}
+              onToggleTest={toggleService}
+              services={services}
+            />
             <PillSelector
               customEntries={customServiceCategories.imaging ?? []}
               customValue={customInputs.imaging ?? ""}
@@ -302,16 +312,6 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               options={IMAGING_SERVICES}
               services={services}
               title="Imaging & Diagnostics"
-            />
-            <BasicLabSelector
-              customInputs={customInputs}
-              customServiceCategories={customServiceCategories}
-              onCustomAdd={addCustomService}
-              onCustomChange={setCustomInput}
-              onRemoveCustom={removeCustomService}
-              onSelectAllIn={selectAllIn}
-              onToggleTest={toggleService}
-              services={services}
             />
           </>
         )}
@@ -333,18 +333,6 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
 
         {isDiagnostic && (
           <>
-            <PillSelector
-              customEntries={customServiceCategories.imaging ?? []}
-              customValue={customInputs.imaging ?? ""}
-              onCustomAdd={() => addCustomService("imaging")}
-              onCustomChange={(v) => setCustomInput("imaging", v)}
-              onRemoveCustom={(v) => removeCustomService("imaging", v)}
-              onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
-              onToggle={toggleService}
-              options={IMAGING_SERVICES}
-              services={services}
-              title="Imaging & Diagnostics"
-            />
             {/* The panels a laboratory actually runs. Withheld from this
                 branch until now, while general hospitals were shown them —
                 which is backwards, and is why the live Diagnostic Centers
@@ -358,6 +346,18 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               onSelectAllIn={selectAllIn}
               onToggleTest={toggleService}
               services={services}
+            />
+            <PillSelector
+              customEntries={customServiceCategories.imaging ?? []}
+              customValue={customInputs.imaging ?? ""}
+              onCustomAdd={() => addCustomService("imaging")}
+              onCustomChange={(v) => setCustomInput("imaging", v)}
+              onRemoveCustom={(v) => removeCustomService("imaging", v)}
+              onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
+              onToggle={toggleService}
+              options={IMAGING_SERVICES}
+              services={services}
+              title="Imaging & Diagnostics"
             />
           </>
         )}

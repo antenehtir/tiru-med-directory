@@ -538,6 +538,16 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               services={services}
               title="Medical specialties"
             />
+            <BasicLabSelector
+              customInputs={customInputs}
+              customServiceCategories={customServiceCategories}
+              onCustomAdd={addCustomService}
+              onCustomChange={setCustomInput}
+              onRemoveCustom={removeCustomService}
+              onSelectAllIn={selectAllIn}
+              onToggleTest={toggleService}
+              services={services}
+            />
             <PillSelector
               customEntries={customServiceCategories.imaging ?? []}
               customValue={customInputs.imaging ?? ""}
@@ -549,16 +559,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               options={IMAGING_SERVICES}
               services={services}
               title="Imaging & Diagnostics"
-            />
-            <BasicLabSelector
-              customInputs={customInputs}
-              customServiceCategories={customServiceCategories}
-              onCustomAdd={addCustomService}
-              onCustomChange={setCustomInput}
-              onRemoveCustom={removeCustomService}
-              onSelectAllIn={selectAllIn}
-              onToggleTest={toggleService}
-              services={services}
             />
           </>
         )}
@@ -604,21 +604,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
         {isDiagnostic && (
           <>
-            {showDiagImagingPills && (
-              <PillSelector
-                customEntries={customServiceCategories.imaging ?? []}
-                customValue={customInputs.imaging ?? ""}
-                onCustomAdd={() => addCustomService("imaging")}
-                onCustomChange={(v) => setCustomInput("imaging", v)}
-                onRemoveCustom={(v) => removeCustomService("imaging", v)}
-                onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
-                onToggle={toggleService}
-                options={IMAGING_SERVICES}
-                services={services}
-                title="Imaging & Diagnostics"
-              />
-            )}
-
             {/* The same panels the general branch has always offered. A lab
                 that runs a panel ticks it once; the individual tests appear
                 only so it can deselect the few it does not run. */}
@@ -632,6 +617,21 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 onSelectAllIn={selectAllIn}
                 onToggleTest={toggleService}
                 services={services}
+              />
+            )}
+
+            {showDiagImagingPills && (
+              <PillSelector
+                customEntries={customServiceCategories.imaging ?? []}
+                customValue={customInputs.imaging ?? ""}
+                onCustomAdd={() => addCustomService("imaging")}
+                onCustomChange={(v) => setCustomInput("imaging", v)}
+                onRemoveCustom={(v) => removeCustomService("imaging", v)}
+                onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
+                onToggle={toggleService}
+                options={IMAGING_SERVICES}
+                services={services}
+                title="Imaging & Diagnostics"
               />
             )}
 
