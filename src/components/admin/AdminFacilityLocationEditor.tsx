@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { updateFacilityLocation } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
+import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-repeater";
+import type { FacilityBranch } from "@/types/facility";
 
 // Leaflet touches window on import, so the picker cannot render on the
 // server. Same dynamic/ssr:false treatment Step2LocationForm gives it.
@@ -32,6 +34,9 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
   const [mapsLink, setMapsLink] = useState(str(facility.maps_link));
   const [subCity, setSubCity] = useState(str(facility.sub_city));
   const [area, setArea] = useState(str(facility.area));
+  const [branches, setBranches] = useState<FacilityBranch[]>(
+    Array.isArray(facility.branches) ? (facility.branches as FacilityBranch[]) : [],
+  );
 
   // State rather than a ref: this baseline is rendered ("Stored now") and
   // drives the unsaved-changes indicator, so it is render-relevant data.
@@ -45,6 +50,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
     maps_link: str(facility.maps_link) || null,
     sub_city: str(facility.sub_city) || null,
     area: str(facility.area) || null,
+    branches: Array.isArray(facility.branches) ? (facility.branches as FacilityBranch[]) : [],
   });
 
   // Only 1 of 106 live sub_city values is an exact member of
@@ -86,6 +92,13 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
     }
     if ((subCity || null) !== before.sub_city) fields.sub_city = subCity || null;
     if ((area || null) !== before.area) fields.area = area || null;
+    // Only branches with something in them are written; blank blocks stay on
+    // screen to type into but never reach the database. branch_count is not
+    // sent — the action derives it from this array's length.
+    const keptBranches = branches.filter(hasBranchContent);
+    if (JSON.stringify(keptBranches) !== JSON.stringify(before.branches)) {
+      fields.branches = keptBranches;
+    }
 
     if (Object.keys(fields).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
@@ -101,6 +114,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           maps_link: mapsLink || null,
           sub_city: subCity || null,
           area: area || null,
+          branches: branches.filter(hasBranchContent),
         });
         setSavedAt(new Date());
       } catch (e) {
@@ -112,10 +126,12 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
   const moved = lat !== baseline.latitude || lng !== baseline.longitude;
   const subCityChanged = (subCity || null) !== baseline.sub_city;
   const areaChanged = (area || null) !== baseline.area;
+  const branchesChanged =
+    JSON.stringify(branches.filter(hasBranchContent)) !== JSON.stringify(baseline.branches);
   // Staged-but-unsaved is easy to miss here in a way it is not in the other
   // two sections: the picker has its own "Location confirmed" state, which
   // reads as done even though nothing has been written yet.
-  const isDirty = moved || subCityChanged || areaChanged;
+  const isDirty = moved || subCityChanged || areaChanged || branchesChanged;
 
   useEffect(() => {
     if (!isDirty) return;
@@ -229,6 +245,31 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
         </div>
       </div>
 
+      <BranchRepeater
+        description={
+          branches.length === 0
+            ? "This facility is listed at one location. Add a branch if it operates from more than one site."
+            : `${branches.length + 1} sites in total — this listing plus ${branches.length} ${branches.length === 1 ? "branch" : "branches"}.`
+        }
+        heading="Branches"
+        onChange={setBranches}
+        renderCoordinateEditor={(branch, index, setCoordinates) => (
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              Branch location {branch.latitude != null ? "" : "— not pinned yet"}
+            </p>
+            <MapPinPicker
+              initialLat={branch.latitude}
+              initialLng={branch.longitude}
+              initialMapsLink={branch.maps_link}
+              key={`branch-map-${index}`}
+              onChange={setCoordinates}
+            />
+          </div>
+        )}
+        value={branches}
+      />
+
       {error && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
           {error}
@@ -246,6 +287,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
             moved ? "map location" : null,
             subCityChanged ? "sub-city" : null,
             areaChanged ? "area" : null,
+            branchesChanged ? "branches" : null,
           ]
             .filter(Boolean)
             .join(", ")}

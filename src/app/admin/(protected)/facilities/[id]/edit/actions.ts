@@ -29,9 +29,19 @@ async function loadFacilitySnapshot(
 function toAuditText(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (Array.isArray(value)) {
-    return value.every((v) => typeof v === "string")
-      ? (value as string[]).join(", ")
-      : `${value.length} item(s)`;
+    if (value.every((v) => typeof v === "string")) return (value as string[]).join(", ");
+    // Branches are objects. Reduce them to their names rather than dumping the
+    // objects: a non-scalar in old_value/new_value is what crashed the whole
+    // audit-log page with "Objects are not valid as a React child".
+    const named = value
+      .map((v) =>
+        v && typeof v === "object" && "name" in (v as Record<string, unknown>)
+          ? String((v as Record<string, unknown>).name || "(unnamed)")
+          : null,
+      )
+      .filter((v): v is string => v !== null);
+    if (named.length === value.length) return named.join(", ");
+    return `${value.length} item(s)`;
   }
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
@@ -134,7 +144,8 @@ export async function updateFacilityServices(
   revalidatePath("/facilities/[slug]", "page");
 }
 
-const LOCATION_COLUMNS = "name, latitude, longitude, maps_link, sub_city, area";
+const LOCATION_COLUMNS =
+  "name, latitude, longitude, maps_link, sub_city, area, branches, branch_count";
 
 // Same partial contract as the other two sections.
 type FacilityLocationFields = Partial<{
@@ -143,6 +154,8 @@ type FacilityLocationFields = Partial<{
   maps_link: string | null;
   sub_city: string | null;
   area: string | null;
+  branches: unknown;
+  branch_count: number;
 }>;
 
 // Matches the bounds /api/provider/resolve-maps-link already enforces, so a
@@ -179,10 +192,23 @@ export async function updateFacilityLocation(
     }
   }
 
+  // branch_count is never accepted from the client: it is the number of sites,
+  // which is exactly branches.length + 1 (the array holds the ADDITIONAL sites;
+  // the facility row itself is site one). Two fields that must agree but can be
+  // set independently is the drift this codebase has been bitten by repeatedly
+  // — the category maps, the nav route list, the category vocabulary. One
+  // source of truth: count the array.
+  const payload: Record<string, unknown> = { ...fields };
+  if (Array.isArray(fields.branches)) {
+    payload.branch_count = fields.branches.length + 1;
+  } else {
+    delete payload.branch_count;
+  }
+
   const supabase = await createAdminSupabaseClient();
   const before = await loadFacilitySnapshot(supabase, facilityId, LOCATION_COLUMNS);
 
-  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
+  const { error } = await supabase.from("facilities").update(payload).eq("id", facilityId);
   if (error) throw new Error(error.message);
 
   await logFacilityEdit(
@@ -191,7 +217,7 @@ export async function updateFacilityLocation(
     facilityId,
     "facility_location_edited",
     before,
-    fields,
+    payload,
     before?.name as string | undefined,
   );
 
