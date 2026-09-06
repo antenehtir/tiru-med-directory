@@ -197,10 +197,22 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
       ? insuranceNote || null
       : null;
 
+    // A category tag describes a service. Once the service is gone the tag
+    // describes nothing, so it is dropped here rather than written back.
+    // Pruning on save as well as on removal is deliberate: entries stranded
+    // before that removal fix existed are already in the database, and only a
+    // rule applied at write time reaches them. Groups left empty are dropped
+    // whole, so the column does not accumulate keys mapping to nothing.
+    const prunedCustomCategories: CustomServiceCategories = {};
+    for (const [key, values] of Object.entries(customServiceCategories)) {
+      const kept = values.filter((value) => services.includes(value));
+      if (kept.length) prunedCustomCategories[key] = kept;
+    }
+
     const fields: Record<string, unknown> = {};
     if (!unchanged(services, before.services)) fields.services = services;
-    if (!unchanged(customServiceCategories, before.customServiceCategories)) {
-      fields.custom_service_categories = customServiceCategories;
+    if (!unchanged(prunedCustomCategories, before.customServiceCategories)) {
+      fields.custom_service_categories = prunedCustomCategories;
     }
     if (hasRealSchedule && !unchanged(schedule, before.schedule)) {
       fields.schedule = schedule;
@@ -232,9 +244,13 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     startTransition(async () => {
       try {
         await updateFacilityServices(facility.id as string, fields);
+        // The pruned value, not the state it was pruned from — the baseline
+        // has to match what the database now holds, or the next save reads as
+        // dirty forever against a difference that was never sent.
+        setCustomServiceCategories(prunedCustomCategories);
         initial.current = {
           services,
-          customServiceCategories,
+          customServiceCategories: prunedCustomCategories,
           paymentMethods,
           insuranceNote: nextInsuranceNote,
           walkinPolicy: walkinPolicy || null,
@@ -413,7 +429,24 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                 {custom}
                 <button
                   className="hover:text-red-200"
-                  onClick={() => setServices((prev) => prev.filter((s) => s !== custom))}
+                  // Drop the category tag with the service, not just the
+                  // service. These pills now include values tagged to a
+                  // section that no longer renders, so removing one used to
+                  // leave its entry behind in custom_service_categories —
+                  // pointing at a service the facility no longer lists, in a
+                  // group the form no longer has. Dead metadata that nothing
+                  // renders is still metadata something will one day read.
+                  onClick={() => {
+                    setServices((prev) => prev.filter((s) => s !== custom));
+                    setCustomServiceCategories((prev) => {
+                      const next: CustomServiceCategories = {};
+                      for (const [key, values] of Object.entries(prev)) {
+                        const kept = values.filter((value) => value !== custom);
+                        if (kept.length) next[key] = kept;
+                      }
+                      return next;
+                    });
+                  }}
                   type="button"
                 >
                   ×
