@@ -16,10 +16,29 @@ export async function createAdminSupabaseClient() {
         getAll() {
           return cookieStore.getAll();
         },
+        // Supabase writes here when it refreshes an expiring access token.
+        // Next.js only permits cookie writes from a Server Action or Route
+        // Handler, so the same call that succeeds inside an action throws
+        // during a Server Component render — and an uncaught throw here 500s
+        // the whole page. That is what took down /admin/audit-log with
+        // "Cookies can only be modified in a Server Action or Route Handler";
+        // every admin page renders through getAdminUser(), so any of them
+        // could fail the moment a refresh happened to land mid-render.
+        //
+        // Swallowing the failure is safe for the render, but note what it
+        // costs: this project has no middleware, so a refreshed token is only
+        // persisted when the refresh happens during an action. Reads keep
+        // working on the existing token and the session still ends when that
+        // token finally expires. Adding middleware to refresh sessions on
+        // every request is the proper fix; this stops the crash.
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Called from a Server Component, where cookies are read-only.
+          }
         },
       },
     },
