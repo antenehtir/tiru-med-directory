@@ -19,7 +19,6 @@ import {
   IMAGING_SERVICES,
   ALL_BASIC_LAB_TESTS,
   PHARMACY_CATEGORIES,
-  LAB_TESTS,
   HOME_CARE_SERVICES,
   AMBULANCE_VEHICLE_TYPES,
   PAYMENT_METHODS,
@@ -155,14 +154,25 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const knownLists: readonly (readonly string[])[] = isPharmacy
     ? [PHARMACY_CATEGORIES]
     : isDiagnostic
-      ? [LAB_TESTS, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
+      ? [IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
       : isHomeCare
         ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
         : isAmbulance
           ? [AMBULANCE_VEHICLE_TYPES]
           : [MAIN_SERVICES, SPECIALTIES, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS];
   const allKnown = knownLists.flat();
-  const categorizedCustomValues = new Set(Object.values(customServiceCategories).flat());
+  // Values tagged to a section that no longer renders would otherwise vanish:
+  // they are excluded from the leftover pills as "already shown elsewhere",
+  // but the control that showed them is gone. The "lab" key is exactly that —
+  // it belonged to the Tests & Procedures selector the panels replaced, and
+  // one live facility has five entries under it. Dropping the key here lets
+  // them fall through to the removable pills, visible and deletable, instead
+  // of sitting in services where nothing can reach them.
+  const categorizedCustomValues = new Set(
+    Object.entries(customServiceCategories)
+      .filter(([key]) => key !== "lab")
+      .flatMap(([, values]) => values),
+  );
   const customEntries = services.filter(
     (s) => !allKnown.includes(s) && !categorizedCustomValues.has(s),
   );
@@ -323,18 +333,6 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
 
         {isDiagnostic && (
           <>
-            <PillSelector
-              customEntries={customServiceCategories.lab ?? []}
-              customValue={customInputs.lab ?? ""}
-              onCustomAdd={() => addCustomService("lab")}
-              onCustomChange={(v) => setCustomInput("lab", v)}
-              onRemoveCustom={(v) => removeCustomService("lab", v)}
-              onSelectAll={() => selectAllIn(LAB_TESTS)}
-              onToggle={toggleService}
-              options={LAB_TESTS}
-              services={services}
-              title="Tests & Procedures"
-            />
             <PillSelector
               customEntries={customServiceCategories.imaging ?? []}
               customValue={customInputs.imaging ?? ""}

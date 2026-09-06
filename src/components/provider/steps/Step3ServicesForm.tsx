@@ -16,7 +16,6 @@ import {
   PHARMACY_CATEGORIES,
   DELIVERY_OPTIONS,
   COVERAGE_SUB_CITIES,
-  LAB_TESTS,
   SAMPLE_COLLECTION_OPTIONS,
   TURNAROUND_TIME_OPTIONS,
   HOME_CARE_SERVICES,
@@ -430,11 +429,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     : isPharmacy
       ? [PHARMACY_CATEGORIES]
       : isDiagLabOnly
-        ? [LAB_TESTS, ALL_BASIC_LAB_TESTS]
+        ? [ALL_BASIC_LAB_TESTS]
         : isDiagImagingOnly
           ? [IMAGING_SERVICES]
           : isDiagBoth
-            ? [LAB_TESTS, IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
+            ? [IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
             : isHomeCare
               ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
               : isAmbulance
@@ -446,7 +445,18 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   // — this bucket is only for legacy data saved before category-tagging
   // existed, so it can still surface (and remain editable) without being
   // duplicated alongside the same entry's inline chip.
-  const categorizedCustomValues = new Set(Object.values(customServiceCategories).flat());
+  // Values tagged to a section that no longer renders would otherwise vanish:
+  // they are excluded from the leftover pills as "already shown elsewhere",
+  // but the control that showed them is gone. The "lab" key is exactly that —
+  // it belonged to the Tests & Procedures selector the panels replaced, and
+  // one live facility has five entries under it. Dropping the key here lets
+  // them fall through to the removable pills, visible and deletable, instead
+  // of sitting in services where nothing can reach them.
+  const categorizedCustomValues = new Set(
+    Object.entries(customServiceCategories)
+      .filter(([key]) => key !== "lab")
+      .flatMap(([, values]) => values),
+  );
   const customEntries = services.filter(
     (s) => !allKnown.includes(s) && !categorizedCustomValues.has(s),
   );
@@ -594,20 +604,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
         {isDiagnostic && (
           <>
-            {showLabPills && (
-              <PillSelector
-                customEntries={customServiceCategories.lab ?? []}
-                customValue={customInputs.lab ?? ""}
-                onCustomAdd={() => addCustomService("lab")}
-                onCustomChange={(v) => setCustomInput("lab", v)}
-                onRemoveCustom={(v) => removeCustomService("lab", v)}
-                onSelectAll={() => selectAllIn(LAB_TESTS)}
-                onToggle={toggleService}
-                options={LAB_TESTS}
-                services={services}
-                title="Tests & Procedures"
-              />
-            )}
             {showDiagImagingPills && (
               <PillSelector
                 customEntries={customServiceCategories.imaging ?? []}

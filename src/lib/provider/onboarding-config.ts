@@ -197,8 +197,11 @@ export const BASIC_LAB_CATEGORIES: Record<string, string[]> = {
   "Body Fluid Analysis": ["Pleural Fluid", "Peritoneal (Ascitic) Fluid", "CSF Analysis", "Synovial Fluid"],
   "Autoimmune Markers": ["ANA", "P-ANCA", "C-ANCA", "RF", "Anti-dsDNA", "Anti-CCP"],
   "Serology & Infectious Disease Screening": ["HIV", "RPR/VDRL", "HBsAg", "HBeAg", "Anti-HBs", "Anti-HCV", "Hepatitis A IgM", "Widal Test", "Brucella (Rose Bengal)", "Toxoplasma IgG/IgM", "Rubella IgG/IgM", "Malaria (RDT/Blood Film)", "TB (GeneXpert/AFB)"],
+  "Sexually Transmitted Infections": ["STI Panel", "Gonorrhoea (NAAT/Culture)", "Chlamydia (NAAT)", "Trichomonas", "HSV 1/2"],
+  "Histopathology & Cytology": ["Histopathology", "Cytology", "Pap Smear", "FNAC", "Frozen Section", "Immunohistochemistry"],
+  "Molecular & Genetic Testing": ["Genetic Testing", "PCR (General)", "Karyotyping", "COVID-19 Testing", "COVID-19 PCR"],
   "Transfusion & Blood Bank": ["Blood Group & Rh", "Cross-matching", "Direct Coombs", "Indirect Coombs", "Antibody Screening"],
-  "Other Specialised Tests": ["Semen Analysis", "Allergy Panel (Total/Specific IgE)", "Procalcitonin", "Serum Protein Electrophoresis", "Therapeutic Drug Monitoring", "ELISA-based Assays"],
+  "Other Specialised Tests": ["Semen Analysis", "Allergy Panel (Total/Specific IgE)", "Procalcitonin", "Serum Protein Electrophoresis", "Toxicology Screen", "Therapeutic Drug Monitoring", "ELISA-based Assays"],
 };
 
 export const ALL_BASIC_LAB_TESTS: string[] = Object.values(BASIC_LAB_CATEGORIES).flat();
@@ -242,6 +245,17 @@ export const COVERAGE_SUB_CITIES = [
   "Cherkos",
 ] as const;
 
+// No longer offered by any form. The diagnostic branches used to render these
+// fifteen headings above the panels, which put "Urinalysis" in two places at
+// once and asked a laboratory to describe itself in words like "Blood Work"
+// while the panel below wanted CBC and ESR. The panels replaced them, and the
+// concepts these held alone — Histopathology, Cytology, Genetic Testing,
+// COVID-19, STI Panel — moved into panels of their own under the same strings.
+//
+// Kept because service-groups.ts still groups by it: one facility stored nine
+// of these values before the change, and dropping the list would scatter them
+// into "Additional Services" on its public page. They surface in the editor as
+// removable pills so an admin can replace them with panel selections.
 export const LAB_TESTS = [
   "Blood Work",
   "Urinalysis",
