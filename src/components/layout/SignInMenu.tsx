@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type SVGProps } from "react";
 
-type RoleOption = {
+export type RoleOption = {
   key: string;
   label: string;
   description: string;
@@ -11,7 +11,7 @@ type RoleOption = {
   disabled: boolean;
 };
 
-const ROLE_OPTIONS: RoleOption[] = [
+export const ROLE_OPTIONS: RoleOption[] = [
   {
     key: "provider",
     label: "Healthcare Provider",
@@ -86,7 +86,7 @@ function PatientIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-const roleIcons: Record<string, (props: SVGProps<SVGSVGElement>) => React.JSX.Element> = {
+export const roleIcons: Record<string, (props: SVGProps<SVGSVGElement>) => React.JSX.Element> = {
   provider: ProviderIcon,
   specialist: SpecialistIcon,
   patient: PatientIcon,

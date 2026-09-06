@@ -4,9 +4,7 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SignInMenu } from "@/components/layout/SignInMenu";
 import { EmergencyLink } from "@/components/layout/EmergencyLink";
-
-const actionClassName =
-  "flex size-10 shrink-0 items-center justify-center rounded-control border border-border/80 bg-card/95 text-foreground shadow-sm transition-all hover:-translate-y-px hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:translate-y-0";
+import { HeaderMenu } from "@/components/layout/HeaderMenu";
 
 export function Header() {
   return (
@@ -51,46 +49,19 @@ export function Header() {
           <ThemeToggle />
         </div>
 
-        {/* Below xl: a compact row, not a "just barely fitting" desktop row.
-            Emergency and List-your-facility are the two items that stay
-            genuine CTAs at every width — Emergency because of what it's for,
-            List-your-facility because it's the site's one conversion action
-            for providers — so both keep a labelled state, just later than
-            their desktop position: Emergency's own sm:inline label already
-            covers 640px+, and List-your-facility gains the same treatment at
-            lg (1024px), which is exactly the range this tier now spans
-            without full nav+Sign in+theme toggle competing for the space.
-            Sign in, the primary nav (already duplicated by the bottom tab
-            bar below xl) and the theme toggle are the items that fold away
-            here — Sign in and theme toggle to icon-only, nav to nothing,
-            since the bottom bar already serves it. */}
+        {/* Below xl: two controls and a menu, not a five-icon toolbar.
+            Emergency and the theme toggle stay visible — one because it is
+            the control you may need to find without reading, the other
+            because burying a display setting means opening a menu to see
+            what you just changed. Search, List-your-facility and Sign in
+            fold into HeaderMenu; the first two already sit in the bottom tab
+            bar at exactly these widths, so out here they were a second copy
+            of a control the visitor already had. Emergency keeps its own
+            sm:inline label, so this tier still reads as Emergency first. */}
         <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 xl:hidden">
           <EmergencyLink />
           <ThemeToggle />
-          <Link className={actionClassName} href="/search?focus=1" aria-label="Search">
-            {/* Same circle+handle construction as SearchAutocompleteInput's and
-                EmptyState's SearchIcon. The previous single fused <path> tried
-                to draw the lens with one elliptical-arc command whose endpoint
-                sat exactly opposite its start — that only sweeps a 180° arc,
-                so the lens rendered as a half-circle (bounding box 16x9.5
-                instead of the ~13x13 a full r=6.5 circle needs), closed with a
-                straight chord — the "clipped" look. */}
-            <svg aria-hidden="true" className="size-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m16.5 16.5 4 4" />
-            </svg>
-          </Link>
-          <Link
-            aria-label="List your facility"
-            className="inline-flex size-10 shrink-0 items-center justify-center gap-1.5 rounded-control bg-primary px-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-px hover:bg-primary-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:translate-y-0 lg:w-auto"
-            href="/provider/signup"
-          >
-            <svg aria-hidden="true" className="size-4 shrink-0" fill="none" viewBox="0 0 24 24">
-              <path d="M12 5v14m-7-7h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-            </svg>
-            <span className="hidden lg:inline">List your facility</span>
-          </Link>
-          <SignInMenu compact />
+          <HeaderMenu />
         </div>
       </div>
     </header>

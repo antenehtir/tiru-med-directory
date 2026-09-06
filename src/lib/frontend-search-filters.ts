@@ -1,4 +1,14 @@
 import { SPECIALTY_OPTIONS, SURGERY_ALIASES } from "@/lib/constants/specialty-options";
+import {
+  ALL_BASIC_LAB_TESTS,
+  AMBULANCE_VEHICLE_TYPES,
+  HOME_CARE_SERVICES,
+  IMAGING_SERVICES,
+  LAB_TESTS,
+  MAIN_SERVICES,
+  PHARMACY_CATEGORIES,
+  SPECIALTIES,
+} from "@/lib/provider/onboarding-config";
 import { stripDoctorNamePrefix } from "@/lib/provider/doctor-types";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
@@ -75,9 +85,38 @@ export function matchesAnyAlias(text: string, aliases: string[]): boolean {
 // Prefix semantics cost nothing measurable: dialysis 20, physiotherapy 6,
 // MRI 8, endoscopy 1 and ent 12 are all unchanged, and "ear" — the token most
 // likely to over-reach — gains no facilities at all.
+// Every name the catalogue actually offers, lowercased. A token that IS one of
+// these is a term the visitor took from the same vocabulary the listings are
+// written in, not an abbreviation of something longer.
+const CATALOG_TERMS: ReadonlySet<string> = new Set(
+  [
+    ...MAIN_SERVICES,
+    ...SPECIALTIES,
+    ...IMAGING_SERVICES,
+    ...ALL_BASIC_LAB_TESTS,
+    ...LAB_TESTS,
+    ...PHARMACY_CATEGORIES,
+    ...HOME_CARE_SERVICES,
+    ...AMBULANCE_VEHICLE_TYPES,
+  ].map((term) => term.toLowerCase()),
+);
+
+// Prefixes stay allowed by default, for the reason above. But that is wrong
+// for a token that already names something we list. "ANA" is a test in this
+// catalogue; someone typing it means that test, not any word beginning with
+// those letters. Unqualified prefixing sent them to an obstetrics clinic for
+// "Hormonal ANAlysis", and sent "RF" — rheumatoid factor — to two facilities
+// whose only match was "RFT (BUN/Creatinine)", a renal panel.
+//
+// Length cannot separate these cases: "lab" and "ANA" are both three letters
+// and only one of them is a term we publish. The distinction is vocabulary,
+// not spelling — so the closing \b goes back on exactly when the token is a
+// catalogue entry in its own right, and the rule sharpens itself as the
+// catalogue grows instead of needing an exception list maintained beside it.
 function buildQueryTokenPattern(token: string): RegExp {
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`\\b${escaped}`, "i");
+  const closing = CATALOG_TERMS.has(token.toLowerCase()) ? "\\b" : "";
+  return new RegExp(`\\b${escaped}${closing}`, "i");
 }
 
 // Every token must appear somewhere in the text, in any order.
