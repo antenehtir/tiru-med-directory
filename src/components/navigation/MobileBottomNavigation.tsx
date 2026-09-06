@@ -51,10 +51,18 @@ const navIcons: Record<string, (props: SVGProps<SVGSVGElement>) => ReactElement>
       <circle cx="18" cy="19" r="2" />
     </NavIcon>
   ),
+  // A building, not a plus in a box. This tab browses every listing, but it
+  // drew the universal "add" glyph — and until the header's own plus moved
+  // into the overflow menu there were two of them side by side on the same
+  // screen, one meaning "add your facility" and this one meaning "look at
+  // everyone else's". A provider tapping it expecting to be listed landed on
+  // a directory of competitors.
   [ROUTES.facilities]: (props) => (
     <NavIcon {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M12 8v8M8 12h8" />
+      <path d="M3 21h18" />
+      <path d="M6 21V6a1 1 0 011-1h10a1 1 0 011 1v15" />
+      <path d="M10 21v-4h4v4" />
+      <path d="M9 9h2M13 9h2M9 13h2M13 13h2" />
     </NavIcon>
   ),
 };

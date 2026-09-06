@@ -26,6 +26,10 @@ export const mobileNavigationItems = [
   { label: "Home", href: ROUTES.home, shortLabel: "Home" },
   { label: "Search", href: ROUTES.search, shortLabel: "Search" },
   { label: "Nearby", href: ROUTES.nearby, shortLabel: "Nearby" },
-  { label: "Facilities", href: ROUTES.facilities, shortLabel: "Facility" },
+  // Plural, like every other tab and like the desktop label for the same
+  // route. "Facility" read as one particular facility — yours — which is a
+  // different page in a different section of the site, and it sat under an
+  // add-shaped icon saying the same wrong thing.
+  { label: "Facilities", href: ROUTES.facilities, shortLabel: "Facilities" },
   { label: "Specialists", href: ROUTES.specialists, shortLabel: "Specialists" },
 ];
