@@ -281,6 +281,14 @@ html {
   min-width: 320px;
   background: var(--background);
   color-scheme: light;
+  /* Reserve the scrollbar's width whether or not one is showing. Without it
+     the content column is a different width in every browser: classic
+     scrollbars (Chrome and Firefox on Windows) take 12–17px out of the
+     viewport, overlay scrollbars (macOS, and Chrome's overlay mode) take
+     none, and a page that scrolls is narrower than one that does not. Every
+     centred max-width block then lands on a different pixel, which is exactly
+     the drift that shows up when the same page is compared across browsers. */
+  scrollbar-gutter: stable;
 }
 
 /* Display face: tightened tracking is part of the scale, not per-element
@@ -303,8 +311,16 @@ body {
   font-family: var(--font-inter), "Noto Sans Ethiopic", Arial, Helvetica,
     sans-serif;
   line-height: 1.5;
-  text-rendering: optimizeLegibility;
+  /* text-rendering: optimizeLegibility was here and is deliberately gone. It
+     is not a quality setting — it asks the engine to turn on kerning and
+     optional ligatures, and each engine obeys differently, so identical text
+     measured differently in Chrome, Firefox and Safari and wrapped at
+     different words. Defaults already kern; this only bought inconsistency. */
   -webkit-font-smoothing: antialiased;
+  /* The WebKit line above thins text on Chrome and Safari and does nothing in
+     Firefox, so the same heading rendered heavier there. This is its Firefox
+     counterpart. */
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Inside @layer base, NOT unlayered - same reason as the `a` rule below.

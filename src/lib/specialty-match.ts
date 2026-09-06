@@ -70,6 +70,30 @@ export function matchedServiceForAliases(
 // satisfy "lab test" across two separate tags, and showing one real tag beats
 // showing none. "eeg" surfaces the EEG tag on a general hospital that would
 // otherwise look unexplained in the results.
+// Words of a service, for deciding whether a token IS one of them rather than
+// merely starting one. "Urine analysis" splits to ["urine", "analysis"]; the
+// token "ana" is neither, though it does prefix the second.
+function serviceWords(service: string): string[] {
+  return service.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+// How well one service answers one token. The prefix rule that decides whether
+// a facility matches at all is deliberately loose — a visitor typing "lab"
+// should reach "Laboratory" — but the chip on the card is a different
+// question: of everything this facility offers, which one did they ask for?
+// Taking the first service that merely passed the loose test answers it badly.
+// Searching "ANA" on a laboratory that lists ANA highlighted "Urine analysis",
+// because ana prefixes "analysis" and that entry sits earlier in the array.
+// The chip named a test the visitor had not asked for while the one they had
+// sat further down the same card.
+function tokenMatchScore(service: string, token: string): number {
+  const lower = service.toLowerCase();
+  const t = token.toLowerCase();
+  if (lower === t) return 3; // the service IS the token: "ANA" for "ana"
+  if (serviceWords(service).includes(t)) return 2; // a whole word of it is
+  return 1; // prefix only — still a match, just the weakest kind
+}
+
 export function matchedServiceForQuery(
   facility: Facility,
   query: string,
@@ -77,9 +101,29 @@ export function matchedServiceForQuery(
   const tokens = splitQueryTokens(query);
   if (!tokens.length) return undefined;
   const services = listedServices(facility);
+  // A service that IS the whole query answers it before any per-token rule
+  // gets a say. Scoring token by token cannot see this: "vitamin d" hands
+  // "vitamin" to the loop below, where "Vitamin B12" and "Vitamin D" both
+  // contain it as a whole word and the earlier one wins on position alone.
+  const whole = query.trim().toLowerCase();
+  const exact = services.find((service) => service.toLowerCase() === whole);
+  if (exact) return exact;
+  // Token order still decides which token gets to answer — a facility can
+  // satisfy "lab test" across two tags, and the earlier word is the one the
+  // visitor led with. What changed is that within a token the best match wins
+  // instead of the earliest, so array position no longer outranks precision.
   for (const token of tokens) {
-    const hit = services.find((service) => matchesQueryTokens(service, [token]));
-    if (hit) return hit;
+    let best: string | undefined;
+    let bestScore = 0;
+    for (const service of services) {
+      if (!matchesQueryTokens(service, [token])) continue;
+      const score = tokenMatchScore(service, token);
+      if (score > bestScore) {
+        best = service;
+        bestScore = score;
+      }
+    }
+    if (best) return best;
   }
   return undefined;
 }

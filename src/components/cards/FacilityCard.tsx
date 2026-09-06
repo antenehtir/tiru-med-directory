@@ -110,11 +110,15 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   const directionsHref = facilityDirectionsHref(facility);
   const localityLabel = distanceLabel ?? facilityLocalityLabel(facility);
-  // Call leads only where urgency justifies it. On a round-the-clock listing
-  // the phone is the point; everywhere else the trust information behind
-  // View details (verification, hours, services, payment) is what the
-  // directory is actually for, so it keeps the filled treatment.
-  const callLeads = isRoundTheClockHours(facility.workingHours);
+  // View details carries the filled treatment on every card, without
+  // exception. It used to swap with Call on round-the-clock listings, which
+  // was defensible per card and wrong across a grid: the filled button moved
+  // between neighbouring results for a reason — the opening hours — that is
+  // three lines further up and invisible while scanning a row of actions. The
+  // eye reads that as randomness rather than as a signal, and the cost is paid
+  // on every card to benefit the few. A visitor in a genuine hurry has the
+  // Emergency entry in the header, which is a better answer than reweighting
+  // ordinary search results around urgency.
   return (
     <article className="group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none">
       <Link aria-label={`View ${facility.name}`} className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} />
@@ -144,9 +148,9 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
         <StatRow facility={facility} />
         <ServicePillRow highlightLabel={highlightLabel} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
-          {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${callLeads ? "bg-primary text-primary-foreground hover:bg-primary-hover" : "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted"}`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
+          {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
           {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title="Directions"><MapPinIcon className="size-4 shrink-0" /></a> : null}
-          <Link className={`flex min-h-11 flex-1 items-center justify-center rounded-control text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${callLeads ? "border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted" : "bg-primary text-primary-foreground hover:bg-primary-hover"}`} href={detailHref}>View details</Link>
+          <Link className={`flex min-h-11 flex-1 items-center justify-center rounded-control text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary-hover`} href={detailHref}>View details</Link>
         </div>
       </div>
     </article>
