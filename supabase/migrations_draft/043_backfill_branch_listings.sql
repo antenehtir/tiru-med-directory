@@ -151,7 +151,12 @@
 -- STEP 1 — inspect (read-only). Run this first and read the output.
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- Expect branches NULL and branch_count NULL for all 17.
+-- Expect branches NULL and branch_count NULL for 16 of the 17.
+-- Babi Specialty Dental Clinic is the expected exception: its two branches
+-- were entered by hand through the admin Location editor while that feature
+-- was being tested, so it reads branch_count 3 / branches_len 2. Those rows
+-- carry real branch names and a coordinate, which the parsed values below do
+-- not, so STEP 2's guard deliberately leaves it alone.
 SELECT slug, name, branch_count,
        CASE WHEN branches IS NULL THEN 'null'
             ELSE jsonb_array_length(branches)::text END AS branches_len
@@ -200,8 +205,10 @@ WHERE  slug IN (
          'grace-mch-center'
        );
 
--- Must return 0: nothing here already carries branch data that this would
--- overwrite. STEP 2's guard skips any row that does.
+-- Must return 1, not 0 — that row is Babi, per the note above. Any OTHER slug
+-- appearing here means someone filled in branches by hand since this was
+-- drafted. The guard skips every row this counts, so a higher number is safe,
+-- it just means fewer rows are written than the 16 STEP 2 expects.
 SELECT count(*) AS rows_that_already_have_branches
 FROM   facilities
 WHERE  slug IN (
@@ -229,6 +236,7 @@ WHERE  slug IN (
 -- ═══════════════════════════════════════════════════════════════════════════
 -- STEP 2 — apply. Guarded so a facility whose branches someone has already
 -- filled in by hand is left alone; re-running is a no-op.
+-- Expect "UPDATE 16", not 17 — Babi is skipped by the guard.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 UPDATE facilities AS f
