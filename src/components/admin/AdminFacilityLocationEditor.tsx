@@ -177,16 +177,16 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           </div>
         </div>
 
-        {/* No GPS option in admin. "I am at the facility right now" reads the
-            browser's own location, so from this desk it pins the facility to
-            this desk. A warning next to the button used to stand here; not
-            rendering the button is the stronger version of that warning. */}
+        {/* GPS is offered here too, for an admin standing at the facility
+            with a phone. What makes that safe is not the button's absence but
+            the accuracy gate in judgeGpsFix: a desk laptop's Wi-Fi fix is
+            refused with the metres it reported, so the footgun cannot fire
+            silently. */}
         <MapPinPicker
           initialLat={lat}
           initialLng={lng}
           initialMapsLink={mapsLink}
           onChange={handleMapChange}
-          showGeolocation={false}
           showHeading={false}
         />
       </div>
@@ -263,7 +263,6 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
               initialMapsLink={branch.maps_link}
               key={`branch-map-${index}`}
               onChange={setCoordinates}
-              showGeolocation={false}
               showHeading={false}
             />
           </div>

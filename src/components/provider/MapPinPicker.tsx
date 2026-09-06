@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  FAR_FROM_STORED_M,
+  judgeGpsFix,
+  metresBetween,
+} from "@/lib/provider/geolocation";
 
 type LocationOption = "none" | "gps" | "maps_link" | "confirmed";
 
@@ -9,13 +14,6 @@ type MapPinPickerProps = {
   initialLng?: number | null;
   initialMapsLink?: string;
   onChange: (lat: number, lng: number, mapsLink?: string) => void;
-  // Offers "I am at the facility right now", which reads the browser's own
-  // GPS. Right for a provider standing at their entrance during onboarding,
-  // and wrong everywhere else: pressed from the admin desk it pins the
-  // facility to the desk. Admin passes false so the button is not there to
-  // press — the primary location's warning callout says not to use it, but a
-  // warning beside a button is weaker than no button.
-  showGeolocation?: boolean;
   // Renders the picker's own "Pin your facility location *" heading. Onboarding
   // needs it — there the picker is the whole step and the asterisk marks a
   // required field. A caller that already labels the picker should pass false:
@@ -127,7 +125,6 @@ export function MapPinPicker({
   initialLng,
   initialMapsLink,
   onChange,
-  showGeolocation = true,
   showHeading = true,
 }: MapPinPickerProps) {
   const hasInitial = !!(initialLat && initialLng);
@@ -145,11 +142,12 @@ export function MapPinPicker({
   const [mapsLinkInput, setMapsLinkInput] = useState(initialMapsLink ?? "");
   const [locating, setLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  // What the browser said about the fix it just gave us, carried through to
+  // the confirmation step so the number is visible at the moment of deciding
+  // rather than buried in a console.
+  const [gpsNote, setGpsNote] = useState<string | null>(null);
+  const [driftNote, setDriftNote] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
-
-  function isValidAddisCoords(lat: number, lng: number) {
-    return lat >= 8.7 && lat <= 9.3 && lng >= 38.5 && lng <= 39.0;
-  }
 
   function handleGPS() {
     if (!("geolocation" in navigator)) {
@@ -166,14 +164,22 @@ export function MapPinPicker({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        if (!isValidAddisCoords(latitude, longitude)) {
-          setGpsError(
-            "Your location appears to be outside Addis Ababa. Please use a Google Maps link instead.",
-          );
+        const { latitude, longitude, accuracy } = position.coords;
+        const verdict = judgeGpsFix(latitude, longitude, accuracy);
+        if (!verdict.ok) {
+          setGpsError(verdict.message);
           setLocating(false);
           return;
         }
+        setGpsNote(verdict.precise ? `Accurate to about ±${Math.round(verdict.accuracy)} m.` : verdict.note);
+        // A capture far from what is already stored usually means the wrong
+        // facility is open in another tab, not that the building moved.
+        setDriftNote(
+          initialLat != null && initialLng != null &&
+          metresBetween(initialLat, initialLng, latitude, longitude) > FAR_FROM_STORED_M
+            ? `This is ${(metresBetween(initialLat, initialLng, latitude, longitude) / 1000).toFixed(1)} km from the coordinate already stored. Check this is the right facility before confirming.`
+            : null,
+        );
         setPendingLat(latitude);
         setPendingLng(longitude);
         setOption("gps");
@@ -213,6 +219,8 @@ export function MapPinPicker({
 
       setPendingLat(data.lat);
       setPendingLng(data.lng);
+      setGpsNote(null);
+      setDriftNote(null);
       setOption("maps_link");
     } catch {
       setLinkError("Network error. Please check your connection and try again.");
@@ -240,6 +248,8 @@ export function MapPinPicker({
     setOption("none");
     setGpsError(null);
     setLinkError(null);
+    setGpsNote(null);
+    setDriftNote(null);
   }
 
   function handleChangeConfirmed() {
@@ -258,9 +268,7 @@ export function MapPinPicker({
             Pin your facility location *
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {showGeolocation
-              ? "Choose the method that works best for you"
-              : "Paste the Google Maps link for this entrance"}
+            Choose the method that works best for you
           </p>
         </div>
       )}
@@ -295,26 +303,36 @@ export function MapPinPicker({
       {(option === "gps" || option === "maps_link") &&
         pendingLat &&
         pendingLng && (
-          <ConfirmationMap
-            lat={pendingLat}
-            lng={pendingLng}
-            onConfirm={handleConfirm}
-            onRetry={handleRetry}
-          />
+          <div className="space-y-2">
+            {gpsNote && (
+              <p className="text-xs text-muted-foreground">{gpsNote}</p>
+            )}
+            {driftNote && (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                {driftNote}
+              </p>
+            )}
+            <ConfirmationMap
+              lat={pendingLat}
+              lng={pendingLng}
+              onConfirm={handleConfirm}
+              onRetry={handleRetry}
+            />
+          </div>
         )}
 
       {/* Options — shown when no location yet */}
       {option === "none" && (
         <div className="space-y-3">
           {/* Option 1: GPS */}
-          {showGeolocation && (
           <div className="rounded-xl border border-border bg-background p-4">
             <p className="mb-1 text-sm font-semibold text-foreground">
               Option 1 — I am at the facility right now
             </p>
             <p className="mb-3 text-xs text-muted-foreground">
-              Stand at the main entrance and tap the button below.
-              We will capture your exact GPS location.
+              Stand at the main entrance and tap the button below. Best on a
+              phone — a laptop reports its position from Wi-Fi, which is not
+              accurate enough and will be refused.
             </p>
             <button
               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
@@ -332,26 +350,21 @@ export function MapPinPicker({
               )}
             </button>
             {gpsError && (
-              <p className="mt-2 text-xs text-red-500">{gpsError}</p>
+              <p className="mt-2 text-xs leading-5 text-red-500">{gpsError}</p>
             )}
           </div>
-          )}
 
-          {/* Divider — only meaningful when there are two options to divide */}
-          {showGeolocation && (
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">or</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-          )}
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
 
           {/* Option 2: Google Maps link */}
           <div className="rounded-xl border border-border bg-background p-4">
             <p className="mb-1 text-sm font-semibold text-foreground">
-              {showGeolocation
-                ? "Option 2 — Paste a Google Maps link"
-                : "Paste a Google Maps link"}
+              Option 2 — Paste a Google Maps link
             </p>
             <p className="mb-3 text-xs text-muted-foreground">
               Open Google Maps, search for your facility, tap Share →

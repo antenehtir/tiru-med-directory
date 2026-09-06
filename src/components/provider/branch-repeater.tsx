@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { judgeGpsFix } from "@/lib/provider/geolocation";
 import type { FacilityBranch } from "@/types/facility";
 
 // The branch list, extracted from Step2LocationForm so the admin facility
@@ -42,9 +43,12 @@ type BranchRepeaterProps = {
   // Total sites including the main listing. Undefined means unbounded — the
   // caller allows as many as the user wants to add.
   maxBranches?: number;
-  // Offers "use my current location" per branch. Correct for a provider
-  // standing at their own branch; wrong from an admin desk, where it captures
-  // the office. Off unless a caller opts in.
+  // Offers "use my current location" as a bare button on each branch. Only
+  // for callers with no coordinate editor: onboarding turns it on because
+  // otherwise a provider has no way to locate a branch at all. Admin leaves it
+  // off — not because GPS is wrong there, but because the MapPinPicker it
+  // passes as the coordinate editor already offers it, with a confirmation map
+  // this button has no room for.
   allowGeolocation?: boolean;
   // Optional per-branch coordinate editor. Kept as a slot so this component
   // stays free of Leaflet: the admin editor passes a MapPinPicker here,
@@ -94,7 +98,14 @@ export function BranchRepeater({
     if (!confirmed) return;
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
+        // This path checked nothing before — not the accuracy, not even that
+        // the point was in Addis — so a Wi-Fi fix went straight into a branch.
+        const verdict = judgeGpsFix(latitude, longitude, accuracy);
+        if (!verdict.ok) {
+          alert(verdict.message);
+          return;
+        }
         commit(
           update(index, {
             latitude,
