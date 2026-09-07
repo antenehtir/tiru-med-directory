@@ -7,6 +7,7 @@ import {
 } from "@/components/cards/facility-category-style";
 import { TelegramIcon, WhatsAppIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
+import { getFacilitySpecialtyLabels } from "@/lib/facility/specialty-display";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import type { Facility, FacilityAppointmentModality } from "@/types/facility";
@@ -34,6 +35,22 @@ type FacilityDetailHeaderProps = { facility: Facility };
 
 export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
+
+  // "Specialty Center" tells a visitor almost nothing — a dental clinic and a
+  // dermatology clinic wear the identical badge. Naming the specialty answers
+  // the question the page is there to answer, in the first thing read.
+  //
+  // Only when there is exactly one. This badge used to render
+  // facility.subcategory and was changed away from it because 28 facilities
+  // hold a full comma-separated specialty list in that field, which turned the
+  // badge into a wall of text duplicating the pills further down. Reading the
+  // controlled list instead avoids the free-text half of that problem, and
+  // stopping at one avoids the rest: a centre offering six specialties has no
+  // single name, and "Specialty Center" is already the honest word for it.
+  const specialties = getFacilitySpecialtyLabels(facility);
+  const categoryLabel = facilityCategoryBadgeLabels[categoryKey] || "Facility details";
+  const badgeLabel =
+    specialties.length === 1 ? `${specialties[0]} · ${categoryLabel}` : categoryLabel;
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
 
   // Real branch data, not the old heuristic (subCity === "multiple" or a
@@ -80,7 +97,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             taxonomy (General Hospital, Specialty Center, Clinic, ...) that
             cannot reproduce this failure mode the way free-text subcategory
             can. Same label convention FacilityCard already uses. */}
-        <p className="mb-2 inline-flex rounded-full border border-border bg-soft-accent px-3 py-1.5 text-xs font-semibold text-primary">{facilityCategoryBadgeLabels[categoryKey] || "Facility details"}</p>
+        <p className="mb-2 inline-flex rounded-full border border-border bg-soft-accent px-3 py-1.5 text-xs font-semibold text-primary">{badgeLabel}</p>
         <h1 className="font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">{facility.name}</h1>
         {facility.address ? <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">{facility.address}</p> : null}
 

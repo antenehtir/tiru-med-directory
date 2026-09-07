@@ -94,7 +94,7 @@ async function logFacilityEdit(
 }
 
 const SERVICES_COLUMNS =
-  "name, services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype";
+  "name, services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype, closed_on_public_holidays";
 
 // Every key is optional: the editor sends only what the admin actually
 // changed, so an untouched column is never overwritten with a UI default.
@@ -113,6 +113,9 @@ type FacilityServicesFields = {
   // is here too: a bad value would not error, it would quietly hide a list the
   // facility needs.
   diagnostic_subtype?: string | null;
+  // Three-state: null means nobody has answered, which the listing shows as
+  // silence rather than as "open on holidays".
+  closed_on_public_holidays?: boolean | null;
 };
 
 export async function updateFacilityServices(

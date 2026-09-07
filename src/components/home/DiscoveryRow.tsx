@@ -121,6 +121,15 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Dermatology"),
   },
   {
+    // Twelve live facilities offer dentistry, four of them dental clinics by
+    // name, and none of it was reachable from this row — the specialty and its
+    // aliases already existed, the chip simply had never been added.
+    label: "Dental (Tooth care)",
+    href: `/facilities?specialty=${encodeURIComponent("Dental")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Dental"),
+  },
+  {
     label: "Mental health care",
     href: `/facilities?specialty=${encodeURIComponent("Psychiatry & Mental Health")}`,
     iconKey: "clinic",

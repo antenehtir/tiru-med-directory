@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
+import { getFacilitySpecialtyLabels } from "@/lib/facility/specialty-display";
+
 import type {
   Facility,
   FacilityAppointmentModality,
@@ -256,17 +258,39 @@ export async function getSimilarFacilities(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
+    // Widened well past `limit` on purpose. This used to take the first three
+    // rows the database happened to return for the category and call them
+    // similar, so a dental clinic was offered a dermatology clinic and an MCH
+    // centre to "compare" — same category, nothing else in common. Ranking
+    // needs candidates to rank; three arbitrary rows cannot be reordered into
+    // relevance.
     const { data, error } = await supabase
       .from("facilities")
       .select("*")
       .eq("is_active", true)
       .eq("category", facility.category)
       .neq("slug", facility.slug)
-      .limit(limit);
+      .limit(60);
 
     if (error || !data) return [];
 
-    return data.map((row) => mapDBRowToFacility(row as DBFacility));
+    // Shared specialties decide the order. Category stays the outer filter —
+    // a clinic and a general hospital are not alternatives to each other even
+    // when both do dentistry — but within it, the facility that treats what
+    // this one treats comes first.
+    const mine = new Set(getFacilitySpecialtyLabels(facility));
+
+    return data
+      .map((row) => mapDBRowToFacility(row as DBFacility))
+      .map((candidate) => ({
+        candidate,
+        shared: getFacilitySpecialtyLabels(candidate).filter((s) => mine.has(s)).length,
+      }))
+      // Name breaks ties so the rail is stable between renders rather than
+      // reshuffling on every request for facilities that score the same.
+      .sort((a, b) => b.shared - a.shared || a.candidate.name.localeCompare(b.candidate.name))
+      .slice(0, limit)
+      .map((entry) => entry.candidate);
   } catch {
     // Same reasoning as getFacilityBySlug. An empty rail simply does not
     // render, which is the right amount of nothing for a suggestion.

@@ -12,6 +12,17 @@ export type ScheduleRow = {
 type ScheduleBuilderProps = {
   value: ScheduleRow[];
   onChange: (rows: ScheduleRow[]) => void;
+  // A public holiday is not a weekday, so it cannot be a schedule row — but
+  // "Mon–Sat 8AM–6PM" reads as a promise that the doors are open on Meskel,
+  // which for most facilities is not true.
+  //
+  // Three states, not two. undefined means nobody has been asked, which is
+  // where every imported facility starts and is not the same as "we open on
+  // holidays". The control only renders when a caller passes the handler, so
+  // a form that has not been wired for it shows nothing rather than a
+  // checkbox that silently does nothing.
+  closedOnPublicHolidays?: boolean | null;
+  onClosedOnPublicHolidaysChange?: (value: boolean) => void;
 };
 
 const DAY_SHORTCUTS = [
@@ -157,7 +168,12 @@ function ScheduleRowItem({
   );
 }
 
-export function ScheduleBuilder({ value, onChange }: ScheduleBuilderProps) {
+export function ScheduleBuilder({
+  value,
+  onChange,
+  closedOnPublicHolidays,
+  onClosedOnPublicHolidaysChange,
+}: ScheduleBuilderProps) {
   function addRow() {
     onChange([
       ...value,
@@ -222,12 +238,38 @@ export function ScheduleBuilder({ value, onChange }: ScheduleBuilderProps) {
         + Add different hours for other days
       </button>
 
+      {onClosedOnPublicHolidaysChange && (
+        <div className="rounded-lg border border-border bg-background px-3 py-2.5">
+          <label className="flex cursor-pointer items-start gap-2 text-sm text-foreground">
+            <input
+              checked={closedOnPublicHolidays === true}
+              className="mt-0.5"
+              onChange={(e) => onClosedOnPublicHolidaysChange(e.target.checked)}
+              type="checkbox"
+            />
+            <span>
+              Closed on public holidays
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {closedOnPublicHolidays === null || closedOnPublicHolidays === undefined
+                  ? "Not stated yet — the listing says nothing about holidays until this is answered."
+                  : closedOnPublicHolidays
+                    ? "Shown on the listing so nobody travels on a holiday to a closed door."
+                    : "The listing will show the facility as open on public holidays."}
+              </span>
+            </span>
+          </label>
+        </div>
+      )}
+
       {summary && (
         <div className="rounded-lg bg-muted/40 px-3 py-2">
           <p className="text-xs font-medium text-muted-foreground">
             Schedule summary:
           </p>
-          <p className="text-xs text-foreground mt-0.5">{summary}</p>
+          <p className="text-xs text-foreground mt-0.5">
+            {summary}
+            {closedOnPublicHolidays === true ? " · Closed on public holidays" : ""}
+          </p>
         </div>
       )}
     </div>

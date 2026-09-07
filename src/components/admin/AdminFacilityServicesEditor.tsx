@@ -107,6 +107,15 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     (facility.appointment_modalities as AppointmentModality[]) ?? [],
   );
   const [emergencyType, setEmergencyType] = useState((facility.emergency_type as string) ?? "");
+  // Same absent-column pattern as diagnostic_subtype before 045: the page
+  // selects "*", so before 047 runs the key is missing rather than null, and a
+  // control that cannot be saved is worse than no control.
+  const holidayColumnExists = "closed_on_public_holidays" in facility;
+  const [closedOnHolidays, setClosedOnHolidays] = useState<boolean | null>(
+    typeof facility.closed_on_public_holidays === "boolean"
+      ? facility.closed_on_public_holidays
+      : null,
+  );
 
   // Snapshot of what this editor was opened on. Only fields the admin has
   // actually changed get written, so an untouched field is never overwritten
@@ -126,6 +135,10 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     emergencyType: (facility.emergency_type as string | null) ?? null,
     schedule: (facility.schedule as ScheduleRow[] | null) ?? null,
     diagnosticSubtype: (facility.diagnostic_subtype as string | null) ?? null,
+    closedOnPublicHolidays:
+      typeof facility.closed_on_public_holidays === "boolean"
+        ? facility.closed_on_public_holidays
+        : null,
   });
 
   function toggleService(svc: string) {
@@ -253,6 +266,9 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     ) {
       fields.diagnostic_subtype = diagnosticSubtype || null;
     }
+    if (holidayColumnExists && !unchanged(closedOnHolidays, before.closedOnPublicHolidays)) {
+      fields.closed_on_public_holidays = closedOnHolidays;
+    }
     if (!unchanged(walkinPolicy || null, before.walkinPolicy)) {
       fields.walkin_appointment = walkinPolicy || null;
     }
@@ -289,6 +305,9 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
             isDiagnostic && subtypeColumnExists
               ? diagnosticSubtype || null
               : before.diagnosticSubtype,
+          closedOnPublicHolidays: holidayColumnExists
+            ? closedOnHolidays
+            : before.closedOnPublicHolidays,
           schedule: hasRealSchedule ? schedule : before.schedule,
         };
         setSavedAt(new Date());
@@ -546,7 +565,14 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                 That stays as-is unless you build a schedule below.
               </p>
             )}
-            <ScheduleBuilder onChange={setSchedule} value={schedule} />
+            <ScheduleBuilder
+              closedOnPublicHolidays={closedOnHolidays}
+              onChange={setSchedule}
+              onClosedOnPublicHolidaysChange={
+                holidayColumnExists ? setClosedOnHolidays : undefined
+              }
+              value={schedule}
+            />
           </div>
 
           {isDefault && (
