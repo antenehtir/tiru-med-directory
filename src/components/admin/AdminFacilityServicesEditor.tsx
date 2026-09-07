@@ -26,14 +26,15 @@ import {
   WALKIN_APPOINTMENT_OPTIONS,
   DIAGNOSTIC_SUBTYPE_OPTIONS,
 } from "@/lib/provider/onboarding-config";
+import type { FacilityAppointmentModality } from "@/types/facility";
 
 type Facility = Record<string, unknown>;
 
-type AppointmentModality = {
-  type: "phone" | "telegram" | "whatsapp" | "online" | "in_person";
-  label: string;
-  value: string;
-};
+// Re-exported from the shared model rather than redeclared. This union was
+// written out by hand in three places, so adding a second phone line changed
+// one of them and broke the other two — exactly the drift a shared type is
+// for.
+type AppointmentModality = FacilityAppointmentModality;
 
 const APPOINTMENT_MODALITY_OPTIONS: {
   type: AppointmentModality["type"];
@@ -43,6 +44,7 @@ const APPOINTMENT_MODALITY_OPTIONS: {
   icon: string;
 }[] = [
   { type: "phone", label: "Phone call", placeholder: "+251 91 234 5678", inputType: "tel", icon: "📞" },
+  { type: "phone_2", label: "Second phone line", placeholder: "+251 91 234 5678", inputType: "tel", icon: "📞" },
   { type: "telegram", label: "Telegram", placeholder: "@username or t.me/username", inputType: "text", icon: "✈️" },
   { type: "whatsapp", label: "WhatsApp", placeholder: "+251 91 234 5678", inputType: "tel", icon: "💬" },
   { type: "online", label: "Online booking", placeholder: "https://booking.example.com", inputType: "url", icon: "🌐" },

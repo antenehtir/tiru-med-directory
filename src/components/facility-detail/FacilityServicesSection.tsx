@@ -1,4 +1,4 @@
-import { Pill } from "@/components/ui/Pill";
+import { CollapsiblePillList } from "./CollapsiblePillList";
 import { groupFacilityServices } from "@/lib/facility/service-groups";
 import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
@@ -26,30 +26,10 @@ export function FacilityServicesSection({ facility }: FacilityServicesSectionPro
       </div>
 
       <div className="mt-5 grid gap-5">
-        {medicalSpecialties.length > 0 ? (
-          <div>
-            <p className="mb-2.5 text-sm font-semibold text-foreground">Clinical specialties</p>
-            <div className="flex flex-wrap gap-2">
-              {medicalSpecialties.map((specialty) => (
-                <Pill key={specialty} variant="default">
-                  {specialty}
-                </Pill>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        <CollapsiblePillList items={medicalSpecialties} label="Clinical specialties" />
 
         {groups.map((group) => (
-          <div key={group.label}>
-            <p className="mb-2.5 text-sm font-semibold text-foreground">{group.label}</p>
-            <div className="flex flex-wrap gap-2">
-              {group.services.map((service) => (
-                <Pill key={service} variant="default">
-                  {service}
-                </Pill>
-              ))}
-            </div>
-          </div>
+          <CollapsiblePillList items={group.services} key={group.label} label={group.label} />
         ))}
       </div>
     </section>

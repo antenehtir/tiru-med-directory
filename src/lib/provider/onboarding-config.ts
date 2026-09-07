@@ -113,6 +113,16 @@ export const MAIN_SERVICES = [
 // rows that already hold the free-typed spellings are corrected by
 // 048_normalise_specialty_names.sql so a provider is not shown the same
 // specialty twice — once as a ticked pill and once as a removable chip.
+//
+// Two of them are deliberately NOT split into halves. 048 turned
+// "Pulmonology and critical care medicine" into a bare "Critical Care
+// Medicine" and "Gastroenterology and Hepatology" into a bare "Hepatology",
+// on the reasoning that the parent was already ticked. That was wrong: the
+// provider wrote them as one department because that is what they are, and a
+// checklist that offers the second half on its own asks a question no
+// department answers. The compound name is the entry; "Pulmonology" and
+// "Gastroenterology" remain separately tickable for facilities that offer
+// only those.
 export const SPECIALTIES = [
   "Internal Medicine",
   "Pediatrics",
@@ -136,7 +146,7 @@ export const SPECIALTIES = [
   "Orthopedics",
   "Cardiology",
   "Gastroenterology",
-  "Hepatology",
+  "Gastroenterology and Hepatology",
   "Neurology",
   "Neurosurgery",
   "Psychiatry",
@@ -147,7 +157,7 @@ export const SPECIALTIES = [
   "Urology",
   "Nephrology",
   "Pulmonology",
-  "Critical Care Medicine",
+  "Pulmonology and Critical Care Medicine",
   "Endocrinology",
   "Rheumatology",
   "Infectious Diseases",

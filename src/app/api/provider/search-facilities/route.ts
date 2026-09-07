@@ -25,6 +25,31 @@ export async function GET(request: NextRequest) {
   const tokens = splitQueryTokens(q);
   const facilities = await getFacilitiesFromDB();
 
+  // WHERE the query matched decides the order, not the alphabet.
+  //
+  // The rows were sorted by name alone, which meant the field that produced
+  // the match was thrown away. Typing "silk" put "Abed Dermatology and
+  // Venerology Speciality Clinic" first — matched on its sub-city, "nifas
+  // silk-lafto" — and pushed Silkroad General Hospital, whose NAME is the
+  // thing being typed, below it. A person typing a facility's name is asking
+  // for that facility, not for everything in a district whose name shares a
+  // syllable with it.
+  //
+  // Tiers, in the order a searcher means them: the facility itself, then what
+  // it offers, then where it is. Alphabetical still breaks ties inside a tier,
+  // so the list stays stable between keystrokes.
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const startsWithQuery = new RegExp(`^${escaped}`, "i");
+  const wordStartsWithQuery = new RegExp(`\\b${escaped}`, "i");
+
+  function matchTier(facility: { name: string; category?: string | null }): number {
+    if (startsWithQuery.test(facility.name)) return 0; // "silk" → "Silkroad…"
+    if (wordStartsWithQuery.test(facility.name)) return 1; // "general" → "Yanet General…"
+    if (matchesQueryTokens(facility.name, tokens)) return 2; // name matches some other way
+    if (matchesQueryTokens(facility.category ?? "", tokens)) return 3; // what it does
+    return 4; // area or sub-city only — a place, not a facility
+  }
+
   const matches = facilities
     .filter((facility) => {
       const haystack = [facility.name, facility.category, facility.area, facility.subCity]
@@ -32,7 +57,7 @@ export async function GET(request: NextRequest) {
         .join(" ");
       return matchesQueryTokens(haystack, tokens);
     })
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => matchTier(a) - matchTier(b) || a.name.localeCompare(b.name))
     .slice(0, 10)
     .map((facility) => ({
       id: facility.id,

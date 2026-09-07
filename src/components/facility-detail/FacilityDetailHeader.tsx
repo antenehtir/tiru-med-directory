@@ -63,6 +63,7 @@ function bookingLink(value: string): { href: string; label: string } | null {
 // else on the site rather than a generic emoji standing in for a brand.
 const GENERIC_MODALITY_EMOJI: Partial<Record<FacilityAppointmentModality["type"], string>> = {
   phone: "📞",
+  phone_2: "📞",
   online: "🌐",
   in_person: "🏥",
 };

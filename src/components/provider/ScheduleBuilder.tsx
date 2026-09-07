@@ -265,7 +265,17 @@ export function ScheduleBuilder({
         </div>
       )}
 
-      <div className="space-y-3">
+      {/* Two schedules sit side by side from sm up, stacked below it.
+          "Weekdays + Saturday half day" produces exactly two, and stacked
+          they ran to two full screens of near-identical controls for what is
+          one decision — weekday hours against Saturday hours. Side by side
+          the comparison is the layout, and both sets of times are visible at
+          once while you set them.
+
+          Only at two. One row alone should not sit in a half-width column
+          with dead space beside it, and three or more in a 2-up grid leaves a
+          ragged last cell; both of those go back to a full-width stack. */}
+      <div className={value.length === 2 ? "grid gap-3 sm:grid-cols-2" : "space-y-3"}>
         {value.map((row, i) => (
           <ScheduleRowItem
             key={i}

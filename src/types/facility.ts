@@ -45,7 +45,9 @@ export type FacilityDoctor = {
 };
 
 export type FacilityAppointmentModality = {
-  type: "phone" | "telegram" | "whatsapp" | "online" | "in_person";
+  // phone_2 rather than allowing two entries of type "phone": the type is
+  // the React key everywhere these render, and two rows sharing it collide.
+  type: "phone" | "phone_2" | "telegram" | "whatsapp" | "online" | "in_person";
   label: string;
   value: string;
 };

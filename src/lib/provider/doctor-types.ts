@@ -69,11 +69,11 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
   "Internal Medicine": [
     "General Internal Medicine",
     "Cardiology",
-    "Critical Care Medicine",
+    "Pulmonology and Critical Care Medicine",
     "Endocrinology",
     "Gastroenterology",
     "Hematology",
-    "Hepatology",
+    "Gastroenterology and Hepatology",
     "Infectious Diseases",
     "Nephrology",
     "Oncology",
