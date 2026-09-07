@@ -100,14 +100,44 @@ export const MAIN_SERVICES = [
   "Ambulance service",
 ] as const;
 
+// Ordered so a subspecialty sits directly under the parent a provider will
+// have just ticked, rather than alphabetically or by when it was added: the
+// list is read by someone scanning for their own department, and "Pediatric
+// Nephrology" is found next to Pediatrics, not eighteen pills away next to
+// Nephrology.
+//
+// The subspecialties here were not invented. Every one was typed by hand into
+// "Add a service not listed" by a real provider — thirteen of them by Lancet
+// General Hospital alone — which is the directory saying out loud that the
+// checklist was too short. Spelling is normalised to the standard form on the
+// way in ("Endocrine and brest surgery", "Cardiothoracic surgery"), and the
+// rows that already hold the free-typed spellings are corrected by
+// 048_normalise_specialty_names.sql so a provider is not shown the same
+// specialty twice — once as a ticked pill and once as a removable chip.
 export const SPECIALTIES = [
   "Internal Medicine",
   "Pediatrics",
+  "Pediatric Cardiology",
+  "Pediatric Infectious Diseases",
+  "Pediatric Nephrology",
+  "Pediatric Neurology",
+  "Pediatric Oncology",
+  "Pediatric Surgery",
   "Obstetrics and Gynecology",
   "General Surgery",
+  "Cardiothoracic Surgery",
+  "Colorectal Surgery",
+  "Endocrine and Breast Surgery",
+  "Hepatobiliary Surgery",
+  "Maxillofacial Surgery",
+  "Orthopedic Surgery",
+  "Plastic and Reconstructive Surgery",
+  "Trauma Surgery",
+  "Vascular Surgery",
   "Orthopedics",
   "Cardiology",
   "Gastroenterology",
+  "Hepatology",
   "Neurology",
   "Neurosurgery",
   "Psychiatry",
@@ -118,10 +148,13 @@ export const SPECIALTIES = [
   "Urology",
   "Nephrology",
   "Pulmonology",
+  "Critical Care Medicine",
   "Endocrinology",
   "Rheumatology",
+  "Infectious Diseases",
   "Oncology",
   "Hematology",
+  "Anesthesiology",
   "Radiology",
   "Pathology",
   "Emergency Medicine",

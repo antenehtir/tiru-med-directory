@@ -140,9 +140,115 @@ function buildQueryTokenPattern(token: string): RegExp {
   return new RegExp(`\\b${escaped}${closing}`, "i");
 }
 
-// Every token must appear somewhere in the text, in any order.
+// A visitor searches for the practitioner; the directory is written in the
+// name of the field. "Nephrologist" found nothing at all while the listings
+// hold "Nephrology", because prefix matching only stretches one way — the
+// typed word is LONGER than the word on the page, so \bnephrologist can never
+// reach it. The same gap swallowed "cardiologist", "dentist" and "surgeon".
+//
+// Most of medicine is regular here: an -ologist practises the -ology. That is
+// expressed as a stem rather than a whole word so it also reaches "-ological",
+// and it keeps working for specialties nobody has added yet. Only the
+// irregular ones are listed, and the list stays short on purpose — every entry
+// is a word a patient would plausibly type into a search box.
+const IRREGULAR_PRACTITIONERS: Record<string, string> = {
+  pediatrician: "pediatric",
+  paediatrician: "paediatric",
+  obstetrician: "obstetric",
+  gynaecologist: "gynaecolog",
+  internist: "internal medicine",
+  dentist: "dent",
+  orthodontist: "orthodont",
+  optometrist: "optometr",
+  optician: "optic",
+  physiotherapist: "physiotherap",
+  therapist: "therap",
+  nutritionist: "nutrition",
+  dietitian: "diet",
+  dietician: "diet",
+  orthopedist: "orthoped",
+  orthopaedist: "orthopaed",
+  midwife: "midwif",
+  radiographer: "radiograph",
+  anesthetist: "anesthe",
+  anaesthetist: "anaesthe",
+};
+
+// Spellings that mean the same thing. Both directions, because the visitor and
+// the listing can each be on either side of it: the directory holds "Medstar
+// Speciality Clinic" and "WGGA Eye Center", so a search for "specialty" or
+// "centre" has to reach them.
+// Stems, not whole words, so one entry covers every inflection:
+// "paediatr" reaches paediatric, paediatrics and paediatrician at once.
+const SPELLING_PAIRS: readonly (readonly [string, string])[] = [
+  ["speciality", "specialty"],
+  ["centre", "center"],
+  ["paediatr", "pediatr"],
+  ["orthopaed", "orthoped"],
+  ["gynaecolog", "gynecolog"],
+  ["haematolog", "hematolog"],
+  ["anaesthe", "anesthe"],
+  ["oesophag", "esophag"],
+];
+
+function spellingVariants(token: string): string[] {
+  const out: string[] = [];
+  for (const [a, b] of SPELLING_PAIRS) {
+    if (token.includes(a)) out.push(token.split(a).join(b));
+    if (token.includes(b)) out.push(token.split(b).join(a));
+  }
+  return out;
+}
+
+// The field a practitioner noun names, as a stem, or null if the token is not
+// one. Regular rules first so the explicit map only carries real exceptions.
+function fieldStemOf(token: string): string | null {
+  const irregular = IRREGULAR_PRACTITIONERS[token];
+  if (irregular) return irregular;
+  // nephrologist -> nephrolog, which prefix-matches Nephrology.
+  const ologist = token.match(/^(.*olog)ists?$/);
+  if (ologist) return ologist[1];
+  // psychiatrist -> psychiatr, podiatrist -> podiatr.
+  const iatrist = token.match(/^(.*iatr)ists?$/);
+  if (iatrist) return iatrist[1];
+  // neurosurgeon -> neurosurg, surgeon -> surg.
+  const surgeon = token.match(/^(.*)surgeons?$/);
+  if (surgeon) return `${surgeon[1]}surg`;
+  return null;
+}
+
+// Recomputed per facility otherwise — matchesQueryTokens runs once per row.
+const variantCache = new Map<string, string[]>();
+
+function queryTokenVariants(token: string): string[] {
+  const lower = token.toLowerCase();
+  const cached = variantCache.get(lower);
+  if (cached) return cached;
+
+  const forms = new Set<string>([lower]);
+  for (const spelling of [lower, ...spellingVariants(lower)]) {
+    forms.add(spelling);
+    const stem = fieldStemOf(spelling);
+    if (stem) {
+      forms.add(stem);
+      for (const v of spellingVariants(stem)) forms.add(v);
+    }
+  }
+
+  const list = [...forms];
+  variantCache.set(lower, list);
+  return list;
+}
+
+// Every token must appear somewhere in the text, in any order. A token counts
+// as present when ANY of its spellings or its field stem is — the catalogue-
+// term rule in buildQueryTokenPattern is still applied to each form
+// separately, so "ANA" keeps its exact match while a derived stem like
+// "nephrolog" keeps prefix semantics.
 export function matchesQueryTokens(text: string, tokens: string[]): boolean {
-  return tokens.every((token) => buildQueryTokenPattern(token).test(text));
+  return tokens.every((token) =>
+    queryTokenVariants(token).some((form) => buildQueryTokenPattern(form).test(text)),
+  );
 }
 
 export function splitQueryTokens(query: string): string[] {

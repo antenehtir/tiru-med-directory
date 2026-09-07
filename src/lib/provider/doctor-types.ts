@@ -53,14 +53,28 @@ export const CLINICAL_ROLES = [
   "Emergency Medicine",
 ] as const;
 
+// The doctor side of the same vocabulary the facility checklist uses
+// (SPECIALTIES in onboarding-config.ts). The two drifted: a hospital ticked
+// "Infectious Diseases" while a doctor at that hospital was filed under
+// "Infectious Disease", and "Plastic and Reconstructive Surgery" faced
+// "Plastic Surgery" — the same field under two names, which no search or
+// filter can join back together. Where a term names the same thing on both
+// sides it is now spelled the same on both sides, and "&" is written "and"
+// throughout to match.
+//
+// Renaming stored values is safe here and was checked before doing it: the
+// live directory holds exactly two doctor records, "Pediatrics" and "General
+// Pediatrics", neither of which is renamed.
 export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
   "Internal Medicine": [
     "General Internal Medicine",
     "Cardiology",
+    "Critical Care Medicine",
     "Endocrinology",
     "Gastroenterology",
     "Hematology",
-    "Infectious Disease",
+    "Hepatology",
+    "Infectious Diseases",
     "Nephrology",
     "Oncology",
     "Pulmonology",
@@ -71,15 +85,19 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "General Surgery",
     "Cardiothoracic Surgery",
     "Colorectal Surgery",
+    "Endocrine and Breast Surgery",
+    "Hepatobiliary Surgery",
+    "Maxillofacial Surgery",
     "Neurosurgery",
     "Orthopedic Surgery",
     "Pediatric Surgery",
-    "Plastic Surgery",
+    "Plastic and Reconstructive Surgery",
+    "Trauma Surgery",
     "Urology",
     "Vascular Surgery",
     "Other",
   ],
-  "Obstetrics & Gynecology": [
+  "Obstetrics and Gynecology": [
     "General OB/GYN",
     "Maternal-Fetal Medicine",
     "Reproductive Endocrinology",
@@ -91,13 +109,16 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "General Pediatrics",
     "Neonatology",
     "Pediatric Cardiology",
+    "Pediatric Infectious Diseases",
+    "Pediatric Nephrology",
     "Pediatric Neurology",
     "Pediatric Oncology",
+    "Pediatric Surgery",
     "Other",
   ],
-  "Psychiatry & Neurology": [
+  "Psychiatry and Neurology": [
     "General Psychiatry",
-    "Child & Adolescent Psychiatry",
+    "Child and Adolescent Psychiatry",
     "Neurology",
     "Neuropsychiatry",
     "Addiction Medicine",
@@ -110,10 +131,10 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Neuroradiology",
     "Other",
   ],
-  Anesthesiology: ["General Anesthesiology", "Pain Management", "Critical Care", "Other"],
+  Anesthesiology: ["General Anesthesiology", "Pain Management", "Critical Care Medicine", "Other"],
   Dermatology: ["General Dermatology", "Dermatopathology", "Cosmetic Dermatology", "Other"],
   Ophthalmology: ["General Ophthalmology", "Retina", "Cornea", "Glaucoma", "Oculoplastics", "Other"],
-  ENT: ["General ENT", "Head & Neck Surgery", "Rhinology", "Otology", "Laryngology", "Other"],
+  ENT: ["General ENT", "Head and Neck Surgery", "Rhinology", "Otology", "Laryngology", "Other"],
   Orthopedics: [
     "General Orthopedics",
     "Spine",
@@ -132,7 +153,7 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Pediatric Dentistry",
     "Other",
   ],
-  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care", "Other"],
+  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care Medicine", "Other"],
   "Family Medicine": ["General Family Medicine", "Geriatrics", "Sports Medicine", "Other"],
   Pathology: ["Anatomic Pathology", "Clinical Pathology", "Forensic Pathology", "Other"],
   Other: ["Other (specify)"],
