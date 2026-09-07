@@ -3,11 +3,12 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignUp } from "@/app/provider/signup/actions";
-import { FACILITY_CATEGORY_OPTIONS } from "@/lib/frontend-search-filters";
 import {
-  DIAGNOSTIC_SUBTYPE_OPTIONS,
-  OTHER_FACILITY_TYPE,
-} from "@/lib/provider/onboarding-config";
+  FACILITY_CATEGORY_CHOICES,
+  FACILITY_CATEGORY_OTHER_LABEL,
+  resolveCategoryChoice,
+} from "@/lib/frontend-search-filters";
+import { DIAGNOSTIC_SUBTYPE_OPTIONS } from "@/lib/provider/onboarding-config";
 import { PasswordStrengthHint } from "./PasswordStrengthHint";
 import { SubmitButton } from "./SubmitButton";
 
@@ -21,15 +22,16 @@ const ROLE_OPTIONS = [
   "Other",
 ];
 
-// Derived from FACILITY_CATEGORY_DB_MAP so a provider can only pick a value
-// that actually maps to a category. This form previously kept its own list
-// with "Hospital" and "Laboratory / Diagnostics", neither of which is in the
-// map, so approving those claims wrote an unmappable facilities.category and
-// the facility never appeared under any category filter.
+// The same choices, and the same label-versus-stored-value split, that the
+// admin create form uses — so a provider describing their own facility and an
+// admin describing it for them reach the same taxonomy instead of two.
 //
-// OTHER_FACILITY_TYPE is appended deliberately and is NOT a storable
-// category — see resolveClaimFacilityCategory() in the admin claims action.
-const FACILITY_TYPE_OPTIONS = [...FACILITY_CATEGORY_OPTIONS, OTHER_FACILITY_TYPE];
+// This form once kept its own list with "Hospital" and "Laboratory /
+// Diagnostics", neither of which is in FACILITY_CATEGORY_DB_MAP, so approving
+// those claims wrote an unmappable category and the facility appeared under no
+// filter. The dropdown offers labels now, but every one of them resolves to a
+// category the map knows before it is stored.
+
 
 const inputClass =
   "min-h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
@@ -51,6 +53,12 @@ function ProviderSignupFormInner() {
   const [claimantRole, setClaimantRole] = useState("");
   const [facilityType, setFacilityType] = useState("");
   const [diagnosticSubtype, setDiagnosticSubtype] = useState("");
+  // facilityType holds the LABEL shown in the dropdown. What gets stored is
+  // resolved from it, so "Medical Complex" reaches approval as Specialty
+  // Center and is not refused for being a category no filter knows.
+  const categoryChoice = resolveCategoryChoice(facilityType);
+  const isOtherType = facilityType === FACILITY_CATEGORY_OTHER_LABEL;
+  const isDiagnosticType = categoryChoice?.stores === "Diagnostic Center";
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
   const facilityNameParam = searchParams.get("facility_name");
@@ -111,7 +119,9 @@ function ProviderSignupFormInner() {
             name="facility_type"
             onChange={(e) => {
               setFacilityType(e.target.value);
-              if (e.target.value !== "Diagnostic Center") setDiagnosticSubtype("");
+              if (resolveCategoryChoice(e.target.value)?.stores !== "Diagnostic Center") {
+                setDiagnosticSubtype("");
+              }
             }}
             required
             value={facilityType}
@@ -119,24 +129,66 @@ function ProviderSignupFormInner() {
             <option disabled value="">
               Select facility type
             </option>
-            {FACILITY_TYPE_OPTIONS.map((type) => (
-              <option key={type} value={type}>
-                {type}
+            {FACILITY_CATEGORY_CHOICES.map((choice) => (
+              <option key={choice.label} value={choice.label}>
+                {choice.label}
               </option>
             ))}
+            <option value={FACILITY_CATEGORY_OTHER_LABEL}>
+              {FACILITY_CATEGORY_OTHER_LABEL}
+            </option>
           </select>
-          {facilityType === OTHER_FACILITY_TYPE && (
-            <input
-              className={inputClass}
-              id="facility_type_other"
-              name="facility_type_other"
-              placeholder="Please describe your facility type"
-              required
-              type="text"
-            />
+          {categoryChoice?.describesAs && (
+            <p className="text-xs text-muted-foreground">
+              Listed as &ldquo;{categoryChoice.describesAs}&rdquo;, and found under
+              Specialty Center when patients browse.
+            </p>
+          )}
+          {isOtherType && (
+            <div className="mt-2 flex flex-col gap-3 rounded-lg border border-border bg-background p-3">
+              <input
+                className={inputClass}
+                id="facility_type_other"
+                name="facility_type_other"
+                placeholder="Please describe your facility type"
+                required
+                type="text"
+              />
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-sm font-medium text-foreground"
+                  htmlFor="facility_type_behaves_as"
+                >
+                  Which of these is it closest to? *
+                </label>
+                {/* Asked here rather than left for an admin to guess later.
+                    Approval refuses a facility_type it cannot map, because an
+                    unmapped category publishes a listing that appears under no
+                    filter — so without this answer the claim simply waits. */}
+                <select
+                  className={inputClass}
+                  defaultValue=""
+                  id="facility_type_behaves_as"
+                  name="facility_type_behaves_as"
+                  required
+                >
+                  <option disabled value="">
+                    Choose one…
+                  </option>
+                  {FACILITY_CATEGORY_CHOICES.filter((c) => !c.describesAs).map((c) => (
+                    <option key={c.stores} value={c.stores}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Decides where patients find you when they browse by type.
+                </p>
+              </div>
+            </div>
           )}
 
-          {facilityType === "Diagnostic Center" && (
+          {isDiagnosticType && (
             <div className="mt-2 flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
               <p className="text-sm font-medium text-foreground">
                 What services does your facility offer? *

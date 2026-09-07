@@ -17,6 +17,9 @@ import type { FacilityBranch } from "@/types/facility";
 // branchCount - 1 blocks. So total sites = value.length + 1.
 
 export function emptyBranch(): FacilityBranch {
+  // phone_2 is deliberately absent rather than "": a new branch is identical
+  // in shape to every branch already stored, so nothing that reads this data
+  // has to tell a blank second line from one that was never offered.
   return { name: "", area: "", landmark: "", latitude: null, longitude: null, maps_link: "", phone: "" };
 }
 
@@ -214,6 +217,20 @@ export function BranchRepeater({
                 placeholder="+251 ..."
                 type="tel"
                 value={branch.phone ?? ""}
+              />
+              {/* Second line, always offered rather than hidden behind an Add
+                  button. A branch that has two numbers is ordinary, and a
+                  patient given a choice is a patient who gets through; an
+                  empty field costs a glance, a missing one costs a call. Two
+                  is the ceiling here on purpose — a site with more lines than
+                  the main listing is a facility of its own. */}
+              <BranchField
+                label="Second branch number"
+                onChange={(v) => update(i, { phone_2: v })}
+                onCommit={(v) => commit(update(i, { phone_2: v }))}
+                placeholder="Optional"
+                type="tel"
+                value={branch.phone_2 ?? ""}
               />
 
               {renderCoordinateEditor?.(branch, i, (lat, lng, link) =>

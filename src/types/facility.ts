@@ -63,6 +63,12 @@ export type FacilityBranch = {
   longitude: number | null;
   maps_link: string;
   phone: string;
+  // A second line for the branch. Optional, and optional on purpose: every
+  // branch already stored has one phone and no key for this, so requiring it
+  // would make existing data invalid rather than incomplete. Two is where this
+  // stops — a branch with more numbers than the main listing is a facility in
+  // its own right, and should be listed as one.
+  phone_2?: string;
 };
 
 export type Facility = {

@@ -3,6 +3,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  FACILITY_CATEGORY_OTHER_LABEL,
+  resolveCategoryChoice,
+} from "@/lib/frontend-search-filters";
 
 export async function providerSignUp(formData: FormData) {
   const email = formData.get("email") as string;
@@ -14,8 +18,27 @@ export async function providerSignUp(formData: FormData) {
   const claimantRoleRaw = formData.get("claimant_role") as string;
   const claimantRoleOther = formData.get("claimant_role_other") as string;
   const claimantRole = claimantRoleRaw === "Other" ? claimantRoleOther : claimantRoleRaw;
-  const facilityType = formData.get("facility_type") as string;
-  const facilityTypeOther = formData.get("facility_type_other") as string;
+  // The dropdown posts a LABEL. What is stored has to be a category the filter
+  // map recognises, or approval refuses the claim later and the provider waits
+  // on a queue for a reason nobody told them about. "Medical Complex" is a
+  // true description and not a filter bucket, so it stores as Specialty Center
+  // and keeps its own wording in facility_type_other, which approval carries
+  // through to the listing's subcategory.
+  const facilityTypeLabel = formData.get("facility_type") as string;
+  const facilityTypeChoice = resolveCategoryChoice(facilityTypeLabel);
+  const behavesAs = formData.get("facility_type_behaves_as") as string | null;
+  const describedAs = formData.get("facility_type_other") as string;
+
+  const facilityType =
+    facilityTypeLabel === FACILITY_CATEGORY_OTHER_LABEL
+      ? (behavesAs ?? "")
+      : (facilityTypeChoice?.stores ?? facilityTypeLabel);
+
+  const facilityTypeOther =
+    facilityTypeLabel === FACILITY_CATEGORY_OTHER_LABEL
+      ? describedAs
+      : (facilityTypeChoice?.describesAs ?? null);
+
   const diagnosticSubtype =
     facilityType === "Diagnostic Center"
       ? (formData.get("diagnostic_subtype") as string)
@@ -54,20 +77,14 @@ export async function providerSignUp(formData: FormData) {
     redirect(`/provider/signup?error=${encodeURIComponent(error?.message ?? "signup_failed")}`);
   }
 
-  // MANUAL: provider_accounts has no facility_name column yet — run this
-  // against the live Supabase project (SQL Editor) before this write below
-  // will persist it. See also supabase/migrations_draft/015_provider_accounts_facility_name.sql
-  // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS facility_name text;
-
-  // MANUAL: provider_accounts has no claimant_role or facility_phone columns
-  // yet — run this against the live Supabase project (SQL Editor) before
-  // this write below will persist them. See also
-  // supabase/migrations_draft/017_provider_accounts_role_and_facility_phone.sql
-  // -- MANUAL: ALTER TABLE provider_accounts ADD COLUMN IF NOT EXISTS claimant_role text, ADD COLUMN IF NOT EXISTS facility_phone text;
-
-  // MANUAL: provider_accounts has no facility_type, facility_type_other, or
-  // diagnostic_subtype columns yet. See
-  // supabase/migrations_draft/019_provider_category_fields.sql
+  // The three MANUAL notes that stood here — saying provider_accounts lacked
+  // facility_name, claimant_role, facility_phone, facility_type,
+  // facility_type_other and diagnostic_subtype — are gone because all six
+  // columns exist. Checked against the live database, not against whether
+  // migrations 015, 017 and 019 still sit in migrations_draft: a draft file
+  // stays on disk after it is run, so its presence says nothing either way.
+  // A warning that has stopped being true is worse than no warning, because
+  // the next person spends their time re-verifying it.
 
   // Create provider_account record
   const { error: insertError } = await supabase
@@ -81,7 +98,10 @@ export async function providerSignUp(formData: FormData) {
       facility_phone: facilityPhone,
       claimant_role: claimantRole,
       facility_type: facilityType,
-      facility_type_other: facilityType === "Other" ? facilityTypeOther : null,
+      // Kept whenever the label differed from the stored category, not only
+      // for Other: "Medical Complex" stores as Specialty Center and this is
+      // the only place its real wording survives to reach the listing.
+      facility_type_other: facilityTypeOther || null,
       diagnostic_subtype: diagnosticSubtype,
       terms_accepted: true,
       terms_accepted_at: new Date().toISOString(),

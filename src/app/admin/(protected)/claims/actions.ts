@@ -175,6 +175,20 @@ export async function approveClaim(
 
     const filteredFields = filterNonEmpty(buildFacilityFieldsFromClaim(claim));
 
+    // The wording the provider chose for themselves. A signup label that is
+    // not a filter bucket — "Medical Complex", "Multi-specialty Center", or
+    // anything typed under Other — stores its category as the bucket it
+    // belongs in and keeps its real name here. Read from provider_accounts
+    // rather than the claim because facility_claims has no column for it, and
+    // without this step the listing would silently become a plain "Specialty
+    // Center" at the moment of approval.
+    const { data: providerAccount } = await supabase
+      .from("provider_accounts")
+      .select("facility_type_other")
+      .eq("id", claim.provider_id as string)
+      .maybeSingle();
+    const describedAs = (providerAccount?.facility_type_other as string | null)?.trim() || null;
+
     // Assign the next record_number so the admin Facility Directory shows a #.
     const { data: maxRecord } = await supabase
       .from("facilities")
@@ -191,6 +205,10 @@ export async function approveClaim(
         name: proposedName,
         slug,
         category: claimCategory as string,
+        // Only when the claim carries no subcategory of its own — a provider
+        // who described their services in onboarding said something more
+        // specific than the category label they picked at signup.
+        ...(describedAs && !filteredFields.subcategory ? { subcategory: describedAs } : {}),
         verification_status: "facility-owned",
         record_number: nextRecordNumber,
         updated_at: new Date().toISOString(),
