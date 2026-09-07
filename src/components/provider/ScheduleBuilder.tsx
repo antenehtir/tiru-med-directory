@@ -181,6 +181,36 @@ export function ScheduleBuilder({
     ]);
   }
 
+  // The most common shape in Addis, and the one the builder made hardest to
+  // enter: full weekdays plus a shorter Saturday. It needs two rows because
+  // the hours differ, so a provider had to know to press "Add different hours
+  // for other days" and then deselect Saturday from the first row — three
+  // steps to describe the ordinary case, which is how a schedule ends up
+  // saying Mon–Sat 8–6 and promising an afternoon the facility is shut.
+  //
+  // Hours already typed are carried over, not wiped: the first row keeps its
+  // open/close and simply has its days set to Mon–Fri, and an existing
+  // Saturday row keeps its own hours. Someone who has filled in "8:00 AM"
+  // before noticing the shortcut should not be punished for the order they
+  // did things in. Blank times stay blank rather than being guessed — only
+  // the facility knows when it actually closes on a Saturday.
+  function applyWeekdayPlusSaturday() {
+    const first = value[0] ?? { days: [], open: "", close: "", closed: false };
+    const existingSaturday = value.find((row, i) => i > 0 && row.days.includes("Saturday"));
+    onChange([
+      { ...first, days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
+      existingSaturday
+        ? { ...existingSaturday, days: ["Saturday"] }
+        : { days: ["Saturday"], open: "", close: "", closed: false },
+    ]);
+  }
+
+  // Withheld once the schedule has grown past the two rows this produces,
+  // because at that point it stops being a shortcut and starts being a
+  // discard. A provider who has built something more detailed is not the
+  // person this button is for.
+  const canApplyPattern = value.length <= 2;
+
   function updateRow(index: number, partial: Partial<ScheduleRow>) {
     const next = value.map((row, i) =>
       i === index ? { ...row, ...partial } : row,
@@ -217,6 +247,24 @@ export function ScheduleBuilder({
 
   return (
     <div className="space-y-3">
+      {canApplyPattern && (
+        <div className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2.5">
+          <p className="text-xs font-medium text-muted-foreground">Common pattern</p>
+          <button
+            className="mt-1.5 rounded-full border border-primary/40 bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+            onClick={applyWeekdayPlusSaturday}
+            type="button"
+          >
+            Weekdays + Saturday half day
+          </button>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Sets up two schedules — Mon–Fri and Saturday on its own — so
+            Saturday can have shorter hours. Hours you have already entered are
+            kept.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-3">
         {value.map((row, i) => (
           <ScheduleRowItem

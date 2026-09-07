@@ -10,7 +10,7 @@ import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import { createPublicContactActions } from "@/lib/contact-actions";
 import { facilityDirectionsHref } from "@/lib/directions";
-import { facilityLocalityLabel } from "@/lib/format-location";
+import { facilityLocalityLabel, splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
 import type { Facility } from "@/types/facility";
 
@@ -105,7 +105,21 @@ function StatRow({ facility }: { facility: Facility }) {
 
 export function FacilityCard({ facility, distanceLabel, highlightLabel }: FacilityCardProps) {
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
-  const addressLine = facility.location || facility.address;
+  // The sub-city already has its own pill directly above this line, so
+  // printing "abenet, lideta" under a "Lideta" chip said it twice and made the
+  // tail of the address look like part of the street. Only the street half is
+  // shown here; when a distance pill has taken the locality slot, the sub-city
+  // comes back with its label so the card never loses it silently.
+  const cardAddress = splitFacilityAddress(facility);
+  const addressLine = cardAddress.subCity
+    ? // No street half means the area was only ever the sub-city again
+      // ("bole, bole"), so the labelled sub-city IS the whole address.
+      !cardAddress.street
+      ? subCityLabel(cardAddress.subCity)
+      : distanceLabel
+        ? `${cardAddress.street} · ${subCityLabel(cardAddress.subCity)}`
+        : cardAddress.street
+    : facility.location || facility.address;
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   const directionsHref = facilityDirectionsHref(facility);

@@ -1,5 +1,6 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { sharedSpecialtyLabel } from "@/lib/facility/specialty-display";
+import { calculateDistanceKm } from "@/lib/nearby-distance";
 import type { Facility } from "@/types/facility";
 import { CorrectionCta } from "@/components/ui/CorrectionCta";
 import { FacilityActionPanel } from "./FacilityActionPanel";
@@ -17,11 +18,28 @@ export function FacilityDetailPage({ facility, similarFacilities }: FacilityDeta
   if (!facility) return null;
   const selectedSimilarFacilities = similarFacilities ?? [];
 
-  // Why each suggestion is being offered, said on the card itself.
+  // Why each suggestion is being offered, said on the card itself: the shared
+  // specialty, and how far it is from the facility being read about.
   const similarHighlights: Record<string, string> = {};
+  const similarDistances: Record<string, string> = {};
+  const origin =
+    facility.latitude != null && facility.longitude != null
+      ? { latitude: facility.latitude, longitude: facility.longitude }
+      : undefined;
+
   for (const candidate of selectedSimilarFacilities) {
     const shared = sharedSpecialtyLabel(facility, candidate);
     if (shared) similarHighlights[candidate.id] = shared;
+
+    if (origin && candidate.latitude != null && candidate.longitude != null) {
+      const km = calculateDistanceKm(origin, {
+        latitude: candidate.latitude,
+        longitude: candidate.longitude,
+      });
+      // "away" would read as away from the visitor, who is not the origin
+      // here. The section heading says what it is measured from.
+      similarDistances[candidate.id] = `${km.toFixed(km < 10 ? 1 : 0)} km`;
+    }
   }
 
   return (
@@ -53,8 +71,10 @@ export function FacilityDetailPage({ facility, similarFacilities }: FacilityDeta
 
         <CorrectionCta facilitySlug={facility.slug} />
         <SimilarFacilitiesSection
+          distanceByFacilityId={similarDistances}
           facilities={selectedSimilarFacilities}
           highlightByFacilityId={similarHighlights}
+          originName={facility.name}
         />
       </div>
     </PageContainer>

@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
 import { getProviderAccount } from "@/lib/supabase/provider-client";
+import { getActiveFacilityCount } from "@/lib/supabase/get-facilities";
 import { ClaimFacilityForm } from "@/components/provider/ClaimFacilityForm";
 
 export default async function ClaimFacilityPage() {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
   if (provider.facility_id) redirect("/provider/dashboard");
+
+  const facilityCount = await getActiveFacilityCount();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-12">
@@ -18,8 +21,9 @@ export default async function ClaimFacilityPage() {
             Is your facility already on Tiru?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            We have 105 facilities listed. Search to see if yours is already
-            here — if so, you can claim it and take ownership of the listing.
+            {facilityCount > 0 ? `We have ${facilityCount} facilities listed. ` : ""}
+            Search to see if yours is already here — if so, you can claim it and
+            take ownership of the listing.
           </p>
         </div>
         <ClaimFacilityForm providerId={provider.id} />

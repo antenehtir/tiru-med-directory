@@ -4,6 +4,7 @@ import {
   getFacilitySpecialtyLabels,
   specialtyOverlapScore,
 } from "@/lib/facility/specialty-display";
+import { calculateDistanceKm } from "@/lib/nearby-distance";
 
 import type {
   Facility,
@@ -277,21 +278,60 @@ export async function getSimilarFacilities(
 
     if (error || !data) return [];
 
-    // Shared specialties decide the order. Category stays the outer filter —
-    // a clinic and a general hospital are not alternatives to each other even
-    // when both do dentistry — but within it, the facility that treats what
-    // this one treats comes first.
+    // Shared specialties and distance together decide the order. Category
+    // stays the outer filter — a clinic and a general hospital are not
+    // alternatives to each other even when both do dentistry — but within it,
+    // an alternative you cannot reasonably travel to is not an alternative.
+    // Ranking on specialty alone offered a Lemi Kura hospital to someone
+    // reading a Bole listing ahead of an equally-matched one down the road.
+    //
+    // Banded, not blended. A weighted sum was tried first and measured on
+    // Lancet's page: it promoted MCM (0.1 km) and Hayat (0.8 km) to second and
+    // third with an overlap of ZERO — near neighbours that treat nothing in
+    // common — which is precisely the irrelevance this ranking was written to
+    // remove. Distance must not buy relevance it has not earned.
+    //
+    // So overlap is quantised into 0.05 bands and decides outright, and
+    // distance orders the candidates INSIDE a band. Most of a large category
+    // lands in the same band (fifteen of Lancet's peers score 0.13, because
+    // most hospital rows list the same handful of services), so this is where
+    // the real ordering happens and distance now does the work that an
+    // alphabetical tie-break used to do arbitrarily.
+    //
+    // Quantising rather than comparing with a tolerance keeps the comparator a
+    // total order — a "within 0.05 of each other" test is not transitive and
+    // sorts inconsistently.
     const mine = getFacilitySpecialtyLabels(facility);
+    const origin =
+      facility.latitude != null && facility.longitude != null
+        ? { latitude: facility.latitude, longitude: facility.longitude }
+        : undefined;
+
+    // A candidate with no coordinates sorts last within its band rather than
+    // being dropped: it can still be the most relevant thing in the category.
+    const distanceOf = (candidate: Facility): number => {
+      if (!origin || candidate.latitude == null || candidate.longitude == null) {
+        return Number.POSITIVE_INFINITY;
+      }
+      return calculateDistanceKm(origin, {
+        latitude: candidate.latitude,
+        longitude: candidate.longitude,
+      });
+    };
 
     return data
       .map((row) => mapDBRowToFacility(row as DBFacility))
       .map((candidate) => ({
         candidate,
-        shared: specialtyOverlapScore(mine, getFacilitySpecialtyLabels(candidate)),
+        band: Math.round(specialtyOverlapScore(mine, getFacilitySpecialtyLabels(candidate)) * 20),
+        km: distanceOf(candidate),
       }))
-      // Name breaks ties so the rail is stable between renders rather than
-      // reshuffling on every request for facilities that score the same.
-      .sort((a, b) => b.shared - a.shared || a.candidate.name.localeCompare(b.candidate.name))
+      // Name last, so the rail is stable between renders rather than
+      // reshuffling on every request for facilities that tie on both.
+      .sort(
+        (a, b) =>
+          b.band - a.band || a.km - b.km || a.candidate.name.localeCompare(b.candidate.name),
+      )
       .slice(0, limit)
       .map((entry) => entry.candidate);
   } catch {
@@ -344,5 +384,30 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
     // Deliberately not cached, so the next request retries instead of serving
     // an empty directory for the rest of the cache window.
     return [];
+  }
+}
+
+// How many active facilities the directory actually holds. The claim page told
+// every provider "We have 105 facilities listed" from a hardcoded number that
+// was already wrong by three and would keep drifting — a stale count is a
+// small dishonesty on the one page whose whole job is to convince a provider
+// their facility might already be here.
+//
+// Returns 0 rather than throwing, and the caller drops the sentence entirely
+// on 0: no number is better than a wrong one.
+export async function getActiveFacilityCount(): Promise<number> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { count, error } = await supabase
+      .from("facilities")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true);
+
+    return error ? 0 : (count ?? 0);
+  } catch {
+    return 0;
   }
 }

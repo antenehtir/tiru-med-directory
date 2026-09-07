@@ -8,6 +8,7 @@ import {
 import { TelegramIcon, WhatsAppIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { getFacilitySpecialtyLabels } from "@/lib/facility/specialty-display";
+import { splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import type { Facility, FacilityAppointmentModality } from "@/types/facility";
@@ -106,6 +107,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   const mapsHref = facility.contactChannels?.find((channel) => channel.channelType === "maps")?.href;
   const bannerPhotos = (facility.photoUrls?.length ? facility.photoUrls : facility.photoUrl ? [facility.photoUrl] : []).map((url) => url?.trim()).filter((url): url is string => Boolean(url));
   const hasLocation = Boolean(facility.location?.trim()) || hasMultipleBranches;
+  const address = splitFacilityAddress(facility);
 
   return (
     <header className="rounded-card border border-border bg-card p-4 shadow-card sm:p-6 lg:p-8">
@@ -169,7 +171,16 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             </p>
             <ul className="mt-2 grid gap-1.5">
               {facility.appointmentModalities.map((modality) => {
-                const link = bookingLink(modality.value);
+                // A provider can tick a way in without typing a detail for it —
+                // Lancet's "In-person at reception" is saved with an empty
+                // value — which rendered as a bare icon sitting under the
+                // booking link with nothing beside it. The label is the useful
+                // half of that row anyway ("you can book at reception" is real
+                // information), so it stands in when there is no value, and
+                // only a row with neither is dropped.
+                const detail = modality.value?.trim() || modality.label?.trim() || "";
+                if (!detail) return null;
+                const link = bookingLink(detail);
                 return (
                   <li className="flex items-start gap-2 text-sm text-foreground" key={modality.type}>
                     <span className="mt-0.5 shrink-0 text-muted-foreground">
@@ -189,7 +200,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
                         {link.label}
                       </a>
                     ) : (
-                      <span className="min-w-0 break-words">{modality.value}</span>
+                      <span className="min-w-0 break-words">{detail}</span>
                     )}
                   </li>
                 );
@@ -226,7 +237,17 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           </div>
         ) : (
           <div className="flex items-center justify-between gap-3 rounded-card border border-border bg-background p-4">
-            <div className="min-w-0"><p className="text-sm font-semibold text-foreground">{facility.location}</p><p className="mt-1 text-xs text-muted-foreground">Location</p></div>
+            {/* Street and sub-city on separate lines. Printed as one string,
+                "Megenagna, Afarensis Bldg, Bole" reads as an address ending in
+                a place called Bole rather than an address IN Bole sub-city. */}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {address.street || (address.subCity ? subCityLabel(address.subCity) : facility.location)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {address.street && address.subCity ? subCityLabel(address.subCity) : "Location"}
+              </p>
+            </div>
             {mapsHref ? <a className="shrink-0 rounded-control border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-muted" href={mapsHref} rel="noopener noreferrer" target="_blank">View map</a> : null}
           </div>
         )}

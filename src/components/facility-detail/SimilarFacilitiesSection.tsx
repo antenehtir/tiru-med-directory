@@ -8,12 +8,24 @@ type SimilarFacilitiesSectionProps = {
   // the reader to work out why — the same question search results already
   // answer with their matched-service chip.
   highlightByFacilityId?: Record<string, string>;
+  // Distance from the facility being viewed, not from the visitor.
+  distanceByFacilityId?: Record<string, string>;
+  // Named in the copy so "2.4 km" and the tinted service pill both have a
+  // stated point of reference. A highlighted pill with nothing explaining it
+  // is a colour the reader has to guess the meaning of.
+  originName?: string;
 };
 
 export function SimilarFacilitiesSection({
   facilities,
   highlightByFacilityId,
+  distanceByFacilityId,
+  originName,
 }: SimilarFacilitiesSectionProps) {
+  const hasHighlights = Object.keys(highlightByFacilityId ?? {}).length > 0;
+  const hasDistances = Object.keys(distanceByFacilityId ?? {}).length > 0;
+  const here = originName ?? "this facility";
+
   return (
     <section>
       <div className="mb-4">
@@ -24,10 +36,23 @@ export function SimilarFacilitiesSection({
           Other healthcare options to compare
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Compare facility information, services, and trust signals.
+          {hasHighlights ? (
+            <>
+              The tinted service is what each one shares with {here}
+              {hasDistances ? ", and the distance is measured from it" : ""}.
+            </>
+          ) : hasDistances ? (
+            <>Distances are measured from {here}.</>
+          ) : (
+            <>Compare facility information, services, and trust signals.</>
+          )}
         </p>
       </div>
-      <FacilityCardGrid facilities={facilities} highlightByFacilityId={highlightByFacilityId} />
+      <FacilityCardGrid
+        distanceByFacilityId={distanceByFacilityId}
+        facilities={facilities}
+        highlightByFacilityId={highlightByFacilityId}
+      />
     </section>
   );
 }
