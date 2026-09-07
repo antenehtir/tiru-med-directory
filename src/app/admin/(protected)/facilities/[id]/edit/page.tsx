@@ -6,9 +6,15 @@ async function getFacility(id: string) {
   const supabase = await createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("facilities")
-    .select(
-      "id, slug, name, category, verification_status, record_number, services, special_services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, phone, phone_2, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin, latitude, longitude, maps_link, sub_city, area, branches, branch_count",
-    )
+    // Every column, rather than a list that has to be extended by hand each
+    // time a section learns about one. That list had already been edited twice
+    // for branches and branch_count, and the failure mode is quiet: a section
+    // renders its control against `undefined`, shows a default, and writes the
+    // default back over real data. It also means naming a column this database
+    // does not have yet — diagnostic_subtype before 045 runs — degrades to the
+    // field being absent instead of erroring the whole page. One row, on an
+    // admin screen: there is nothing to save by narrowing it.
+    .select("*")
     .eq("id", id)
     .single();
 

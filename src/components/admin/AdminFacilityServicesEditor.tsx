@@ -24,6 +24,7 @@ import {
   PAYMENT_METHODS,
   EMERGENCY_TYPES,
   WALKIN_APPOINTMENT_OPTIONS,
+  DIAGNOSTIC_SUBTYPE_OPTIONS,
 } from "@/lib/provider/onboarding-config";
 
 type Facility = Record<string, unknown>;
@@ -70,6 +71,20 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const isAmbulance = category === "Ambulance Service";
   const isDefault = !isPharmacy && !isDiagnostic && !isHomeCare && !isAmbulance;
 
+  // Whether this database knows about the column at all. The edit page selects
+  // "*", so before migration 045 runs the key is simply absent rather than
+  // null — and a control that cannot be saved is worse than no control, so it
+  // stays hidden until the column exists.
+  const subtypeColumnExists = "diagnostic_subtype" in facility;
+  const [diagnosticSubtype, setDiagnosticSubtype] = useState<string>(
+    (facility.diagnostic_subtype as string | null) ?? "",
+  );
+  // Unset means both. Not stating a subtype must not hide a list a facility
+  // needs: showing one it does not need wastes a minute, hiding one it does
+  // loses data. Step3ServicesForm resolves an unset subtype the same way.
+  const showDiagLab = !isDiagnostic || diagnosticSubtype !== "imaging";
+  const showDiagImaging = !isDiagnostic || diagnosticSubtype !== "lab";
+
   const [services, setServices] = useState<string[]>(arr(facility.services));
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
   const [customServiceCategories, setCustomServiceCategories] = useState<CustomServiceCategories>(
@@ -110,6 +125,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     appointmentModalities: (facility.appointment_modalities as AppointmentModality[]) ?? [],
     emergencyType: (facility.emergency_type as string | null) ?? null,
     schedule: (facility.schedule as ScheduleRow[] | null) ?? null,
+    diagnosticSubtype: (facility.diagnostic_subtype as string | null) ?? null,
   });
 
   function toggleService(svc: string) {
@@ -154,6 +170,11 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const knownLists: readonly (readonly string[])[] = isPharmacy
     ? [PHARMACY_CATEGORIES]
     : isDiagnostic
+      // Both lists, whatever the subtype hides. Rendering is gated; knowing a
+      // value is not. An imaging-only facility that already stored lab tests
+      // would otherwise see them reclassified as free-typed leftovers the
+      // moment its subtype was set — the same value, suddenly reading as
+      // someone's typo.
       ? [IMAGING_SERVICES, ALL_BASIC_LAB_TESTS]
       : isHomeCare
         ? [HOME_CARE_SERVICES, ALL_BASIC_LAB_TESTS]
@@ -224,6 +245,14 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     if (!unchanged(nextInsuranceNote, before.insuranceNote)) {
       fields.insurance_note = nextInsuranceNote;
     }
+    // Only for the category it describes, and only where the column exists.
+    if (
+      isDiagnostic &&
+      subtypeColumnExists &&
+      !unchanged(diagnosticSubtype || null, before.diagnosticSubtype)
+    ) {
+      fields.diagnostic_subtype = diagnosticSubtype || null;
+    }
     if (!unchanged(walkinPolicy || null, before.walkinPolicy)) {
       fields.walkin_appointment = walkinPolicy || null;
     }
@@ -256,6 +285,10 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
           walkinPolicy: walkinPolicy || null,
           appointmentModalities,
           emergencyType: isDefault ? emergencyType || null : before.emergencyType,
+          diagnosticSubtype:
+            isDiagnostic && subtypeColumnExists
+              ? diagnosticSubtype || null
+              : before.diagnosticSubtype,
           schedule: hasRealSchedule ? schedule : before.schedule,
         };
         setSavedAt(new Date());
@@ -349,32 +382,69 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
 
         {isDiagnostic && (
           <>
+            {subtypeColumnExists && (
+              <div className="mb-5 rounded-xl border border-border bg-background p-4">
+                <p className="text-sm font-semibold text-foreground">
+                  What this facility offers
+                </p>
+                <p className="mt-0.5 mb-3 text-xs text-muted-foreground">
+                  Sets which service lists appear below. A facility that only
+                  images is not asked about blood tests.
+                </p>
+                <div className="flex flex-col gap-2">
+                  {DIAGNOSTIC_SUBTYPE_OPTIONS.map((opt) => (
+                    <label
+                      className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
+                      key={opt.value}
+                    >
+                      <input
+                        checked={diagnosticSubtype === opt.value}
+                        name="admin_diagnostic_subtype"
+                        onChange={() => setDiagnosticSubtype(opt.value)}
+                        type="radio"
+                        value={opt.value}
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+                {!diagnosticSubtype && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Not set — both lists are shown until one is chosen.
+                  </p>
+                )}
+              </div>
+            )}
             {/* The panels a laboratory actually runs. Withheld from this
                 branch until now, while general hospitals were shown them —
                 which is backwards, and is why the live Diagnostic Centers
                 hand-typed test names the catalogue already had. */}
-            <BasicLabSelector
-              customInputs={customInputs}
-              customServiceCategories={customServiceCategories}
-              onCustomAdd={addCustomService}
-              onCustomChange={setCustomInput}
-              onRemoveCustom={removeCustomService}
-              onSelectAllIn={selectAllIn}
-              onToggleTest={toggleService}
-              services={services}
-            />
-            <PillSelector
-              customEntries={customServiceCategories.imaging ?? []}
-              customValue={customInputs.imaging ?? ""}
-              onCustomAdd={() => addCustomService("imaging")}
-              onCustomChange={(v) => setCustomInput("imaging", v)}
-              onRemoveCustom={(v) => removeCustomService("imaging", v)}
-              onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
-              onToggle={toggleService}
-              options={IMAGING_SERVICES}
-              services={services}
-              title="Imaging & Diagnostics"
-            />
+            {showDiagLab && (
+              <BasicLabSelector
+                customInputs={customInputs}
+                customServiceCategories={customServiceCategories}
+                onCustomAdd={addCustomService}
+                onCustomChange={setCustomInput}
+                onRemoveCustom={removeCustomService}
+                onSelectAllIn={selectAllIn}
+                onToggleTest={toggleService}
+                services={services}
+              />
+            )}
+            {showDiagImaging && (
+              <PillSelector
+                customEntries={customServiceCategories.imaging ?? []}
+                customValue={customInputs.imaging ?? ""}
+                onCustomAdd={() => addCustomService("imaging")}
+                onCustomChange={(v) => setCustomInput("imaging", v)}
+                onRemoveCustom={(v) => removeCustomService("imaging", v)}
+                onSelectAll={() => selectAllIn(IMAGING_SERVICES)}
+                onToggle={toggleService}
+                options={IMAGING_SERVICES}
+                services={services}
+                title="Imaging & Diagnostics"
+              />
+            )}
           </>
         )}
 

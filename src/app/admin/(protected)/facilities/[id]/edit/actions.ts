@@ -94,7 +94,7 @@ async function logFacilityEdit(
 }
 
 const SERVICES_COLUMNS =
-  "name, services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type";
+  "name, services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype";
 
 // Every key is optional: the editor sends only what the admin actually
 // changed, so an untouched column is never overwritten with a UI default.
@@ -108,6 +108,11 @@ type FacilityServicesFields = {
   walkin_appointment?: string | null;
   appointment_modalities?: unknown;
   emergency_type?: string | null;
+  // Which service lists a Diagnostic Center is shown. Only three values are
+  // meaningful and the column's CHECK constraint enforces them, but the guard
+  // is here too: a bad value would not error, it would quietly hide a list the
+  // facility needs.
+  diagnostic_subtype?: string | null;
 };
 
 export async function updateFacilityServices(
@@ -121,6 +126,13 @@ export async function updateFacilityServices(
 
   if (fields.services && fields.services.length === 0) {
     throw new Error("At least one service is required.");
+  }
+
+  if (
+    fields.diagnostic_subtype != null &&
+    !["lab", "imaging", "both"].includes(fields.diagnostic_subtype)
+  ) {
+    throw new Error(`Unknown diagnostic subtype "${fields.diagnostic_subtype}".`);
   }
 
   const supabase = await createAdminSupabaseClient();

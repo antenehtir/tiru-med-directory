@@ -4,7 +4,10 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignUp } from "@/app/provider/signup/actions";
 import { FACILITY_CATEGORY_OPTIONS } from "@/lib/frontend-search-filters";
-import { OTHER_FACILITY_TYPE } from "@/lib/provider/onboarding-config";
+import {
+  DIAGNOSTIC_SUBTYPE_OPTIONS,
+  OTHER_FACILITY_TYPE,
+} from "@/lib/provider/onboarding-config";
 import { PasswordStrengthHint } from "./PasswordStrengthHint";
 import { SubmitButton } from "./SubmitButton";
 
@@ -27,12 +30,6 @@ const ROLE_OPTIONS = [
 // OTHER_FACILITY_TYPE is appended deliberately and is NOT a storable
 // category — see resolveClaimFacilityCategory() in the admin claims action.
 const FACILITY_TYPE_OPTIONS = [...FACILITY_CATEGORY_OPTIONS, OTHER_FACILITY_TYPE];
-
-const DIAGNOSTIC_SUBTYPE_OPTIONS = [
-  { value: "lab", label: "Laboratory only" },
-  { value: "imaging", label: "Imaging only" },
-  { value: "both", label: "Both — laboratory and imaging" },
-];
 
 const inputClass =
   "min-h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
