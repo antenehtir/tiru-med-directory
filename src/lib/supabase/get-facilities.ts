@@ -9,7 +9,6 @@ import type {
   FacilityDoctor,
   FacilityScheduleRow,
 } from "@/types/facility";
-import { realFacilities } from "@/data/real-facility-profiles";
 
 type DBFacility = {
   id: string;
@@ -195,15 +194,20 @@ export async function getFacilityBySlug(slug: string): Promise<Facility | null> 
       .eq("slug", slug)
       .single();
 
-    if (error || !data) {
-      const { getRealFacilityBySlug } = await import("@/data/real-facility-profiles");
-      return getRealFacilityBySlug(slug) ?? null;
-    }
+    if (error || !data) return null;
 
     return mapDBRowToFacility(data as DBFacility);
   } catch {
-    const { getRealFacilityBySlug } = await import("@/data/real-facility-profiles");
-    return getRealFacilityBySlug(slug) ?? null;
+    // No static fallback. This used to answer a failed query from a snapshot
+    // of the intake JSON, which carries no is_active and no later correction —
+    // so during an outage a facility deactivated for closing permanently, or
+    // for being under investigation, came back with a working phone number,
+    // and every corrected coordinate reverted to its imported value.
+    //
+    // Showing nothing is the safer failure for a medical directory: someone
+    // who sees an error tries again, someone handed a wrong number calls it.
+    // Chosen deliberately over degrading to stale data.
+    return null;
   }
 }
 
@@ -224,15 +228,13 @@ export async function getSimilarFacilities(
       .neq("slug", facility.slug)
       .limit(limit);
 
-    if (error || !data || data.length === 0) {
-      const { getSimilarRealFacilities } = await import("@/data/real-facility-profiles");
-      return getSimilarRealFacilities(facility);
-    }
+    if (error || !data) return [];
 
     return data.map((row) => mapDBRowToFacility(row as DBFacility));
   } catch {
-    const { getSimilarRealFacilities } = await import("@/data/real-facility-profiles");
-    return getSimilarRealFacilities(facility);
+    // Same reasoning as getFacilityBySlug. An empty rail simply does not
+    // render, which is the right amount of nothing for a suggestion.
+    return [];
   }
 }
 
@@ -260,9 +262,14 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
       .eq("is_active", true)
       .order("record_number", { ascending: true });
 
-    if (error || !data || data.length === 0) {
-      console.warn("Falling back to static facilities data:", error?.message);
-      return realFacilities;
+    // A genuinely empty result is not a failure. The previous condition also
+    // fell back when the query succeeded and returned zero rows, which would
+    // have served the entire static snapshot the moment every facility was
+    // legitimately deactivated — the one case where showing nothing matters
+    // most.
+    if (error || !data) {
+      console.warn("Facility list query failed:", error?.message);
+      return [];
     }
 
     const mapped = data.map((row) => mapDBRowToFacility(row as DBFacility));
@@ -270,7 +277,9 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
     cacheTime = Date.now();
     return mapped;
   } catch (err) {
-    console.warn("DB fetch failed, using static fallback:", err);
-    return realFacilities;
+    console.warn("Facility list fetch failed:", err);
+    // Deliberately not cached, so the next request retries instead of serving
+    // an empty directory for the rest of the cache window.
+    return [];
   }
 }
