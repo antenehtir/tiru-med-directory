@@ -3,24 +3,54 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createFacility, type CreateFacilityResult } from "@/app/admin/(protected)/facilities/new/actions";
-import { FACILITY_CATEGORY_OPTIONS } from "@/lib/frontend-search-filters";
+import {
+  FACILITY_CATEGORY_CHOICES,
+  FACILITY_CATEGORY_OTHER_LABEL,
+  resolveCategoryChoice,
+} from "@/lib/frontend-search-filters";
 import {
   ADDIS_SUB_CITIES,
   DIAGNOSTIC_SUBTYPE_OPTIONS,
+  SPECIALTIES,
 } from "@/lib/provider/onboarding-config";
+import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
 
 const inputClass =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
+
+// Sub-cities a facility can span. "Multiple" is the answer for a chain, and
+// answering it opens the list below rather than ending the question there —
+// the live data already stores these as "lideta / arada", so the tick boxes
+// produce the format the rest of the app has always read.
+const REAL_SUB_CITIES = ADDIS_SUB_CITIES.filter((s) => s !== "Multiple");
 
 export function AdminNewFacilityForm() {
   const [state, formAction, isPending] = useActionState<CreateFacilityResult, FormData>(
     createFacility,
     undefined,
   );
-  // Category drives whether the diagnostic question is asked at all, so it is
-  // the one field this component tracks rather than leaving to the form.
+
+  // Category drives which follow-up questions appear, so it is tracked here
+  // rather than left to the form. The value held is the LABEL; the server
+  // resolves it to the category actually stored.
   const [category, setCategory] = useState("");
-  const isDiagnostic = category === "Diagnostic Center";
+  const [subCity, setSubCity] = useState("");
+  const [subCities, setSubCities] = useState<string[]>([]);
+  const [specialties, setSpecialties] = useState<string[]>([]);
+
+  const choice = resolveCategoryChoice(category);
+  const isOther = category === FACILITY_CATEGORY_OTHER_LABEL;
+  const isDiagnostic = choice?.stores === "Diagnostic Center";
+  // Every label that files under a specialty bucket asks which specialties —
+  // that covers Specialty Center, Multi-specialty, Medical Plaza and Medical
+  // Complex without naming them one at a time.
+  const isSpecialty =
+    choice?.stores === "Specialty Center" || choice?.stores === "Medical Plaza";
+  const isMultipleSubCity = subCity === "Multiple";
+
+  function toggle(list: string[], value: string) {
+    return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+  }
 
   return (
     <form action={formAction} className="space-y-6">
@@ -54,10 +84,10 @@ export function AdminNewFacilityForm() {
             <label className="text-sm font-medium text-foreground" htmlFor="category">
               Category *
             </label>
-            {/* Straight from FACILITY_CATEGORY_OPTIONS, which is derived from
-                FACILITY_CATEGORY_DB_MAP. A value outside that map publishes a
-                facility that appears under no filter — the exact way the live
-                "Hospital" and "Telemedicine" rows became invisible. */}
+            {/* These are labels, not stored values. Each resolves to a category
+                the filter map recognises — storing the label verbatim would
+                publish a facility no browse filter can reach, which is how the
+                live "Hospital" and "Telemedicine" rows became invisible. */}
             <select
               className={inputClass}
               id="category"
@@ -67,20 +97,124 @@ export function AdminNewFacilityForm() {
               value={category}
             >
               <option value="">Select a category…</option>
-              {FACILITY_CATEGORY_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+              {FACILITY_CATEGORY_CHOICES.map((option) => (
+                <option key={option.label} value={option.label}>
+                  {option.label}
                 </option>
               ))}
+              <option value={FACILITY_CATEGORY_OTHER_LABEL}>
+                {FACILITY_CATEGORY_OTHER_LABEL}
+              </option>
             </select>
+            {choice?.describesAs && (
+              <p className="text-xs text-muted-foreground">
+                Listed as “{choice.describesAs}”, and found under Specialty
+                Center when someone browses.
+              </p>
+            )}
           </div>
+
+          {isOther && (
+            <div className="space-y-4 rounded-xl border border-border bg-background p-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="category_other">
+                  Describe this facility *
+                </label>
+                <input
+                  className={inputClass}
+                  id="category_other"
+                  name="category_other"
+                  placeholder="e.g. Rehabilitation Centre"
+                  required
+                  type="text"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Shown on the listing as its description.
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-sm font-medium text-foreground"
+                  htmlFor="category_behaves_as"
+                >
+                  Which of these does it work most like? *
+                </label>
+                {/* Browse has seven buckets and no eighth. Asking which one it
+                    belongs in is the difference between a listing people can
+                    find and one only search reaches. */}
+                <select
+                  className={inputClass}
+                  defaultValue=""
+                  id="category_behaves_as"
+                  name="category_behaves_as"
+                  required
+                >
+                  <option disabled value="">
+                    Choose one…
+                  </option>
+                  {FACILITY_CATEGORY_CHOICES.filter((c) => !c.describesAs).map((c) => (
+                    <option key={c.stores} value={c.stores}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {isSpecialty && (
+            <div className="rounded-xl border border-border bg-background p-4">
+              <p className="text-sm font-semibold text-foreground">Which specialties? *</p>
+              <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
+                Tick every one this facility offers — several is normal, and is
+                what makes it multi-specialty. These become its first services,
+                so the editor opens with them already selected.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {SPECIALTIES.map((specialty) => {
+                  const on = specialties.includes(specialty);
+                  return (
+                    <button
+                      className={[
+                        "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                        on
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-foreground hover:bg-muted",
+                      ].join(" ")}
+                      key={specialty}
+                      onClick={() => setSpecialties((prev) => toggle(prev, specialty))}
+                      type="button"
+                    >
+                      {specialty}
+                    </button>
+                  );
+                })}
+              </div>
+              <input name="specialties" type="hidden" value={specialties.join("|")} />
+              <div className="mt-3 flex flex-col gap-1.5">
+                <label
+                  className="text-xs font-medium text-muted-foreground"
+                  htmlFor="specialty_other"
+                >
+                  Another specialty not listed
+                </label>
+                <input
+                  className={inputClass}
+                  id="specialty_other"
+                  name="specialty_other"
+                  placeholder="e.g. Sports Medicine"
+                  type="text"
+                />
+              </div>
+            </div>
+          )}
 
           {isDiagnostic && (
             <div className="rounded-xl border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">
                 What does this facility offer? *
               </p>
-              <p className="mt-0.5 mb-3 text-xs text-muted-foreground">
+              <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
                 Decides which service lists the editor shows. An imaging centre
                 is not asked about blood panels.
               </p>
@@ -112,7 +246,13 @@ export function AdminNewFacilityForm() {
             <label className="text-sm font-medium text-foreground" htmlFor="sub_city">
               Sub-city
             </label>
-            <select className={inputClass} defaultValue="" id="sub_city" name="sub_city">
+            <select
+              className={inputClass}
+              id="sub_city"
+              name="sub_city"
+              onChange={(e) => setSubCity(e.target.value)}
+              value={subCity}
+            >
               <option value="">Not known yet</option>
               {ADDIS_SUB_CITIES.map((option) => (
                 <option key={option} value={option}>
@@ -121,6 +261,45 @@ export function AdminNewFacilityForm() {
               ))}
             </select>
           </div>
+
+          {isMultipleSubCity && (
+            <div className="rounded-xl border border-border bg-background p-4">
+              <p className="text-sm font-semibold text-foreground">Which sub-cities?</p>
+              <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
+                Tick each one this facility has a site in. Saying only
+                &ldquo;Multiple&rdquo; tells a patient nothing about whether one
+                of them is near them.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {REAL_SUB_CITIES.map((name) => {
+                  const on = subCities.includes(name);
+                  return (
+                    <button
+                      className={[
+                        "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                        on
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-foreground hover:bg-muted",
+                      ].join(" ")}
+                      key={name}
+                      onClick={() => setSubCities((prev) => toggle(prev, name))}
+                      type="button"
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Slash-separated, matching what the live rows already hold
+                  ("lideta / arada") and what mapDBRowToFacility splits on. */}
+              <input name="sub_cities" type="hidden" value={subCities.join(" / ")} />
+              {subCities.length > 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Saved as “{subCities.join(" / ")}”
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="area">
@@ -138,18 +317,11 @@ export function AdminNewFacilityForm() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="phone">
-              Phone
-            </label>
-            <input
-              className={inputClass}
-              id="phone"
-              name="phone"
-              placeholder="+251 ..."
-              type="tel"
-            />
-          </div>
+          <PhoneNumberList
+            help="The number a patient should call first comes at the top."
+            label="Phone numbers"
+            name="phones"
+          />
         </div>
       </div>
 

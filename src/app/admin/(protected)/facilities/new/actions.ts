@@ -3,7 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
-import { isMappedFacilityCategory } from "@/lib/frontend-search-filters";
+import {
+  FACILITY_CATEGORY_OTHER_LABEL,
+  isMappedFacilityCategory,
+  resolveCategoryChoice,
+} from "@/lib/frontend-search-filters";
 import { toSlug } from "@/lib/slugify";
 
 export type CreateFacilityResult = { error: string } | undefined;
@@ -25,26 +29,77 @@ export async function createFacility(
   if (!adminUser) return { error: "Unauthorized." };
 
   const name = String(formData.get("name") ?? "").trim();
-  const category = String(formData.get("category") ?? "").trim();
-  const subCity = String(formData.get("sub_city") ?? "").trim();
+  const categoryLabel = String(formData.get("category") ?? "").trim();
+  const chosenSubCity = String(formData.get("sub_city") ?? "").trim();
+  const tickedSubCities = String(formData.get("sub_cities") ?? "").trim();
   const area = String(formData.get("area") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
+  const phonesRaw = String(formData.get("phones") ?? "");
   const rawSubtype = String(formData.get("diagnostic_subtype") ?? "").trim();
+  const categoryOther = String(formData.get("category_other") ?? "").trim();
+  const behavesAs = String(formData.get("category_behaves_as") ?? "").trim();
+  const specialtiesRaw = String(formData.get("specialties") ?? "").trim();
+  const specialtyOther = String(formData.get("specialty_other") ?? "").trim();
 
   if (!name) return { error: "Enter the facility name." };
+
+  // The label a person picked and the category actually stored are different
+  // things. "Medical Complex" is a true description and not a filter bucket,
+  // so it is stored as Specialty Center and kept as the listing's own wording.
+  const choice = resolveCategoryChoice(categoryLabel);
+  let category: string;
+  let describesAs: string | null = null;
+
+  if (categoryLabel === FACILITY_CATEGORY_OTHER_LABEL) {
+    if (!categoryOther) return { error: "Describe the facility." };
+    if (!behavesAs) return { error: "Choose which category it works most like." };
+    category = behavesAs;
+    describesAs = categoryOther;
+  } else if (choice) {
+    category = choice.stores;
+    describesAs = choice.describesAs ?? null;
+  } else {
+    category = categoryLabel;
+  }
 
   // The same guard the claim-approval path uses, for the same reason: a
   // category outside FACILITY_CATEGORY_DB_MAP resolves to "default", so the
   // facility publishes and then appears under no category filter at all —
   // invisible to browse and to the homepage chips, with nothing reporting it.
+  // It is checked on the resolved value, so no label can slip past by being
+  // offered in the dropdown.
   if (!isMappedFacilityCategory(category)) {
-    return { error: `"${category || "(none)"}" is not one of the listed categories.` };
+    return { error: `"${categoryLabel || "(none)"}" is not one of the listed categories.` };
   }
 
   const isDiagnostic = category === "Diagnostic Center";
   if (isDiagnostic && !["lab", "imaging", "both"].includes(rawSubtype)) {
     return { error: "Choose what this diagnostic facility offers." };
   }
+
+  // Specialties double as the facility's first services — they are values from
+  // the same SPECIALTIES catalogue the services editor renders, so ticking one
+  // here means the editor opens with it already selected rather than asking
+  // the same question twice.
+  const specialties = [
+    ...specialtiesRaw.split("|").map((s) => s.trim()).filter(Boolean),
+    ...(specialtyOther ? [specialtyOther] : []),
+  ];
+
+  const isSpecialty = category === "Specialty Center" || category === "Medical Plaza";
+  if (isSpecialty && specialties.length === 0) {
+    return { error: "Tick at least one specialty." };
+  }
+
+  // "Multiple" on its own tells a patient nothing. When the sub-cities were
+  // ticked, store them in the slash-separated form the live rows already use
+  // and mapDBRowToFacility already splits on.
+  const subCity =
+    chosenSubCity === "Multiple" && tickedSubCities ? tickedSubCities : chosenSubCity;
+
+  const phones = phonesRaw
+    .split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean);
 
   const supabase = await createAdminSupabaseClient();
 
@@ -77,24 +132,48 @@ export async function createFacility(
     // community-submitted once a facility is Owned or Verified.
     verification_status: "community-submitted",
     is_active: true,
-    // The editor's snapshot-diff guard compares against what it opened on, so
-    // an empty array here is the honest starting point rather than a value the
-    // first save would have to undo.
-    services: [],
+    // Specialties are real catalogue services, so they seed this rather than
+    // it starting empty. The editor's snapshot-diff guard then opens on
+    // exactly what was created, with nothing for the first save to undo.
+    services: specialties,
     updated_at: new Date().toISOString(),
   };
   if (subCity) row.sub_city = subCity;
   if (area) row.area = area;
-  if (phone) row.phone = phone;
-  // Only sent when the column exists — before migration 045 the insert would
-  // fail outright on an unknown column, which would block creating any
-  // facility rather than just this one field.
+  if (describesAs) row.subcategory = describesAs;
+  // phone and phone_2 stay populated whatever else happens: every reader in
+  // the app — cards, the detail panel, contact channels — still reads those
+  // two columns, and a number that exists only in the new array would be
+  // invisible everywhere until each of them is taught otherwise.
+  if (phones[0]) row.phone = phones[0];
+  if (phones[1]) row.phone_2 = phones[1];
+  // Both of these name columns a migration adds, so each is sent only once
+  // this database is known to have it. Naming a missing column fails the whole
+  // insert, which would block creating any facility rather than losing one
+  // field — the probe costs one cheap query and keeps the form usable either
+  // way. Same pattern as diagnostic_subtype before 045 ran.
   if (isDiagnostic) {
     const { error: probeError } = await supabase
       .from("facilities")
       .select("diagnostic_subtype")
       .limit(1);
     if (!probeError) row.diagnostic_subtype = rawSubtype;
+  }
+  if (phones.length > 2) {
+    const { error: probeError } = await supabase.from("facilities").select("phones").limit(1);
+    if (probeError) {
+      // Refused rather than silently truncated. Three numbers typed and two
+      // stored is a wrong listing that looks like a right one.
+      return {
+        error:
+          `This database holds two phone numbers per facility until migration 046 is run. ` +
+          `Remove ${phones.length - 2} number${phones.length - 2 === 1 ? "" : "s"}, or run 046 first.`,
+      };
+    }
+    row.phones = phones;
+  } else if (phones.length > 0) {
+    const { error: probeError } = await supabase.from("facilities").select("phones").limit(1);
+    if (!probeError) row.phones = phones;
   }
 
   const { data: created, error } = await supabase

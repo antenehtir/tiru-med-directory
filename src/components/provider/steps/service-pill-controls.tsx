@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import { BASIC_LAB_CATEGORIES } from "@/lib/provider/onboarding-config";
 
@@ -99,9 +98,8 @@ export function PillSelector({
   );
 }
 
-// One parent category card within the Basic Lab section — a category-level
-// toggle that selects/deselects all its child tests at once, plus individual
-// deselectable pills once the category has at least one test selected.
+// One panel within the Basic Lab section: its tests always visible, each
+// selectable on its own, with Select all / Clear all as a separate action.
 export function BasicLabCategoryCard({
   category,
   tests,
@@ -126,38 +124,48 @@ export function BasicLabCategoryCard({
   onRemoveCustom?: (value: string) => void;
 }) {
   const allSelected = tests.every((t) => services.includes(t));
-  const someSelected = !allSelected && tests.some((t) => services.includes(t));
-  const checkboxRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (checkboxRef.current) checkboxRef.current.indeterminate = someSelected;
-  }, [someSelected]);
+  const selectedCount = tests.filter((t) => services.includes(t)).length;
 
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <label className="flex cursor-pointer items-center gap-2">
-        <input
-          checked={allSelected}
-          onChange={onCategoryToggle}
-          ref={checkboxRef}
-          type="checkbox"
-        />
-        <span className="text-sm font-semibold text-foreground">{category}</span>
-      </label>
+      {/* The tests are always on screen, and the panel heading is no longer a
+          checkbox. It used to be one, and ticking it selected all of its tests
+          — which meant the only way to see what a panel contained was to claim
+          the facility ran every test in it, then untick back down. Nobody
+          should have to answer a question to find out what the question was.
 
-      {(allSelected || someSelected) && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {tests.map((test) => (
-            <Pill
-              key={test}
-              onClick={() => onToggleTest(test)}
-              variant={services.includes(test) ? "selected" : "default"}
-            >
-              {test}
-            </Pill>
-          ))}
+          So: the list is visible from the start, each pill toggles on its own,
+          and selecting the whole panel is an explicit action sitting beside a
+          count of what is already chosen. */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{category}</p>
+          <p className="text-xs text-muted-foreground">
+            {selectedCount > 0
+              ? `${selectedCount} of ${tests.length} selected`
+              : `${tests.length} tests — tap any that apply`}
+          </p>
         </div>
-      )}
+        <button
+          className="shrink-0 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10"
+          onClick={onCategoryToggle}
+          type="button"
+        >
+          {allSelected ? "Clear all" : "Select all"}
+        </button>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {tests.map((test) => (
+          <Pill
+            key={test}
+            onClick={() => onToggleTest(test)}
+            variant={services.includes(test) ? "selected" : "default"}
+          >
+            {test}
+          </Pill>
+        ))}
+      </div>
 
       <div className="mt-3 flex gap-2">
         <input
@@ -232,8 +240,8 @@ export function BasicLabSelector({
         Basic Lab / Point-of-care Testing
       </p>
       <p className="mb-3 text-xs text-muted-foreground">
-        Select each category your facility offers — this selects all its tests. Deselect any
-        individual test you don&apos;t offer.
+        Tap the tests this facility runs. Use Select all when it runs a whole
+        panel, and add anything missing at the bottom of each one.
       </p>
 
       <div className="space-y-3">

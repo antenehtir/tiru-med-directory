@@ -343,6 +343,55 @@ export const FACILITY_CATEGORY_OPTIONS: string[] = Object.values(
   FACILITY_CATEGORY_DB_MAP,
 ).map((dbNames) => dbNames[0]);
 
+// What a person is offered, and what each choice actually stores.
+//
+// Facilities describe themselves in words the seven canonical categories do
+// not carry — "Medical Complex", "Multi-specialty" — and refusing those words
+// does not make them untrue, it just pushes them into a free-text box that no
+// filter can read. Storing them verbatim is worse: category is what browse and
+// the homepage chips filter on, and a value outside FACILITY_CATEGORY_DB_MAP
+// resolves to "default", so the facility publishes and then appears under no
+// filter at all. That is not hypothetical — it is how the live "Hospital" and
+// "Telemedicine" rows became unreachable.
+//
+// So the label and the stored value are separated. Every option here stores a
+// category the map recognises, and a label that differs from it is kept as the
+// listing's own wording in `subcategory`, which is display text and filters
+// nothing. The facility reads as "Medical Complex" and files under Specialty
+// Center, which is where someone browsing for it would look.
+export type FacilityCategoryChoice = {
+  /** Shown in the dropdown. */
+  label: string;
+  /** Written to facilities.category — always a value the filter map knows. */
+  stores: string;
+  /** Written to facilities.subcategory when the label is not the stored value. */
+  describesAs?: string;
+};
+
+export const FACILITY_CATEGORY_CHOICES: FacilityCategoryChoice[] = [
+  { label: "General Hospital", stores: "General Hospital" },
+  { label: "Specialty Center", stores: "Specialty Center" },
+  { label: "Multi-specialty Center", stores: "Specialty Center", describesAs: "Multi-specialty Center" },
+  // Already a recognised synonym in the map, so it can store its own name.
+  { label: "Medical Plaza", stores: "Medical Plaza" },
+  { label: "Medical Complex", stores: "Specialty Center", describesAs: "Medical Complex" },
+  { label: "Clinic", stores: "Clinic" },
+  { label: "Diagnostic Center", stores: "Diagnostic Center" },
+  { label: "Pharmacy", stores: "Pharmacy" },
+  { label: "Ambulance Service", stores: "Ambulance Service" },
+  { label: "Home Care", stores: "Home Care" },
+];
+
+// The "something else" option. It is not a category — it asks which of the
+// real ones the facility behaves like, and keeps the typed wording as the
+// listing's description. Kept distinct from OTHER_FACILITY_TYPE, which is the
+// signup-time value that approval deliberately refuses to publish.
+export const FACILITY_CATEGORY_OTHER_LABEL = "Other — describe it";
+
+export function resolveCategoryChoice(label: string): FacilityCategoryChoice | undefined {
+  return FACILITY_CATEGORY_CHOICES.find((choice) => choice.label === label);
+}
+
 // True when a stored category resolves to a real category key. Used at the
 // claim-approval boundary so an unmappable value is caught before it becomes
 // an invisible facility row.
