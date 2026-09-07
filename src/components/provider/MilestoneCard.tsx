@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { OFFICIAL_BADGE_THRESHOLD_PCT } from "@/lib/provider/onboarding-config";
+import { missingRequiredFieldKeys } from "@/lib/provider/onboarding-config";
 
 type StepChecklistItem = {
   label: string;
@@ -84,20 +84,20 @@ export function MilestoneCard({
   status,
   facilitySlug,
   stepChecklist,
-  hasOperatingLicense,
-  hasBusinessLicense,
+  claim,
 }: {
   pct: number;
   status: string;
   facilitySlug: string | null;
   stepChecklist: StepChecklistItem[];
-  hasOperatingLicense: boolean;
-  hasBusinessLicense: boolean;
+  claim?: Record<string, unknown>;
 }) {
   const approved = status === "approved";
   const pendingReview = status === "pending_review";
-  const eligible = pct >= OFFICIAL_BADGE_THRESHOLD_PCT;
-  const licensesComplete = hasOperatingLicense && hasBusinessLicense;
+  // Eligibility is now the required-field check, not a percentage — the
+  // same rule submitForReview enforces, so the celebration cannot fire on a
+  // listing the server would refuse.
+  const eligible = missingRequiredFieldKeys(claim ?? {}).length === 0;
 
   return (
     <div className="px-4 py-8">
@@ -107,16 +107,16 @@ export function MilestoneCard({
             <CelebrationBurst />
 
             <div>
-              <h1 className="text-xl font-bold text-foreground">You&apos;re now Official! ✓</h1>
+              <h1 className="text-xl font-bold text-foreground">Your listing is live ✓</h1>
               <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                Your facility has been verified and your Official badge is now live on the
-                directory.
+                Your Facility Managed badge is now live on the directory — visitors can see
+                that these details come from you.
               </p>
             </div>
 
             <div className="flex justify-center">
               <span className="inline-flex items-center gap-1 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1.5 text-sm font-bold text-[#0F766E]">
-                ✓ Official
+                ✓ Facility Managed
               </span>
             </div>
 
@@ -166,28 +166,14 @@ export function MilestoneCard({
             <CelebrationBurst />
 
             <div>
-              {licensesComplete ? (
-                <>
-                  <h1 className="text-xl font-bold text-foreground">
-                    You&apos;re eligible for the Official badge! 🎉
-                  </h1>
-                  <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                    Your listing has enough detail to be reviewed for Official verification.
-                    Once an admin reviews and approves your submission, your facility will
-                    display the Official badge on the directory.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h1 className="text-xl font-bold text-foreground">
-                    Almost there — one more step
-                  </h1>
-                  <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                    Complete your Operating and Business License uploads (with issue and
-                    expiry dates) in Step 5 to become eligible for the Official badge.
-                  </p>
-                </>
-              )}
+              <h1 className="text-xl font-bold text-foreground">
+                Ready to submit 🎉
+              </h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                Your listing has everything it needs to be published. Once an admin
+                reviews it, your facility appears on the directory with the Facility
+                Managed badge — the marker that says these details come from you.
+              </p>
             </div>
 
             <div className="flex justify-center">
@@ -196,7 +182,7 @@ export function MilestoneCard({
 
             <div className="flex justify-center">
               <span className="inline-flex items-center gap-1 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1.5 text-sm font-bold text-[#0F766E]">
-                ✓ Official
+                ✓ Facility Managed
               </span>
             </div>
 
@@ -210,26 +196,17 @@ export function MilestoneCard({
             </div>
 
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800">
-              Complete Steps 4 and 5 to reach 100% and give patients the most complete
-              picture of your facility.
+              Adding doctors, schedules and photos gives patients the fullest
+              picture of your facility — and fuller listings get shown to more of them.
             </div>
 
             <div className="space-y-3">
-              {licensesComplete ? (
-                <a
-                  className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  href="/provider/onboarding/doctors"
-                >
-                  Continue to Doctors & Staff →
-                </a>
-              ) : (
-                <a
-                  className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  href="/provider/onboarding/media"
-                >
-                  Upload your licenses →
-                </a>
-              )}
+              <a
+                className="block w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                href="/provider/onboarding/doctors"
+              >
+                Continue to Doctors & Staff →
+              </a>
               <a
                 className="block text-sm text-muted-foreground hover:text-foreground"
                 href="/provider/dashboard"
@@ -247,8 +224,8 @@ export function MilestoneCard({
             <div>
               <h1 className="text-xl font-bold text-foreground">Almost there — keep going</h1>
               <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                Complete Steps 1, 2, and 3 fully to reach the 70% threshold needed for
-                Official badge eligibility.
+                Fill in the essentials — name, type, phone, where you are, a map
+                pin and at least one service — and you can submit.
               </p>
             </div>
 

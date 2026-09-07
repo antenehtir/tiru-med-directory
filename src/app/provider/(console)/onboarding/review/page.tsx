@@ -24,7 +24,7 @@ export default async function ReviewStepPage() {
           </div>
           <h1 className="text-lg font-bold text-foreground">Your listing is live</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your facility is published on the Tiru Medical Directory with the Official badge.
+            Your facility is published on the Tiru Medical Directory with the Facility Managed badge.
             Changes you make go live immediately — no resubmission needed.
           </p>
           <div className="mt-6 space-y-2">

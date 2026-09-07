@@ -55,19 +55,27 @@ export function ListingStatusBanner() {
           told nobody what the CS on a card meant, or what would be different
           if it said Official. The badges here are the same components the
           cards render, so the legend cannot drift from what it explains. */}
+      {/* Both markers now abbreviate on cards, so both are spelled out here
+          and paired with the badge the card actually draws.
+
+          The second sentence carries a negative clause on purpose. "Facility
+          Managed" replaced "Official" precisely because the old word implied a
+          check that never happens, and a legend that only says what the badge
+          MEANS would let the same wrong inference back in through the side
+          door. Saying what it does not cover is the whole point of the
+          rename. */}
       <p className="text-xs leading-5 text-muted-foreground">
         <strong className="font-semibold text-foreground">Community sourced</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
           CS
         </Badge>
         : gathered independently, not yet confirmed by the facility.{" "}
-        {/* No spelled-out term before this badge: unlike CS, the Official
-            marker already IS the word, so pairing them printed "Official
-            Official". */}
+        <strong className="font-semibold text-foreground">Facility Managed</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="success">
-          Official
+          FM
         </Badge>
-        : the facility manages this listing directly.
+        : the facility claimed this listing and keeps it up to date. It is not a
+        check of licences or credentials.
       </p>
 
       <button

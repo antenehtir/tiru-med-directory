@@ -8,27 +8,18 @@ import { buildFacilityFieldsFromClaim } from "@/lib/provider/facility-field-mapp
 export type Step5Data = {
   entrance_photo_urls: string[];
   logo_url: string;
-  license_url: string;
-  license_issue_date: string;
-  license_expiry_date: string;
-  business_license_url: string;
-  business_license_issue_date: string;
-  business_license_expiry_date: string;
 };
 
 const ENTRANCE_PHOTO_WEIGHT = 7;
 const LOGO_WEIGHT = 4;
-const LICENSE_WEIGHT = 4;
 
 function scoreStep5(data: {
   entrance_photo_urls?: string[] | null;
   logo_url?: string | null;
-  license_url?: string | null;
 }): number {
   let score = 0;
   if (data.entrance_photo_urls && data.entrance_photo_urls.length > 0) score += ENTRANCE_PHOTO_WEIGHT;
   if (data.logo_url) score += LOGO_WEIGHT;
-  if (data.license_url) score += LICENSE_WEIGHT;
   return score;
 }
 
@@ -50,7 +41,7 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
 
   const { data: currentClaim } = await supabase
     .from("facility_claims")
-    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url, proposed_license_url")
+    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url")
     .eq("id", claimId)
     .single();
 
@@ -63,15 +54,12 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
   const oldScore = scoreStep5({
     entrance_photo_urls: currentEntrancePhotoUrls,
     logo_url: currentClaim?.proposed_logo_url,
-    license_url: currentClaim?.proposed_license_url,
   });
 
   const newScore = scoreStep5({
     entrance_photo_urls:
       data.entrance_photo_urls !== undefined ? data.entrance_photo_urls : currentEntrancePhotoUrls,
     logo_url: data.logo_url !== undefined ? data.logo_url : currentClaim?.proposed_logo_url,
-    license_url:
-      data.license_url !== undefined ? data.license_url : currentClaim?.proposed_license_url,
   });
 
   const updates: Record<string, unknown> = {};
@@ -82,22 +70,6 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
     updates.proposed_entrance_photo_url = data.entrance_photo_urls[0] || null;
   }
   if (data.logo_url !== undefined) updates.proposed_logo_url = data.logo_url || null;
-  if (data.license_url !== undefined) updates.proposed_license_url = data.license_url || null;
-  if (data.license_issue_date !== undefined) {
-    updates.proposed_license_issue_date = data.license_issue_date || null;
-  }
-  if (data.license_expiry_date !== undefined) {
-    updates.proposed_license_expiry_date = data.license_expiry_date || null;
-  }
-  if (data.business_license_url !== undefined) {
-    updates.proposed_business_license_url = data.business_license_url || null;
-  }
-  if (data.business_license_issue_date !== undefined) {
-    updates.proposed_business_license_issue_date = data.business_license_issue_date || null;
-  }
-  if (data.business_license_expiry_date !== undefined) {
-    updates.proposed_business_license_expiry_date = data.business_license_expiry_date || null;
-  }
 
   let updatedClaim: Record<string, unknown> | null = null;
   if (Object.keys(updates).length > 0) {
@@ -147,7 +119,7 @@ export async function saveStep5AndContinue(data: Step5Data) {
 
   const { data: currentClaim } = await supabase
     .from("facility_claims")
-    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url, proposed_license_url")
+    .select("proposed_entrance_photo_url, proposed_entrance_photo_urls, proposed_logo_url")
     .eq("id", claimId)
     .single();
 
@@ -160,7 +132,6 @@ export async function saveStep5AndContinue(data: Step5Data) {
   const oldScore = scoreStep5({
     entrance_photo_urls: currentEntrancePhotoUrls,
     logo_url: currentClaim?.proposed_logo_url,
-    license_url: currentClaim?.proposed_license_url,
   });
   const newScore = scoreStep5(data);
 
@@ -170,12 +141,6 @@ export async function saveStep5AndContinue(data: Step5Data) {
       proposed_entrance_photo_urls: data.entrance_photo_urls,
       proposed_entrance_photo_url: data.entrance_photo_urls[0] || null,
       proposed_logo_url: data.logo_url || null,
-      proposed_license_url: data.license_url || null,
-      proposed_license_issue_date: data.license_issue_date || null,
-      proposed_license_expiry_date: data.license_expiry_date || null,
-      proposed_business_license_url: data.business_license_url || null,
-      proposed_business_license_issue_date: data.business_license_issue_date || null,
-      proposed_business_license_expiry_date: data.business_license_expiry_date || null,
       submission_step: 6,
     })
     .eq("id", claimId);

@@ -24,16 +24,6 @@ export default async function MilestoneStepPage() {
     facilitySlug = facility?.slug ?? null;
   }
 
-  const hasOperatingLicense = Boolean(
-    claim.proposed_license_url &&
-      claim.proposed_license_issue_date &&
-      claim.proposed_license_expiry_date,
-  );
-  const hasBusinessLicense = Boolean(
-    claim.proposed_business_license_url &&
-      claim.proposed_business_license_issue_date &&
-      claim.proposed_business_license_expiry_date,
-  );
 
   const stepChecklist = [
     { label: "Step 1: Basic Identity", complete: Boolean(claim.proposed_name) },
@@ -60,9 +50,8 @@ export default async function MilestoneStepPage() {
 
   return (
     <MilestoneCard
+      claim={claim}
       facilitySlug={facilitySlug}
-      hasBusinessLicense={hasBusinessLicense}
-      hasOperatingLicense={hasOperatingLicense}
       pct={pct}
       status={(claim.status as string) ?? "pending"}
       stepChecklist={stepChecklist}

@@ -87,7 +87,7 @@ function getNavItems(facilityType: string | null): NavItem[] {
 const SETTINGS_ITEM: NavItem = { label: "Account settings", href: "/provider/settings", step: null, icon: SettingsIcon };
 
 const STATUS_LABEL: Record<string, string> = {
-  approved: "✓ Official",
+  approved: "✓ Facility Managed",
   pending_review: "Under review",
   rejected: "Needs changes",
 };

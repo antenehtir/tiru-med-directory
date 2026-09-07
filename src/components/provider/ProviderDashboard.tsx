@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { calculateCompletion } from "@/lib/provider/onboarding-config";
+import { calculateCompletion, missingRequiredFieldKeys } from "@/lib/provider/onboarding-config";
 
 type ProviderAccount = {
   id: string;
@@ -206,6 +206,9 @@ export function ProviderDashboard({
 }) {
   const submissionStep = (claim?.submission_step as number | null) ?? 0;
   const pct = claim ? calculateCompletion(claim) : 0;
+  // Same rule submitForReview enforces, so the dashboard never says "ready"
+  // about a listing the server would reject.
+  const missingRequired = missingRequiredFieldKeys(claim ?? {});
 
   const stepChecklist = [
     { label: "Step 1 Basic Info", complete: submissionStep > 1 },
@@ -251,7 +254,7 @@ export function ProviderDashboard({
           </div>
         )}
 
-        {claim?.status === "pending" && pct < 70 && (
+        {claim?.status === "pending" && missingRequired.length > 0 && (
           <div className="text-center">
             <div className="flex justify-center"><PencilIcon /></div>
             <h2 className="mt-3 text-lg font-bold text-foreground">Your listing is in progress</h2>
@@ -259,7 +262,8 @@ export function ProviderDashboard({
               <ProgressRing pct={pct} ringColorClass="text-amber-500" />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Complete Steps 1, 2, and 3 to reach 70% and become eligible to submit.
+              Add the essentials — name, type, phone, where you are, a map pin and at
+              least one service — and you can submit.
             </p>
             <div className="mt-4 space-y-2 rounded-xl border border-border bg-background p-4 text-left">
               {stepChecklist.map((step) => (
@@ -286,7 +290,7 @@ export function ProviderDashboard({
           </div>
         )}
 
-        {claim?.status === "pending" && pct >= 70 && (
+        {claim?.status === "pending" && missingRequired.length === 0 && (
           <div className="text-center">
             <div className="flex justify-center"><CheckCircleIcon className="size-10 text-teal-500" /></div>
             <h2 className="mt-3 text-lg font-bold text-foreground">Ready to submit!</h2>

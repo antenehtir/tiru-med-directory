@@ -14,14 +14,18 @@ type FacilityTrustSectionProps = {
 // detail. See the accordion below for where title/body now render.
 const trustCopy: Record<Facility["verificationStatus"], { summary: string; title: string; body: string }> = {
   verified: {
-    summary: "Tiru has reviewed key details for this facility.",
-    title: "Key information reviewed by Tiru",
-    body: "Tiru has reviewed key listing information for this provider. Information can still change, so the latest update date is shown on the profile.",
+    summary: "Tiru has reviewed this facility against published criteria.",
+    title: "Reviewed by Tiru",
+    body: "Tiru has reviewed this facility against its published criteria. Information can still change, so the latest update date is shown on the profile.",
   },
   "facility-owned": {
-    summary: "This facility manages its own listing on Tiru.",
-    title: "Provider-managed listing",
-    body: "The facility has claimed this listing and can manage its public information through Tiru.",
+    // States the limit as plainly as the benefit. The badge used to read
+    // "Official", and a health seeker deciding where to take a sick child
+    // should not have to guess whether that word meant anyone had checked the
+    // facility's licence. Nobody has.
+    summary: "The facility itself claims and updates this listing.",
+    title: "Facility Managed listing",
+    body: "The facility has claimed this listing and keeps its public information up to date through Tiru. This means the details come from the facility rather than from third-hand sources — it is not a check of the facility's licences, registration, or the quality of its care.",
   },
   "community-submitted": {
     summary: "This listing hasn't been claimed yet — confirm details with the facility.",
@@ -102,7 +106,7 @@ export function FacilityTrustSection({ facility }: FacilityTrustSectionProps) {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Tiru separates provider-managed, verified, pending, and community-sourced information so health seekers can judge the level of confidence before making a decision.
+            Tiru separates facility-managed information from community-sourced information so health seekers can see where a listing&apos;s details came from before making a decision. Neither is a judgement about the care a facility provides.
           </p>
         </div>
       ) : null}

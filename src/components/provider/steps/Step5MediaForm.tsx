@@ -24,64 +24,6 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-type ExpiryFlag = { label: string; className: string };
-
-function getExpiryFlag(dateStr: string): ExpiryFlag | null {
-  if (!dateStr) return null;
-
-  const expiry = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(expiry.getTime())) return null;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-  if (diffDays > 60) return null;
-  if (diffDays >= 31) {
-    return {
-      label: `⚠ Expiring in ${diffDays} days — renew soon`,
-      // Amber "renew soon" tier — matches warning token colors.
-      className:
-        "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
-    };
-  }
-  if (diffDays >= 1) {
-    return {
-      label: `⚠ Expiring in ${diffDays} days — urgent`,
-      // Orange "urgent" tier — intentionally distinct from both warning
-      // (amber) and danger (red); there's a real 3-step urgency gradient
-      // here (renew soon / urgent / expired) that a 2-variant badge system
-      // would collapse, so this stays a bespoke color rather than Badge.
-      className:
-        "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
-    };
-  }
-  return {
-    label: "✗ Expired — please upload renewed document",
-    className:
-      "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
-  };
-}
-
-function RequiredForApproval() {
-  return (
-    <Badge className="ml-1.5 uppercase tracking-wide" size="sm" variant="warning">
-      Required for approval
-    </Badge>
-  );
-}
-
-function ExpiryFlagChip({ flag }: { flag: ExpiryFlag | null }) {
-  if (!flag) return null;
-  return (
-    <span
-      className={`mt-2 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${flag.className}`}
-    >
-      {flag.label}
-    </span>
-  );
-}
 
 async function uploadToBucket(bucket: string, path: string, file: File): Promise<string> {
   const supabase = getProviderBrowserClient();
@@ -110,14 +52,7 @@ export function Step5MediaForm({
   // Photos/other fields lock only while the submission is actively under
   // review (this replaces the old full-page "cannot be edited" block — the
   // fields are now visible and clearly locked instead of hidden entirely).
-  // Licenses stay locked after approval too: there's no admin re-review
-  // workflow for a swapped-out license post-approval, and the live-edit
-  // sync path (buildFacilityFieldsFromClaim) doesn't even carry license
-  // fields to the public facilities row, so a silent post-approval license
-  // edit would have no verification step at all — blocking is the safer
-  // interim behavior until a re-review queue exists.
   const photosLocked = claimStatus === "pending_review";
-  const licensesLocked = claimStatus === "pending_review" || claimStatus === "approved";
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -140,29 +75,14 @@ export function Step5MediaForm({
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [logoCrop, setLogoCrop] = useState<{ objectUrl: string } | null>(null);
 
-  const [licenseStatus, setLicenseStatus] = useState<UploadStatus>("idle");
-  const [licenseError, setLicenseError] = useState<string | null>(null);
-  const [licenseFileMeta, setLicenseFileMeta] = useState<{ name: string; size: number } | null>(
-    null,
-  );
-  const licenseInputRef = useRef<HTMLInputElement>(null);
 
-  const [businessLicenseStatus, setBusinessLicenseStatus] = useState<UploadStatus>("idle");
-  const [businessLicenseError, setBusinessLicenseError] = useState<string | null>(null);
-  const [businessLicenseFileMeta, setBusinessLicenseFileMeta] = useState<{
-    name: string;
-    size: number;
-  } | null>(null);
-  const businessLicenseInputRef = useRef<HTMLInputElement>(null);
 
   const [permissionChecked, setPermissionChecked] = useState(
     Boolean(
-      initialData.entrance_photo_urls.length > 0 && initialData.logo_url && initialData.license_url,
+      initialData.entrance_photo_urls.length > 0 && initialData.logo_url,
     ),
   );
 
-  const licenseExpiryFlag = getExpiryFlag(urls.license_expiry_date);
-  const businessLicenseExpiryFlag = getExpiryFlag(urls.business_license_expiry_date);
 
   function autoSave(partial: Partial<Step5Data>) {
     startTransition(async () => {
@@ -314,69 +234,7 @@ export function Step5MediaForm({
     pendingLogoFileRef.current = null;
   }
 
-  async function handleLicenseFile(file: File | undefined) {
-    if (!file) return;
 
-    const allowed = ["application/pdf", "image/jpeg", "image/png"];
-    if (!allowed.includes(file.type)) {
-      setLicenseError("Invalid file type");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setLicenseError("File too large — max 10MB");
-      return;
-    }
-
-    setLicenseError(null);
-    setLicenseStatus("uploading");
-    try {
-      const ext = file.name.split(".").pop();
-      const url = await uploadToBucket("provider-documents", `${claimId}/license.${ext}`, file);
-      setUrls((prev) => ({ ...prev, license_url: url }));
-      setLicenseFileMeta({ name: file.name, size: file.size });
-      autoSave({ license_url: url });
-    } catch (err) {
-      console.error("License upload failed:", err);
-      setLicenseError("Upload failed — please try again");
-    } finally {
-      setLicenseStatus("idle");
-      if (licenseInputRef.current) licenseInputRef.current.value = "";
-    }
-  }
-
-  async function handleBusinessLicenseFile(file: File | undefined) {
-    if (!file) return;
-
-    const allowed = ["application/pdf", "image/jpeg", "image/png"];
-    if (!allowed.includes(file.type)) {
-      setBusinessLicenseError("Invalid file type");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setBusinessLicenseError("File too large — max 10MB");
-      return;
-    }
-
-    setBusinessLicenseError(null);
-    setBusinessLicenseStatus("uploading");
-    try {
-      const ext = file.name.split(".").pop();
-      const url = await uploadToBucket(
-        "provider-documents",
-        `${claimId}/business-license.${ext}`,
-        file,
-      );
-      setUrls((prev) => ({ ...prev, business_license_url: url }));
-      setBusinessLicenseFileMeta({ name: file.name, size: file.size });
-      autoSave({ business_license_url: url });
-    } catch (err) {
-      console.error("Business license upload failed:", err);
-      setBusinessLicenseError("Upload failed — please try again");
-    } finally {
-      setBusinessLicenseStatus("idle");
-      if (businessLicenseInputRef.current) businessLicenseInputRef.current.value = "";
-    }
-  }
 
   function handleSaveAndContinue() {
     startTransition(async () => {
@@ -397,7 +255,6 @@ export function Step5MediaForm({
       ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
           Photos significantly improve patient trust and your listing&apos;s completeness score.
-          The license document is used only for admin verification.
         </div>
       )}
 
@@ -406,265 +263,6 @@ export function Step5MediaForm({
           {saveError}
         </div>
       )}
-
-      {/* License */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-foreground">
-          Operating license or registration certificate
-          <RequiredForApproval />
-        </h2>
-        <p className="mt-1 mb-4 text-sm text-muted-foreground">
-          Upload a scan or clear photo of your facility&apos;s operating license. This is kept
-          private and used only for verification — it will never be shown publicly.
-        </p>
-
-        {licensesLocked && (
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm text-foreground">
-            <span aria-hidden="true">🔒</span>
-            <span>
-              {claimStatus === "approved"
-                ? "License documents are locked once your listing is approved. Contact support if you need to update your license."
-                : "License documents are locked while your submission is under review."}
-            </span>
-          </div>
-        )}
-
-        {urls.license_url ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-lg">📄</span>
-                {licenseFileMeta ? (
-                  <div>
-                    <p className="font-medium text-foreground">{licenseFileMeta.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(licenseFileMeta.size)}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="font-medium text-foreground">Document on file</p>
-                )}
-              </div>
-              <Badge className="shrink-0 font-bold" variant="success">
-                ✓ {licenseFileMeta ? "Document received" : "Document on file"}
-              </Badge>
-            </div>
-            <button
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={licenseStatus === "uploading" || licensesLocked}
-              onClick={() => licenseInputRef.current?.click()}
-              type="button"
-            >
-              {licenseStatus === "uploading" ? "Uploading…" : "Replace document"}
-            </button>
-          </div>
-        ) : (
-          <button
-            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={licenseStatus === "uploading" || licensesLocked}
-            onClick={() => licenseInputRef.current?.click()}
-            type="button"
-          >
-            {licenseStatus === "uploading" ? (
-              <>
-                <Spinner className="size-6" />
-                <span className="text-sm text-muted-foreground">Uploading…</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="size-6 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">
-                  Click to upload or drag and drop
-                </span>
-                <span className="text-xs text-muted-foreground">PDF, JPG, or PNG · Max 10MB</span>
-              </>
-            )}
-          </button>
-        )}
-
-        {licenseError && <p className="mt-2 text-xs text-red-500">{licenseError}</p>}
-
-        <input
-          accept="application/pdf,image/jpeg,image/png"
-          className="hidden"
-          onChange={(e) => handleLicenseFile(e.target.files?.[0])}
-          ref={licenseInputRef}
-          type="file"
-        />
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">
-              License issue date
-              <RequiredForApproval />
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={licensesLocked}
-              onBlur={(e) => autoSave({ license_issue_date: e.target.value })}
-              onChange={(e) =>
-                setUrls((prev) => ({ ...prev, license_issue_date: e.target.value }))
-              }
-              type="date"
-              value={urls.license_issue_date}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">
-              License expiry date
-              <RequiredForApproval />
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={licensesLocked}
-              onBlur={(e) => autoSave({ license_expiry_date: e.target.value })}
-              onChange={(e) =>
-                setUrls((prev) => ({ ...prev, license_expiry_date: e.target.value }))
-              }
-              type="date"
-              value={urls.license_expiry_date}
-            />
-          </div>
-        </div>
-        <ExpiryFlagChip flag={licenseExpiryFlag} />
-      </div>
-
-      {/* Business / trade license */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-foreground">
-          Business / trade license
-          <RequiredForApproval />
-        </h2>
-        <p className="mt-1 mb-4 text-sm text-muted-foreground">
-          Upload your facility&apos;s business registration or trade license. Kept private, used
-          only for verification.
-        </p>
-
-        {urls.business_license_url ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-lg">📄</span>
-                {businessLicenseFileMeta ? (
-                  <div>
-                    <p className="font-medium text-foreground">{businessLicenseFileMeta.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(businessLicenseFileMeta.size)}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="font-medium text-foreground">Document on file</p>
-                )}
-              </div>
-              <Badge className="shrink-0 font-bold" variant="success">
-                ✓ {businessLicenseFileMeta ? "Document received" : "Document on file"}
-              </Badge>
-            </div>
-            <button
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={businessLicenseStatus === "uploading" || licensesLocked}
-              onClick={() => businessLicenseInputRef.current?.click()}
-              type="button"
-            >
-              {businessLicenseStatus === "uploading" ? "Uploading…" : "Replace document"}
-            </button>
-          </div>
-        ) : (
-          <button
-            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-background px-4 py-8 text-center transition hover:border-primary/40 disabled:opacity-60"
-            disabled={businessLicenseStatus === "uploading" || licensesLocked}
-            onClick={() => businessLicenseInputRef.current?.click()}
-            type="button"
-          >
-            {businessLicenseStatus === "uploading" ? (
-              <>
-                <Spinner className="size-6" />
-                <span className="text-sm text-muted-foreground">Uploading…</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="size-6 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-foreground">
-                  Click to upload or drag and drop
-                </span>
-                <span className="text-xs text-muted-foreground">PDF, JPG, or PNG · Max 10MB</span>
-              </>
-            )}
-          </button>
-        )}
-
-        {businessLicenseError && (
-          <p className="mt-2 text-xs text-red-500">{businessLicenseError}</p>
-        )}
-
-        <input
-          accept="application/pdf,image/jpeg,image/png"
-          className="hidden"
-          onChange={(e) => handleBusinessLicenseFile(e.target.files?.[0])}
-          ref={businessLicenseInputRef}
-          type="file"
-        />
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">
-              Business license issue date
-              <RequiredForApproval />
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={licensesLocked}
-              onBlur={(e) => autoSave({ business_license_issue_date: e.target.value })}
-              onChange={(e) =>
-                setUrls((prev) => ({ ...prev, business_license_issue_date: e.target.value }))
-              }
-              type="date"
-              value={urls.business_license_issue_date}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-foreground">
-              Business license expiry date
-              <RequiredForApproval />
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={licensesLocked}
-              onBlur={(e) => autoSave({ business_license_expiry_date: e.target.value })}
-              onChange={(e) =>
-                setUrls((prev) => ({ ...prev, business_license_expiry_date: e.target.value }))
-              }
-              type="date"
-              value={urls.business_license_expiry_date}
-            />
-          </div>
-        </div>
-        <ExpiryFlagChip flag={businessLicenseExpiryFlag} />
-      </div>
 
       {/* Entrance photos */}
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">

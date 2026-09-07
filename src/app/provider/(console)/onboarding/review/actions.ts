@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
-import { calculateCompletion } from "@/lib/provider/onboarding-config";
+import { calculateCompletion, missingRequiredFields } from "@/lib/provider/onboarding-config";
 
 export async function submitForReview(): Promise<{ error: string } | void> {
   const provider = await getProviderAccount();
@@ -25,29 +25,26 @@ export async function submitForReview(): Promise<{ error: string } | void> {
     redirect("/provider/dashboard");
   }
 
-  const hasOperatingLicense = !!(
-    currentClaim?.proposed_license_url &&
-    currentClaim?.proposed_license_issue_date &&
-    currentClaim?.proposed_license_expiry_date
-  );
-  const hasBusinessLicense = !!(
-    currentClaim?.proposed_business_license_url &&
-    currentClaim?.proposed_business_license_issue_date &&
-    currentClaim?.proposed_business_license_expiry_date
-  );
-
-  if (!hasOperatingLicense || !hasBusinessLicense) {
-    const missing: string[] = [];
-    if (!hasOperatingLicense) missing.push("operating license (with issue and expiry dates)");
-    if (!hasBusinessLicense) missing.push("business license (with issue and expiry dates)");
+  // Named fields, not a percentage.
+  //
+  // The old gate was "70% complete", which is not a thing a provider can act
+  // on: the number is a weighted sum across six steps, so two listings missing
+  // completely different information score the same, and the error message
+  // could not say which. Worse, it let a listing through that was missing the
+  // one thing a directory exists to provide — a hospital could reach 70% on
+  // photos and doctors while carrying no coordinates at all.
+  //
+  // Each entry below is something the public site cannot work without:
+  // a name to show, a category to file it under (a null category resolves to
+  // "default" in FACILITY_CATEGORY_DB_MAP and the facility then appears under
+  // NO browse filter), a phone to call, a sub-city and area to describe where
+  // it is, coordinates so Nearby and directions work at all, and one service
+  // so the listing says what the place actually does.
+  const missing = missingRequiredFields(currentClaim ?? {});
+  if (missing.length > 0) {
     return {
-      error: `Please complete the following before submitting: ${missing.join(", ")}. Go to Photos & Documents (Step 5) to upload these.`,
+      error: `Before submitting, please add: ${missing.join(", ")}.`,
     };
-  }
-
-  const currentPct = currentClaim ? calculateCompletion(currentClaim) : 0;
-  if (currentPct < 70) {
-    return { error: "Your profile must be at least 70% complete to submit." };
   }
 
   const { error: updateError } = await supabase
@@ -86,7 +83,10 @@ export async function submitForReview(): Promise<{ error: string } | void> {
       .eq("id", claimId)
       .single();
 
-    const finalPct = Math.min(100, updatedClaim ? calculateCompletion(updatedClaim) : currentPct);
+    const finalPct = Math.min(
+      100,
+      updatedClaim ? calculateCompletion(updatedClaim) : calculateCompletion(currentClaim ?? {}),
+    );
 
     await supabase
       .from("provider_accounts")

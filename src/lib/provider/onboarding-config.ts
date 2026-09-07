@@ -3,14 +3,13 @@ export const ONBOARDING_STEPS = [
   { num: 2, slug: "location", label: "Location & Contact", weight: 30 },
   { num: 3, slug: "services", label: "Services & Schedule", weight: 30 },
   { num: 4, slug: "doctors", label: "Doctors & Staff", weight: 10 },
-  { num: 5, slug: "media", label: "Photos & Documents", weight: 15 },
+  { num: 5, slug: "media", label: "Photos", weight: 15 },
   { num: 6, slug: "review", label: "Review & Submit", weight: 5 },
 ] as const;
 
 export const TOTAL_STEPS = ONBOARDING_STEPS.length;
 
 // Steps 1+2+3 (10 + 30 + 30) sum to this — the threshold for Official badge eligibility
-export const OFFICIAL_BADGE_THRESHOLD_PCT = 70;
 
 // Provider category options
 // The one non-category choice offered at signup. Kept because real cases
@@ -499,4 +498,67 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
   if (claim.status === "pending_review" || claim.status === "approved") pct += 5;
 
   return Math.min(pct, 100);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// What a listing must have before it can be published.
+//
+// This replaced a "70% complete" threshold. A percentage is not something a
+// provider can act on: it is a weighted sum across six steps, so two listings
+// missing entirely different things score identically and the error message
+// could not say which. It also gated the wrong thing — a hospital could reach
+// 70% on photos and doctor entries while carrying no coordinates, and a
+// directory whose whole job is helping someone find a place would have
+// published it.
+//
+// Every field here is one the public site cannot work without. Photos, logos,
+// doctors, landmarks and opening hours are deliberately NOT here: they make a
+// listing better, not usable, and the incentive for those belongs in Step 6's
+// guidance rather than in a barrier.
+//
+// Shared by submitForReview (the server-side gate, which is the one that
+// counts) and Step6ReviewForm (which tells the provider the same thing before
+// they press the button), so the two cannot disagree.
+// ═══════════════════════════════════════════════════════════════════════════
+export const REQUIRED_FIELD_LABELS = {
+  name: "facility name",
+  category: "facility type",
+  phone: "phone number",
+  subCity: "sub-city",
+  area: "area or neighbourhood",
+  coordinates: "map location",
+  services: "at least one service",
+} as const;
+
+export type RequiredFieldKey = keyof typeof REQUIRED_FIELD_LABELS;
+
+// Which required fields a claim is still missing, in the order a provider
+// filled the form in, so the message reads like a walk back through the steps.
+export function missingRequiredFieldKeys(claim: Record<string, unknown>): RequiredFieldKey[] {
+  const missing: RequiredFieldKey[] = [];
+
+  if (!String(claim.proposed_name ?? "").trim()) missing.push("name");
+  // facility_type is the column onboarding writes; proposed_category_data is
+  // the sub-selection under it and does not stand in for the type itself.
+  if (!String(claim.facility_type ?? "").trim()) missing.push("category");
+  if (!String(claim.proposed_phone ?? "").trim()) missing.push("phone");
+  if (!String(claim.proposed_sub_city ?? "").trim()) missing.push("subCity");
+  if (!String(claim.proposed_area ?? "").trim()) missing.push("area");
+
+  // Coordinates, not "coordinates OR a maps link". A link is a promise that
+  // the pin can be found later; Nearby, distance sorting and the compare rail
+  // all need the numbers now, and an unresolved link leaves the facility
+  // invisible to every one of them.
+  if (claim.proposed_latitude == null || claim.proposed_longitude == null) {
+    missing.push("coordinates");
+  }
+
+  const services = claim.proposed_services;
+  if (!Array.isArray(services) || services.length === 0) missing.push("services");
+
+  return missing;
+}
+
+export function missingRequiredFields(claim: Record<string, unknown>): string[] {
+  return missingRequiredFieldKeys(claim).map((key) => REQUIRED_FIELD_LABELS[key]);
 }

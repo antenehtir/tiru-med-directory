@@ -2,24 +2,20 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { AdminFacilityList } from "@/components/admin/AdminFacilityList";
-import { computeFacilityLicenseInfo } from "@/lib/licenses/license-status";
-import { getLatestLicenseByFacilityId } from "@/lib/admin/facility-licenses";
 
 async function getFacilities() {
   const supabase = await createAdminSupabaseClient();
-  const [{ data, error }, licenseByFacilityId] = await Promise.all([
+  const [{ data, error }] = await Promise.all([
     supabase
       .from("facilities")
       .select("id, slug, name, category, sub_city, area, verification_status, record_number, phone, working_hours, emergency_service, is_active, deactivation_category, deactivated_at")
       .order("record_number", { ascending: true }),
-    getLatestLicenseByFacilityId(),
   ]);
 
   if (error) return [];
 
   return (data ?? []).map((facility) => ({
     ...facility,
-    licenseInfo: computeFacilityLicenseInfo(licenseByFacilityId.get(facility.id)),
   }));
 }
 

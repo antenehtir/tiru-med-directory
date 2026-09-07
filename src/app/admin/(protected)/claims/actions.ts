@@ -262,7 +262,10 @@ export async function approveClaim(
       to: providerData.email,
       providerName: providerData.display_name || "there",
       facilityName: providerData.facility_name || approvedFacilityName || "your facility",
-      completionPct: providerData.completion_pct || 70,
+      // No 70 fallback any more — that number was the old submission
+      // threshold, and printing it as a real completion figure survived the
+      // threshold itself. 0 is honest when the column is unset.
+      completionPct: providerData.completion_pct ?? 0,
     }).catch((err) => console.error("Approval email error (non-blocking):", err));
   }
 

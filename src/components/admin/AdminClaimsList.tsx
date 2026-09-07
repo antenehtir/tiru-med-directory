@@ -4,13 +4,6 @@ import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { approveClaim, rejectClaim } from "@/app/admin/(protected)/claims/actions";
 import { Pill } from "@/components/ui/Pill";
-import { LicenseDocumentLink } from "@/components/admin/LicenseDocumentLink";
-import { LicenseStatusBadge } from "@/components/admin/LicenseStatusBadge";
-import {
-  computeFacilityLicenseInfo,
-  licenseStatusNeedsAttention,
-  LICENSE_STATUS_LABELS,
-} from "@/lib/licenses/license-status";
 
 export type Facility = {
   id: string;
@@ -38,12 +31,6 @@ export type Claim = {
   facility_id: string | null;
   facility_name: string | null;
   facilities: Facility | null;
-  proposed_license_url: string | null;
-  proposed_license_issue_date: string | null;
-  proposed_license_expiry_date: string | null;
-  proposed_business_license_url: string | null;
-  proposed_business_license_issue_date: string | null;
-  proposed_business_license_expiry_date: string | null;
 };
 
 type Tab = "claims" | "new-listings";
@@ -65,10 +52,6 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  // Fix 7c: an Expired/Missing license doesn't block approval, but the
-  // admin must explicitly acknowledge it first rather than the warning
-  // being easy to skim past.
-  const [acknowledgedWarnings, setAcknowledgedWarnings] = useState<Record<string, boolean>>({});
 
   const visible = activeTab === "claims" ? claimsItems : newListingsItems;
 
@@ -76,7 +59,7 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
     const msg =
       facilityId === null
         ? `Create a new facility listing for "${facilityName}" and approve this submission?`
-        : "Approve this claim? The facility will become Official.";
+        : "Approve this claim? The listing becomes Facility Managed — the provider will control it.";
     if (!confirm(msg)) return;
     startTransition(async () => {
       const result = await approveClaim(claimId, facilityId, notes[claimId] ?? "");
@@ -155,9 +138,6 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
               facility.phone.replace(/\s/g, "") ===
                 claim.facility_official_phone_claimed.replace(/\s/g, "");
             const isExpanded = expandedId === claim.id;
-            const licenseInfo = computeFacilityLicenseInfo(claim);
-            const licenseNeedsAttention = licenseStatusNeedsAttention(licenseInfo.worst);
-            const approvalBlocked = licenseNeedsAttention && !acknowledgedWarnings[claim.id];
 
             return (
               <div key={claim.id} className="rounded-2xl border border-border bg-card p-5">
@@ -261,40 +241,6 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                       </div>
                     )}
 
-                    {/* Licenses — the primary approval criterion */}
-                    <div className="rounded-xl border border-border bg-background p-3">
-                      <p className="mb-2 text-xs font-semibold text-muted-foreground">
-                        LICENSES
-                      </p>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-lg bg-muted/40 p-3">
-                          <div className="mb-1 flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-foreground">
-                              Operating license
-                            </p>
-                            <LicenseStatusBadge status={licenseInfo.operating.status} />
-                          </div>
-                          <LicenseDocumentLink url={licenseInfo.operating.url} />
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Issued: {licenseInfo.operating.issueDate ?? "—"} · Expires:{" "}
-                            {licenseInfo.operating.expiryDate ?? "—"}
-                          </p>
-                        </div>
-                        <div className="rounded-lg bg-muted/40 p-3">
-                          <div className="mb-1 flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-foreground">
-                              Business / trade license
-                            </p>
-                            <LicenseStatusBadge status={licenseInfo.business.status} />
-                          </div>
-                          <LicenseDocumentLink url={licenseInfo.business.url} />
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Issued: {licenseInfo.business.issueDate ?? "—"} · Expires:{" "}
-                            {licenseInfo.business.expiryDate ?? "—"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
                     {/* Call script */}
                     <div className="rounded-xl border border-border bg-background p-3">
@@ -336,40 +282,18 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                       />
                     </div>
 
-                    {/* Approval-blocking license warning — doesn't prevent approval,
-                        just requires the admin to explicitly acknowledge it first. */}
-                    {licenseNeedsAttention && (
-                      <label className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
-                        <input
-                          checked={acknowledgedWarnings[claim.id] ?? false}
-                          className="mt-0.5"
-                          onChange={(e) =>
-                            setAcknowledgedWarnings((prev) => ({
-                              ...prev,
-                              [claim.id]: e.target.checked,
-                            }))
-                          }
-                          type="checkbox"
-                        />
-                        <span>
-                          ⚠ This facility&apos;s license is{" "}
-                          <strong>{LICENSE_STATUS_LABELS[licenseInfo.worst]}</strong> — confirm
-                          you&apos;ve reviewed it before approving.
-                        </span>
-                      </label>
-                    )}
 
                     {/* Actions */}
                     <div className="flex gap-2">
                       <button
                         className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                        disabled={isPending || approvalBlocked}
+                        disabled={isPending}
                         onClick={() =>
                           handleApprove(claim.id, claim.facility_id, displayName)
                         }
                         type="button"
                       >
-                        {isNewListing ? "✓ Approve & publish listing" : "✓ Approve & make Official"}
+                        {isNewListing ? "✓ Approve & publish listing" : "✓ Approve & hand over to facility"}
                       </button>
                       <button
                         className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"

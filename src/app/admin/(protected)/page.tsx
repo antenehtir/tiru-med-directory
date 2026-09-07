@@ -6,7 +6,6 @@ import {
   type SubmissionTrendDatum,
 } from "@/components/admin/AdminDashboardCharts";
 import { BADGE_STATUS_COLORS, BADGE_STATUS_LABELS } from "@/lib/admin/dashboard-colors";
-import { getFacilitiesWithLicenseIssues } from "@/lib/admin/facility-licenses";
 
 async function getDashboardStats() {
   const supabase = await createAdminSupabaseClient();
@@ -108,11 +107,10 @@ async function getSubmissionsTrend(): Promise<SubmissionTrendDatum[]> {
 }
 
 export default async function AdminDashboardPage() {
-  const [adminUser, stats, submissionsTrend, licenseIssues] = await Promise.all([
+  const [adminUser, stats, submissionsTrend] = await Promise.all([
     getAdminUser(),
     getDashboardStats(),
     getSubmissionsTrend(),
-    getFacilitiesWithLicenseIssues(),
   ]);
 
   const statCards = [
@@ -157,20 +155,12 @@ export default async function AdminDashboardPage() {
       href: "/admin/claims?tab=claims",
     },
     {
-      label: "Official Facilities",
+      label: "Facility Managed",
       value: stats.officialCount,
-      description: "Facility-owned listings",
+      description: "Claimed and kept current by the facility",
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-950",
       href: "/admin/facilities?badge=facility-owned",
-    },
-    {
-      label: "License Issues",
-      value: licenseIssues.length,
-      description: "Expired or missing licenses",
-      color: "text-red-600 dark:text-red-400",
-      bg: "bg-red-50 dark:bg-red-950",
-      href: "/admin/compliance",
     },
   ];
 
@@ -218,7 +208,7 @@ export default async function AdminDashboardPage() {
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
           <h2 className="text-sm font-semibold text-foreground">Facility badge distribution</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">CS / Official / Verified split</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Community sourced / Facility Managed / Verified split</p>
           <BadgeDistributionChart data={badgeDistribution} />
         </div>
 

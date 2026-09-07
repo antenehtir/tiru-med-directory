@@ -15,7 +15,7 @@ export const BADGE_STATUS_COLORS: Record<string, string> = {
 
 export const BADGE_STATUS_LABELS: Record<string, string> = {
   "community-submitted": "Community Submitted",
-  "facility-owned": "Official",
+  "facility-owned": "Facility Managed",
   verified: "Verified",
 };
 

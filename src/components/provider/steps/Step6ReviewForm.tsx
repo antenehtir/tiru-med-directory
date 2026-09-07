@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { submitForReview } from "@/app/provider/(console)/onboarding/review/actions";
 import { Spinner } from "@/components/provider/Spinner";
 import { Badge } from "@/components/ui/Badge";
-import { calculateCompletion } from "@/lib/provider/onboarding-config";
+import { calculateCompletion, missingRequiredFieldKeys, REQUIRED_FIELD_LABELS } from "@/lib/provider/onboarding-config";
 import {
   createEmptyDoctor,
   formatDoctorDisplayName,
@@ -49,30 +49,6 @@ function normalizeDoctor(raw: Partial<DoctorEntry> & Record<string, unknown>): D
   } as DoctorEntry;
 }
 
-type ExpiryFlag = { label: string; color: "red" | "orange" | "amber" };
-
-function getExpiryFlag(dateStr: string | null | undefined): ExpiryFlag | null {
-  if (!dateStr) return null;
-  const today = new Date();
-  const expiry = new Date(dateStr);
-  if (Number.isNaN(expiry.getTime())) return null;
-  const days = Math.ceil((expiry.getTime() - today.getTime()) / 86400000);
-  if (days < 0) return { label: "Expired", color: "red" };
-  if (days <= 30) return { label: `Expiring in ${days} days — urgent`, color: "orange" };
-  if (days <= 60) return { label: `Expiring in ${days} days — renew soon`, color: "amber" };
-  return null;
-}
-
-// Same 3-tier expiry gradient as Step5MediaForm's getExpiryFlag — kept as a
-// bespoke color set rather than Badge for the same reason (a genuine 3-step
-// urgency scale that a 2-variant warning/danger system would collapse).
-const expiryColorClasses: Record<ExpiryFlag["color"], string> = {
-  red: "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400",
-  orange:
-    "border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-400",
-  amber:
-    "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
-};
 
 function SectionCard({
   id,
@@ -129,14 +105,6 @@ function PillList({ items }: { items: string[] }) {
   );
 }
 
-function RequiredNotice() {
-  return (
-    <Badge size="sm" variant="danger">
-      Required for submission
-    </Badge>
-  );
-}
-
 function Chip({ children, tone }: { children: React.ReactNode; tone: "green" | "gray" }) {
   return (
     <Badge className="font-bold" variant={tone === "green" ? "success" : "muted"}>
@@ -158,7 +126,10 @@ function CompletionRing({ pct }: { pct: number }) {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (mounted ? pct / 100 : 0) * circumference;
-  const ringColorClass = pct >= 70 ? "text-primary" : "text-warning";
+  // No threshold colour any more: the ring reports how full the listing is,
+  // it does not pass or fail it. Amber here used to mean "you cannot submit",
+  // which is no longer true and would read as a blocker that isn't one.
+  const ringColorClass = "text-primary";
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -200,6 +171,12 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const pct = calculateCompletion(claim);
+  const missingRequired = missingRequiredFieldKeys(claim);
+  // Specialist schedules matter most where a visitor is looking for a named
+  // discipline rather than a building — a hospital or a specialty centre.
+  const namesSpecialists = ["Hospital", "Specialty Center"].includes(
+    (claim.facility_type as string) ?? "",
+  );
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -246,43 +223,13 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
   const rawDoctors = (claim.proposed_doctors as Array<Partial<DoctorEntry> & Record<string, unknown>> | null) ?? [];
   const doctors = rawDoctors.map(normalizeDoctor).filter((d) => d.full_name.trim().length > 0);
 
-  // Section 5 — Photos & Documents
+  // Section 5 — Photos
   const entrancePhotos = Array.isArray(claim.proposed_entrance_photo_urls)
     ? (claim.proposed_entrance_photo_urls as string[]).filter(Boolean)
     : claim.proposed_entrance_photo_url
       ? [claim.proposed_entrance_photo_url as string]
       : [];
   const logo = claim.proposed_logo_url as string;
-  const licenseUrl = claim.proposed_license_url as string;
-  const licenseIssue = claim.proposed_license_issue_date as string;
-  const licenseExpiry = claim.proposed_license_expiry_date as string;
-  const licenseFlag = getExpiryFlag(licenseExpiry);
-  const bizLicenseUrl = claim.proposed_business_license_url as string;
-  const bizLicenseIssue = claim.proposed_business_license_issue_date as string;
-  const bizLicenseExpiry = claim.proposed_business_license_expiry_date as string;
-  const bizLicenseFlag = getExpiryFlag(bizLicenseExpiry);
-
-  const hasOperatingLicense = Boolean(licenseUrl && licenseIssue && licenseExpiry);
-  const hasBusinessLicense = Boolean(bizLicenseUrl && bizLicenseIssue && bizLicenseExpiry);
-
-  function describeMissingLicense(
-    url: string,
-    issue: string,
-    expiry: string,
-    label: string,
-  ): string | null {
-    if (url && issue && expiry) return null;
-    const parts: string[] = [];
-    if (!url) parts.push("document");
-    if (!issue) parts.push("issue date");
-    if (!expiry) parts.push("expiry date");
-    return `${label} (missing ${parts.join(", ")})`;
-  }
-
-  const missingLicenseItems = [
-    describeMissingLicense(licenseUrl, licenseIssue, licenseExpiry, "Operating license"),
-    describeMissingLicense(bizLicenseUrl, bizLicenseIssue, bizLicenseExpiry, "Business license"),
-  ].filter((item): item is string => item !== null);
 
   const JUMP_LINKS = [
     { href: "#section-identity", label: "Identity" },
@@ -531,7 +478,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
       </SectionCard>
       )}
 
-      <SectionCard editHref="/provider/onboarding/media" id="section-photos" stepNum={5} title="Photos & Documents">
+      <SectionCard editHref="/provider/onboarding/media" id="section-photos" stepNum={5} title="Photos">
         <div>
           <span className="text-xs font-medium text-muted-foreground">
             Entrance photos ({entrancePhotos.length}/4)
@@ -565,60 +512,69 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <span className="text-xs font-medium text-muted-foreground">Operating license</span>
-          <div className="flex flex-wrap items-center gap-2">
-            {licenseUrl ? <Chip tone="green">✓ On file</Chip> : <Chip tone="gray">Not uploaded</Chip>}
-            {!licenseUrl && <RequiredNotice />}
-            {licenseFlag && (
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${expiryColorClasses[licenseFlag.color]}`}
-              >
-                {licenseFlag.label}
-              </span>
-            )}
-          </div>
-          <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
-            <span>Issued {licenseIssue || "—"}</span>
-            {!licenseIssue && <RequiredNotice />}
-            <span>· Expires {licenseExpiry || "—"}</span>
-            {!licenseExpiry && <RequiredNotice />}
-          </p>
-        </div>
 
-        <div className="space-y-1">
-          <span className="text-xs font-medium text-muted-foreground">Business license</span>
-          <div className="flex flex-wrap items-center gap-2">
-            {bizLicenseUrl ? <Chip tone="green">✓ On file</Chip> : <Chip tone="gray">Not uploaded</Chip>}
-            {!bizLicenseUrl && <RequiredNotice />}
-            {bizLicenseFlag && (
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${expiryColorClasses[bizLicenseFlag.color]}`}
-              >
-                {bizLicenseFlag.label}
-              </span>
-            )}
-          </div>
-          <p className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
-            <span>Issued {bizLicenseIssue || "—"}</span>
-            {!bizLicenseIssue && <RequiredNotice />}
-            <span>· Expires {bizLicenseExpiry || "—"}</span>
-            {!bizLicenseExpiry && <RequiredNotice />}
-          </p>
-        </div>
       </SectionCard>
 
       <div className="mb-4 flex flex-col items-center gap-2 rounded-2xl bg-card p-6 text-center shadow-sm">
         <CompletionRing pct={pct} />
-        {pct >= 70 ? (
+        {missingRequired.length === 0 ? (
           <>
             <p className="text-sm font-semibold text-success-text">Ready to submit ✓</p>
-            <p className="text-xs text-muted-foreground">Submitting will bring your profile to 100%</p>
+            <p className="text-xs text-muted-foreground">
+              {pct < 100
+                ? "You can submit now — anything still blank can be added later."
+                : "Everything is filled in."}
+            </p>
           </>
         ) : (
-          <p className="text-sm font-semibold text-warning">Not yet eligible</p>
+          <p className="text-sm font-semibold text-warning">
+            {missingRequired.length} required {missingRequired.length === 1 ? "field" : "fields"} still needed
+          </p>
         )}
       </div>
+
+      {/* Completeness as encouragement, not a barrier. Directly under the ring
+          the provider is already looking at, and only while there is headroom
+          and nothing is blocking — congratulating a finished listing on being
+          unfinished is noise, and stacking advice on top of an error competes
+          with the thing they must fix first.
+
+          Specialist schedules are named specifically rather than "add more
+          detail", because they are the field most often left blank on exactly
+          the facilities where a patient most needs them. */}
+      {pct < 100 && missingRequired.length === 0 && (
+        <div className="mb-4 rounded-2xl border border-border bg-sunken p-4">
+          <p className="text-sm font-semibold text-foreground">
+            More complete listings get seen more
+          </p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Listings that answer a patient&apos;s question without a phone call
+            are the ones people open, and Tiru shows them to more visitors.
+            {namesSpecialists
+              ? " For a facility like yours, the detail doing most of that work is your specialists and the days they are in — someone searching for a cardiologist on a Tuesday can only find you if your listing says who is there and when."
+              : " Photos, opening hours and a full service list are what visitors look for first."}
+          </p>
+          <a
+            className="mt-2 inline-block text-sm font-semibold text-primary hover:underline"
+            href={namesSpecialists ? "/provider/onboarding/doctors" : "/provider/onboarding/media"}
+          >
+            {namesSpecialists ? "Add specialists and their schedules →" : "Add photos →"}
+          </a>
+        </div>
+      )}
+
+      {missingRequired.length > 0 && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+          <p className="font-semibold">
+            Add these before submitting — without them the listing cannot be found:
+          </p>
+          <ul className="mt-1 list-disc pl-5">
+            {missingRequired.map((key) => (
+              <li key={key}>{REQUIRED_FIELD_LABELS[key]}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mb-4 space-y-3 rounded-2xl bg-card p-6 shadow-sm">
         <label className="flex items-start gap-2 text-sm">
@@ -646,34 +602,11 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         </label>
       </div>
 
-      {missingLicenseItems.length > 0 && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
-          <p className="font-semibold">
-            ⚠ Both licenses (with issue and expiry dates) are required before you can submit.
-          </p>
-          <p className="mt-1">{missingLicenseItems.join("; ")}</p>
-          <a className="mt-1 inline-block font-semibold underline" href="/provider/onboarding/media">
-            Edit Photos & Documents →
-          </a>
-        </div>
-      )}
 
-      {pct < 70 && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-          Your profile is {pct}% complete. Complete Steps 1, 2, and 3 to reach 70% and submit.
-        </div>
-      )}
 
       <button
         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={
-          !checked1 ||
-          !checked2 ||
-          pct < 70 ||
-          !hasOperatingLicense ||
-          !hasBusinessLicense ||
-          submitting
-        }
+        disabled={!checked1 || !checked2 || missingRequired.length > 0 || submitting}
         onClick={handleSubmit}
         type="button"
       >

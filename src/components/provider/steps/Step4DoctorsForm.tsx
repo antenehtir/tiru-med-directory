@@ -46,6 +46,11 @@ function normalizeDoctor(raw: Partial<DoctorEntry>): DoctorEntry {
 }
 
 export function Step4DoctorsForm({ claim }: { claim: Claim }) {
+  // Specialist schedules earn their prominence on the facility types where a
+  // visitor searches by discipline rather than by building.
+  const namesSpecialists = ["Hospital", "Specialty Center"].includes(
+    (claim.facility_type as string) ?? "",
+  );
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -207,6 +212,31 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
         This step is optional. You can skip it and still submit your listing.
       </div>
+
+      {/* The incentive sits on the step where the work happens, not only on
+          the review screen — a provider who has already decided to skip has
+          left before they reach the summary.
+
+          Shown only to hospitals and specialty centres. For a pharmacy or an
+          ambulance service a doctor roster is genuinely beside the point, and
+          an encouragement that does not apply teaches people to ignore the
+          next one. It sits under the "optional" notice rather than replacing
+          it: the step really is optional, and saying otherwise to get a form
+          filled would be a lie the listing is built on. */}
+      {namesSpecialists && (
+        <div className="rounded-xl border border-border bg-sunken p-4">
+          <p className="text-sm font-semibold text-foreground">
+            Optional — but this is the step that gets you found
+          </p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Visitors searching Tiru look for a person and a day: a cardiologist
+            on a Tuesday, a paediatrician on a Saturday morning. A listing that
+            names its specialists and the days they are in can answer that;
+            one that does not can only offer a phone number. Listings that
+            answer it get shown to more of the people asking.
+          </p>
+        </div>
+      )}
       <a
         className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
         href="/provider/onboarding/media"
