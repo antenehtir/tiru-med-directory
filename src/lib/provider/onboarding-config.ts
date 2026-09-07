@@ -143,6 +143,20 @@ export const PAYMENT_METHODS = [
   "Corporate credit agreement",
 ] as const;
 
+// Ordered by how a radiology department is organised — plain film, contrast
+// studies, cross-sectional, nuclear, cardiac, neuro and respiratory,
+// endoscopy, then the rest — rather than by when each entry was added. The
+// public page renders services in this order too, so the order is what a
+// reader sees.
+//
+// Everything below the original twenty was found in the live data, not
+// invented: each was free-typed by at least one facility because this list had
+// nowhere to put it. The contrast studies were the largest gap — IVP appears
+// at four facilities, HSG at five across three spellings, CUG at three — and
+// they are precisely the procedures an imaging centre is asked for by name.
+// Manna and Pioneer, the two imaging-only Diagnostic Centers, between them
+// typed HSG, CUG, IVP, Barium studies, Thyroid scintigraphy and SPECT CT, and
+// could tick none of them.
 export const IMAGING_SERVICES = [
   "X-Ray",
   "Ultrasound",
@@ -150,10 +164,25 @@ export const IMAGING_SERVICES = [
   "MRI",
   "Mammography",
   "Fluoroscopy",
+  // Contrast and fluoroscopic studies. Spelt out alongside the abbreviation
+  // because a patient holding a referral reads one and a radiographer says the
+  // other.
+  "IVP (Intravenous Pyelogram)",
+  "HSG (Hysterosalpingography)",
+  "CUG (Cystourethrogram)",
+  "Barium Studies",
   "DEXA Scan",
   "PET Scan",
   "Nuclear Medicine",
+  "Thyroid Scintigraphy",
+  "SPECT-CT",
   "Echocardiography",
+  // Separate entries rather than one "Echocardiography": a clinic that scans
+  // a fetus is not thereby a cardiac centre, and a mother sent for a fetal
+  // echo needs to know which facilities actually do that one.
+  "Fetal Echocardiography",
+  "Paediatric Echocardiography",
+  "Transoesophageal Echocardiography (TOE)",
   "ECG / EKG",
   "EEG",
   "Spirometry",
@@ -162,8 +191,12 @@ export const IMAGING_SERVICES = [
   "Bronchoscopy",
   "Colposcopy",
   "Doppler Ultrasound",
+  "Transient Elastography (FibroScan)",
   "Bone Marrow Biopsy",
   "Interventional Radiology",
+  "Coronary Angiography",
+  "Cerebral Angiography (DSA)",
+  "Teleradiology Reporting",
 ] as const;
 
 // Each key is a panel a lab either runs or does not, which is how a lab
