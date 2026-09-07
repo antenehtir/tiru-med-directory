@@ -242,7 +242,7 @@ export async function updateFacilityLocation(
 }
 
 const CONTACT_COLUMNS =
-  "name, phone, phone_2, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin";
+  "name, phone, phone_2, phones, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin";
 
 const URL_FIELDS = ["website", "instagram", "facebook", "tiktok", "linkedin"] as const;
 
@@ -258,6 +258,10 @@ function isValidUrl(value: string): boolean {
 // Partial for the same reason as the services payload: only the fields the
 // admin actually changed are sent, so nothing else on the row is rewritten.
 type FacilityContactFields = Partial<{
+  // The full list. phone and phone_2 remain its first two entries and are
+  // always sent alongside it, so a reader that knows only the old columns and
+  // one that reads the array can never disagree about a facility's numbers.
+  phones: string[];
   phone: string;
   phone_2: string | null;
   whatsapp: string | null;
@@ -283,6 +287,18 @@ export async function updateFacilityContact(
   // simply absent from the payload, not an attempt to clear it.
   if (fields.phone !== undefined && !fields.phone.trim()) {
     throw new Error("Primary phone is required.");
+  }
+
+  if (fields.phones !== undefined) {
+    if (fields.phones.length === 0) {
+      throw new Error("At least one phone number is required.");
+    }
+    // The pair has to mirror the head of the list. They are written together
+    // here, but a caller sending only one of them would leave the row
+    // describing two different sets of numbers depending on who read it.
+    if (fields.phone !== undefined && fields.phones[0] !== fields.phone) {
+      throw new Error("The first number and the primary phone must match.");
+    }
   }
 
   for (const key of URL_FIELDS) {

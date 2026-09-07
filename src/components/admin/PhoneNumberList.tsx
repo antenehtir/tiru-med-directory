@@ -17,26 +17,37 @@ export function PhoneNumberList({
   label,
   help,
   initial = [],
+  onChange,
 }: {
   name: string;
   label: string;
   help?: string;
   initial?: string[];
+  // Fires with the non-blank numbers whenever they change. The create form
+  // posts through the hidden field below and needs none of this; the admin
+  // editor is not a form — it diffs state against a snapshot behind its own
+  // Save button — so it takes the value this way instead.
+  onChange?: (numbers: string[]) => void;
 }) {
   // Always at least one row, so the control never renders as an empty box with
   // an Add button and no obvious starting point.
   const [numbers, setNumbers] = useState<string[]>(initial.length ? initial : [""]);
 
+  function apply(next: string[]) {
+    setNumbers(next);
+    onChange?.(next.map((n) => n.trim()).filter(Boolean));
+  }
+
   function update(index: number, value: string) {
-    setNumbers((prev) => prev.map((n, i) => (i === index ? value : n)));
+    apply(numbers.map((n, i) => (i === index ? value : n)));
   }
 
   function add() {
-    setNumbers((prev) => [...prev, ""]);
+    apply([...numbers, ""]);
   }
 
   function remove(index: number) {
-    setNumbers((prev) => (prev.length === 1 ? [""] : prev.filter((_, i) => i !== index)));
+    apply(numbers.length === 1 ? [""] : numbers.filter((_, i) => i !== index));
   }
 
   const kept = numbers.map((n) => n.trim()).filter(Boolean);

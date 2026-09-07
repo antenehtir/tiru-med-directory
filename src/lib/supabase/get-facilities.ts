@@ -55,6 +55,9 @@ type DBFacility = {
   updated_at: string | null;
   branch_count: number | null;
   branches: unknown;
+  // Migration 046. Absent on a database that has not run it, which is why
+  // phoneNumbersOf falls back to the two columns above rather than assuming.
+  phones: unknown;
 };
 
 function makeChannel(
@@ -82,10 +85,43 @@ function toStringArray(raw: unknown): string[] {
   return [];
 }
 
+// Every number the facility has, in the order it should be tried.
+//
+// `phones` is the full list and the two old columns are its first two entries,
+// kept in step by migration 046 and by everything that writes them. Reading
+// the array first is what makes a third number visible at all: without this
+// the app still only knew about phone and phone_2, so a number saved beyond
+// them existed in the database and nowhere a patient could see it.
+//
+// The fallback is not dead code. A row written before 046, or by anything that
+// updates only the old columns, has no array — and a facility whose Call
+// button disappeared because of a migration would be a worse outcome than one
+// showing two numbers instead of three.
+function phoneNumbersOf(row: DBFacility): string[] {
+  if (Array.isArray(row.phones)) {
+    const list = (row.phones as unknown[])
+      .map((p) => (typeof p === "string" ? p.trim() : ""))
+      .filter(Boolean);
+    if (list.length > 0) return list;
+  }
+  return [row.phone, row.phone_2].map((p) => p?.trim() ?? "").filter(Boolean);
+}
+
 function mapDBRowToFacility(row: DBFacility): Facility {
+  const phoneNumbers = phoneNumbersOf(row);
   const contactChannels: FacilityContactChannel[] = [
-    makeChannel(row.slug, "phone", "Phone", row.phone, `tel:${(row.phone ?? "").replace(/\s/g, "")}`),
-    makeChannel(row.slug, "phone", "Phone 2", row.phone_2, `tel:${(row.phone_2 ?? "").replace(/\s/g, "")}`),
+    // Labels stay "Phone", "Phone 2", "Phone 3"… because makeChannel builds
+    // each channel's id from the label, and two channels sharing an id would
+    // collide as React keys in the panel that lists them.
+    ...phoneNumbers.map((value, index) =>
+      makeChannel(
+        row.slug,
+        "phone",
+        index === 0 ? "Phone" : `Phone ${index + 1}`,
+        value,
+        `tel:${value.replace(/\s/g, "")}`,
+      ),
+    ),
     makeChannel(row.slug, "email", "Email", row.email, `mailto:${row.email ?? ""}`),
     makeChannel(row.slug, "website", "Website", row.website, row.website ?? ""),
     makeChannel(row.slug, "maps", "Google Maps", row.maps_link, row.maps_link ?? ""),

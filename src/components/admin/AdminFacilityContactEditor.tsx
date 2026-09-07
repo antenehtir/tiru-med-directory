@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityContact } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import { normalizeUrl } from "@/lib/normalize-url";
+import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
 
 type Facility = Record<string, unknown>;
 
@@ -15,8 +16,14 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [phone, setPhone] = useState(str(facility.phone));
-  const [phone2, setPhone2] = useState(str(facility.phone_2));
+  // The list is the truth; phone and phone_2 are its first two entries kept in
+  // step for every reader that still uses them. Seeded from the array when the
+  // database has one, and from the two columns when it does not, so this works
+  // either side of migration 046.
+  const storedPhones = Array.isArray(facility.phones)
+    ? (facility.phones as unknown[]).map((v) => (typeof v === "string" ? v : "")).filter(Boolean)
+    : [str(facility.phone), str(facility.phone_2)].filter(Boolean);
+  const [phones, setPhones] = useState<string[]>(storedPhones);
   const [whatsapp, setWhatsapp] = useState(str(facility.whatsapp));
   const [telegram, setTelegram] = useState(str(facility.telegram));
   const [email, setEmail] = useState(str(facility.email));
@@ -29,7 +36,8 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
   // Same rule as the services section: only what the admin actually changed
   // is written, so an untouched column keeps whatever is already live rather
   // than being rewritten with this component's own loaded default.
-  const initial = useRef<Record<string, string | null>>({
+  const initial = useRef<Record<string, unknown>>({
+    phones: storedPhones,
     phone: str(facility.phone),
     phone_2: str(facility.phone_2) || null,
     whatsapp: str(facility.whatsapp) || null,
@@ -44,9 +52,13 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
 
   function handleSave() {
     setError(null);
-    const fields = {
-      phone: phone.trim(),
-      phone_2: phone2.trim() || null,
+    const fields: Record<string, unknown> = {
+      // Sent together so the array and the two columns can never disagree.
+      // A reader that knows only phone/phone_2 keeps showing the first two;
+      // one that reads the array sees all of them.
+      phones,
+      phone: phones[0] ?? "",
+      phone_2: phones[1] ?? null,
       whatsapp: whatsapp.trim() || null,
       telegram: telegram.trim() || null,
       email: email.trim() || null,
@@ -56,15 +68,19 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
       tiktok: normalizeUrl(tiktok) || null,
       linkedin: normalizeUrl(linkedin) || null,
     };
-    setWebsite(fields.website ?? "");
-    setInstagram(fields.instagram ?? "");
-    setFacebook(fields.facebook ?? "");
-    setTiktok(fields.tiktok ?? "");
-    setLinkedin(fields.linkedin ?? "");
+    setWebsite((fields.website as string | null) ?? "");
+    setInstagram((fields.instagram as string | null) ?? "");
+    setFacebook((fields.facebook as string | null) ?? "");
+    setTiktok((fields.tiktok as string | null) ?? "");
+    setLinkedin((fields.linkedin as string | null) ?? "");
 
-    const changed: Record<string, string | null> = {};
+    const changed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(fields)) {
-      if (initial.current[key] !== value) changed[key] = value;
+      // JSON compare, because phones is an array and === would call every
+      // save a change.
+      if (JSON.stringify(initial.current[key]) !== JSON.stringify(value)) {
+        changed[key] = value;
+      }
     }
     if (Object.keys(changed).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
@@ -95,33 +111,13 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
       </div>
 
       <div className="space-y-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="admin_phone">
-            Primary phone *
-          </label>
-          <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            id="admin_phone"
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+251 ..."
-            type="tel"
-            value={phone}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="admin_phone_2">
-            Secondary phone
-          </label>
-          <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            id="admin_phone_2"
-            onChange={(e) => setPhone2(e.target.value)}
-            placeholder="+251 ..."
-            type="tel"
-            value={phone2}
-          />
-        </div>
+        <PhoneNumberList
+          help="The first number is the one the Call button dials. Add as many as the facility answers."
+          initial={storedPhones}
+          label="Phone numbers *"
+          name="admin_phones"
+          onChange={setPhones}
+        />
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="admin_whatsapp">
