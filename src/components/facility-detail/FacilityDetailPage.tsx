@@ -1,4 +1,5 @@
 import { PageContainer } from "@/components/layout/PageContainer";
+import { sharedSpecialtyLabel } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 import { CorrectionCta } from "@/components/ui/CorrectionCta";
 import { FacilityActionPanel } from "./FacilityActionPanel";
@@ -15,6 +16,13 @@ type FacilityDetailPageProps = { facility?: Facility; similarFacilities?: Facili
 export function FacilityDetailPage({ facility, similarFacilities }: FacilityDetailPageProps = {}) {
   if (!facility) return null;
   const selectedSimilarFacilities = similarFacilities ?? [];
+
+  // Why each suggestion is being offered, said on the card itself.
+  const similarHighlights: Record<string, string> = {};
+  for (const candidate of selectedSimilarFacilities) {
+    const shared = sharedSpecialtyLabel(facility, candidate);
+    if (shared) similarHighlights[candidate.id] = shared;
+  }
 
   return (
     <PageContainer className="py-4 sm:py-8 lg:py-12">
@@ -44,7 +52,10 @@ export function FacilityDetailPage({ facility, similarFacilities }: FacilityDeta
         </div>
 
         <CorrectionCta facilitySlug={facility.slug} />
-        <SimilarFacilitiesSection facilities={selectedSimilarFacilities} />
+        <SimilarFacilitiesSection
+          facilities={selectedSimilarFacilities}
+          highlightByFacilityId={similarHighlights}
+        />
       </div>
     </PageContainer>
   );

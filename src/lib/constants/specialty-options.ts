@@ -86,8 +86,25 @@ export const NEARBY_SPECIALTY_PILLS: {
   },
   {
     display: "Physiotherapy",
-    aliases: ["physiotherapy", "physical therapy", "occupational therapy",
-              "speech therapy", "language therapy"],
+    // "speech therapy" and "language therapy" used to live here, which filed
+    // Amina Speech and Language Therapy as a physiotherapy clinic. They are
+    // different professions treating different things, and a parent looking
+    // for help with a child's speech is not helped by a list of physios.
+    aliases: ["physiotherapy", "physical therapy", "occupational therapy"],
+  },
+  {
+    display: "Speech Therapy",
+    // Deliberately narrow. "speech" alone would match "speech and hearing"
+    // departments and any prose mentioning the word; these are the phrases a
+    // facility actually uses to say it offers the service.
+    aliases: [
+      "speech therapy",
+      "speech and language",
+      "language therapy",
+      "speech-language",
+      "speech pathology",
+      "swallowing therapy",
+    ],
   },
   {
     display: "Eye Care",

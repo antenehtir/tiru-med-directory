@@ -129,6 +129,7 @@ export const SPECIALTIES = [
   "Physiotherapy",
   "Nutrition and Dietetics",
   "Psychology / Counseling",
+  "Speech and Language Therapy",
   "MCH (Maternal and Child Health)",
 ] as const;
 

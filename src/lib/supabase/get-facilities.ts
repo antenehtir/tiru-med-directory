@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-import { getFacilitySpecialtyLabels } from "@/lib/facility/specialty-display";
+import {
+  getFacilitySpecialtyLabels,
+  specialtyOverlapScore,
+} from "@/lib/facility/specialty-display";
 
 import type {
   Facility,
@@ -278,13 +281,13 @@ export async function getSimilarFacilities(
     // a clinic and a general hospital are not alternatives to each other even
     // when both do dentistry — but within it, the facility that treats what
     // this one treats comes first.
-    const mine = new Set(getFacilitySpecialtyLabels(facility));
+    const mine = getFacilitySpecialtyLabels(facility);
 
     return data
       .map((row) => mapDBRowToFacility(row as DBFacility))
       .map((candidate) => ({
         candidate,
-        shared: getFacilitySpecialtyLabels(candidate).filter((s) => mine.has(s)).length,
+        shared: specialtyOverlapScore(mine, getFacilitySpecialtyLabels(candidate)),
       }))
       // Name breaks ties so the rail is stable between renders rather than
       // reshuffling on every request for facilities that score the same.

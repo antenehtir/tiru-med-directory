@@ -135,6 +135,14 @@ const CANDIDATES: ChipCandidate[] = [
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Psychiatry & Mental Health"),
   },
+  {
+    // Was reachable only as physiotherapy, which is a different profession.
+    // Four facilities offer it, one of them exclusively.
+    label: "Speech therapy",
+    href: `/facilities?specialty=${encodeURIComponent("Speech Therapy")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Speech Therapy"),
+  },
 ];
 
 export function DiscoveryRow({ facilities }: { facilities: Facility[] }) {

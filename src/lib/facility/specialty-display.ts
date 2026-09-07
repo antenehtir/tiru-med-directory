@@ -39,3 +39,36 @@ export function getFacilitySpecialtyLabels(facility: {
   if (!text) return [];
   return SPECIALTY_OPTIONS.filter((label) => specialtyMatchesAliases(text, label));
 }
+
+// How alike two facilities are, as overlap divided by combined range.
+//
+// Counting shared specialties alone favours whoever offers the most of
+// everything: on Smile Specialty Dental Center's page it put a large
+// multi-specialty surgical centre above Babi Specialty Dental Clinic, because
+// the big facility happened to share two labels while the dental clinic shared
+// one. Two dental clinics are alike; a dental clinic and a nine-specialty
+// hospital that also does dentistry are not, and a patient comparing options
+// means the former.
+//
+// Dividing by the union corrects that. Babi shares 1 of a combined 2 and
+// scores 0.5; a facility sharing 2 of a combined 9 scores 0.22.
+export function specialtyOverlapScore(a: string[], b: string[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  const setB = new Set(b);
+  const shared = a.filter((s) => setB.has(s)).length;
+  if (shared === 0) return 0;
+  const union = new Set([...a, ...b]).size;
+  return shared / union;
+}
+
+// The specialty two facilities have in common, for showing a reader why a
+// comparison was offered at all. Returns the first shared label rather than
+// all of them: the card has room for one chip, and one true reason answers the
+// question better than a list nobody reads.
+export function sharedSpecialtyLabel(
+  a: { services: string[]; customServiceCategories?: Record<string, string[]> },
+  b: { services: string[]; customServiceCategories?: Record<string, string[]> },
+): string | undefined {
+  const mine = new Set(getFacilitySpecialtyLabels(a));
+  return getFacilitySpecialtyLabels(b).find((s) => mine.has(s));
+}

@@ -14,6 +14,19 @@ import type { Facility, FacilityAppointmentModality } from "@/types/facility";
 import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
+// Display-only. The stored values stay exactly as WALKIN_APPOINTMENT_OPTIONS
+// writes them — renaming the vocabulary would mean a migration and would
+// break every saved row — but "Appointment required" reads as a refusal, and
+// then sat directly above a second heading that also said "Appointments".
+// One phrase, pointed at what the reader wants to do next.
+const WALKIN_POLICY_LABELS: Record<string, string> = {
+  "Appointment required": "For appointments",
+};
+
+function walkinPolicyLabel(value: string): string {
+  return WALKIN_POLICY_LABELS[value] ?? value;
+}
+
 // Phone/online/in-person have no single brand to represent, so an emoji
 // stays the simplest option there. Telegram and WhatsApp do have one — an
 // emoji speech bubble doesn't carry WhatsApp's identity the way its own
@@ -113,13 +126,29 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
 
         {(facility.emergencyType || facility.walkinAppointment) ? <div className="mt-3 flex flex-wrap gap-2">
           {facility.emergencyType ? <Pill variant="danger" dot>{facility.emergencyType}</Pill> : null}
-          {facility.walkinAppointment ? <Pill variant="default">{facility.walkinAppointment}</Pill> : null}
+          {facility.walkinAppointment ? <Pill variant="default">{walkinPolicyLabel(facility.walkinAppointment)}</Pill> : null}
         </div> : null}
 
+        {/* One row per way in, each on its own line with its mark in a fixed
+            column. They used to wrap inline after a bold "Appointments:", so a
+            phone number and a long booking URL ran together into a paragraph
+            and the reader had to parse where one ended and the next began.
+            These are things to act on, not prose. */}
         {facility.walkinAppointment && facility.walkinAppointment !== "Walk-in only" && facility.appointmentModalities?.length ? (
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground">
-            <span className="font-semibold">Appointments:</span>
-            {facility.appointmentModalities.map((modality) => <span className="inline-flex items-center gap-1 text-muted-foreground" key={modality.type}><AppointmentModalityMark type={modality.type} /> {modality.value}</span>)}
+          <div className="mt-3 rounded-card border border-border bg-background p-3 sm:p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+              For appointments
+            </p>
+            <ul className="mt-2 grid gap-1.5">
+              {facility.appointmentModalities.map((modality) => (
+                <li className="flex items-start gap-2 text-sm text-foreground" key={modality.type}>
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">
+                    <AppointmentModalityMark type={modality.type} />
+                  </span>
+                  <span className="min-w-0 break-words">{modality.value}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>

@@ -45,6 +45,9 @@ const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   "Ophthalmology (Eye Care)": ["ophthalmology", "optometry", "eye care", "eye clinic", "eye center"],
   "Physiotherapy": ["physiotherapy", "physical therapy"],
   "Dental": ["dental", "dentistry", "orthodontic"],
+  // Its own specialty rather than a physiotherapy alias — see
+  // specialty-options.ts for why the two were separated.
+  "Speech Therapy": ["speech therapy", "speech and language", "language therapy", "speech-language", "speech pathology", "swallowing therapy"],
   "Neurology": ["neurology", "neurologic", "neurosurgery"],
   "Oncology": ["oncology", "oncologic"],
   "Gastroenterology": ["gastroenterology"],

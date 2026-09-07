@@ -3,10 +3,16 @@ import type { Facility } from "@/types/facility";
 
 type SimilarFacilitiesSectionProps = {
   facilities: Facility[];
+  // The specialty each suggestion shares with the facility being viewed.
+  // Without it the rail asserts that three strangers are comparable and leaves
+  // the reader to work out why — the same question search results already
+  // answer with their matched-service chip.
+  highlightByFacilityId?: Record<string, string>;
 };
 
 export function SimilarFacilitiesSection({
   facilities,
+  highlightByFacilityId,
 }: SimilarFacilitiesSectionProps) {
   return (
     <section>
@@ -21,7 +27,7 @@ export function SimilarFacilitiesSection({
           Compare facility information, services, and trust signals.
         </p>
       </div>
-      <FacilityCardGrid facilities={facilities} />
+      <FacilityCardGrid facilities={facilities} highlightByFacilityId={highlightByFacilityId} />
     </section>
   );
 }
