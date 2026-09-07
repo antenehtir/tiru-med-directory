@@ -8,6 +8,7 @@ import {
 import { TelegramIcon, WhatsAppIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { getFacilitySpecialtyLabels } from "@/lib/facility/specialty-display";
+import { createTelHref, splitPhoneNumbers } from "@/lib/contact-actions";
 import { splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
@@ -54,6 +55,49 @@ function bookingLink(value: string): { href: string; label: string } | null {
   } catch {
     return null;
   }
+}
+
+// An appointment phone number is the single most actionable thing in this
+// block, and it was the one row you could not act on — the booking URL was a
+// link, the reception note was prose, and the number in between was text you
+// had to select and re-type into the dialler. On the phone most of this
+// directory is read on, that is the whole point of showing it.
+//
+// Gated on the modality type, not on the shape of the value: "In-person at
+// reception, Mon–Fri 8AM–5PM" contains digits and must never become a call.
+const DIALLABLE_MODALITY_TYPES = new Set<FacilityAppointmentModality["type"]>([
+  "phone",
+  "phone_2",
+]);
+
+// One field can hold two numbers. Hallelujah's is "9975 / 0965407886", and
+// stripping punctuation to build a single href would have dialled
+// 99750965407886 — a number that does not exist. Each is split out and linked
+// on its own.
+//
+// A part only becomes a link when it is made of digits and phone punctuation,
+// with at least three digits. Letters disqualify it, which keeps a note typed
+// into the wrong field inert, and the digit floor keeps "n/a" or "-" from
+// rendering as a dead link. Three rather than seven because short codes are
+// real here: 9975 is Hallelujah's own hotline.
+const PHONE_SHAPED = /^[\d\s+()./-]+$/;
+const MIN_DIALLABLE_DIGITS = 3;
+
+function diallableParts(
+  type: FacilityAppointmentModality["type"],
+  value: string,
+): { text: string; href: string }[] {
+  if (!DIALLABLE_MODALITY_TYPES.has(type)) return [];
+
+  return splitPhoneNumbers(value)
+    .map((part) => {
+      const text = part.trim();
+      if (!PHONE_SHAPED.test(text)) return null;
+      if ((text.match(/\d/g) ?? []).length < MIN_DIALLABLE_DIGITS) return null;
+      const href = createTelHref(text);
+      return href ? { text, href } : null;
+    })
+    .filter((part): part is { text: string; href: string } => part !== null);
 }
 
 // Phone/online/in-person have no single brand to represent, so an emoji
@@ -170,7 +214,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
               For appointments
             </p>
-            <ul className="mt-2 grid gap-1.5">
+            <ul className="mt-2 grid gap-3">
               {facility.appointmentModalities.map((modality) => {
                 // A provider can tick a way in without typing a detail for it —
                 // Lancet's "In-person at reception" is saved with an empty
@@ -181,19 +225,39 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
                 // only a row with neither is dropped.
                 const detail = modality.value?.trim() || modality.label?.trim() || "";
                 if (!detail) return null;
+
                 const link = bookingLink(detail);
+                const phones = diallableParts(modality.type, detail);
+
+                // py/-my pair, shared by every anchor here: the row is a flex
+                // container, so an anchor is blockified and its padding would
+                // otherwise move the list. py-3 against the list's gap-3 gives
+                // a 44px target without rows overlapping each other.
+                const linkClassName =
+                  "-my-3 min-w-0 break-words py-3 font-semibold text-primary hover:underline";
+
                 return (
                   <li className="flex items-start gap-2 text-sm text-foreground" key={modality.type}>
                     <span className="mt-0.5 shrink-0 text-muted-foreground">
                       <AppointmentModalityMark type={modality.type} />
                     </span>
-                    {link ? (
+                    {phones.length > 0 ? (
+                      // No target/rel: a tel: link hands off to the dialler
+                      // rather than navigating, and opening a blank tab first
+                      // leaves an empty window behind on desktop.
+                      <span className="min-w-0 break-words">
+                        {phones.map((phone, index) => (
+                          <span key={phone.href}>
+                            {index > 0 ? <span className="text-muted-foreground"> · </span> : null}
+                            <a className={linkClassName} href={phone.href}>
+                              {phone.text}
+                            </a>
+                          </span>
+                        ))}
+                      </span>
+                    ) : link ? (
                       <a
-                        // py/-my pair: the row is a flex container, so the
-                        // anchor is blockified and its padding would otherwise
-                        // move the list. This grows the thumb target to fill
-                        // the row gap and pulls the layout back to where it was.
-                        className="-my-1.5 min-w-0 break-words py-1.5 font-semibold text-primary hover:underline"
+                        className={linkClassName}
                         href={link.href}
                         rel="noopener noreferrer"
                         target="_blank"

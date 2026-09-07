@@ -70,14 +70,20 @@ function createChannelActions(
   ];
 }
 
-function splitPhoneNumbers(value: string): string[] {
+// Exported alongside createTelHref: a stored phone value can hold more than
+// one number (Hallelujah's is "9975 / 0965407886"), and anything building a
+// tel: link has to split first or it dials the two concatenated together.
+export function splitPhoneNumbers(value: string): string[] {
   return value
     .split(/[\/,;\n\r|]+/)
     .map((phone) => phone.trim())
     .filter(Boolean);
 }
 
-function createTelHref(value: string): string | undefined {
+// Exported so the facility page's appointment rows dial the same way the Call
+// button does, rather than growing a fourth copy of "strip everything that is
+// not a digit or a plus".
+export function createTelHref(value: string): string | undefined {
   const telValue = value.replace(/[^\d+]/g, "");
 
   return telValue ? `tel:${telValue}` : undefined;
