@@ -72,3 +72,33 @@ export function sharedSpecialtyLabel(
   const mine = new Set(getFacilitySpecialtyLabels(a));
   return getFacilitySpecialtyLabels(b).find((s) => mine.has(s));
 }
+
+// Drops a specialty that a compound one already contains.
+//
+// A facility can legitimately hold both "Gastroenterology" and
+// "Gastroenterology and Hepatology" — the first came from the checklist, the
+// second from the department's own name — but printing both says the same
+// word twice and implies two separate services where there is one.
+//
+// Only conjunctions count. The parts are taken by splitting on " and ", so
+// "Gastroenterology and Hepatology" absorbs "Gastroenterology" and
+// "Hepatology", while "Pediatric Cardiology" absorbs nothing: a modifier is
+// not a conjunction, and a hospital offering both paediatric and adult
+// cardiology must keep both. That distinction is the whole rule — a plain
+// substring test would have silently deleted "Cardiology" from every facility
+// that also lists "Pediatric Cardiology".
+export function absorbCompoundSpecialties(specialties: string[]): string[] {
+  const absorbed = new Set<string>();
+
+  for (const specialty of specialties) {
+    if (!/\sand\s/i.test(specialty)) continue;
+    for (const part of specialty.split(/\s+and\s+/i)) {
+      const trimmed = part.trim();
+      if (trimmed && trimmed.toLowerCase() !== specialty.toLowerCase()) {
+        absorbed.add(trimmed.toLowerCase());
+      }
+    }
+  }
+
+  return specialties.filter((specialty) => !absorbed.has(specialty.toLowerCase()));
+}

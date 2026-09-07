@@ -1,6 +1,7 @@
 import { CollapsiblePillList } from "./CollapsiblePillList";
+import { CollapsibleServiceGroup } from "./CollapsibleServiceGroup";
 import { groupFacilityServices } from "@/lib/facility/service-groups";
-import { getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
+import { absorbCompoundSpecialties, getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
 type FacilityServicesSectionProps = {
@@ -9,7 +10,9 @@ type FacilityServicesSectionProps = {
 
 export function FacilityServicesSection({ facility }: FacilityServicesSectionProps) {
   const groups = groupFacilityServices(facility);
-  const medicalSpecialties = getFacilityMedicalSpecialties(facility.services);
+  const medicalSpecialties = absorbCompoundSpecialties(
+    getFacilityMedicalSpecialties(facility.services),
+  );
 
   if (groups.length === 0 && medicalSpecialties.length === 0) return null;
 
@@ -28,9 +31,17 @@ export function FacilityServicesSection({ facility }: FacilityServicesSectionPro
       <div className="mt-5 grid gap-5">
         <CollapsiblePillList items={medicalSpecialties} label="Clinical specialties" />
 
-        {groups.map((group) => (
-          <CollapsiblePillList items={group.services} key={group.label} label={group.label} />
-        ))}
+        {groups.map((group) =>
+          group.subgroups ? (
+            <CollapsibleServiceGroup
+              key={group.label}
+              label={group.label}
+              subgroups={group.subgroups}
+            />
+          ) : (
+            <CollapsiblePillList items={group.services} key={group.label} label={group.label} />
+          ),
+        )}
       </div>
     </section>
   );

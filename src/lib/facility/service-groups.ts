@@ -46,7 +46,20 @@ const SERVICE_GROUP_DEFS: ServiceGroupDef[] = [
   { key: "other", label: "Other Services" },
 ];
 
-export type FacilityServiceGroup = { label: string; services: string[] };
+export type FacilityServiceGroup = {
+  label: string;
+  services: string[];
+  // Lab panels only. BASIC_LAB_CATEGORIES has 18 of them, and each was a
+  // top-level section on the facility page — eighteen headings and their pills
+  // between "General Services" and everything a visitor came for. They are one
+  // subject, so they roll up under one parent and the reader opens the panel
+  // they want.
+  subgroups?: { label: string; services: string[] }[];
+};
+
+// The parent every basiclab-* group is nested under. Named for what a patient
+// calls it, not for the config key.
+const LAB_PARENT_LABEL = "Laboratory tests";
 
 // Groups a facility's flat `services` array under the same category
 // structure used during onboarding, so the public page reads as sections
@@ -72,7 +85,7 @@ export function groupFacilityServices(facility: Facility): FacilityServiceGroup[
   }
 
   const remaining = new Set(uniqueServices);
-  const groups: FacilityServiceGroup[] = [];
+  const groups: (FacilityServiceGroup & { key: string })[] = [];
 
   for (const def of SERVICE_GROUP_DEFS) {
     const matched = uniqueServices.filter(
@@ -82,7 +95,7 @@ export function groupFacilityServices(facility: Facility): FacilityServiceGroup[
     );
     if (matched.length > 0) {
       for (const service of matched) remaining.delete(service);
-      groups.push({ label: def.label, services: matched });
+      groups.push({ label: def.label, services: matched, key: def.key });
     }
   }
 
@@ -91,10 +104,34 @@ export function groupFacilityServices(facility: Facility): FacilityServiceGroup[
   // silently dropped.
   if (remaining.size > 0) {
     groups.push({
+      key: "other",
       label: "Additional Services",
       services: uniqueServices.filter((service) => remaining.has(service)),
     });
   }
 
-  return groups;
+  // Fold the lab panels into one parent, in the position the first panel
+  // already occupied so the lab still sits above imaging.
+  const labGroups = groups.filter((g) => g.key.startsWith("basiclab-"));
+  if (labGroups.length === 0) {
+    return groups.map(({ label, services }) => ({ label, services }));
+  }
+
+  const firstLabIndex = groups.findIndex((g) => g.key.startsWith("basiclab-"));
+  const parent: FacilityServiceGroup = {
+    label: LAB_PARENT_LABEL,
+    // The parent carries no pills of its own; every test lives in a panel.
+    services: [],
+    subgroups: labGroups.map(({ label, services }) => ({ label, services })),
+  };
+
+  const rest = groups.filter((g) => !g.key.startsWith("basiclab-"));
+  const before = rest.filter((g) => groups.indexOf(g) < firstLabIndex);
+  const after = rest.filter((g) => groups.indexOf(g) > firstLabIndex);
+
+  return [...before, parent, ...after].map(({ label, services, subgroups }) => ({
+    label,
+    services,
+    subgroups,
+  }));
 }
