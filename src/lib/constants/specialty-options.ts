@@ -37,6 +37,27 @@ export const SURGERY_ALIASES = [
   "surgeon",
 ];
 
+// Surgeries that belong to a different specialty, removed from a facility's
+// text before the aliases above are tested against it.
+//
+// The alias list cannot express this on its own. Dropping bare "surgery" was
+// measured against the live directory and cost four facilities — Medstar,
+// Tazma, Nordic and ACL ENT all list their general theatre as the single word
+// "Surgery" — to fix one. Removing the qualified phrase first keeps those and
+// drops exactly the three that were wrong: Smile Specialty Dental Center
+// (Dental Surgery), Dream Orthopaedics (Orthopaedic and Spinal Surgery) and
+// Glow Skincare (Hair Transplant Surgery).
+//
+// A hospital that lists both keeps its match, because removing "Dental
+// Surgery" leaves "General Surgery" standing. "neurosurgery" is deliberately
+// absent from the qualifiers: it is an explicit alias above.
+export const QUALIFIED_SURGERY_PATTERN = new RegExp(
+  "\\b(?:dental|oral|maxillofacial|hair\\s+transplant|plastic|cosmetic|aesthetic|reconstructive|" +
+    "orthopedic|orthopaedic|spinal|spine|eye|ophthalmic|refractive|cataract|lasik)\\s*" +
+    "(?:and\\s+\\w+\\s+)?surg\\w+",
+  "gi",
+);
+
 // Nearby page specialty pills — organized by actual Addis Ababa
 // healthcare patterns, not the generic filter modal list.
 // Each entry: display label shown on pill, and the keyword aliases

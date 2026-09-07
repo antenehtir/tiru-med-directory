@@ -16,15 +16,43 @@ import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
 // Display-only. The stored values stay exactly as WALKIN_APPOINTMENT_OPTIONS
 // writes them — renaming the vocabulary would mean a migration and would
-// break every saved row — but "Appointment required" reads as a refusal, and
-// then sat directly above a second heading that also said "Appointments".
-// One phrase, pointed at what the reader wants to do next.
+// break every saved row — but "Appointment required" reads as a refusal.
+// This pill is a category, and the card below it is the instruction, so the
+// pill says the noun once and "For appointments" is left to that heading.
 const WALKIN_POLICY_LABELS: Record<string, string> = {
-  "Appointment required": "For appointments",
+  "Appointment required": "Appointments",
 };
 
 function walkinPolicyLabel(value: string): string {
   return WALKIN_POLICY_LABELS[value] ?? value;
+}
+
+// A booking URL printed in full is the longest unbroken string on the page:
+// it takes a line of its own, is the first thing to strain a 320px screen,
+// and gives the reader something to read when they wanted something to tap.
+//
+// The label is the destination itself, not "Book online" — the reader can see
+// where the tap leads before taking it. Host and path together while they stay
+// short, which keeps "t.me/clinicname" whole; host alone once a booking URL
+// starts carrying a query string, which is where the width came from.
+const MAX_INLINE_LINK_LABEL = 28;
+
+function bookingLink(value: string): { href: string; label: string } | null {
+  const raw = value.trim();
+  const hasScheme = /^https?:\/\//i.test(raw);
+  // A bare domain with no scheme still needs to look like one: dotted, no
+  // whitespace. Phone numbers and @handles must not become links.
+  if (!hasScheme && !/^[\w-]+(?:\.[\w-]+)+(?:[/?#]\S*)?$/.test(raw)) return null;
+
+  try {
+    const url = new URL(hasScheme ? raw : `https://${raw}`);
+    const host = url.hostname.replace(/^www\./i, "");
+    const path = url.pathname === "/" ? "" : url.pathname.replace(/\/$/, "");
+    const full = `${host}${path}`;
+    return { href: url.href, label: full.length <= MAX_INLINE_LINK_LABEL ? full : host };
+  } catch {
+    return null;
+  }
 }
 
 // Phone/online/in-person have no single brand to represent, so an emoji
@@ -140,14 +168,32 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               For appointments
             </p>
             <ul className="mt-2 grid gap-1.5">
-              {facility.appointmentModalities.map((modality) => (
-                <li className="flex items-start gap-2 text-sm text-foreground" key={modality.type}>
-                  <span className="mt-0.5 shrink-0 text-muted-foreground">
-                    <AppointmentModalityMark type={modality.type} />
-                  </span>
-                  <span className="min-w-0 break-words">{modality.value}</span>
-                </li>
-              ))}
+              {facility.appointmentModalities.map((modality) => {
+                const link = bookingLink(modality.value);
+                return (
+                  <li className="flex items-start gap-2 text-sm text-foreground" key={modality.type}>
+                    <span className="mt-0.5 shrink-0 text-muted-foreground">
+                      <AppointmentModalityMark type={modality.type} />
+                    </span>
+                    {link ? (
+                      <a
+                        // py/-my pair: the row is a flex container, so the
+                        // anchor is blockified and its padding would otherwise
+                        // move the list. This grows the thumb target to fill
+                        // the row gap and pulls the layout back to where it was.
+                        className="-my-1.5 min-w-0 break-words py-1.5 font-semibold text-primary hover:underline"
+                        href={link.href}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <span className="min-w-0 break-words">{modality.value}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ) : null}

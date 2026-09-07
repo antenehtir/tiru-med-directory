@@ -1,4 +1,8 @@
-import { SPECIALTY_OPTIONS, SURGERY_ALIASES } from "@/lib/constants/specialty-options";
+import {
+  QUALIFIED_SURGERY_PATTERN,
+  SPECIALTY_OPTIONS,
+  SURGERY_ALIASES,
+} from "@/lib/constants/specialty-options";
 import {
   ALL_BASIC_LAB_TESTS,
   AMBULANCE_VEHICLE_TYPES,
@@ -70,8 +74,22 @@ function buildAliasPattern(alias: string): RegExp {
 // Shared by specialtyMatchesAliases and any other alias-list-based matcher
 // (e.g. NearbyPage's specialty pills) so they all get the same stem-length
 // safety logic in buildAliasPattern instead of re-implementing it.
+// Alias lists that need part of the text ignored before matching, keyed by the
+// list itself rather than by a specialty label. SURGERY_ALIASES reaches this
+// function down four different routes — the homepage chip, the specialty
+// filter, the Nearby pill and the "why it matched" label — and keying on the
+// shared array means all four are covered without any of them remembering to
+// ask, which is the same reasoning that made the alias list itself shared.
+const ALIAS_TEXT_EXCLUSIONS = new WeakMap<string[], RegExp>([
+  [SURGERY_ALIASES, QUALIFIED_SURGERY_PATTERN],
+]);
+
 export function matchesAnyAlias(text: string, aliases: string[]): boolean {
-  return aliases.some((alias) => buildAliasPattern(alias).test(text));
+  const exclusion = ALIAS_TEXT_EXCLUSIONS.get(aliases);
+  // Replaced with a space, not "": "Dental Surgery|Endoscopy" must not become
+  // a single fused word.
+  const subject = exclusion ? text.replace(exclusion, " ") : text;
+  return aliases.some((alias) => buildAliasPattern(alias).test(subject));
 }
 
 // The same word-boundary machinery, minus the closing \b, for tokens the
