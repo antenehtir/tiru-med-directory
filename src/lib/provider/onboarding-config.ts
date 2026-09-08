@@ -72,6 +72,12 @@ export const ADDIS_SUB_CITIES = [
   "Multiple",
 ] as const;
 
+// Home visit, Travel medicine, Medical certificate and Blood bank were
+// removed at a clinician's direction: they are things a facility does, not
+// services a patient searches for, and each was carrying a line in a list
+// every provider has to read. Three facilities and three pending claims hold
+// them; 052 keeps those values visible and editable rather than orphaning
+// them, the same way 051 handled Family Medicine.
 export const MAIN_SERVICES = [
   "General OPD / Outpatient consultation",
   "Specialist consultation",
@@ -90,16 +96,12 @@ export const MAIN_SERVICES = [
   "Dental procedure",
   "Eye care procedure",
   "Vaccination",
-  "Travel medicine",
   "Chronic disease follow-up",
   "Executive / Comprehensive check-up",
-  "Home visit",
   "Telemedicine consultation",
-  "Medical certificate",
   "Laboratory service",
   "Imaging / Radiology",
   "Pharmacy service",
-  "Blood bank",
   "Ambulance service",
 ] as const;
 

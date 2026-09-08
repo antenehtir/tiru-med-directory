@@ -227,10 +227,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
 
 export async function getFacilityBySlug(slug: string): Promise<Facility | null> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    const supabase = createPublicReadClient();
     const { data, error } = await supabase
       .from("facilities")
       .select("*")
@@ -259,10 +256,7 @@ export async function getSimilarFacilities(
   limit = 3,
 ): Promise<Facility[]> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    const supabase = createPublicReadClient();
     // Widened well past `limit` on purpose. This used to take the first three
     // rows the database happened to return for the category and call them
     // similar, so a dental clinic was offered a dermatology clinic and an MCH
@@ -342,6 +336,31 @@ export async function getSimilarFacilities(
   }
 }
 
+// Supabase-js issues its queries through fetch, and Next wraps fetch with its
+// own Data Cache. That cache sits BELOW this module, so a page marked
+// force-dynamic over a query with no unstable_cache around it was still being
+// served stale rows: the facility detail page kept showing two services an
+// admin had deleted eight minutes earlier, on a response that came back
+// X-Vercel-Cache: MISS and Cache-Control: no-store. The HTML was genuinely
+// re-rendered; the data underneath it was not re-read.
+//
+// Passing cache: "no-store" on the underlying fetch is what actually reaches
+// that layer. Freshness is then decided here — getFacilitiesFromDB wraps its
+// read in unstable_cache with a tag it can invalidate, and every other read
+// goes straight to the database, which is what a detail page needs.
+function createPublicReadClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+          fetch(input, { ...init, cache: "no-store" }),
+      },
+    },
+  );
+}
+
 // The tag every facility-list read is stored under, so an admin edit can
 // drop it by name. Exported so the admin actions do not retype the string.
 export const FACILITIES_CACHE_TAG = "facilities";
@@ -360,10 +379,7 @@ export const FACILITIES_CACHE_TAG = "facilities";
 const loadFacilities = unstable_cache(
   async (): Promise<Facility[]> => {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    const supabase = createPublicReadClient();
 
     const { data, error } = await supabase
       .from("facilities")
@@ -405,10 +421,7 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
 // on 0: no number is better than a wrong one.
 export async function getActiveFacilityCount(): Promise<number> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    const supabase = createPublicReadClient();
     const { count, error } = await supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })
