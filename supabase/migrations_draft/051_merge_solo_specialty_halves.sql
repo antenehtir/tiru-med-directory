@@ -1,6 +1,13 @@
 -- 051 — move the solo specialty halves onto their department names
 -- ═══════════════════════════════════════════════════════════════════════════
--- DRAFT. Not run.
+-- APPLIED 2026-09-08. Confirmed by querying live data afterwards: 0 solo
+-- halves remain, 10 facilities hold Gastroenterology and Hepatology and 8 hold
+-- Pulmonology and Critical Care Medicine, and Family Medicine is listed AND
+-- registered as a custom entry on both facilities plus the one pending claim —
+-- Ethio-Istanbul's two pre-existing entries survived and became three.
+--
+-- Ran as UPDATE 0 / 3 / 10 / 8 / 2 / 1, matching the re-measured header below
+-- rather than the original draft's figures.
 --
 -- The checklist offered both a department and one of its halves:
 --
@@ -69,7 +76,7 @@ order  by gains_a_claim desc, f.name;
 -- Runs BEFORE the removal in STEP 2. Reversing the order would delete the
 -- solo first and leave those three facilities with neither.
 --
--- Expect: UPDATE 0, then UPDATE 3
+-- Result: UPDATE 0, then UPDATE 3
 --
 -- Zero on the first is correct, not a failure: every facility holding solo
 -- "Gastroenterology" already holds the department too. The statement stays
@@ -92,7 +99,7 @@ where  services && array['Pulmonology']
 -- STEP 2 — drop the solo halves, now that every row holding one also holds
 -- the department.
 --
--- Expect: UPDATE 10, then UPDATE 8
+-- Result: UPDATE 10, then UPDATE 8
 -- ═══════════════════════════════════════════════════════════════════════════
 
 update facilities
@@ -118,7 +125,7 @@ where  services && array['Pulmonology'];
 -- once. Appending rather than replacing preserves any custom entries a row
 -- already has (Ethio-Istanbul has two).
 --
--- Expect: UPDATE 2
+-- Result: UPDATE 2
 -- ═══════════════════════════════════════════════════════════════════════════
 
 update facilities f
@@ -134,7 +141,7 @@ where  f.services && array['Family Medicine']
            @> '["Family Medicine"]'::jsonb;
 
 -- The same for the one pending claim, so approval does not reintroduce an
--- orphan. Expect: UPDATE 1
+-- orphan. Result: UPDATE 1
 update facility_claims c
 set    proposed_custom_service_categories = jsonb_set(
          coalesce(c.proposed_custom_service_categories, '{}'::jsonb),
