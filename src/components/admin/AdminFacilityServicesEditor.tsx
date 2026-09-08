@@ -442,6 +442,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                 hand-typed test names the catalogue already had. */}
             {showDiagLab && (
               <BasicLabSelector
+                defaultOpen
                 customInputs={customInputs}
                 customServiceCategories={customServiceCategories}
                 onCustomAdd={addCustomService}

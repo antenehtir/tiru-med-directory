@@ -9,6 +9,7 @@ import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-repeater";
 import { normalizeUrl } from "@/lib/normalize-url";
 import type { FacilityBranch } from "@/types/facility";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 
 const MapPinPicker = dynamic(
   () => import("@/components/provider/MapPinPicker").then((m) => m.MapPinPicker),
@@ -126,7 +127,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
           <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
-        <div className="space-y-4">
+        <FieldGrid>
           {/* Sub-city */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="sub_city">
@@ -206,7 +207,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
           </div>
 
           {/* Access notes */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <label className="text-sm font-medium text-foreground" htmlFor="access_notes">
               Access notes
             </label>
@@ -226,7 +227,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
           </div>
 
           {/* Map pin */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <MapPinPicker
               initialLat={lat}
               initialLng={lng}
@@ -237,7 +238,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <input name="lng" type="hidden" value={lng ?? ""} />
             <input name="maps_link" type="hidden" value={mapsLink} />
           </div>
-        </div>
+        </FieldGrid>
       </div>
 
       {branchCount > 1 && (
@@ -256,7 +257,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
           How should patients reach you?
         </p>
 
-        <div className="space-y-4">
+        <FieldGrid>
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="phone">
@@ -355,7 +356,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
           </div>
 
           {/* Social media */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:col-span-2">
             <p className="text-sm font-semibold text-foreground">
               Social media (optional)
             </p>
@@ -446,7 +447,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
               </div>
             </div>
           </div>
-        </div>
+        </FieldGrid>
       </div>
 
       <div className="flex items-center justify-between">

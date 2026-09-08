@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import { BASIC_LAB_CATEGORIES } from "@/lib/provider/onboarding-config";
 
@@ -222,6 +223,7 @@ export function BasicLabSelector({
   onCustomAdd,
   customServiceCategories,
   onRemoveCustom,
+  defaultOpen = false,
 }: {
   services: string[];
   onToggleTest: (item: string) => void;
@@ -231,15 +233,64 @@ export function BasicLabSelector({
   onCustomAdd: (key: string) => void;
   customServiceCategories: CustomServiceCategories;
   onRemoveCustom: (key: string, value: string) => void;
+  // Collapsed unless the lab IS the facility. Eighteen panels of checkboxes is
+  // the longest thing in the whole form, and for a hospital or a dental clinic
+  // it sits between the services they came to tick and everything after it —
+  // the further someone scrolls the more likely they abandon, so a section
+  // most facilities will skip should not be the one they scroll past.
+  //
+  // A diagnostic centre or laboratory is the opposite case: this is the point
+  // of their listing, so it opens with the form.
+  defaultOpen?: boolean;
 }) {
+  // Named param default rather than a defaultProps-style fallback, so a caller
+  // that forgets the prop gets the safe (collapsed) behaviour.
   const otherKey = "basiclab-other-test";
+  const [open, setOpen] = useState(defaultOpen);
+
+  const selectedCount = Object.values(BASIC_LAB_CATEGORIES)
+    .flat()
+    .filter((test) => services.includes(test)).length;
 
   return (
     <div className="mb-5">
-      <p className="mb-1 text-sm font-semibold text-foreground">
-        Basic Lab / Point-of-care Testing
-      </p>
-      <p className="mb-3 text-xs text-muted-foreground">
+      <button
+        aria-expanded={open}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 text-left transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        onClick={() => setOpen((value: boolean) => !value)}
+        type="button"
+      >
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-foreground">
+            Basic Lab / Point-of-care Testing
+          </span>
+          {/* The count is the reason to open it or leave it: a facility that
+              has already ticked tests needs to see that at a glance while the
+              section is shut. */}
+          <span className="block text-xs text-muted-foreground">
+            {selectedCount > 0
+              ? `${selectedCount} test${selectedCount === 1 ? "" : "s"} selected`
+              : defaultOpen
+                ? "Tap the tests this facility runs"
+                : /* "Optional" only where it is true. For a diagnostic centre
+                     the lab IS the listing, and calling it optional there
+                     invites skipping the one section that matters. */
+                  "Optional — tap to add lab tests"}
+          </span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        >
+          <svg className="size-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </button>
+
+      {!open ? null : (
+      <>
+      <p className="mb-3 mt-3 text-xs text-muted-foreground">
         Tap the tests this facility runs. Use Select all when it runs a whole
         panel, and add anything missing at the bottom of each one.
       </p>
@@ -307,6 +358,8 @@ export function BasicLabSelector({
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

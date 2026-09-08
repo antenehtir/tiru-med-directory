@@ -617,6 +617,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 only so it can deselect the few it does not run. */}
             {showLabPills && (
               <BasicLabSelector
+                defaultOpen
                 customInputs={customInputs}
                 customServiceCategories={customServiceCategories}
                 onCustomAdd={addCustomService}

@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityContact } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import { normalizeUrl } from "@/lib/normalize-url";
+import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
 import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
 
 type Facility = Record<string, unknown>;
@@ -110,7 +111,9 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
         )}
       </div>
 
-      <div className="space-y-4">
+      <FieldGrid>
+        {/* Repeater: rows are added and removed, so it owns the full width. */}
+        <div className={FIELD_GRID_FULL}>
         <PhoneNumberList
           help="The first number is the one the Call button dials. Add as many as the facility answers."
           initial={storedPhones}
@@ -118,6 +121,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
           name="admin_phones"
           onChange={setPhones}
         />
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="admin_whatsapp">
@@ -176,7 +180,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
           />
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className={`flex flex-col gap-3 ${FIELD_GRID_FULL}`}>
           <p className="text-sm font-semibold text-foreground">Social media (optional)</p>
           <p className="text-xs text-muted-foreground">
             Paste the full link including https:// so patients can tap directly to your page.
@@ -244,7 +248,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
             </div>
           </div>
         </div>
-      </div>
+      </FieldGrid>
 
       {error && (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">

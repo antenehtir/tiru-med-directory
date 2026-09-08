@@ -6,6 +6,7 @@ import { updateFacilityLocation } from "@/app/admin/(protected)/facilities/[id]/
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-repeater";
 import type { FacilityBranch } from "@/types/facility";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 
 // Leaflet touches window on import, so the picker cannot render on the
 // server. Same dynamic/ssr:false treatment Step2LocationForm gives it.
@@ -197,7 +198,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           How this facility is described in listings and filters.
         </p>
 
-        <div className="space-y-4">
+        <FieldGrid>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="admin_sub_city">
               Sub-city
@@ -241,7 +242,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
               The neighborhood patients would recognize.
             </p>
           </div>
-        </div>
+        </FieldGrid>
       </div>
 
       <BranchRepeater

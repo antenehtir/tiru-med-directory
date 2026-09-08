@@ -10,6 +10,7 @@ import {
   LANGUAGES,
   PATIENT_GROUPS,
 } from "@/lib/provider/onboarding-config";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 
 type Claim = Record<string, unknown>;
 
@@ -132,10 +133,10 @@ export function Step1IdentityForm({
           <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
         </div>
 
-        <div className="space-y-4">
+        <FieldGrid>
           {/* Facility type — read-only, set at signup. Not editable here. */}
           {facilityType && (
-            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 sm:col-span-2">
               <p className="text-sm text-foreground">
                 Facility type:{" "}
                 <span className="font-medium">
@@ -204,7 +205,7 @@ export function Step1IdentityForm({
           </div>
 
           {/* Branches — Yes/No then count */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:col-span-2">
             <label className="text-sm font-medium text-foreground">
               Does your facility have multiple branches?
             </label>
@@ -274,7 +275,7 @@ export function Step1IdentityForm({
           </div>
 
           {/* Description — UNCONTROLLED */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <label className="text-sm font-medium text-foreground" htmlFor="description">
               Short public description
             </label>
@@ -293,7 +294,7 @@ export function Step1IdentityForm({
           </div>
 
           {/* Languages — checkboxes stay controlled (needed for toggle logic) */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">
                 Languages supported
@@ -328,7 +329,7 @@ export function Step1IdentityForm({
           </div>
 
           {/* Patient groups — same pattern */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">
                 Main patient groups served
@@ -378,7 +379,7 @@ export function Step1IdentityForm({
               />
             )}
           </div>
-        </div>
+        </FieldGrid>
       </div>
 
       {validationError && (
