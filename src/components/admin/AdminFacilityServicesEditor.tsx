@@ -577,7 +577,13 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
             />
           </div>
 
-          {isDefault && (
+          {/* Two short selects, one row. Each holds a single line of text in
+              a control that stretched the full editor width, so stacking them
+              pushed the booking options — the part with actual content — below
+              the fold for nothing. The appointment block below is deliberately
+              NOT in this grid: it holds a labelled input per channel. */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {isDefault && (
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground" htmlFor="admin_emergency_type">
                 Emergency service availability
@@ -614,13 +620,15 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
+          </div>
+          </div>
 
-            {walkinPolicy !== "" && walkinPolicy !== "Walk-in only" && (
-              <div className="mt-2 rounded-xl border border-border bg-background p-4 space-y-3">
+          {walkinPolicy !== "" && walkinPolicy !== "Walk-in only" && (
+              <div className="rounded-xl border border-border bg-background p-4 space-y-3">
                 <p className="text-sm font-semibold text-foreground">
                   How can patients book an appointment?
                 </p>
-                <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {APPOINTMENT_MODALITY_OPTIONS.map((option) => {
                     const existing = appointmentModalities.find((m) => m.type === option.type);
                     const isSelected = !!existing;
@@ -644,7 +652,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                         </label>
                         {isSelected && (
                           <input
-                            className="ml-6 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             defaultValue={existing?.value ?? ""}
                             onBlur={(e) => {
                               const value = e.target.value;
@@ -662,7 +670,6 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
 

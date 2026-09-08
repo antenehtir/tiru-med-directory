@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 
 import {
@@ -341,18 +342,23 @@ export async function getSimilarFacilities(
   }
 }
 
-let cachedFacilities: Facility[] | null = null;
-let cacheTime = 0;
-// Bounds staleness for getFacilitiesFromDB() consumers to match the 60s
-// route-level revalidate on listing pages (was 1hr — the root cause of
-// listing pages needing manual cache-busting redeploys to show new data).
-const CACHE_TTL = 60 * 1000;
+// The tag every facility-list read is stored under, so an admin edit can
+// drop it by name. Exported so the admin actions do not retype the string.
+export const FACILITIES_CACHE_TAG = "facilities";
 
-export async function getFacilitiesFromDB(): Promise<Facility[]> {
-  if (cachedFacilities && Date.now() - cacheTime < CACHE_TTL) {
-    return cachedFacilities;
-  }
-
+// Was a module-level array with a 60s TTL, which could not be cleared:
+// revalidatePath clears Next's cache, not a plain JavaScript variable. An
+// admin deleting a service saw the listing pages keep serving the old list
+// until the TTL happened to lapse — and worse on serverless, where the
+// variable is per instance, so the save cleared nothing on whichever instance
+// later rendered the page and two visitors could see different service lists.
+//
+// unstable_cache stores the same result under a tag in Next's data cache, so
+// updateTag(FACILITIES_CACHE_TAG) reaches every instance and an edit shows up
+// immediately. The 60s window stays as the ceiling for anything that changes
+// without going through admin.
+const loadFacilities = unstable_cache(
+  async (): Promise<Facility[]> => {
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -375,16 +381,18 @@ export async function getFacilitiesFromDB(): Promise<Facility[]> {
       return [];
     }
 
-    const mapped = data.map((row) => mapDBRowToFacility(row as DBFacility));
-    cachedFacilities = mapped;
-    cacheTime = Date.now();
-    return mapped;
+    return data.map((row) => mapDBRowToFacility(row as DBFacility));
   } catch (err) {
     console.warn("Facility list fetch failed:", err);
-    // Deliberately not cached, so the next request retries instead of serving
-    // an empty directory for the rest of the cache window.
     return [];
   }
+  },
+  ["facilities-list"],
+  { revalidate: 60, tags: [FACILITIES_CACHE_TAG] },
+);
+
+export async function getFacilitiesFromDB(): Promise<Facility[]> {
+  return loadFacilities();
 }
 
 // How many active facilities the directory actually holds. The claim page told

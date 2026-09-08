@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
+import { FACILITIES_CACHE_TAG } from "@/lib/supabase/get-facilities";
 
 const DEACTIVATION_CATEGORIES = [
   "Closed permanently",
@@ -53,6 +54,13 @@ export async function updateFacilityBadge(facilityId: string, newStatus: string)
 
   revalidatePath("/admin/facilities");
   revalidatePath("/admin");
+  // A badge change or a deactivation changes what the public list shows, and
+  // that only takes effect once the tagged list is dropped.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
+  revalidatePath("/facilities/[slug]", "page");
 }
 
 export async function deactivateFacility(
@@ -99,6 +107,13 @@ export async function deactivateFacility(
 
   revalidatePath("/admin/facilities");
   revalidatePath("/admin");
+  // A badge change or a deactivation changes what the public list shows, and
+  // that only takes effect once the tagged list is dropped.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
+  revalidatePath("/facilities/[slug]", "page");
 }
 
 export async function reactivateFacility(facilityId: string) {
@@ -133,4 +148,11 @@ export async function reactivateFacility(facilityId: string) {
 
   revalidatePath("/admin/facilities");
   revalidatePath("/admin");
+  // A badge change or a deactivation changes what the public list shows, and
+  // that only takes effect once the tagged list is dropped.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
+  revalidatePath("/facilities/[slug]", "page");
 }

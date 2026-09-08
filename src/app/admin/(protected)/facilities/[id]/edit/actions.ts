@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
+import { FACILITIES_CACHE_TAG } from "@/lib/supabase/get-facilities";
 
 // Admin direct-edit save path for an existing, live facility row. Unlike the
 // provider-onboarding autosave actions (autoSaveStep2/autoSaveStep3), this
@@ -157,6 +158,14 @@ export async function updateFacilityServices(
   revalidatePath("/admin/facilities");
   revalidatePath(`/admin/facilities/${facilityId}/edit`);
   revalidatePath("/facilities/[slug]", "page");
+  // The listing pages read the shared, tagged facility list instead of
+  // querying per request, so clearing the routes alone would just re-render
+  // them from the same stale list. updateTag is the read-your-own-writes form,
+  // which is exactly what an admin pressing Save expects.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
 }
 
 const LOCATION_COLUMNS =
@@ -239,6 +248,14 @@ export async function updateFacilityLocation(
   revalidatePath("/admin/facilities");
   revalidatePath(`/admin/facilities/${facilityId}/edit`);
   revalidatePath("/facilities/[slug]", "page");
+  // The listing pages read the shared, tagged facility list instead of
+  // querying per request, so clearing the routes alone would just re-render
+  // them from the same stale list. updateTag is the read-your-own-writes form,
+  // which is exactly what an admin pressing Save expects.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
   // /nearby ranks by these coordinates, so a stale cache there is the whole
   // point of this edit going unnoticed.
   revalidatePath("/nearby");
@@ -330,4 +347,12 @@ export async function updateFacilityContact(
   revalidatePath("/admin/facilities");
   revalidatePath(`/admin/facilities/${facilityId}/edit`);
   revalidatePath("/facilities/[slug]", "page");
+  // The listing pages read the shared, tagged facility list instead of
+  // querying per request, so clearing the routes alone would just re-render
+  // them from the same stale list. updateTag is the read-your-own-writes form,
+  // which is exactly what an admin pressing Save expects.
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
 }
