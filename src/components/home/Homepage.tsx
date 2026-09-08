@@ -18,18 +18,18 @@ import { TrustStatsSection } from "./TrustStatsSection";
 // geolocation at all.
 export function Homepage({
   facilities,
-  mappedFacilityLabel,
+  mappedFacilityCount,
   subCityCount,
   openAllHoursCount,
 }: {
   facilities: Facility[];
-  mappedFacilityLabel: string;
+  mappedFacilityCount: number;
   subCityCount: number;
   openAllHoursCount: number;
 }) {
   return (
     <div className="homepage-clinical-bg">
-      <HeroSearchSection mappedFacilityLabel={mappedFacilityLabel} />
+      <HeroSearchSection mappedFacilityCount={mappedFacilityCount} />
       <DiscoveryRow facilities={facilities} />
       <TrustStatsSection openAllHoursCount={openAllHoursCount} subCityCount={subCityCount} />
       <section

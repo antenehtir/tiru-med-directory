@@ -105,6 +105,33 @@ function diallableParts(
 // emoji speech bubble doesn't carry WhatsApp's identity the way its own
 // mark does, so those two render the same branded icons used everywhere
 // else on the site rather than a generic emoji standing in for a brand.
+// Stored order is whatever order the provider happened to tick the boxes in,
+// so a second phone added after the booking link rendered below it, separated
+// from the number it belongs beside. This is the order the reader wants them
+// in: both phone lines together, then the messaging apps, then the link, then
+// the walk-in note. It matches the option order in the onboarding and admin
+// forms, so what a provider sees while editing is what a visitor sees.
+const MODALITY_DISPLAY_ORDER: FacilityAppointmentModality["type"][] = [
+  "phone",
+  "phone_2",
+  "telegram",
+  "whatsapp",
+  "online",
+  "in_person",
+];
+
+function orderModalities(
+  modalities: FacilityAppointmentModality[],
+): FacilityAppointmentModality[] {
+  // Anything not in the list keeps its relative position at the end rather
+  // than being dropped, so a type added later still renders.
+  const rank = (type: FacilityAppointmentModality["type"]) => {
+    const index = MODALITY_DISPLAY_ORDER.indexOf(type);
+    return index === -1 ? MODALITY_DISPLAY_ORDER.length : index;
+  };
+  return [...modalities].sort((a, b) => rank(a.type) - rank(b.type));
+}
+
 const GENERIC_MODALITY_EMOJI: Partial<Record<FacilityAppointmentModality["type"], string>> = {
   phone: "📞",
   phone_2: "📞",
@@ -215,7 +242,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               For appointments
             </p>
             <ul className="mt-2 grid gap-3">
-              {facility.appointmentModalities.map((modality) => {
+              {orderModalities(facility.appointmentModalities).map((modality) => {
                 // A provider can tick a way in without typing a detail for it —
                 // Lancet's "In-person at reception" is saved with an empty
                 // value — which rendered as a bare icon sitting under the
@@ -245,14 +272,14 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
                       // No target/rel: a tel: link hands off to the dialler
                       // rather than navigating, and opening a blank tab first
                       // leaves an empty window behind on desktop.
-                      <span className="min-w-0 break-words">
-                        {phones.map((phone, index) => (
-                          <span key={phone.href}>
-                            {index > 0 ? <span className="text-muted-foreground"> · </span> : null}
-                            <a className={linkClassName} href={phone.href}>
-                              {phone.text}
-                            </a>
-                          </span>
+                      // Stacked, not run together on one line: two numbers
+                      // separated by a middot read as one long number at a
+                      // glance, and each needs its own full-width tap target.
+                      <span className="grid min-w-0 gap-2 break-words">
+                        {phones.map((phone) => (
+                          <a className={linkClassName} href={phone.href} key={phone.href}>
+                            {phone.text}
+                          </a>
                         ))}
                       </span>
                     ) : link ? (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { HealthcareSearchBox } from "@/components/search/HealthcareSearchBox";
+import { CountUpFigure } from "./CountUpFigure";
 import { HeroLocationButton } from "./HeroLocationButton";
 
 // Hierarchy is search > location > browse, expressed through surface rather
@@ -10,7 +11,7 @@ import { HeroLocationButton } from "./HeroLocationButton";
 // shadow. Browse used to carry no resting treatment at all — no border, no
 // background, no shadow — so on a touch screen it read as a line of text until
 // it was already being pressed.
-export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel: string }) {
+export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount: number }) {
   return (
     <section className="tiru-hero-light bg-transparent">
       <span aria-hidden="true" className="tiru-hero-light__glow" />
@@ -48,21 +49,32 @@ export function HeroSearchSection({ mappedFacilityLabel }: { mappedFacilityLabel
               className="inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-border px-5 text-sm font-semibold text-primary transition-colors hover:border-strong-border hover:bg-soft-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-none"
               href="/facilities"
             >
-              Browse all care
+              Browse with filters
             </Link>
           </div>
 
           {/* Real count from the rendered dataset, not a hardcoded figure —
               "mapped" is the number with resolvable coordinates, which is what
               actually determines whether a facility can be placed on a map or
-              distance-sorted. Set at 14px with the figure itself in foreground
-              weight: at 12px in muted grey this read as a caption on the CTA
-              above it rather than as a claim about the directory. */}
+              distance-sorted.
+
+              Exact, no trailing "+". The figure is computed live on every
+              render, so it is not an estimate that needs hedging, and "105+"
+              read as marketing rounding on a page whose whole promise is that
+              the information is real. "across Addis Ababa" is dropped because
+              the sentence two lines above already says it.
+
+              The figure carries the brand teal and the display face, which is
+              what ties it to the stat band further down the page: those
+              figures sit ON --deep, a near-black derived from this same teal,
+              so the hero states the directory's scale in the colour the band
+              later repeats it in. */}
           <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-balance text-muted-foreground">
-            <span className="font-semibold tabular-nums text-foreground">
-              {mappedFacilityLabel}
-            </span>{" "}
-            healthcare facilities mapped across Addis Ababa
+            <CountUpFigure
+              className="font-display text-lg font-bold text-primary"
+              value={mappedFacilityCount}
+            />{" "}
+            private healthcare facilities
           </p>
         </div>
       </PageContainer>
