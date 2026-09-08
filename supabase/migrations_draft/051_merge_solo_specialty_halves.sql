@@ -24,17 +24,20 @@
 --   Gastroenterology   9 facilities — 4 already have the compound, 5 do NOT
 --   Pulmonology        7 facilities — 4 already have the compound, 3 do NOT
 --
--- Those 5 and 3 offer the plain specialty and never claimed a combined
--- department. Moving them onto the compound says something about them that
--- they did not say about themselves:
+-- Those 5 and 3 are 8 claims across FIVE distinct facilities — three of them
+-- hold only the solo of both pairs and so gain both compounds:
 --
---   Gastroenterology only : Silkroad, Gesund Cardiac, Heal Venture,
---                           American Medical & MCH, Habari Medical Plaza
---   Pulmonology only      : Silkroad, Gesund Cardiac, Habari Medical Plaza
+--   Silkroad General Hospital              gastro + pulmo
+--   Gesund Cardiac and Medical Center      gastro + pulmo
+--   Habari Medical Plaza                   gastro + pulmo
+--   Heal Venture Medical and Surgical      gastro
+--   American Medical & MCH Center          gastro
 --
--- This was raised with the numbers in hand and the merge was chosen anyway, so
--- it is recorded here rather than buried: if one of those eight later says it
--- does not run a combined unit, this migration is why its listing says it does.
+-- None of them claimed a combined department. Moving them onto the compound
+-- says something about them they did not say about themselves. This was raised
+-- with the numbers in hand and the merge was chosen anyway, so it is recorded
+-- here rather than buried: if one of these five later says it does not run a
+-- combined unit, this migration is why its listing says it does.
 --
 -- Family Medicine is handled differently in STEP 3 — it has no department form
 -- to merge into, so its data is preserved rather than reassigned.
@@ -43,7 +46,8 @@
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- STEP 0 — DRY RUN. Changes nothing. Run first.
--- Expect: 12 rows. gains_a_claim = true on exactly 8 of them (5 + 3).
+-- Expect: 9 rows — the two sets overlap, so a facility holding both solos is
+-- one row, not two. gains_a_claim = true on exactly 5 of them.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 select f.name,
@@ -61,7 +65,7 @@ order  by gains_a_claim desc, f.name;
 -- STEP 1 — add the department where only the half is held.
 --
 -- Runs BEFORE the removal in STEP 2. Reversing the order would delete the
--- solo first and leave those eight facilities with neither.
+-- solo first and leave those five facilities with neither.
 --
 -- Expect: UPDATE 5, then UPDATE 3
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -163,9 +167,9 @@ where  c.proposed_services && array['Family Medicine']
 --   where  services && array['Family Medicine'];
 
 -- V4. Nothing else moved — service counts change only by the merge.
---     A row that gained the department is +1 then -1 = unchanged; a row that
---     had both is -1. Expect the 8 named above unchanged and the other 8 down
---     by one.
+--     A row that gained a department is +1 then -1 = unchanged for that pair;
+--     a row that already had both is -1. Expect the five named above unchanged
+--     and the rest down by one per pair they held.
 --
 --   select name, cardinality(services) from facilities
 --   where  services && array['Gastroenterology and Hepatology',
