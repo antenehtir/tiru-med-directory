@@ -19,25 +19,27 @@
 -- compound and the solo is simply redundant, so removing it changes nothing a
 -- reader sees.
 --
--- But not for all of them. Measured before writing:
+-- But not for all of them. Re-measured immediately before running, after
+-- admin edits moved every affected row:
 --
---   Gastroenterology   9 facilities — 4 already have the compound, 5 do NOT
---   Pulmonology        7 facilities — 4 already have the compound, 3 do NOT
+--   Gastroenterology   10 facilities — ALL 10 already hold the compound
+--   Pulmonology         8 facilities — 5 hold the compound, 3 do NOT
 --
--- Those 5 and 3 are 8 claims across FIVE distinct facilities — three of them
--- hold only the solo of both pairs and so gain both compounds:
+-- So the gastro half is now entirely lossless, and exactly three facilities
+-- gain a claim they never made — the combined pulmonology/critical-care unit:
 --
---   Silkroad General Hospital              gastro + pulmo
---   Gesund Cardiac and Medical Center      gastro + pulmo
---   Habari Medical Plaza                   gastro + pulmo
---   Heal Venture Medical and Surgical      gastro
---   American Medical & MCH Center          gastro
+--   Silkroad General Hospital
+--   Habari Medical Plaza
+--   Gesund Cardiac and Medical Center
 --
--- None of them claimed a combined department. Moving them onto the compound
--- says something about them they did not say about themselves. This was raised
--- with the numbers in hand and the merge was chosen anyway, so it is recorded
--- here rather than buried: if one of these five later says it does not run a
--- combined unit, this migration is why its listing says it does.
+-- Recorded rather than buried: if one of these three later says it does not run
+-- a combined unit, this migration is why its listing says it does.
+--
+-- ⚠ THESE COUNTS AGE. An earlier draft of this header claimed 9 rows and 5
+-- affected facilities and was already wrong by the time it was run, because
+-- the rows kept being edited in admin between measuring and running. STEP 0 is
+-- the authority, not this comment — if the dry run disagrees with the numbers
+-- below, believe the dry run and re-derive the rest.
 --
 -- Family Medicine is handled differently in STEP 3 — it has no department form
 -- to merge into, so its data is preserved rather than reassigned.
@@ -46,8 +48,8 @@
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- STEP 0 — DRY RUN. Changes nothing. Run first.
--- Expect: 9 rows — the two sets overlap, so a facility holding both solos is
--- one row, not two. gains_a_claim = true on exactly 5 of them.
+-- Expect: 10 rows — the two sets overlap, so a facility holding both solos is
+-- one row, not two. gains_a_claim = true on exactly 3 of them.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 select f.name,
@@ -65,9 +67,14 @@ order  by gains_a_claim desc, f.name;
 -- STEP 1 — add the department where only the half is held.
 --
 -- Runs BEFORE the removal in STEP 2. Reversing the order would delete the
--- solo first and leave those five facilities with neither.
+-- solo first and leave those three facilities with neither.
 --
--- Expect: UPDATE 5, then UPDATE 3
+-- Expect: UPDATE 0, then UPDATE 3
+--
+-- Zero on the first is correct, not a failure: every facility holding solo
+-- "Gastroenterology" already holds the department too. The statement stays
+-- because it is the guard that makes STEP 2 safe — it must be true that
+-- nothing is left without a department, not merely likely.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 update facilities
@@ -85,7 +92,7 @@ where  services && array['Pulmonology']
 -- STEP 2 — drop the solo halves, now that every row holding one also holds
 -- the department.
 --
--- Expect: UPDATE 9, then UPDATE 7
+-- Expect: UPDATE 10, then UPDATE 8
 -- ═══════════════════════════════════════════════════════════════════════════
 
 update facilities
@@ -151,7 +158,7 @@ where  c.proposed_services && array['Family Medicine']
 --   from   facilities f, lateral unnest(f.services) s(val)
 --   where  s.val in ('Gastroenterology', 'Pulmonology');
 
--- V2. Every facility that held one now holds the department. Expect 9 and 7.
+-- V2. Every facility that held one now holds the department. Expect 10 and 8.
 --
 --   select count(*) filter (where services && array['Gastroenterology and Hepatology']) as gastro,
 --          count(*) filter (where services && array['Pulmonology and Critical Care Medicine']) as pulmo
