@@ -31,6 +31,17 @@ export default async function Home() {
     (facility) => facility.coordinates,
   ).length;
 
+  // The second half of the hero stat, and the reason it is computed rather
+  // than written: it is meant to grow. As claiming ramps up this number rises
+  // on its own and the clause appears without anyone editing copy.
+  //
+  // Only "facility-owned" counts. "verified" is a reserved quality mark with
+  // no criteria yet and nothing assigned to it, so folding it in would inflate
+  // a trust number with a status that means nothing.
+  const facilityManagedCount = facilities.filter(
+    (facility) => facility.verificationStatus === "facility-owned",
+  ).length;
+
   // Trust-band stats, both derived from the rendered data rather than
   // hardcoded. Sub-cities are counted against the canonical SUB_CITIES list
   // instead of counting distinct raw strings, because the data contains
@@ -62,6 +73,7 @@ export default async function Home() {
     <PageShell>
       <Homepage
         facilities={facilities}
+        facilityManagedCount={facilityManagedCount}
         mappedFacilityCount={mappedFacilityCount}
         openAllHoursCount={openAllHoursCount}
         subCityCount={subCityCount}

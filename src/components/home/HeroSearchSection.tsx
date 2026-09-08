@@ -11,7 +11,23 @@ import { HeroLocationButton } from "./HeroLocationButton";
 // shadow. Browse used to carry no resting treatment at all — no border, no
 // background, no shadow — so on a touch screen it read as a line of text until
 // it was already being pressed.
-export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount: number }) {
+// Below this, the clause is withheld. A trust signal that reads "1 managed by
+// their facility" out of 105 does not build confidence, it advertises that
+// almost nobody has claimed a listing — the number has to be large enough to
+// mean something before it earns a place next to the headline figure. At ten
+// it reads as traction rather than as an experiment, and because the count is
+// live the clause switches itself on as claiming ramps up, with no copy edit.
+const MIN_FACILITY_MANAGED_TO_SHOW = 10;
+
+export function HeroSearchSection({
+  mappedFacilityCount,
+  facilityManagedCount,
+}: {
+  mappedFacilityCount: number;
+  facilityManagedCount: number;
+}) {
+  const showManaged = facilityManagedCount >= MIN_FACILITY_MANAGED_TO_SHOW;
+
   return (
     <section className="tiru-hero-light bg-transparent">
       <span aria-hidden="true" className="tiru-hero-light__glow" />
@@ -29,7 +45,7 @@ export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount
               125px to spare (browseTop 609px), so it's back for every
               width rather than only from sm up. */}
           <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base lg:text-lg">
-            Discover and connect with trusted private healthcare facilities across{" "}
+            Discover and connect with trusted care across{" "}
             {/* The city name is one proper noun and was splitting across two
                 lines at desktop widths, where this line lands just past the
                 max-w-2xl measure. Held together rather than reworded. */}
@@ -74,7 +90,22 @@ export function HeroSearchSection({ mappedFacilityCount }: { mappedFacilityCount
               className="font-display text-lg font-bold text-primary"
               value={mappedFacilityCount}
             />{" "}
-            private healthcare facilities
+            private healthcare facilities mapped
+            {showManaged ? (
+              <>
+                {" · "}
+                {/* Deliberately NOT a second count-up. One authored moment per
+                    screen: two numbers racing each other would make the pair
+                    feel like a dashboard rather than a single claim, and this
+                    one is the qualifier, not the headline. */}
+                <span className="font-display text-lg font-bold tabular-nums text-primary">
+                  {facilityManagedCount}
+                </span>{" "}
+                {/* Named for the badge itself, so the hero teaches the marker
+                    the visitor is about to meet on every card. */}
+                Facility Managed
+              </>
+            ) : null}
           </p>
         </div>
       </PageContainer>

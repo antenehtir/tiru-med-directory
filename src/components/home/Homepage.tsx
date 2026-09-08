@@ -19,17 +19,20 @@ import { TrustStatsSection } from "./TrustStatsSection";
 export function Homepage({
   facilities,
   mappedFacilityCount,
+  facilityManagedCount,
   subCityCount,
   openAllHoursCount,
 }: {
   facilities: Facility[];
   mappedFacilityCount: number;
+  facilityManagedCount: number;
   subCityCount: number;
   openAllHoursCount: number;
 }) {
   return (
     <div className="homepage-clinical-bg">
-      <HeroSearchSection mappedFacilityCount={mappedFacilityCount} />
+      <HeroSearchSection facilityManagedCount={facilityManagedCount}
+        mappedFacilityCount={mappedFacilityCount} />
       <DiscoveryRow facilities={facilities} />
       <TrustStatsSection openAllHoursCount={openAllHoursCount} subCityCount={subCityCount} />
       <section
