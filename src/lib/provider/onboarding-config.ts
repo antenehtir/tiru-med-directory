@@ -82,6 +82,10 @@ export const MAIN_SERVICES = [
   "Delivery / Maternity care",
   "Minor surgery",
   "Major surgery",
+  // Six facilities already advertise this and every one had to free-type it,
+  // in four different spellings ("LAPAROSCOPY SURGERY", "Laparoscopic
+  // Surgery", "Laparoscopic surgery", "Neuro-Vascular Laparoscopic Surgery").
+  "Laparoscopic surgery",
   "Dialysis",
   "Dental procedure",
   "Eye care procedure",
@@ -114,15 +118,22 @@ export const MAIN_SERVICES = [
 // 048_normalise_specialty_names.sql so a provider is not shown the same
 // specialty twice — once as a ticked pill and once as a removable chip.
 //
+// The compound entries stand alone: the solo "Gastroenterology" and
+// "Pulmonology" were removed, because offering both the department and one of
+// its halves on the same checklist reads as a duplicate and invites a provider
+// to tick both. 051 migrates the rows — the nine and seven facilities holding
+// a solo are moved onto the compound, which does assert a combined department
+// for the five and three that only had the half. That is a deliberate call
+// made with the numbers in hand, not an accident of the rename.
+//
 // Two of them are deliberately NOT split into halves. 048 turned
 // "Pulmonology and critical care medicine" into a bare "Critical Care
 // Medicine" and "Gastroenterology and Hepatology" into a bare "Hepatology",
 // on the reasoning that the parent was already ticked. That was wrong: the
 // provider wrote them as one department because that is what they are, and a
 // checklist that offers the second half on its own asks a question no
-// department answers. The compound name is the entry; "Pulmonology" and
-// "Gastroenterology" remain separately tickable for facilities that offer
-// only those.
+// department answers. The compound name is now the only entry — see the note
+// above for why the solo halves were later removed as well.
 export const SPECIALTIES = [
   "Internal Medicine",
   "Pediatrics",
@@ -145,7 +156,6 @@ export const SPECIALTIES = [
   "Vascular Surgery",
   "Orthopedics",
   "Cardiology",
-  "Gastroenterology",
   "Gastroenterology and Hepatology",
   "Neurology",
   "Neurosurgery",
@@ -156,7 +166,6 @@ export const SPECIALTIES = [
   "Dental",
   "Urology",
   "Nephrology",
-  "Pulmonology",
   "Pulmonology and Critical Care Medicine",
   "Endocrinology",
   "Rheumatology",
@@ -167,7 +176,6 @@ export const SPECIALTIES = [
   "Radiology",
   "Pathology",
   "Emergency Medicine",
-  "Family Medicine",
   "Physiotherapy",
   "Nutrition and Dietetics",
   "Psychology / Counseling",
@@ -194,12 +202,16 @@ export const PAYMENT_METHODS = [
 //
 // Everything below the original twenty was found in the live data, not
 // invented: each was free-typed by at least one facility because this list had
-// nowhere to put it. The contrast studies were the largest gap — IVP appears
-// at four facilities, HSG at five across three spellings, CUG at three — and
-// they are precisely the procedures an imaging centre is asked for by name.
-// Manna and Pioneer, the two imaging-only Diagnostic Centers, between them
-// typed HSG, CUG, IVP, Barium studies, Thyroid scintigraphy and SPECT CT, and
-// could tick none of them.
+// nowhere to put it.
+//
+// Trimmed back once the list was in front of a clinician. Seven entries came
+// out — IVP, CUG, Thyroid Scintigraphy, SPECT-CT, TOE, Cerebral Angiography
+// and Teleradiology Reporting — because no facility and no pending claim had
+// ticked a single one of them, and a checklist that offers procedures nobody
+// in Addis performs makes the ones that matter harder to find. Measured before
+// removing: all seven were at zero. The free-typed spellings that originally
+// motivated them are still in the data and still searchable; they simply no
+// longer take a line each in a list every provider has to read.
 export const IMAGING_SERVICES = [
   "X-Ray",
   "Ultrasound",
@@ -210,22 +222,17 @@ export const IMAGING_SERVICES = [
   // Contrast and fluoroscopic studies. Spelt out alongside the abbreviation
   // because a patient holding a referral reads one and a radiographer says the
   // other.
-  "IVP (Intravenous Pyelogram)",
   "HSG (Hysterosalpingography)",
-  "CUG (Cystourethrogram)",
   "Barium Studies",
   "DEXA Scan",
   "PET Scan",
   "Nuclear Medicine",
-  "Thyroid Scintigraphy",
-  "SPECT-CT",
   "Echocardiography",
   // Separate entries rather than one "Echocardiography": a clinic that scans
   // a fetus is not thereby a cardiac centre, and a mother sent for a fetal
   // echo needs to know which facilities actually do that one.
   "Fetal Echocardiography",
   "Paediatric Echocardiography",
-  "Transoesophageal Echocardiography (TOE)",
   "ECG / EKG",
   "EEG",
   "Spirometry",
@@ -238,8 +245,6 @@ export const IMAGING_SERVICES = [
   "Bone Marrow Biopsy",
   "Interventional Radiology",
   "Coronary Angiography",
-  "Cerebral Angiography (DSA)",
-  "Teleradiology Reporting",
 ] as const;
 
 // Each key is a panel a lab either runs or does not, which is how a lab

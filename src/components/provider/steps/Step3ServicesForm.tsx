@@ -1006,6 +1006,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               />
             </div>
 
+            {/* Two single-line selects that each took a full row, pushing the
+                booking options below the fold for nothing. Paired only when
+                both are rendered — one alone in a half-width column is just
+                dead space beside it. */}
+            <div className={showEmergencyType && showWalkin ? "grid gap-4 sm:grid-cols-2" : ""}>
             {showEmergencyType && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground" htmlFor="emergency_type">
@@ -1050,10 +1055,15 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
+              </div>
+            )}
+            </div>
 
-                {/* Appointment modalities — shown when appointment is part of policy */}
-                {walkinPolicy !== "" && walkinPolicy !== "Walk-in only" && (
-                  <div className="mt-2 rounded-xl border border-border bg-background p-4 space-y-3">
+            {/* Appointment modalities — shown when appointment is part of policy.
+                Outside the grid above: it holds a labelled input per channel
+                and needs the full width. */}
+            {showWalkin && walkinPolicy !== "" && walkinPolicy !== "Walk-in only" && (
+                  <div className="rounded-xl border border-border bg-background p-4 space-y-3">
                     <p className="text-sm font-semibold text-foreground">
                       How can patients book an appointment?
                     </p>
@@ -1061,7 +1071,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                       Select all that apply and provide the contact details for each.
                     </p>
 
-                    <div className="space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       {APPOINTMENT_MODALITY_OPTIONS.map((option) => {
                         const existing = appointmentModalities.find(
                           (m) => m.type === option.type,
@@ -1117,8 +1127,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                       })}
                     </div>
                   </div>
-                )}
-              </div>
             )}
           </div>
         </div>

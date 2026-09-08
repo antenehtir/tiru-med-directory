@@ -582,7 +582,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               pushed the booking options — the part with actual content — below
               the fold for nothing. The appointment block below is deliberately
               NOT in this grid: it holds a labelled input per channel. */}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={isDefault ? "grid gap-4 sm:grid-cols-2" : ""}>
             {isDefault && (
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground" htmlFor="admin_emergency_type">
