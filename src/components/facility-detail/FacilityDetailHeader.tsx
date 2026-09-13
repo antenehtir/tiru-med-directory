@@ -1,5 +1,5 @@
 import {
-  facilityCategoryBadgeLabels,
+  facilityCategoryDisplayLabel,
   facilityMonogram,
   facilityPlateClasses,
   facilityWatermarkIconKey,
@@ -162,7 +162,7 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
   // stopping at one avoids the rest: a centre offering six specialties has no
   // single name, and "Specialty Center" is already the honest word for it.
   const specialties = getFacilitySpecialtyLabels(facility);
-  const categoryLabel = facilityCategoryBadgeLabels[categoryKey] || "Facility details";
+  const categoryLabel = facilityCategoryDisplayLabel(facility, categoryKey) || "Facility details";
   const badgeLabel =
     specialties.length === 1 ? `${specialties[0]} · ${categoryLabel}` : categoryLabel;
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];

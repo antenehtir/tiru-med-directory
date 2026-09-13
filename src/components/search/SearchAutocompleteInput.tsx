@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { bestCompletion, GhostTextOverlay, isAcceptGhostKey } from "./ghost-suggestion";
 import { Spinner } from "./ListingSearchBar";
 import {
   useFacilitySuggestions,
@@ -62,6 +63,7 @@ export function SearchAutocompleteInput({
 
   const listboxId = `${id}-suggestions`;
   const showSuggestions = isOpen && query.trim().length > 0 && suggestions.length > 0;
+  const ghostCompletion = isOpen ? bestCompletion(query, suggestions) : "";
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,6 +89,11 @@ export function SearchAutocompleteInput({
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       setIsOpen(false);
+      return;
+    }
+    if (ghostCompletion && isAcceptGhostKey(event, inputRef.current)) {
+      event.preventDefault();
+      setQuery(query + ghostCompletion);
     }
   }
 
@@ -115,6 +122,8 @@ export function SearchAutocompleteInput({
           onKeyDown={handleKeyDown}
           role="combobox"
         />
+
+        <GhostTextOverlay completion={ghostCompletion} inputRef={inputRef} query={query} />
 
         {/* isLoading was already returned by the shared hook and already
             shown here on the /search dropdown (ListingSearchBar) — this

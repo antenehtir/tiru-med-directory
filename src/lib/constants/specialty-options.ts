@@ -153,8 +153,17 @@ export const NEARBY_SPECIALTY_PILLS: {
     aliases: ["nutrition", "nutritional", "dietitian", "dietary"],
   },
   {
+    // NearbyPage.tsx does not run these aliases through the generic
+    // matcher for this pill — it tests facility.category and subcategory
+    // directly instead — because "multispecialt"/"multiple specialt" used
+    // to live here and matched any Specialty Center merely DESCRIBED as
+    // multi-specialty ("Comprehensive multispecialty care"), mixing ordinary
+    // specialty centers into a pill meant for one specific facility type
+    // (Medical Plaza category, or "Medical Complex" by name/subcategory).
+    // Kept here as the record of what this pill means, not as live matching
+    // logic.
     display: "Medical Plaza",
-    aliases: ["medical plaza", "multispecialt", "multiple specialt"],
+    aliases: ["medical plaza", "medical complex"],
   },
 ];
 

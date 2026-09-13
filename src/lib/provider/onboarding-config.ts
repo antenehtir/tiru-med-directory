@@ -113,6 +113,8 @@ export const MAIN_SERVICES = [
   "TB clinic",
   "Telemedicine consultation",
   "Vaccination",
+  "VIP service",
+  "VVIP service",
 ] as const;
 
 // Alphabetical. This used to be ordered so a subspecialty sat directly under

@@ -55,15 +55,14 @@ export function ListingStatusBanner() {
           told nobody what the CS on a card meant, or what would be different
           if it said Official. The badges here are the same components the
           cards render, so the legend cannot drift from what it explains. */}
-      {/* Both markers now abbreviate on cards, so both are spelled out here
-          and paired with the badge the card actually draws.
-
-          The second sentence carries a negative clause on purpose. "Facility
-          Managed" replaced "Official" precisely because the old word implied a
-          check that never happens, and a legend that only says what the badge
-          MEANS would let the same wrong inference back in through the side
-          door. Saying what it does not cover is the whole point of the
-          rename. */}
+      {/* Both markers abbreviate on cards, so both are spelled out here and
+          paired with the badge the card actually draws. The caveat that used
+          to close this ("It is not a check of licences or credentials") was
+          cut at a clinician's direction — the CS/FM initials plus what each
+          one means is the legend; the disclaimer read as a second sentence
+          nobody needed to finish reading. The fuller version still lives on
+          each facility's own Trust & Verification section, where a visitor
+          reading it has just asked "how was this sourced" specifically. */}
       <p className="text-xs leading-5 text-muted-foreground">
         <strong className="font-semibold text-foreground">Community sourced</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
@@ -74,8 +73,7 @@ export function ListingStatusBanner() {
         <Badge className="mx-0.5 align-middle" size="sm" variant="success">
           FM
         </Badge>
-        : the facility claimed this listing and keeps it up to date. It is not a
-        check of licences or credentials.
+        : the facility claimed this listing and keeps it up to date.
       </p>
 
       <button

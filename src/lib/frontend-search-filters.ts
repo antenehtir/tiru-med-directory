@@ -240,14 +240,73 @@ function queryTokenVariants(token: string): string[] {
   return list;
 }
 
+// Plain Levenshtein (single-character insert/delete/substitute) edit
+// distance. No transposition step — a swapped pair of letters costs 2 here
+// rather than 1, which just makes the threshold below slightly stricter for
+// that one typo shape and is not worth a second DP table for.
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  let previousRow = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const currentRow = [i];
+    for (let j = 1; j <= b.length; j++) {
+      currentRow[j] =
+        a[i - 1] === b[j - 1]
+          ? previousRow[j - 1]
+          : 1 + Math.min(previousRow[j - 1], previousRow[j], currentRow[j - 1]);
+    }
+    previousRow = currentRow;
+  }
+  return previousRow[b.length];
+}
+
+// How many letters a typed token is allowed to be off by and still count as
+// a typo of a real word rather than a different word. Nothing under four
+// letters gets any tolerance at all — "ent"/"eat"/"end" are all one edit
+// apart and all mean something different, which is exactly the false-match
+// class matchesQueryTokens' word-boundary rule already exists to keep out.
+function typoTolerance(length: number): number {
+  if (length < 4) return 0;
+  if (length <= 7) return 1;
+  return 2;
+}
+
+// Fallback for when nothing in `text` starts with the token or any of its
+// known spellings/stems, tried only after every exact/prefix form above has
+// already failed. Splits `text` into words rather than testing the token
+// against the whole blob, because edit distance on a multi-word string
+// answers a different question ("how far is this phrase") than the one
+// being asked here ("did they mean this one word").
+function hasFuzzyWordMatch(token: string, text: string): boolean {
+  const tolerance = typoTolerance(token.length);
+  if (tolerance === 0) return false;
+  const words = text.toLowerCase().match(/[a-z]+/g);
+  if (!words) return false;
+  return words.some((word) => {
+    // A length gap bigger than the tolerance rules the pair out before
+    // paying for the DP table — most word pairs in a facility's text are
+    // nowhere near the typed token's length.
+    if (Math.abs(word.length - token.length) > tolerance) return false;
+    return levenshteinDistance(token, word) <= tolerance;
+  });
+}
+
 // Every token must appear somewhere in the text, in any order. A token counts
 // as present when ANY of its spellings or its field stem is — the catalogue-
 // term rule in buildQueryTokenPattern is still applied to each form
 // separately, so "ANA" keeps its exact match while a derived stem like
-// "nephrolog" keeps prefix semantics.
+// "nephrolog" keeps prefix semantics. Failing all of that, a token four
+// letters or longer still counts as present if some word in the text is a
+// plausible typo of it — "Cardiologi" (a dropped letter) still finds
+// "Cardiology", "Nephorology" (a transposition) still finds "Nephrology".
 export function matchesQueryTokens(text: string, tokens: string[]): boolean {
-  return tokens.every((token) =>
-    queryTokenVariants(token).some((form) => buildQueryTokenPattern(form).test(text)),
+  return tokens.every(
+    (token) =>
+      queryTokenVariants(token).some((form) => buildQueryTokenPattern(form).test(text)) ||
+      hasFuzzyWordMatch(token.toLowerCase(), text),
   );
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type SVGProps } from "react";
+import { useEffect, useRef, useState, type SVGProps } from "react";
 import { useRouter } from "next/navigation";
+import { bestCompletion, GhostTextOverlay, isAcceptGhostKey } from "./ghost-suggestion";
 import {
   useFacilitySuggestions,
   type FacilitySuggestion,
@@ -53,6 +54,7 @@ export function ListingSearchBar({
   autoFocus = false,
 }: ListingSearchBarProps) {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [localQuery, setLocalQuery] = useState(searchValue);
   const [prevSearchValue, setPrevSearchValue] = useState(searchValue);
   const [isOpen, setIsOpen] = useState(false);
@@ -87,6 +89,7 @@ export function ListingSearchBar({
   const showNoResults = isOpen && hasQuery && !isLoading && suggestions.length === 0;
   const showDropdown = showResults || showNoResults;
   const activeSuggestionId = activeIndex >= 0 ? `search-suggestion-${suggestions[activeIndex]?.id}` : undefined;
+  const ghostCompletion = isOpen ? bestCompletion(localQuery, suggestions) : "";
 
   function selectSuggestion(suggestion: FacilitySuggestion) {
     setIsOpen(false);
@@ -98,6 +101,12 @@ export function ListingSearchBar({
     if (event.key === "Escape") {
       setIsOpen(false);
       setActiveIndex(-1);
+      return;
+    }
+
+    if (ghostCompletion && isAcceptGhostKey(event, inputRef.current)) {
+      event.preventDefault();
+      setLocalQuery(localQuery + ghostCompletion);
       return;
     }
 
@@ -148,10 +157,12 @@ export function ListingSearchBar({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search by name, area, specialty..."
+          ref={inputRef}
           role="combobox"
           type="text"
           value={localQuery}
         />
+        <GhostTextOverlay completion={ghostCompletion} inputRef={inputRef} query={localQuery} />
         <SearchIcon className="absolute left-3 top-4 size-4 text-muted-foreground" />
         {isLoading ? <span className="absolute right-3 top-4"><Spinner /></span> : null}
 

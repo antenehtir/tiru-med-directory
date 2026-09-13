@@ -113,21 +113,35 @@ export function NearbyPage({
 
     if (!selectedPill) return categoryFacilities;
 
-    // The "Medical Plaza" pill is the one place broad multi-specialty
-    // facilities should surface, so it's exempt from the dilution check below.
-    const isMedicalPlazaPill = selectedPill.display === "Medical Plaza";
+    // Medical Plaza is a facility TYPE, not "anything with a lot of
+    // services" — tested directly against category/subcategory/name rather
+    // than run through the alias matcher below, which used to also catch any
+    // ordinary Specialty Center merely DESCRIBED as multi-specialty
+    // ("Comprehensive multispecialty care"). That shared wording is exactly
+    // what mixed Sante Medical Center — an ordinary Specialty Center that
+    // happens to cover several departments — into a pill meant for Habari
+    // Medical Plaza and New Leaf Medical Complex specifically.
+    if (selectedPill.display === "Medical Plaza") {
+      return categoryFacilities.filter(
+        (facility) =>
+          facility.category === "Medical Plaza" ||
+          (facility.subcategory ?? "").toLowerCase().includes("medical complex") ||
+          facility.name.toLowerCase().includes("medical complex"),
+      );
+    }
 
     return categoryFacilities.filter((facility) => {
       // Broad multi-specialty facilities (Medical Plaza category, or a
       // services list spanning many unrelated specialty domains) dilute
-      // focused pills with unrelated results — they still show under "All".
+      // focused pills with unrelated results — they still show under "All"
+      // and, now, under the Medical Plaza pill above.
       const isBroadMultispecialty =
         facility.category === "Medical Plaza" ||
         facility.subcategory?.toLowerCase().includes("multispecialt") ||
         facility.services.some((s) => s.toLowerCase().includes("multispecialt")) ||
         facility.services.length >= 15;
 
-      if (isBroadMultispecialty && !isMedicalPlazaPill) {
+      if (isBroadMultispecialty) {
         return false;
       }
 

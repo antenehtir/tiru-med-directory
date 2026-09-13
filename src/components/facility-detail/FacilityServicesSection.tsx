@@ -56,6 +56,8 @@ export function FacilityServicesSection({ facility }: FacilityServicesSectionPro
   // string, same reasoning: this is the one facility type whose page IS the
   // lab, so the panel list should not cost a visitor an extra tap to see.
   const isDiagnosticCenter = facility.category === "Diagnostic Center";
+  const generalServicesGroup = groups.find((g) => g.label === "General Services" && !g.subgroups);
+  const otherGroups = groups.filter((g) => g !== generalServicesGroup);
 
   if (groups.length === 0 && medicalSpecialties.length === 0) return null;
 
@@ -130,9 +132,18 @@ export function FacilityServicesSection({ facility }: FacilityServicesSectionPro
         </div>
       ) : (
         <div className="mt-5 grid gap-5">
+          {/* General Services leads, then Clinical specialties, then
+              everything else in its usual order (lab, imaging, ...). A
+              general service is what most visitors are actually here to
+              confirm ("do they do maternity care") — the specialty list
+              answers a narrower question and used to make every visitor
+              scroll past it first regardless of which one brought them. */}
+          {generalServicesGroup ? (
+            <CollapsiblePillList items={generalServicesGroup.services} label={generalServicesGroup.label} />
+          ) : null}
           <CollapsiblePillList items={medicalSpecialties} label="Clinical specialties" />
 
-          {groups.map((group) =>
+          {otherGroups.map((group) =>
             group.subgroups ? (
               <CollapsibleServiceGroup
                 defaultOpen={isDiagnosticCenter}

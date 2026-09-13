@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ClockIcon, MapPinIcon, PhoneIcon, ShieldIcon } from "@/components/cards/contact-icons";
-import { facilityCategoryBadgeLabels, facilityCategorySpineClasses, facilityMonogram, facilityPlateClasses, facilityWatermarkIconKey, resolveFacilityCardCategoryKey } from "@/components/cards/facility-category-style";
+import { facilityCategoryDisplayLabel, facilityCategorySpineClasses, facilityMonogram, facilityPlateClasses, facilityWatermarkIconKey, resolveFacilityCardCategoryKey } from "@/components/cards/facility-category-style";
 import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
@@ -147,7 +147,7 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
             category, at 13px bold in the accent tint — louder than the
             sub-city pill, still quieter than the 19px facility name. */}
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryDisplayLabel(facility, categoryKey)}</p>
           {distanceLabel ? <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-soft-accent px-2.5 py-1 text-[13px] font-bold leading-none text-primary"><MapPinIcon className="size-3.5 shrink-0" />{distanceLabel}</span> : null}
         </div>
         <Link className="pointer-events-auto mt-1.5 line-clamp-2 min-h-[2.3em] break-words font-display text-[19px] font-semibold leading-[1.15] text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} title={facility.name}>{facility.name}</Link>
@@ -175,7 +175,6 @@ type CompactFacilityCardProps = { facility: Facility; className?: string };
 
 export function CompactFacilityCard({ facility, className = "" }: CompactFacilityCardProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
-  const showTrust = true;
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   const directionsHref = facilityDirectionsHref(facility);
@@ -184,9 +183,13 @@ export function CompactFacilityCard({ facility, className = "" }: CompactFacilit
     <article className={`group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none ${className}`}>
       <Link aria-label={`View ${facility.name}`} className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} />
       <span aria-hidden="true" className={`absolute inset-y-0 left-0 z-10 w-[3px] ${facilityCategorySpineClasses[categoryKey]}`} />
+      {/* FacilityBanner already carries the compact CS/FM badge over the
+          image. This row used to repeat it in full ("Community sourced")
+          right underneath — the same signal twice on one card, the second
+          copy in the words the first was deliberately abbreviating. */}
       <FacilityBanner facility={facility} />
       <div className="pointer-events-none relative z-10 flex flex-1 flex-col pb-3 pl-4 pr-3 pt-3">
-        <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryBadgeLabels[categoryKey]}</span>{showTrust ? <span className="max-w-[46%] truncate"><VerificationBadge status={facility.verificationStatus} /></span> : null}</div>
+        <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryDisplayLabel(facility, categoryKey)}</span>
         <h3 className="mt-1.5 line-clamp-2 min-h-[2.3em] break-words font-display text-[17px] font-semibold leading-[1.15] text-foreground">{facility.name}</h3>
         {compactLocality ? <p className="mt-1.5"><span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground"><MapPinIcon className="size-3 shrink-0" />{compactLocality}</span></p> : null}
         <AvailabilityLine facility={facility} />

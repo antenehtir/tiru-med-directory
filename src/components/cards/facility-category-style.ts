@@ -187,3 +187,26 @@ export const facilityCategoryBadgeLabels: Record<FacilityCardCategoryKey, string
   "home-care": "Home Care",
   default: "Other",
 };
+
+// A facility stored as a bare "Specialty Center" whose own name or
+// subcategory says "Medical Complex" (New Leaf Medical Complex), or stored
+// with category "Medical Plaza" outright (Habari Medical Plaza), read the
+// same generic "Specialty Center" badge as any single-department clinic —
+// which is what made Nearby's "Medical Plaza" pill look like it was mixing
+// unrelated specialty centers in: the results were right, the label on them
+// was not specific enough to say why they were there.
+//
+// This overrides the label only. The underlying filter key
+// (resolveFacilityCardCategoryKey), and with it the colour and icon, stay
+// shared with Specialty Center — a distinct look for one facility in the
+// whole directory needs a design decision this fix is not making on its own.
+export function facilityCategoryDisplayLabel(
+  facility: { category: string; subcategory?: string | null },
+  categoryKey: FacilityCardCategoryKey,
+): string {
+  const isMedicalPlazaOrComplex =
+    facility.category === "Medical Plaza" ||
+    (facility.subcategory ?? "").toLowerCase().includes("medical complex") ||
+    facility.category.toLowerCase().includes("medical complex");
+  return isMedicalPlazaOrComplex ? "Medical Plaza" : facilityCategoryBadgeLabels[categoryKey];
+}
