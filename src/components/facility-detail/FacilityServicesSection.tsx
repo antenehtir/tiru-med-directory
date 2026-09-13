@@ -4,12 +4,19 @@ import { useId, useState } from "react";
 import { Pill } from "@/components/ui/Pill";
 import { CollapsiblePillList } from "./CollapsiblePillList";
 import { CollapsibleServiceGroup } from "./CollapsibleServiceGroup";
-import { groupFacilityServices } from "@/lib/facility/service-groups";
+import { groupFacilityServices, sortByFrequency } from "@/lib/facility/service-groups";
 import { absorbCompoundSpecialties, getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
 import type { Facility } from "@/types/facility";
 
 type FacilityServicesSectionProps = {
   facility: Facility;
+  // How many active facilities directory-wide carry each service string —
+  // used to lead every list with what's common ("General OPD / Outpatient
+  // consultation") rather than whatever order this one facility's own
+  // stored array happens to hold, which is usually just edit history.
+  // Missing values rank last, which is also correct for a value nothing
+  // else in the directory carries.
+  serviceFrequency?: Record<string, number>;
 };
 
 function SearchIcon() {
@@ -45,12 +52,17 @@ function buildSearchIndex(
   return sections;
 }
 
-export function FacilityServicesSection({ facility }: FacilityServicesSectionProps) {
+export function FacilityServicesSection({ facility, serviceFrequency = {} }: FacilityServicesSectionProps) {
   const [query, setQuery] = useState("");
   const inputId = useId();
-  const groups = groupFacilityServices(facility);
-  const medicalSpecialties = absorbCompoundSpecialties(
-    getFacilityMedicalSpecialties(facility.services),
+  const rank = (items: string[]) => sortByFrequency(items, serviceFrequency);
+  const groups = groupFacilityServices(facility).map((group) => ({
+    ...group,
+    services: rank(group.services),
+    subgroups: group.subgroups?.map((sub) => ({ ...sub, services: rank(sub.services) })),
+  }));
+  const medicalSpecialties = rank(
+    absorbCompoundSpecialties(getFacilityMedicalSpecialties(facility.services)),
   );
   // Matches AdminFacilityServicesEditor's isDiagnostic gate — same category
   // string, same reasoning: this is the one facility type whose page IS the

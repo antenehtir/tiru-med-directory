@@ -35,6 +35,7 @@ export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, un
     facebook: claim.proposed_facebook,
     tiktok: claim.proposed_tiktok,
     linkedin: claim.proposed_linkedin,
+    youtube: claim.proposed_youtube,
     services: claim.proposed_services,
     special_services: claim.proposed_special_services,
     working_hours: claim.proposed_working_hours,

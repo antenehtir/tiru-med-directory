@@ -55,6 +55,9 @@ const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   "Neurology": ["neurology", "neurologic", "neurosurgery"],
   "Oncology": ["oncology", "oncologic"],
   "Gastroenterology": ["gastroenterology"],
+  // Same wording NEARBY_SPECIALTY_PILLS already uses for its own Fertility
+  // pill — one alias list for the idea, not two that could drift.
+  "Fertility": ["fertility", "reproductive", "infertility", "ivf"],
   "Multiple specialties": ["multispecialty", "multi-specialty", "multiple specialt"],
   "Other": [],
 };

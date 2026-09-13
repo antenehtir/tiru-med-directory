@@ -49,6 +49,7 @@ type DBFacility = {
   whatsapp: string | null;
   tiktok: string | null;
   linkedin: string | null;
+  youtube: string | null;
   latitude: number | null;
   longitude: number | null;
   verification_status: string;
@@ -145,6 +146,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     // Facebook's pattern, since normalizeUrl() already guarantees a full URL.
     makeChannel(row.slug, "social", "TikTok", row.tiktok, row.tiktok ?? ""),
     makeChannel(row.slug, "social", "LinkedIn", row.linkedin, row.linkedin ?? ""),
+    makeChannel(row.slug, "social", "YouTube", row.youtube, row.youtube ?? ""),
     makeChannel(row.slug, "appointment", "Booking", row.booking_link, row.booking_link ?? ""),
   ].filter((c): c is FacilityContactChannel => c !== null);
 

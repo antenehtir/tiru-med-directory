@@ -194,6 +194,19 @@ export function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Just the play triangle, not the rounded-rect frame around it — the badge
+// this sits inside already supplies that frame (same reasoning as TikTok and
+// LinkedIn above: the container is the shape, the icon is the mark inside
+// it), and a second frame drawn inside the badge's own rounded corners would
+// double up.
+export function YouTubeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M9.5 8.3v7.4a.6.6 0 00.91.51l6.2-3.7a.6.6 0 000-1.03l-6.2-3.7a.6.6 0 00-.91.52z" />
+    </svg>
+  );
+}
+
 // Telegram's paper plane, not a generic send arrow — the previous icon here
 // was literally a different, unrelated glyph (a plain send-style dart) doing
 // duty for this platform.

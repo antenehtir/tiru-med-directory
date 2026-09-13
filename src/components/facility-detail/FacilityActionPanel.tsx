@@ -11,6 +11,7 @@ import {
   TelegramIcon,
   TikTokIcon,
   WhatsAppIcon,
+  YouTubeIcon,
 } from "@/components/cards/contact-icons";
 import {
   createPublicContactActions,
@@ -62,6 +63,7 @@ const socialPlatformIcons: Record<
   instagram: InstagramIcon,
   tiktok: TikTokIcon,
   linkedin: LinkedInIcon,
+  youtube: YouTubeIcon,
 };
 
 // Each platform's real badge color, standing in for the shape-only icons
@@ -77,6 +79,7 @@ const socialPlatformBadgeClassName: Record<string, string> = {
   instagram: "bg-gradient-to-br from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white",
   tiktok: "bg-black text-white",
   linkedin: "bg-[#0A66C2] text-white",
+  youtube: "bg-[#FF0000] text-white",
 };
 
 const tertiaryIcons: Record<

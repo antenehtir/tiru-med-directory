@@ -37,7 +37,7 @@ type VerificationBadgeProps = {
 // the listing has exactly the provenance it started with, and saying anything
 // stronger would promise a review that has not happened.
 const badgeContent: Record<VerificationStatus, { label: string; variant: BadgeVariant; title: string }> = {
-  "community-submitted": { label: "Community sourced", variant: "warning", title: "Community sourced — gathered independently, not yet confirmed by the facility" },
+  "community-submitted": { label: "Community sourced", variant: "warning", title: "Community sourced — gathered from the web and social media. Please confirm details with the facility." },
   pending: { label: "Community sourced", variant: "warning", title: "Community sourced — a provider claim is in review" },
   "facility-owned": { label: "Facility Managed", variant: "success", title: "Facility Managed — the facility claimed this listing and keeps it up to date. Tiru has not checked credentials or licences." },
   verified: { label: "Verified", variant: "info", title: "Verified — reviewed by Tiru against published criteria" },

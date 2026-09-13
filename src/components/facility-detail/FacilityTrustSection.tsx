@@ -28,9 +28,9 @@ const trustCopy: Record<Facility["verificationStatus"], { summary: string; title
     body: "The facility has claimed this listing and keeps its public information up to date through Tiru. This means the details come from the facility rather than from third-hand sources — it is not a check of the facility's licences, registration, or the quality of its care.",
   },
   "community-submitted": {
-    summary: "This listing hasn't been claimed yet — confirm details with the facility.",
+    summary: "Gathered from the web and social media — please confirm with the facility.",
     title: "Community-sourced information",
-    body: "This listing was initially contributed from community information and has not yet been provider-claimed. Confirm important details with the facility.",
+    body: "This listing was put together from public sources — the facility's website and social media accounts — and has not yet been provider-claimed. Please confirm important details directly with the facility before relying on them.",
   },
   pending: {
     summary: "This listing is currently being verified.",

@@ -4,6 +4,7 @@ import type { Facility } from "@/types/facility";
 import { DiscoveryRow } from "./DiscoveryRow";
 import { FeaturedFacilityStrip } from "./FeaturedFacilityStrip";
 import { HeroSearchSection } from "./HeroSearchSection";
+import { QuickAccessGrid } from "./QuickAccessGrid";
 import { TrustStatsSection } from "./TrustStatsSection";
 
 // Hierarchy, top to bottom: search (hero) -> browse (category chips, placed
@@ -33,6 +34,7 @@ export function Homepage({
     <div className="homepage-clinical-bg">
       <HeroSearchSection facilityManagedCount={facilityManagedCount}
         mappedFacilityCount={mappedFacilityCount} />
+      <QuickAccessGrid />
       <DiscoveryRow facilities={facilities} />
       <TrustStatsSection openAllHoursCount={openAllHoursCount} subCityCount={subCityCount} />
       <section

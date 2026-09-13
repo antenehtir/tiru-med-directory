@@ -79,6 +79,12 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Gynecology & Obstetrics"),
   },
   {
+    label: "Fertility clinic",
+    href: `/facilities?specialty=${encodeURIComponent("Fertility")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Fertility"),
+  },
+  {
     label: "Diagnostics / Lab",
     href: "/facilities?category=diagnostics",
     iconKey: "diagnostics",
@@ -142,6 +148,12 @@ const CANDIDATES: ChipCandidate[] = [
     href: `/facilities?specialty=${encodeURIComponent("Speech Therapy")}`,
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Speech Therapy"),
+  },
+  {
+    label: "Physiotherapy",
+    href: `/facilities?specialty=${encodeURIComponent("Physiotherapy")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Physiotherapy"),
   },
 ];
 

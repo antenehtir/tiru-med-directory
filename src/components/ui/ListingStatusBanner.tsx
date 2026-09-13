@@ -56,19 +56,20 @@ export function ListingStatusBanner() {
           if it said Official. The badges here are the same components the
           cards render, so the legend cannot drift from what it explains. */}
       {/* Both markers abbreviate on cards, so both are spelled out here and
-          paired with the badge the card actually draws. The caveat that used
-          to close this ("It is not a check of licences or credentials") was
-          cut at a clinician's direction — the CS/FM initials plus what each
-          one means is the legend; the disclaimer read as a second sentence
-          nobody needed to finish reading. The fuller version still lives on
-          each facility's own Trust & Verification section, where a visitor
-          reading it has just asked "how was this sourced" specifically. */}
+          paired with the badge the card actually draws. Community sourced
+          now says WHERE it came from ("the web and social media") rather
+          than only what it isn't — a clinician's direction, precise about
+          the source rather than just disclaiming it. The caveat that used to
+          close this ("It is not a check of licences or credentials") was cut
+          in the same pass; the fuller version still lives on each facility's
+          own Trust & Verification section, where a visitor reading it has
+          just asked "how was this sourced" specifically. */}
       <p className="text-xs leading-5 text-muted-foreground">
         <strong className="font-semibold text-foreground">Community sourced</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
           CS
         </Badge>
-        : gathered independently, not yet confirmed by the facility.{" "}
+        : gathered from the web and social media — please confirm with the facility.{" "}
         <strong className="font-semibold text-foreground">Facility Managed</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="success">
           FM

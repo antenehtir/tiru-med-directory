@@ -4,7 +4,9 @@ import Link from "next/link";
 import { FacilityDetailPage } from "@/components/facility-detail/FacilityDetailPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageShell } from "@/components/layout/PageShell";
+import { computeServiceFrequency } from "@/lib/facility/service-groups";
 import {
+  getFacilitiesFromDB,
   getFacilityBySlug,
   getSimilarFacilities,
 } from "@/lib/supabase/get-facilities";
@@ -74,10 +76,17 @@ export default async function FacilityDetailRoute({
     );
   }
 
+  // Reads the same 60-second-cached list the listing pages use — a stale
+  // popularity ranking for up to a minute is not the freshness problem
+  // getFacilityBySlug's own no-store read exists to solve; only the
+  // facility's OWN live data needs to be exact on every request.
+  const allFacilities = await getFacilitiesFromDB();
+
   return (
     <PageShell>
       <FacilityDetailPage
         facility={facility}
+        serviceFrequency={computeServiceFrequency(allFacilities)}
         similarFacilities={await getSimilarFacilities(facility)}
       />
     </PageShell>

@@ -33,6 +33,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
   const [facebook, setFacebook] = useState(str(facility.facebook));
   const [tiktok, setTiktok] = useState(str(facility.tiktok));
   const [linkedin, setLinkedin] = useState(str(facility.linkedin));
+  const [youtube, setYoutube] = useState(str(facility.youtube));
 
   // Same rule as the services section: only what the admin actually changed
   // is written, so an untouched column keeps whatever is already live rather
@@ -49,6 +50,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
     facebook: str(facility.facebook) || null,
     tiktok: str(facility.tiktok) || null,
     linkedin: str(facility.linkedin) || null,
+    youtube: str(facility.youtube) || null,
   });
 
   function handleSave() {
@@ -68,12 +70,14 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
       facebook: normalizeUrl(facebook) || null,
       tiktok: normalizeUrl(tiktok) || null,
       linkedin: normalizeUrl(linkedin) || null,
+      youtube: normalizeUrl(youtube) || null,
     };
     setWebsite((fields.website as string | null) ?? "");
     setInstagram((fields.instagram as string | null) ?? "");
     setFacebook((fields.facebook as string | null) ?? "");
     setTiktok((fields.tiktok as string | null) ?? "");
     setLinkedin((fields.linkedin as string | null) ?? "");
+    setYoutube((fields.youtube as string | null) ?? "");
 
     const changed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(fields)) {
@@ -244,6 +248,21 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
                 placeholder="linkedin.com/company/yourpage"
                 type="text"
                 value={linkedin}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="admin_youtube">
+                YouTube
+              </label>
+              <input
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                id="admin_youtube"
+                onBlur={() => setYoutube((v) => normalizeUrl(v))}
+                onChange={(e) => setYoutube(e.target.value)}
+                placeholder="youtube.com/@yourchannel"
+                type="text"
+                value={youtube}
               />
             </div>
           </div>

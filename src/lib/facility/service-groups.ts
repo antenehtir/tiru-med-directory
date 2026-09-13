@@ -65,6 +65,31 @@ const LAB_PARENT_LABEL = "Laboratory tests";
 // structure used during onboarding, so the public page reads as sections
 // instead of one unlabeled wall of pills. Only groups with at least one
 // matched service are returned, in a fixed, onboarding-mirroring order.
+// How many active facilities carry each exact service/specialty string,
+// across the whole directory. Used to put the common ones first on a
+// facility's own page — "General OPD / Outpatient consultation" ahead of
+// "Bone Marrow Biopsy" — rather than whatever order they happen to sit in
+// that one facility's stored array, which is usually just entry order from
+// whoever last edited the listing and has nothing to do with how commonly
+// offered a service actually is.
+export function computeServiceFrequency(facilities: Facility[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const facility of facilities) {
+    for (const service of facility.services) {
+      counts[service] = (counts[service] ?? 0) + 1;
+    }
+  }
+  return counts;
+}
+
+// Most-common-first, ties broken alphabetically so the order is stable
+// between renders rather than depending on the original array's own order.
+export function sortByFrequency(items: string[], frequency: Record<string, number>): string[] {
+  return [...items].sort(
+    (a, b) => (frequency[b] ?? 0) - (frequency[a] ?? 0) || a.localeCompare(b),
+  );
+}
+
 export function groupFacilityServices(facility: Facility): FacilityServiceGroup[] {
   const specialties = new Set(getFacilityMedicalSpecialties(facility.services));
 

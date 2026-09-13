@@ -15,6 +15,7 @@ export const SPECIALTY_OPTIONS = [
   "Neurology",
   "Oncology",
   "Gastroenterology",
+  "Fertility",
   "Multiple specialties",
   "Other",
 ] as const;

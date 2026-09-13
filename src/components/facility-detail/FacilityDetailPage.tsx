@@ -12,9 +12,17 @@ import { FacilityServicesSection } from "./FacilityServicesSection";
 import { FacilityTrustSection } from "./FacilityTrustSection";
 import { SimilarFacilitiesSection } from "./SimilarFacilitiesSection";
 
-type FacilityDetailPageProps = { facility?: Facility; similarFacilities?: Facility[] };
+type FacilityDetailPageProps = {
+  facility?: Facility;
+  similarFacilities?: Facility[];
+  serviceFrequency?: Record<string, number>;
+};
 
-export function FacilityDetailPage({ facility, similarFacilities }: FacilityDetailPageProps = {}) {
+export function FacilityDetailPage({
+  facility,
+  similarFacilities,
+  serviceFrequency,
+}: FacilityDetailPageProps = {}) {
   if (!facility) return null;
   const selectedSimilarFacilities = similarFacilities ?? [];
 
@@ -56,7 +64,7 @@ export function FacilityDetailPage({ facility, similarFacilities }: FacilityDeta
         <div className="grid gap-5 sm:gap-7">
           <section aria-labelledby="care-heading" className="grid gap-5 sm:gap-7">
             <div id="care-heading" className="sr-only">Care and clinical information</div>
-            <FacilityServicesSection facility={facility} />
+            <FacilityServicesSection facility={facility} serviceFrequency={serviceFrequency ?? {}} />
             <FacilityDoctorsSection facility={facility} />
           </section>
 

@@ -343,6 +343,9 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
         {claim.proposed_linkedin ? (
           <FieldRow label="LinkedIn" value={claim.proposed_linkedin as string} />
         ) : null}
+        {claim.proposed_youtube ? (
+          <FieldRow label="YouTube" value={claim.proposed_youtube as string} />
+        ) : null}
 
         {branchCount > 1 && branches.length > 0 ? (
           <div>

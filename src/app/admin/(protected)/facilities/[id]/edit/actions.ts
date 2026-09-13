@@ -266,9 +266,9 @@ export async function updateFacilityLocation(
 }
 
 const CONTACT_COLUMNS =
-  "name, phone, phone_2, phones, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin";
+  "name, phone, phone_2, phones, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin, youtube";
 
-const URL_FIELDS = ["website", "instagram", "facebook", "tiktok", "linkedin"] as const;
+const URL_FIELDS = ["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const;
 
 function isValidUrl(value: string): boolean {
   try {
@@ -296,6 +296,7 @@ type FacilityContactFields = Partial<{
   facebook: string | null;
   tiktok: string | null;
   linkedin: string | null;
+  youtube: string | null;
 }>;
 
 export async function updateFacilityContact(

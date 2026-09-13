@@ -36,6 +36,7 @@ export async function saveStep2(formData: FormData) {
   const facebook = formData.get("facebook") as string;
   const tiktok = formData.get("tiktok") as string;
   const linkedin = formData.get("linkedin") as string;
+  const youtube = formData.get("youtube") as string;
 
   const { error: updateError } = await supabase
     .from("facility_claims")
@@ -58,6 +59,7 @@ export async function saveStep2(formData: FormData) {
       proposed_facebook: facebook || null,
       proposed_tiktok: tiktok || null,
       proposed_linkedin: linkedin || null,
+      proposed_youtube: youtube || null,
       submission_step: 3,
     })
     .eq("id", claimId);
@@ -112,6 +114,7 @@ export async function autoSaveStep2(data: {
   facebook?: string;
   tiktok?: string;
   linkedin?: string;
+  youtube?: string;
   branches?: Array<{
     name: string;
     area: string;
@@ -149,6 +152,7 @@ export async function autoSaveStep2(data: {
   if (data.facebook !== undefined) updates.proposed_facebook = data.facebook || null;
   if (data.tiktok !== undefined) updates.proposed_tiktok = data.tiktok || null;
   if (data.linkedin !== undefined) updates.proposed_linkedin = data.linkedin || null;
+  if (data.youtube !== undefined) updates.proposed_youtube = data.youtube || null;
   if (data.branches !== undefined) updates.proposed_branches = data.branches;
 
   if (Object.keys(updates).length === 0) return;

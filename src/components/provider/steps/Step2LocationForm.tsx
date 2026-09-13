@@ -41,6 +41,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [facebook, setFacebook] = useState((claim.proposed_facebook as string) ?? "");
   const [tiktok, setTiktok] = useState((claim.proposed_tiktok as string) ?? "");
   const [linkedin, setLinkedin] = useState((claim.proposed_linkedin as string) ?? "");
+  const [youtube, setYoutube] = useState((claim.proposed_youtube as string) ?? "");
 
   const branchCount = (claim.proposed_branch_count as number) ?? 1;
   const [branches, setBranches] = useState<FacilityBranch[]>(
@@ -443,6 +444,26 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
                   placeholder="linkedin.com/company/yourpage"
                   type="text"
                   value={linkedin}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="youtube">
+                  YouTube
+                </label>
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  id="youtube"
+                  name="youtube"
+                  onBlur={() => {
+                    const normalized = normalizeUrl(youtube);
+                    setYoutube(normalized);
+                    autoSave({ youtube: normalized });
+                  }}
+                  onChange={(e) => setYoutube(e.target.value)}
+                  placeholder="youtube.com/@yourchannel"
+                  type="text"
+                  value={youtube}
                 />
               </div>
             </div>
