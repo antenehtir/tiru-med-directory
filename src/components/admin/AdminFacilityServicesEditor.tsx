@@ -586,6 +586,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
             )}
             <ScheduleBuilder
               closedOnPublicHolidays={closedOnHolidays}
+              emphasize247={isHomeCare}
               onChange={setSchedule}
               onClosedOnPublicHolidaysChange={
                 holidayColumnExists ? setClosedOnHolidays : undefined

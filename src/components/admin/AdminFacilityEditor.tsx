@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminFacilityServicesEditor } from "@/components/admin/AdminFacilityServicesEditor";
 import { AdminFacilityContactEditor } from "@/components/admin/AdminFacilityContactEditor";
+import { AdminFacilityIdentityEditor } from "@/components/admin/AdminFacilityIdentityEditor";
 import { AdminFacilityLocationEditor } from "@/components/admin/AdminFacilityLocationEditor";
 
-type Section = "services" | "contact" | "location";
+type Section = "identity" | "services" | "contact" | "location";
 
 // Sectioned, not a sequential wizard: an admin lands on whichever section the
 // URL names (deep-linkable via ?section=) and can jump to the other one
@@ -17,7 +18,7 @@ export function AdminFacilityEditor({ facility }: { facility: Record<string, unk
   const searchParams = useSearchParams();
   const param = searchParams.get("section");
   const initial: Section =
-    param === "contact" ? "contact" : param === "location" ? "location" : "services";
+    param === "contact" ? "contact" : param === "location" ? "location" : param === "identity" ? "identity" : "services";
   const [section, setSection] = useState<Section>(initial);
 
   function selectSection(next: Section) {
@@ -30,6 +31,17 @@ export function AdminFacilityEditor({ facility }: { facility: Record<string, unk
   return (
     <div>
       <div className="mb-6 flex gap-2 border-b border-border">
+        <button
+          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
+            section === "identity"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => selectSection("identity")}
+          type="button"
+        >
+          Identity
+        </button>
         <button
           className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
             section === "services"
@@ -65,7 +77,9 @@ export function AdminFacilityEditor({ facility }: { facility: Record<string, unk
         </button>
       </div>
 
-      {section === "services" ? (
+      {section === "identity" ? (
+        <AdminFacilityIdentityEditor facility={facility} />
+      ) : section === "services" ? (
         <AdminFacilityServicesEditor facility={facility} />
       ) : section === "contact" ? (
         <AdminFacilityContactEditor facility={facility} />

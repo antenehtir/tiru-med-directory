@@ -245,6 +245,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
       {branchCount > 1 && (
         <BranchRepeater
           allowGeolocation
+          mainServices={(claim.proposed_services as string[] | null) ?? []}
           maxBranches={branchCount}
           onChange={setBranches}
           onCommit={persistBranches}

@@ -23,6 +23,13 @@ type ScheduleBuilderProps = {
   // checkbox that silently does nothing.
   closedOnPublicHolidays?: boolean | null;
   onClosedOnPublicHolidaysChange?: (value: boolean) => void;
+  // Home Care is the one category where round-the-clock is the norm rather
+  // than the exception — a caregiver can be needed at 3am — so this puts the
+  // 24/7 pattern first and names why, instead of leaving a home care provider
+  // to build seven identical day rows by hand. Every other caller still gets
+  // the button (a hospital's ER or a 24-hour pharmacy wants it too), just
+  // second and unexplained.
+  emphasize247?: boolean;
 };
 
 const DAY_SHORTCUTS = [
@@ -173,6 +180,7 @@ export function ScheduleBuilder({
   onChange,
   closedOnPublicHolidays,
   onClosedOnPublicHolidaysChange,
+  emphasize247 = false,
 }: ScheduleBuilderProps) {
   function addRow() {
     onChange([
@@ -203,6 +211,15 @@ export function ScheduleBuilder({
         ? { ...existingSaturday, days: ["Saturday"] }
         : { days: ["Saturday"], open: "", close: "", closed: false },
     ]);
+  }
+
+  // One row, every day, open around the clock — the shape a 24-hour
+  // pharmacy, a hospital ER or a home care service actually has, which
+  // otherwise took seven individual day-toggles and "Open 24 hours" picked
+  // twice (once as open, and implicitly as close, which the row already
+  // hides once selected).
+  function applyAlwaysOpen() {
+    onChange([{ days: [...DAYS_OF_WEEK], open: "Open 24 hours", close: "", closed: false }]);
   }
 
   // Withheld once the schedule has grown past the two rows this produces,
@@ -250,17 +267,37 @@ export function ScheduleBuilder({
       {canApplyPattern && (
         <div className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2.5">
           <p className="text-xs font-medium text-muted-foreground">Common pattern</p>
-          <button
-            className="mt-1.5 rounded-full border border-primary/40 bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
-            onClick={applyWeekdayPlusSaturday}
-            type="button"
-          >
-            Weekdays + Saturday half day
-          </button>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {emphasize247 && (
+              <button
+                className="rounded-full border border-primary/40 bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+                onClick={applyAlwaysOpen}
+                type="button"
+              >
+                Open 24/7
+              </button>
+            )}
+            <button
+              className="rounded-full border border-primary/40 bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+              onClick={applyWeekdayPlusSaturday}
+              type="button"
+            >
+              Weekdays + Saturday half day
+            </button>
+            {!emphasize247 && (
+              <button
+                className="rounded-full border border-primary/40 bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+                onClick={applyAlwaysOpen}
+                type="button"
+              >
+                Open 24/7
+              </button>
+            )}
+          </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Sets up two schedules — Mon–Fri and Saturday on its own — so
-            Saturday can have shorter hours. Hours you have already entered are
-            kept.
+            {emphasize247
+              ? "Most home care providers work around the clock — pick Open 24/7 if that's true here, or build a narrower schedule below if it isn't."
+              : "Weekdays + Saturday half day sets up two schedules so Saturday can have shorter hours; Open 24/7 sets one, every day, no closing time. Hours you have already entered are kept where the pattern reuses them."}
           </p>
         </div>
       )}

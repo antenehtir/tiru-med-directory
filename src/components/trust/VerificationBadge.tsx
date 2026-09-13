@@ -19,6 +19,14 @@ type VerificationBadgeProps = {
 // directory that gap is the kind that gets someone hurt. "Facility Managed"
 // says the thing that is actually true: these words came from the facility.
 //
+// The copy deliberately does not say "claimed" on its own. A facility reaches
+// this status two ways — by claiming a listing that already existed on Tiru,
+// or by being added as a brand-new listing directly by the facility itself,
+// with no prior community-sourced entry to claim. "Claimed this listing"
+// describes only the first path and reads as wrong on the second, so the
+// wording here covers both: owned and managed directly by the facility,
+// regardless of which route it arrived by.
+//
 // "verified" is deliberately NOT merged into it. It is reserved for a future
 // quality mark whose criteria are still to be defined, and it is unassigned
 // today — 107 of the 108 active listings are community-submitted and exactly
@@ -39,7 +47,7 @@ type VerificationBadgeProps = {
 const badgeContent: Record<VerificationStatus, { label: string; variant: BadgeVariant; title: string }> = {
   "community-submitted": { label: "Community sourced", variant: "warning", title: "Community sourced — gathered from the web and social media. Please confirm details with the facility." },
   pending: { label: "Community sourced", variant: "warning", title: "Community sourced — a provider claim is in review" },
-  "facility-owned": { label: "Facility Managed", variant: "success", title: "Facility Managed — the facility claimed this listing and keeps it up to date. Tiru has not checked credentials or licences." },
+  "facility-owned": { label: "Facility Managed", variant: "success", title: "Facility Managed — this listing is owned and managed directly by the facility, whether newly listed or claimed from an existing entry. Tiru has not checked credentials or licences." },
   verified: { label: "Verified", variant: "info", title: "Verified — reviewed by Tiru against published criteria" },
 };
 

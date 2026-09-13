@@ -219,7 +219,12 @@ export function FacilityActionPanel({ facility }: FacilityActionPanelProps) {
             {...getExternalLinkProps(mapsAction)}
           >
             <MapPinIcon className="size-4 shrink-0" />
-            Get Directions
+            {/* This always points at the main listing's own pin — never a
+                branch's. Unlabelled, that read as ambiguous on a facility
+                with branches further down the page: directions to which
+                site? The qualifier only appears when there is something to
+                disambiguate from. */}
+            Get Directions{(facility.branches?.length ?? 0) > 0 ? " (Main Branch)" : ""}
           </a>
         ) : null}
         <ShareFacilityButton facility={facility} />

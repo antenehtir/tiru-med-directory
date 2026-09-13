@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { saveStep1, autoSaveStep1 } from "@/app/provider/(console)/onboarding/identity/actions";
+import {
+  saveStep1,
+  autoSaveStep1,
+  requestFacilityNameChange,
+  requestFacilityTypeChange,
+} from "@/app/provider/(console)/onboarding/identity/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { PillOption } from "@/components/provider/PillOption";
 import { SubmitButton } from "@/components/provider/SubmitButton";
@@ -10,6 +15,7 @@ import {
   LANGUAGES,
   PATIENT_GROUPS,
 } from "@/lib/provider/onboarding-config";
+import { FACILITY_CATEGORY_CHOICES } from "@/lib/frontend-search-filters";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
 type Claim = Record<string, unknown>;
@@ -28,6 +34,34 @@ export function Step1IdentityForm({
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  // Once a claim is approved and pointed at a live facility, its name and
+  // type stop being direct edits on this page — see requestFacilityNameChange
+  // / requestFacilityTypeChange for why. Before that, this is still a draft
+  // nobody but the provider has seen, so both fields behave exactly as every
+  // other field on this page does.
+  const isLive = claim.status === "approved" && Boolean(claim.facility_id);
+  const [nameChangeRequest, setNameChangeRequest] = useState("");
+  const [nameChangeStatus, setNameChangeStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [facilityTypeStatus, setFacilityTypeStatus] = useState<"idle" | "saved" | "requested">("idle");
+  // Not one of proposed_*'s fields — facility_type lives on provider_accounts,
+  // so it is saved through its own action (requestFacilityTypeChange) rather
+  // than the autoSave() wrapper every other field on this page uses.
+  //
+  // What's stored (facilityType) is the CANONICAL value ("Specialty Center"),
+  // which is not enough on its own to know which select option to show —
+  // "Medical Complex" and "Multi-specialty Center" both store as "Specialty
+  // Center" too. facilityTypeOther disambiguates: when it matches a choice's
+  // describesAs, that choice's own label is the one actually picked.
+  function currentFacilityTypeLabel(): string {
+    if (!facilityType) return "";
+    if (facilityTypeOther) {
+      const describedChoice = FACILITY_CATEGORY_CHOICES.find((c) => c.describesAs === facilityTypeOther);
+      if (describedChoice) return describedChoice.label;
+    }
+    const plainChoice = FACILITY_CATEGORY_CHOICES.find((c) => c.stores === facilityType && !c.describesAs);
+    return plainChoice?.label ?? facilityType;
+  }
+  const [selectedFacilityType, setSelectedFacilityType] = useState(currentFacilityTypeLabel());
 
   // These are for auto-save and toggle logic only — NOT used as
   // controlled input values for the text/select fields below.
@@ -134,41 +168,123 @@ export function Step1IdentityForm({
         </div>
 
         <FieldGrid>
-          {/* Facility type — read-only, set at signup. Not editable here. */}
+          {/* Facility type. Before the first approval this is still the
+              same free choice signup itself offers — nothing public exists
+              yet to protect. Once live, selecting a new value no longer
+              applies it directly: it submits a review request (the same
+              correction_requests queue an anonymous "Suggest a correction"
+              lands in) and only a super admin's own edit actually moves the
+              category. Scoped to the same fixed choices signup itself
+              offers — switching to a free-text "Other" type is left for
+              support to handle by hand either way. */}
           {facilityType && (
-            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 sm:col-span-2">
-              <p className="text-sm text-foreground">
-                Facility type:{" "}
-                <span className="font-medium">
-                  {facilityType === "Other" && facilityTypeOther
-                    ? `Other — ${facilityTypeOther}`
-                    : facilityType}
-                </span>
-              </p>
-              <a
-                className="shrink-0 text-xs text-primary hover:underline"
-                href="/provider/signup"
+            <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-3 sm:col-span-2">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-medium text-foreground" htmlFor="facility_type_select">
+                  Facility type
+                </label>
+                {facilityTypeStatus === "saved" ? (
+                  <span className="text-xs text-muted-foreground">Saved</span>
+                ) : facilityTypeStatus === "requested" ? (
+                  <span className="text-xs font-medium text-primary">Change requested</span>
+                ) : null}
+              </div>
+              <select
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                id="facility_type_select"
+                onChange={(e) => {
+                  const label = e.target.value;
+                  setSelectedFacilityType(label);
+                  startTransition(async () => {
+                    const result = await requestFacilityTypeChange(label);
+                    setFacilityTypeStatus(result.requested ? "requested" : "saved");
+                  });
+                }}
+                value={selectedFacilityType}
               >
-                Change
-              </a>
+                {!FACILITY_CATEGORY_CHOICES.some((c) => c.label === selectedFacilityType) && selectedFacilityType ? (
+                  <option value={selectedFacilityType}>{selectedFacilityType}</option>
+                ) : null}
+                {FACILITY_CATEGORY_CHOICES.map((choice) => (
+                  <option key={choice.label} value={choice.label}>
+                    {choice.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {isLive
+                  ? "Your listing is live, so this doesn't change immediately — it sends the new type to Tiru for review, and an admin applies it once they've confirmed it."
+                  : "Changing this moves your listing to a different section of the directory once it's approved. It does not change the services you have already listed — worth a check afterward if the new type expects a different checklist."}
+              </p>
             </div>
           )}
 
-          {/* Official name — UNCONTROLLED, uses defaultValue */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="name">
-              Official facility name *
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              defaultValue={defaultName}
-              id="name"
-              name="name"
-              onBlur={(e) => autoSave({ name: e.target.value })}
-              required
-              type="text"
-            />
-          </div>
+          {/* Official name. Same isLive split as facility type above: still
+              a plain editable field before the first approval (defaultName,
+              uncontrolled, autosaved to the draft like every other field
+              here), but once the listing is public a name change goes
+              through the same review queue rather than applying the moment
+              someone stops typing — a wrong or malicious rename is a bigger
+              risk unreviewed than a wrong opening-hours edit would be. */}
+          {isLive ? (
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <label className="text-sm font-medium text-foreground">Official facility name</label>
+              <p className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-foreground">
+                {facilityName}
+              </p>
+              <div className="mt-1 flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="name_change_request">
+                  Request a different name
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    id="name_change_request"
+                    onChange={(e) => setNameChangeRequest(e.target.value)}
+                    placeholder="New name for this listing"
+                    type="text"
+                    value={nameChangeRequest}
+                  />
+                  <button
+                    className="shrink-0 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!nameChangeRequest.trim() || nameChangeStatus === "sending"}
+                    onClick={() => {
+                      const requested = nameChangeRequest.trim();
+                      setNameChangeStatus("sending");
+                      startTransition(async () => {
+                        await requestFacilityNameChange(requested);
+                        setNameChangeStatus("sent");
+                        setNameChangeRequest("");
+                      });
+                    }}
+                    type="button"
+                  >
+                    {nameChangeStatus === "sending" ? "Sending…" : "Submit request"}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {nameChangeStatus === "sent"
+                    ? "Sent to Tiru for review. Your listing keeps its current name until an admin applies the change."
+                    : "Sends the new name to Tiru for review — it does not change immediately."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="name">
+                Official facility name *
+              </label>
+              <input
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                defaultValue={defaultName}
+                id="name"
+                name="name"
+                onBlur={(e) => autoSave({ name: e.target.value })}
+                required
+                type="text"
+              />
+            </div>
+          )}
 
           {/* Alt name — UNCONTROLLED */}
           <div className="flex flex-col gap-1.5">

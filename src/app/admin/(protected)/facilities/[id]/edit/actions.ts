@@ -361,3 +361,67 @@ export async function updateFacilityContact(
   revalidatePath("/search");
   revalidatePath("/");
 }
+
+const IDENTITY_COLUMNS = "name, category";
+
+// name and category deliberately had no editor anywhere before this. A
+// facility's name is not permanent — a centre rebrands, or a typo from the
+// original import survives to today — and its category is not permanent
+// either: a clinic that adds inpatient beds becomes a hospital, a specialty
+// centre that narrows its scope becomes a diagnostic lab. Both need to be
+// changeable from the outset rather than bolted on once the first request
+// for it arrives.
+//
+// category must be a value FACILITY_CATEGORY_DB_MAP recognises — the same
+// guard approveClaim already applies before a claim can go live, reused here
+// so an admin cannot quietly repeat the "Hospital"/"Telemedicine" mistake
+// that made those rows invisible to every category filter.
+type FacilityIdentityFields = Partial<{
+  name: string;
+  category: string;
+}>;
+
+export async function updateFacilityIdentity(
+  facilityId: string,
+  fields: FacilityIdentityFields,
+) {
+  const adminUser = await getAdminUser();
+  if (!adminUser) throw new Error("Unauthorized");
+
+  if (Object.keys(fields).length === 0) return;
+
+  if (fields.name !== undefined && !fields.name.trim()) {
+    throw new Error("Facility name is required.");
+  }
+
+  if (fields.category !== undefined) {
+    const { isMappedFacilityCategory } = await import("@/lib/frontend-search-filters");
+    if (!isMappedFacilityCategory(fields.category)) {
+      throw new Error(`"${fields.category}" is not a supported facility category.`);
+    }
+  }
+
+  const supabase = await createAdminSupabaseClient();
+  const before = await loadFacilitySnapshot(supabase, facilityId, IDENTITY_COLUMNS);
+
+  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
+  if (error) throw new Error(error.message);
+
+  await logFacilityEdit(
+    supabase,
+    adminUser.id,
+    facilityId,
+    "facility_identity_edited",
+    before,
+    fields,
+    (fields.name ?? before?.name) as string | undefined,
+  );
+
+  revalidatePath("/admin/facilities");
+  revalidatePath(`/admin/facilities/${facilityId}/edit`);
+  revalidatePath("/facilities/[slug]", "page");
+  updateTag(FACILITIES_CACHE_TAG);
+  revalidatePath("/facilities");
+  revalidatePath("/search");
+  revalidatePath("/");
+}

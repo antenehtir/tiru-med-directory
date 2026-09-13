@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
-import { TalkToUsButton } from "@/components/layout/TalkToUsButton";
 import "./globals.css";
 
 const inter = Inter({
@@ -43,7 +42,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ScrollRestoration />
         {children}
-        <TalkToUsButton />
+        {/* TalkToUsButton (the floating WhatsApp action on every page) is
+            removed for now, at direct request — the feature is being
+            reconsidered, not abandoned. The component itself is left in
+            place under components/layout so re-adding it is a one-line
+            import again rather than a rebuild. */}
       </body>
     </html>
   );

@@ -1,7 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { judgeGpsFix } from "@/lib/provider/geolocation";
+import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
+import { Pill } from "@/components/ui/Pill";
+import { ScheduleBuilder, type ScheduleRow } from "@/components/provider/ScheduleBuilder";
 import type { FacilityBranch } from "@/types/facility";
 
 // The branch list, extracted from Step2LocationForm so the admin facility
@@ -65,6 +68,13 @@ type BranchRepeaterProps = {
   ) => ReactNode;
   heading?: string;
   description?: string;
+  // The main listing's current services, so each branch can say which of
+  // them it does NOT offer rather than retyping the ones it shares. Absent
+  // entirely (rather than an empty array) means the caller has no services
+  // context to offer yet — the services section below does not render at
+  // all in that case, instead of rendering as if the main listing had zero
+  // services.
+  mainServices?: string[];
 };
 
 export function BranchRepeater({
@@ -76,6 +86,7 @@ export function BranchRepeater({
   renderCoordinateEditor,
   heading = "Branch Locations",
   description,
+  mainServices,
 }: BranchRepeaterProps) {
   const unbounded = maxBranches === undefined || maxBranches === 99;
   const allowedExtra = unbounded ? Infinity : Math.max(0, maxBranches - 1);
@@ -178,20 +189,40 @@ export function BranchRepeater({
                 placeholder="e.g. Bole Branch, Main Branch"
                 value={branch.name}
               />
+              {/* Area and landmark used to be two separate fields for a
+                  branch, unlike anywhere else on this fact — both answer the
+                  same underlying question ("where, roughly, is this") and
+                  splitting it in two doubled the typing for no real gain in
+                  what search or the public page can do with the data. Merged
+                  into one field, stored in `area`; `landmark` is cleared on
+                  the first edit so old separately-typed data (shown joined,
+                  once) does not linger as a stale duplicate underneath. */}
               <BranchField
-                label="Area / neighborhood"
-                onChange={(v) => update(i, { area: v })}
-                onCommit={(v) => commit(update(i, { area: v }))}
-                placeholder="e.g. Bole Medhanialem"
-                value={branch.area}
+                label="Area / neighborhood & landmark"
+                onChange={(v) => update(i, { area: v, landmark: "" })}
+                onCommit={(v) => commit(update(i, { area: v, landmark: "" }))}
+                placeholder="e.g. Bole Medhanialem, next to Edna Mall"
+                value={[branch.area, branch.landmark].filter(Boolean).join(", ")}
               />
-              <BranchField
-                label="Nearby landmark"
-                onChange={(v) => update(i, { landmark: v })}
-                onCommit={(v) => commit(update(i, { landmark: v }))}
-                placeholder="e.g. next to Edna Mall"
-                value={branch.landmark}
-              />
+              {/* Distinct from the main listing's sub-city — a chain can
+                  easily have branches in different sub-cities, and without
+                  this a branch was invisible to sub-city and "near me"
+                  search no matter where it actually was. */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Sub-city
+                </label>
+                <select
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  onChange={(e) => commit(update(i, { subCity: e.target.value }))}
+                  value={branch.subCity ?? ""}
+                >
+                  <option value="">Select…</option>
+                  {ADDIS_SUB_CITIES.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
               {/* Only when there is no coordinate editor. A caller that passes
                   one already offers a maps-link box inside it, and that one
                   resolves the link to a latitude and longitude before storing
@@ -260,6 +291,75 @@ export function BranchRepeater({
                     ? "Pin captured — update location"
                     : "Use my current location for this branch"}
                 </button>
+              )}
+
+              {/* Undefined/null schedule means "same hours as the main
+                  listing" — the common case for a branch, and the default a
+                  new one starts in. The toggle only exists to opt OUT of
+                  that and describe genuinely different hours; unchecking it
+                  clears the schedule back to inherited rather than leaving a
+                  stale one behind that nobody is looking at any more. */}
+              <div className="rounded-lg border border-border bg-card p-3">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                  <input
+                    checked={branch.schedule != null}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [{ days: [], open: "", close: "", closed: false } as ScheduleRow]
+                        : null;
+                      commit(update(i, { schedule: next }));
+                    }}
+                    type="checkbox"
+                  />
+                  <span>
+                    Different hours for this branch
+                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                      {branch.schedule == null
+                        ? "Off — this branch shows the same hours as the main listing."
+                        : "On — set this branch's own schedule below."}
+                    </span>
+                  </span>
+                </label>
+                {branch.schedule != null && (
+                  <div className="mt-3">
+                    <ScheduleBuilder
+                      onChange={(rows) => commit(update(i, { schedule: rows }))}
+                      value={branch.schedule}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {mainServices && mainServices.length > 0 && (
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <p className="text-sm font-medium text-foreground">Services at this branch</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Every service on the main listing is assumed available
+                    here too. Tap any that this branch does NOT offer — the
+                    public page will point visitors to the main branch for
+                    those.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {mainServices.map((service) => {
+                      const excluded = (branch.excludedServices ?? []).includes(service);
+                      return (
+                        <Pill
+                          key={service}
+                          onClick={() => {
+                            const current = branch.excludedServices ?? [];
+                            const next = excluded
+                              ? current.filter((s) => s !== service)
+                              : [...current, service];
+                            commit(update(i, { excludedServices: next }));
+                          }}
+                          variant={excluded ? "danger" : "default"}
+                        >
+                          {excluded ? `Not offered: ${service}` : service}
+                        </Pill>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
           </div>

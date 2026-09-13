@@ -25,6 +25,7 @@ type Facility = {
   is_active: boolean | null;
   deactivation_category: string | null;
   deactivated_at: string | null;
+  branch_count: number | null;
 };
 
 
@@ -73,6 +74,12 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  // Not a real category — branch_count > 1 cuts across every category, and
+  // this exists specifically to make finding that set easy: it is the punch
+  // list for the sub-city (and other per-branch) fields that only landed on
+  // BranchRepeater recently, and need adding to every branch that predates
+  // them.
+  const [multiBranchOnly, setMultiBranchOnly] = useState(false);
   const [badgeFilter, setBadgeFilter] = useState(initialBadgeFilter);
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isPending, startTransition] = useTransition();
@@ -97,7 +104,8 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
     const matchesActive =
       activeFilter === "all" ||
       (activeFilter === "active" ? !isInactive : isInactive);
-    return matchesSearch && matchesCategory && matchesBadge && matchesActive;
+    const matchesBranches = !multiBranchOnly || (f.branch_count ?? 1) > 1;
+    return matchesSearch && matchesCategory && matchesBadge && matchesActive && matchesBranches;
   });
 
   function handleBadgeChange(facilityId: string, currentStatus: string, newStatus: string) {
@@ -157,6 +165,14 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground">
+          <input
+            checked={multiBranchOnly}
+            onChange={(e) => setMultiBranchOnly(e.target.checked)}
+            type="checkbox"
+          />
+          Multiple branches only
+        </label>
         <select
           className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           onChange={(e) => setBadgeFilter(e.target.value)}

@@ -71,6 +71,21 @@ export type FacilityBranch = {
   // stops — a branch with more numbers than the main listing is a facility in
   // its own right, and should be listed as one.
   phone_2?: string;
+  // Same option set as the main listing's sub-city (ADDIS_SUB_CITIES). Absent
+  // on every branch stored before this field existed — distance/area search
+  // on the user side has never been able to place a branch anywhere, only the
+  // main listing.
+  subCity?: string;
+  // Absent/undefined means "same hours as the main listing" — the common
+  // case — rather than every branch needing its own copy of hours that are
+  // usually identical. Set only when a branch genuinely differs.
+  schedule?: FacilityScheduleRow[] | null;
+  // Services the MAIN listing offers that this branch does NOT. A branch
+  // inherits the full main services list by default (empty/absent array),
+  // so adding a general service to the main listing reaches every branch
+  // automatically; an admin/provider only ever has to say what's missing
+  // at one particular site, never retype what's the same everywhere.
+  excludedServices?: string[];
 };
 
 export type Facility = {

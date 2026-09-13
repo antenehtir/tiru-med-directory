@@ -13,6 +13,7 @@ import { splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import type { Facility, FacilityAppointmentModality } from "@/types/facility";
+import { FacilityBranchList } from "./FacilityBranchList";
 import { FacilityImageGallery } from "./FacilityImageGallery";
 import { FacilityLastUpdated } from "./FacilityLastUpdated";
 
@@ -311,25 +312,17 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
         {hasMultipleBranches ? (
           <div className="rounded-card border border-border bg-background p-4">
             <p className="mb-2 text-sm font-semibold text-foreground">Multiple branches</p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               {facility.location ? (
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 border-b border-border py-2">
                   <div className="min-w-0">
                     <p className="text-sm text-muted-foreground">{facility.location}</p>
-                    <p className="text-xs text-muted-foreground/70">Main location</p>
+                    <p className="text-xs text-muted-foreground/70">Main Branch</p>
                   </div>
                   {mapsHref ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={mapsHref} rel="noopener noreferrer" target="_blank">Map →</a> : null}
                 </div>
               ) : null}
-              {branches.map((branch, index) => (
-                <div className="flex items-center justify-between gap-2" key={index}>
-                  <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground">{branch.name || branch.area}</p>
-                    {branch.landmark ? <p className="text-xs text-muted-foreground/70">{branch.landmark}</p> : null}
-                  </div>
-                  {branch.maps_link ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={branch.maps_link} rel="noopener noreferrer" target="_blank">Map →</a> : null}
-                </div>
-              ))}
+              <FacilityBranchList branches={branches} mainServices={facility.services} />
             </div>
           </div>
         ) : (

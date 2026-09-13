@@ -23,9 +23,15 @@ const trustCopy: Record<Facility["verificationStatus"], { summary: string; title
     // "Official", and a health seeker deciding where to take a sick child
     // should not have to guess whether that word meant anyone had checked the
     // facility's licence. Nobody has.
-    summary: "The facility itself claims and updates this listing.",
+    //
+    // Does not say "claimed" as the only route to this status. A facility
+    // reaches Facility Managed either by claiming a listing that already
+    // existed on Tiru, or by being added as a brand-new listing directly by
+    // the facility, with no prior entry to claim — "claimed this listing"
+    // describes only the first path and would misstate the second.
+    summary: "This listing is owned and managed directly by the facility.",
     title: "Facility Managed listing",
-    body: "The facility has claimed this listing and keeps its public information up to date through Tiru. This means the details come from the facility rather than from third-hand sources — it is not a check of the facility's licences, registration, or the quality of its care.",
+    body: "This listing is owned and managed directly by the facility, whether it was added as a new listing by the facility itself or an existing, community-sourced entry was claimed and taken over. Either way, the information comes from the facility rather than from a third-hand source — it is not a check of the facility's licences, registration, or the quality of its care.",
   },
   "community-submitted": {
     summary: "Gathered from the web and social media — please confirm with the facility.",

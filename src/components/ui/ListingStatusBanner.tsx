@@ -63,7 +63,11 @@ export function ListingStatusBanner() {
           close this ("It is not a check of licences or credentials") was cut
           in the same pass; the fuller version still lives on each facility's
           own Trust & Verification section, where a visitor reading it has
-          just asked "how was this sourced" specifically. */}
+          just asked "how was this sourced" specifically.
+          Facility Managed no longer says "claimed this listing" on its own —
+          a facility reaches this status either by claiming an existing
+          entry or by listing itself fresh, with nothing to claim, and the
+          first wording only described one of those two paths. */}
       <p className="text-xs leading-5 text-muted-foreground">
         <strong className="font-semibold text-foreground">Community sourced</strong>{" "}
         <Badge className="mx-0.5 align-middle" size="sm" variant="warning">
@@ -74,7 +78,7 @@ export function ListingStatusBanner() {
         <Badge className="mx-0.5 align-middle" size="sm" variant="success">
           FM
         </Badge>
-        : the facility claimed this listing and keeps it up to date.
+        : this listing is owned and managed directly by the facility.
       </p>
 
       <button

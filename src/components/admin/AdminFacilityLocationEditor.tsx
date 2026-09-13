@@ -252,6 +252,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
             : `${branches.length + 1} sites in total — this listing plus ${branches.length} ${branches.length === 1 ? "branch" : "branches"}.`
         }
         heading="Branches"
+        mainServices={Array.isArray(facility.services) ? (facility.services as string[]) : []}
         onChange={setBranches}
         renderCoordinateEditor={(branch, index, setCoordinates) => (
           <div className="rounded-lg border border-border bg-card p-3">

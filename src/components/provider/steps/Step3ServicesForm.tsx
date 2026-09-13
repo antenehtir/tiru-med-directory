@@ -980,6 +980,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 select weekdays, weekends, or all days.
               </p>
               <ScheduleBuilder
+                emphasize247={isHomeCare}
                 onChange={(rows) => {
                   setSchedule(rows);
                   autoSave({
