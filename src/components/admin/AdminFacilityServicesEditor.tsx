@@ -87,7 +87,15 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const showDiagLab = !isDiagnostic || diagnosticSubtype !== "imaging";
   const showDiagImaging = !isDiagnostic || diagnosticSubtype !== "lab";
 
-  const [services, setServices] = useState<string[]>(arr(facility.services));
+  // special_services is a leftover column from the original CSV import.
+  // Nothing here reads or writes it as its own field — it is folded into
+  // services on load so a value that only ever lived there becomes visible
+  // and removable, matching what the public page has always shown (it unions
+  // the two columns; this editor used to only manage one of them, which is
+  // why removing a service here could leave it still showing publicly).
+  const initialServices = Array.from(new Set([...arr(facility.services), ...arr(facility.special_services)]));
+  const hadSpecialServices = arr(facility.special_services).length > 0;
+  const [services, setServices] = useState<string[]>(initialServices);
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
   const [customServiceCategories, setCustomServiceCategories] = useState<CustomServiceCategories>(
     (facility.custom_service_categories as CustomServiceCategories) ?? {},
@@ -127,7 +135,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   // comma-separated string sitting in an array column, for instance, which
   // arr() would silently read as [] and then write back as [].
   const initial = useRef({
-    services: arr(facility.services),
+    services: initialServices,
     customServiceCategories:
       (facility.custom_service_categories as CustomServiceCategories) ?? {},
     paymentMethods: arr(facility.payment_methods),
@@ -246,7 +254,15 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
     }
 
     const fields: Record<string, unknown> = {};
-    if (!unchanged(services, before.services)) fields.services = services;
+    // hadSpecialServices forces both writes even when `services` itself did
+    // not change this save: the merge already happened on load (services
+    // holds the union), so what is left to do is retire the column that was
+    // hiding a value from this editor in the first place. Without this, an
+    // admin who opens the page, sees the merged list, and saves an unrelated
+    // field would leave special_services non-empty and the bug unfixed for
+    // that row.
+    if (hadSpecialServices || !unchanged(services, before.services)) fields.services = services;
+    if (hadSpecialServices) fields.special_services = [];
     if (!unchanged(prunedCustomCategories, before.customServiceCategories)) {
       fields.custom_service_categories = prunedCustomCategories;
     }

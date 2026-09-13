@@ -78,38 +78,86 @@ export const ADDIS_SUB_CITIES = [
 // every provider has to read. Three facilities and three pending claims hold
 // them; 052 keeps those values visible and editable rather than orphaning
 // them, the same way 051 handled Family Medicine.
+//
+// Alphabetical, not grouped. This list was ordered by rough clinical
+// workflow for a while (OPD first, then admission, then surgery, ...), which
+// reads fine to whoever wrote the grouping and is unreadable to anyone
+// scanning for one specific line in a list this long — the request that
+// undid it was literally "this is haphazard". Alphabetical is the one order
+// a provider can navigate without already knowing the list.
+//
+// Seven surgical department names moved OUT of SPECIALTIES and into this
+// list below: Colorectal Surgery, Endocrine and Breast Surgery, Hepatobiliary
+// Surgery, Maxillofacial Surgery, Plastic and Reconstructive Surgery, Trauma
+// Surgery and Vascular Surgery. A clinician's read on the mixed list: these
+// are procedure lines a General Surgery department performs, not
+// departments a facility in this directory organises itself around the way
+// it does around Cardiothoracic Surgery, Neurosurgery, Orthopedic Surgery or
+// General Surgery itself — which stayed in SPECIALTIES as the ones that
+// genuinely are separate departments here. Recategorise on the next pass if
+// that line was drawn in the wrong place; moving a string between these two
+// arrays needs no migration, since a facility's stored `services` value does
+// not care which checklist section renders it — PROVIDED the string itself
+// is untouched. These seven keep their original Title Case rather than
+// folding onto this list's first-word-cap style for exactly that reason:
+// Hallelujah and others already have "Colorectal Surgery" sitting in their
+// stored services array, ticked, and a recase here would have silently
+// un-ticked it — the string stops matching the checklist entry and falls to
+// the leftover "Additional Services" pile instead. Caught by reloading
+// Hallelujah's page after this edit and seeing exactly that happen.
 export const MAIN_SERVICES = [
-  "General OPD / Outpatient consultation",
-  "Specialist consultation",
-  "Emergency care",
-  "Inpatient admission",
-  "ICU",
-  "NICU",
+  "Ambulance service",
+  "ART clinic",
+  "Chronic disease follow-up",
+  "Colorectal Surgery",
   "Delivery / Maternity care",
-  "Minor surgery",
-  "Major surgery",
+  "Dental procedure",
+  "Dialysis",
+  "Emergency care",
+  "Endocrine and Breast Surgery",
+  "Executive / Comprehensive check-up",
+  "Eye care procedure",
+  "General OPD / Outpatient consultation",
+  "Hepatobiliary Surgery",
+  "ICU",
+  "Imaging / Radiology",
+  "Inpatient admission",
+  "Interventional cardiac procedures",
+  "Laboratory service",
   // Six facilities already advertise this and every one had to free-type it,
   // in four different spellings ("LAPAROSCOPY SURGERY", "Laparoscopic
   // Surgery", "Laparoscopic surgery", "Neuro-Vascular Laparoscopic Surgery").
   "Laparoscopic surgery",
-  "Dialysis",
-  "Dental procedure",
-  "Eye care procedure",
-  "Vaccination",
-  "Chronic disease follow-up",
-  "Executive / Comprehensive check-up",
-  "Telemedicine consultation",
-  "Laboratory service",
-  "Imaging / Radiology",
+  "Major surgery",
+  "Maxillofacial Surgery",
+  "Minor surgery",
+  "NICU",
   "Pharmacy service",
-  "Ambulance service",
+  "Plastic and Reconstructive Surgery",
+  "Specialist consultation",
+  "TB clinic",
+  "Telemedicine consultation",
+  "Trauma Surgery",
+  "Vaccination",
+  "Vascular Surgery",
 ] as const;
 
-// Ordered so a subspecialty sits directly under the parent a provider will
-// have just ticked, rather than alphabetically or by when it was added: the
-// list is read by someone scanning for their own department, and "Pediatric
-// Nephrology" is found next to Pediatrics, not eighteen pills away next to
-// Nephrology.
+// Alphabetical. This used to be ordered so a subspecialty sat directly under
+// the parent a provider had just ticked ("Pediatric Nephrology" found next to
+// Pediatrics rather than eighteen pills away next to Nephrology) — a
+// deliberate choice, but one that only works for someone who already knows
+// where their department sits in the list. Alphabetical is what actually
+// scans: find the letter, find the name. The pediatric cluster still reads
+// together as a side effect (every "Pediatric X" sorts next to the others,
+// just ahead of bare "Pediatrics"), so the one grouping worth keeping
+// survives without being the organising rule.
+//
+// Seven surgical department names — Colorectal Surgery, Endocrine and Breast
+// Surgery, Hepatobiliary Surgery, Maxillofacial Surgery, Plastic and
+// Reconstructive Surgery, Trauma Surgery, Vascular Surgery — moved to
+// MAIN_SERVICES (see the note there); General Surgery, Cardiothoracic Surgery,
+// Orthopedic Surgery, Neurosurgery and Pediatric Surgery stayed here as the
+// ones this directory's facilities actually organise a department around.
 //
 // The subspecialties here were not invented. Every one was typed by hand into
 // "Add a service not listed" by a real provider — thirteen of them by Lancet
@@ -137,52 +185,47 @@ export const MAIN_SERVICES = [
 // department answers. The compound name is now the only entry — see the note
 // above for why the solo halves were later removed as well.
 export const SPECIALTIES = [
+  "Anesthesiology",
+  "Cardiology",
+  "Cardiothoracic Surgery",
+  "Dental",
+  "Dermatology",
+  "Emergency Medicine",
+  "Endocrinology",
+  "ENT",
+  "Gastroenterology and Hepatology",
+  "General Surgery",
+  "Hematology",
+  "Infectious Diseases",
   "Internal Medicine",
-  "Pediatrics",
+  "MCH (Maternal and Child Health)",
+  "Neonatology",
+  "Nephrology",
+  "Neurology",
+  "Neurosurgery",
+  "Nutrition and Dietetics",
+  "Obstetrics and Gynecology",
+  "Oncology",
+  "Ophthalmology",
+  "Orthopedic Surgery",
+  "Orthopedics",
+  "Pathology",
   "Pediatric Cardiology",
   "Pediatric Infectious Diseases",
   "Pediatric Nephrology",
   "Pediatric Neurology",
   "Pediatric Oncology",
+  "Pediatric Orthopedic Surgery",
   "Pediatric Surgery",
-  "Obstetrics and Gynecology",
-  "General Surgery",
-  "Cardiothoracic Surgery",
-  "Colorectal Surgery",
-  "Endocrine and Breast Surgery",
-  "Hepatobiliary Surgery",
-  "Maxillofacial Surgery",
-  "Orthopedic Surgery",
-  "Plastic and Reconstructive Surgery",
-  "Trauma Surgery",
-  "Vascular Surgery",
-  "Orthopedics",
-  "Cardiology",
-  "Gastroenterology and Hepatology",
-  "Neurology",
-  "Neurosurgery",
-  "Psychiatry",
-  "Dermatology",
-  "ENT",
-  "Ophthalmology",
-  "Dental",
-  "Urology",
-  "Nephrology",
-  "Pulmonology and Critical Care Medicine",
-  "Endocrinology",
-  "Rheumatology",
-  "Infectious Diseases",
-  "Oncology",
-  "Hematology",
-  "Anesthesiology",
-  "Radiology",
-  "Pathology",
-  "Emergency Medicine",
+  "Pediatrics",
   "Physiotherapy",
-  "Nutrition and Dietetics",
+  "Psychiatry",
   "Psychology / Counseling",
+  "Pulmonology and Critical Care Medicine",
+  "Radiology",
+  "Rheumatology",
   "Speech and Language Therapy",
-  "MCH (Maternal and Child Health)",
+  "Urology",
 ] as const;
 
 export const PAYMENT_METHODS = [
@@ -196,15 +239,24 @@ export const PAYMENT_METHODS = [
   "Corporate credit agreement",
 ] as const;
 
-// Ordered by how a radiology department is organised — plain film, contrast
-// studies, cross-sectional, nuclear, cardiac, neuro and respiratory,
-// endoscopy, then the rest — rather than by when each entry was added. The
-// public page renders services in this order too, so the order is what a
-// reader sees.
+// Alphabetical. This used to be ordered by how a radiology department is
+// organised — plain film, contrast studies, cross-sectional, nuclear,
+// cardiac, neuro and respiratory, endoscopy, then the rest — which reads well
+// to a radiologist and asks everyone else to already know the department's
+// own layout to find anything in a thirty-line checklist. Alphabetical is
+// what a provider scanning for "their" test can actually navigate.
+//
+// Fetal Echocardiography and Paediatric Echocardiography stay separate
+// entries rather than folding into "Echocardiography": a clinic that scans a
+// fetus is not thereby a cardiac centre, and a mother sent for a fetal echo
+// needs to know which facilities actually do that one. HSG is spelt out
+// alongside the abbreviation because a patient holding a referral reads one
+// and a radiographer says the other.
 //
 // Everything below the original twenty was found in the live data, not
 // invented: each was free-typed by at least one facility because this list had
-// nowhere to put it.
+// nowhere to put it. Holter Monitor, Ambulatory BP Monitor, Stress ECG,
+// Obstetric Ultrasound and Sleep Study (PSG) are the newest of those.
 //
 // Trimmed back once the list was in front of a clinician. Seven entries came
 // out — IVP, CUG, Thyroid Scintigraphy, SPECT-CT, TOE, Cerebral Angiography
@@ -215,38 +267,37 @@ export const PAYMENT_METHODS = [
 // motivated them are still in the data and still searchable; they simply no
 // longer take a line each in a list every provider has to read.
 export const IMAGING_SERVICES = [
-  "X-Ray",
-  "Ultrasound",
-  "CT Scan",
-  "MRI",
-  "Mammography",
-  "Fluoroscopy",
-  // Contrast and fluoroscopic studies. Spelt out alongside the abbreviation
-  // because a patient holding a referral reads one and a radiographer says the
-  // other.
-  "HSG (Hysterosalpingography)",
+  "Ambulatory BP Monitor",
   "Barium Studies",
-  "DEXA Scan",
-  "PET Scan",
-  "Nuclear Medicine",
-  "Echocardiography",
-  // Separate entries rather than one "Echocardiography": a clinic that scans
-  // a fetus is not thereby a cardiac centre, and a mother sent for a fetal
-  // echo needs to know which facilities actually do that one.
-  "Fetal Echocardiography",
-  "Paediatric Echocardiography",
-  "ECG / EKG",
-  "EEG",
-  "Spirometry",
-  "Endoscopy",
-  "Colonoscopy",
-  "Bronchoscopy",
-  "Colposcopy",
-  "Doppler Ultrasound",
-  "Transient Elastography (FibroScan)",
   "Bone Marrow Biopsy",
-  "Interventional Radiology",
+  "Bronchoscopy",
+  "Colonoscopy",
+  "Colposcopy",
   "Coronary Angiography",
+  "CT Scan",
+  "DEXA Scan",
+  "Doppler Ultrasound",
+  "ECG / EKG",
+  "Echocardiography",
+  "EEG",
+  "Endoscopy",
+  "Fetal Echocardiography",
+  "Fluoroscopy",
+  "Holter Monitor",
+  "HSG (Hysterosalpingography)",
+  "Interventional Radiology",
+  "Mammography",
+  "MRI",
+  "Nuclear Medicine",
+  "Obstetric Ultrasound",
+  "Paediatric Echocardiography",
+  "PET Scan",
+  "Sleep Study (PSG)",
+  "Spirometry",
+  "Stress ECG",
+  "Transient Elastography (FibroScan)",
+  "Ultrasound",
+  "X-Ray",
 ] as const;
 
 // Each key is a panel a lab either runs or does not, which is how a lab

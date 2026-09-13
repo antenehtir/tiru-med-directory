@@ -3,7 +3,7 @@
 -- DRAFT. Not run.
 --
 -- Home visit, Travel medicine, Medical certificate and Blood bank are out of
--- MAIN_SERVICES. Three facilities and three pending claims still list them.
+-- MAIN_SERVICES. Two facilities and three pending claims still list them.
 --
 -- Removing a catalogue entry does NOT delete the stored value — it strands it.
 -- The string stays in `services`, so the public page keeps showing it under
@@ -17,21 +17,25 @@
 -- entry, so the listing is unchanged for a visitor and the provider or an
 -- admin can now remove it deliberately if they want to.
 --
--- ⚠ COUNTS AGE. These were measured shortly before writing and this database
--- is edited continuously. STEP 0 is the authority — if it disagrees with the
--- numbers below, believe STEP 0 and re-derive the rest.
+-- ⚠ COUNTS AGE. Re-measured against live data immediately before this
+-- walkthrough (the header below was already stale once — see project memory
+-- on this). STEP 0 is still the authority: if it disagrees with the numbers
+-- here, believe STEP 0 and stop.
 --
---   Home visit            1 facility,  2 claims
---   Travel medicine       1 facility,  2 claims
---   Medical certificate   2 facilities, 3 claims
---   Blood bank            2 facilities, 2 claims
---   distinct rows         3 facilities, 3 claims
+--   Hallelujah General Hospital   Travel medicine, Blood bank
+--   Prime Pediatric Clinic        Medical certificate
+--   distinct facility rows        2
+--
+--   Test center                        Travel medicine, Home visit, Medical certificate, Blood bank
+--   American Medical & MCH Center      Travel medicine, Home visit, Medical certificate, Blood bank
+--   Prime Pediatric Clinic (claim)     Medical certificate
+--   distinct claim rows                3
 -- ═══════════════════════════════════════════════════════════════════════════
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- STEP 0 — DRY RUN. Changes nothing. Run first.
--- Expect: 3 facility rows and 3 claim rows, listing which of the four each
+-- Expect: 2 facility rows and 3 claim rows, listing which of the four each
 -- holds and what custom entries it already has.
 -- ═══════════════════════════════════════════════════════════════════════════
 
@@ -70,7 +74,7 @@ order  by kind, name;
 -- registered, so re-running matches nothing and existing custom entries
 -- survive.
 --
--- Expect: UPDATE 3
+-- Expect: UPDATE 2
 -- ═══════════════════════════════════════════════════════════════════════════
 
 update facilities f

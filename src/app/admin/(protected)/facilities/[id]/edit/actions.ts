@@ -95,12 +95,16 @@ async function logFacilityEdit(
 }
 
 const SERVICES_COLUMNS =
-  "name, services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype, closed_on_public_holidays";
+  "name, services, special_services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype, closed_on_public_holidays";
 
 // Every key is optional: the editor sends only what the admin actually
 // changed, so an untouched column is never overwritten with a UI default.
 type FacilityServicesFields = {
   services?: string[];
+  // Legacy CSV-import column. The editor only ever sends an empty array here
+  // — see AdminFacilityServicesEditor's hadSpecialServices — retiring it into
+  // services rather than managing it as a field of its own.
+  special_services?: string[];
   custom_service_categories?: Record<string, string[]>;
   schedule?: unknown;
   working_hours?: string;

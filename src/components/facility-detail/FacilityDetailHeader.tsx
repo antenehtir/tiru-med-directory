@@ -193,7 +193,12 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
           </div>
         )}
         {facility.logoUrl ? <img alt={`${facility.name} logo`} className="absolute bottom-3 left-3 size-16 rounded-full border-2 border-card object-cover shadow-md sm:size-20" src={facility.logoUrl} /> : null}
-        <div className="absolute right-3 top-3 drop-shadow-sm"><VerificationBadge size="lg" status={facility.verificationStatus} /></div>
+        {/* compact: the full phrase already has a section of its own further
+            down this page (FacilityTrustSection), which is where the legend
+            defining "CS"/"FM" lives — VerificationBadge's own contract for
+            when compact is safe to use. A hero badge spelling out "Community
+            sourced" over a photo took more room than the signal was worth. */}
+        <div className="absolute right-3 top-3 drop-shadow-sm"><VerificationBadge compact size="lg" status={facility.verificationStatus} /></div>
       </div>
 
       <div className="mt-5 min-w-0 sm:mt-6">
