@@ -17,11 +17,14 @@ type UseFacilitySuggestionsOptions = {
   // specialist matches, only general search (homepage hero + /search page)
   // opts in.
   includeSpecialists?: boolean;
-  // Also off by default, and for a different reason: a service row is a
-  // shortcut to running a query, which is only useful where the dropdown is
-  // the way to reach results. The homepage hero opts in. /search filters
-  // live, so its own results are already the answer, and the claim flow is
-  // looking for one specific facility, not a category of care.
+  // Off by default for the claim flow, which is looking for one specific
+  // facility, not a category of care. The homepage hero and /search's own
+  // search bar both opt in — /search filters live, so a service row there is
+  // a shortcut into the same list rather than a second engine, but leaving
+  // it off made the dropdown say "No results match" for a term the list
+  // below was already matching (typing "Lap" found nothing to suggest even
+  // though Laparoscopic-surgery facilities were already showing), which read
+  // as the search being broken.
   includeServices?: boolean;
 };
 

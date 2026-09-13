@@ -1,3 +1,7 @@
+"use client";
+
+import { useId, useState } from "react";
+import { Pill } from "@/components/ui/Pill";
 import { CollapsiblePillList } from "./CollapsiblePillList";
 import { CollapsibleServiceGroup } from "./CollapsibleServiceGroup";
 import { groupFacilityServices } from "@/lib/facility/service-groups";
@@ -8,13 +12,67 @@ type FacilityServicesSectionProps = {
   facility: Facility;
 };
 
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" className="size-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m16.5 16.5 4 4" />
+    </svg>
+  );
+}
+
+// Every named section this facility page can show, flattened to
+// {label, items} pairs — the lab's two levels collapse into one, tagged with
+// the panel name, since a searcher typing "CBC" cares which panel has it,
+// not that the parent section is called "Laboratory tests".
+type SearchableSection = { label: string; items: string[] };
+
+function buildSearchIndex(
+  medicalSpecialties: string[],
+  groups: ReturnType<typeof groupFacilityServices>,
+): SearchableSection[] {
+  const sections: SearchableSection[] = [];
+  if (medicalSpecialties.length > 0) {
+    sections.push({ label: "Clinical specialties", items: medicalSpecialties });
+  }
+  for (const group of groups) {
+    if (group.subgroups) {
+      for (const sub of group.subgroups) sections.push({ label: sub.label, items: sub.services });
+    } else if (group.services.length > 0) {
+      sections.push({ label: group.label, items: group.services });
+    }
+  }
+  return sections;
+}
+
 export function FacilityServicesSection({ facility }: FacilityServicesSectionProps) {
+  const [query, setQuery] = useState("");
+  const inputId = useId();
   const groups = groupFacilityServices(facility);
   const medicalSpecialties = absorbCompoundSpecialties(
     getFacilityMedicalSpecialties(facility.services),
   );
+  // Matches AdminFacilityServicesEditor's isDiagnostic gate — same category
+  // string, same reasoning: this is the one facility type whose page IS the
+  // lab, so the panel list should not cost a visitor an extra tap to see.
+  const isDiagnosticCenter = facility.category === "Diagnostic Center";
 
   if (groups.length === 0 && medicalSpecialties.length === 0) return null;
+
+  const trimmedQuery = query.trim().toLowerCase();
+  const isSearching = trimmedQuery.length > 0;
+  // Built either way, but only walked when a query exists — computing it up
+  // front rather than inside a useMemo is fine here: the list a facility page
+  // carries tops out in the hundreds of strings, not a size where this costs
+  // anything a visitor would notice.
+  const searchResults = isSearching
+    ? buildSearchIndex(medicalSpecialties, groups)
+        .map((section) => ({
+          label: section.label,
+          items: section.items.filter((item) => item.toLowerCase().includes(trimmedQuery)),
+        }))
+        .filter((section) => section.items.length > 0)
+    : [];
 
   return (
     <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
@@ -28,21 +86,66 @@ export function FacilityServicesSection({ facility }: FacilityServicesSectionPro
         </p>
       </div>
 
-      <div className="mt-5 grid gap-5">
-        <CollapsiblePillList items={medicalSpecialties} label="Clinical specialties" />
-
-        {groups.map((group) =>
-          group.subgroups ? (
-            <CollapsibleServiceGroup
-              key={group.label}
-              label={group.label}
-              subgroups={group.subgroups}
-            />
-          ) : (
-            <CollapsiblePillList items={group.services} key={group.label} label={group.label} />
-          ),
-        )}
+      <div className="relative mt-4 max-w-sm">
+        <label className="sr-only" htmlFor={inputId}>Search this facility&apos;s services and specialties</label>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><SearchIcon /></span>
+        <input
+          className="min-h-11 w-full rounded-control border border-border bg-background pl-9 pr-9 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+          id={inputId}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search this facility's services..."
+          type="text"
+          value={query}
+        />
+        {query ? (
+          <button
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            onClick={() => setQuery("")}
+            type="button"
+          >
+            ×
+          </button>
+        ) : null}
       </div>
+
+      {isSearching ? (
+        <div className="mt-5 grid gap-5">
+          {searchResults.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No service or specialty here matches &ldquo;{query.trim()}&rdquo;.
+            </p>
+          ) : (
+            searchResults.map((section) => (
+              <div key={section.label}>
+                <p className="mb-2.5 text-sm font-semibold text-foreground">{section.label}</p>
+                <div className="flex flex-wrap gap-2">
+                  {section.items.map((item) => (
+                    <Pill key={item} variant="default">{item}</Pill>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-5">
+          <CollapsiblePillList items={medicalSpecialties} label="Clinical specialties" />
+
+          {groups.map((group) =>
+            group.subgroups ? (
+              <CollapsibleServiceGroup
+                defaultOpen={isDiagnosticCenter}
+                key={group.label}
+                label={group.label}
+                subgroups={group.subgroups}
+              />
+            ) : (
+              <CollapsiblePillList items={group.services} key={group.label} label={group.label} />
+            ),
+          )}
+        </div>
+      )}
     </section>
   );
 }

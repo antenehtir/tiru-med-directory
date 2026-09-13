@@ -66,11 +66,18 @@ function LabPanel({ label, services }: Subgroup) {
 export function CollapsibleServiceGroup({
   label,
   subgroups,
+  defaultOpen = false,
 }: {
   label: string;
   subgroups: Subgroup[];
+  // Open on arrival for a facility whose main business this is — a
+  // Diagnostic Center's page collapsed behind one more tap than any of its
+  // other sections, which buried the one thing a visitor came to check. A
+  // general hospital's lab stays closed: it is one of many sections there,
+  // not the reason the page exists.
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
 
   if (subgroups.length === 0) return null;

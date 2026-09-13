@@ -58,8 +58,16 @@ export function ListingSearchBar({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  // includeServices matches the homepage hero now: typing "Lap" used to hit
+  // this dropdown's own "No results match" message even though the results
+  // list below it was already showing Laparoscopic-surgery facilities — the
+  // dropdown just had nothing of its own to say about a service term. A
+  // service row here is a shortcut into the same live-filtered list, not a
+  // second search engine, so turning it on costs nothing this page doesn't
+  // already do.
   const { suggestions, isLoading } = useFacilitySuggestions(localQuery, {
     includeSpecialists: true,
+    includeServices: true,
   });
 
   if (searchValue !== prevSearchValue) {

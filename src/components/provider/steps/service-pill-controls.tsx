@@ -1,8 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
-import { BASIC_LAB_CATEGORIES } from "@/lib/provider/onboarding-config";
+import { ALL_BASIC_LAB_TESTS, BASIC_LAB_CATEGORIES } from "@/lib/provider/onboarding-config";
+
+// Case-insensitive exact match against a catalogue list, returning the
+// list's own spelling (not the typed one) so a match ticks the real pill
+// rather than adding a differently-cased duplicate. Typing "dialysis" and
+// picking the suggestion should tick "Dialysis", not add a second, lower-case
+// "dialysis" chip next to it.
+function findKnownMatch(input: string, options: readonly string[]): string | undefined {
+  const needle = input.trim().toLowerCase();
+  if (!needle) return undefined;
+  return options.find((o) => o.toLowerCase() === needle);
+}
 
 // Shared pill-selector UI — header with Select all/Deselect all, pill grid,
 // and the "Add service not listed" custom free-fill input. Extracted out of
@@ -34,6 +45,13 @@ export function PillSelector({
   onRemoveCustom?: (value: string) => void;
 }) {
   const allSelected = options.every((o) => services.includes(o));
+  const datalistId = useId();
+  // A typed value that already names a catalogue entry ticks that pill
+  // instead of filing a duplicate free-text chip — the point of the
+  // datalist is to let someone find and select the real entry rather than
+  // re-typing it as a new one.
+  const knownMatch = findKnownMatch(customValue, options);
+  const submit = () => (knownMatch ? onToggle(knownMatch) : onCustomAdd());
 
   return (
     <div className="mb-5">
@@ -62,24 +80,33 @@ export function PillSelector({
       <div className="mt-3 flex gap-2">
         <input
           className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          list={datalistId}
           onChange={(e) => onCustomChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              onCustomAdd();
+              submit();
             }
           }}
-          placeholder="Add a service not listed..."
+          placeholder="Add a service not listed, or search the list above..."
           type="text"
           value={customValue}
         />
+        <datalist id={datalistId}>
+          {options.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
         <button
           className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-          disabled={!customValue.trim() || services.includes(customValue.trim())}
-          onClick={onCustomAdd}
+          disabled={
+            !customValue.trim() ||
+            (knownMatch ? services.includes(knownMatch) : services.includes(customValue.trim()))
+          }
+          onClick={submit}
           type="button"
         >
-          Add
+          {knownMatch && services.includes(knownMatch) ? "Already added" : "Add"}
         </button>
       </div>
 
@@ -126,6 +153,12 @@ export function BasicLabCategoryCard({
 }) {
   const allSelected = tests.every((t) => services.includes(t));
   const selectedCount = tests.filter((t) => services.includes(t)).length;
+  const datalistId = useId();
+  // Matched against every lab test, not just this panel's: a test typed here
+  // that actually lives in a different panel should still tick the real
+  // entry there rather than file a duplicate under this one.
+  const knownMatch = findKnownMatch(customValue, ALL_BASIC_LAB_TESTS);
+  const submit = () => (knownMatch ? onToggleTest(knownMatch) : onCustomAdd());
 
   return (
     <div className="rounded-xl border border-border bg-background p-4">
@@ -171,24 +204,33 @@ export function BasicLabCategoryCard({
       <div className="mt-3 flex gap-2">
         <input
           className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          list={datalistId}
           onChange={(e) => onCustomChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              onCustomAdd();
+              submit();
             }
           }}
-          placeholder={`Add other ${category} test...`}
+          placeholder={`Add other ${category} test, or search all tests...`}
           type="text"
           value={customValue}
         />
+        <datalist id={datalistId}>
+          {ALL_BASIC_LAB_TESTS.map((test) => (
+            <option key={test} value={test} />
+          ))}
+        </datalist>
         <button
           className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-          disabled={!customValue.trim() || services.includes(customValue.trim())}
-          onClick={onCustomAdd}
+          disabled={
+            !customValue.trim() ||
+            (knownMatch ? services.includes(knownMatch) : services.includes(customValue.trim()))
+          }
+          onClick={submit}
           type="button"
         >
-          Add
+          {knownMatch && services.includes(knownMatch) ? "Already added" : "Add"}
         </button>
       </div>
 
@@ -247,10 +289,16 @@ export function BasicLabSelector({
   // that forgets the prop gets the safe (collapsed) behaviour.
   const otherKey = "basiclab-other-test";
   const [open, setOpen] = useState(defaultOpen);
+  const otherDatalistId = useId();
 
   const selectedCount = Object.values(BASIC_LAB_CATEGORIES)
     .flat()
     .filter((test) => services.includes(test)).length;
+  const otherValue = customInputs[otherKey] ?? "";
+  // A value typed here that actually belongs to a panel above ticks that
+  // pill instead of filing a same-named "other" entry next to it.
+  const otherKnownMatch = findKnownMatch(otherValue, ALL_BASIC_LAB_TESTS);
+  const submitOther = () => (otherKnownMatch ? onToggleTest(otherKnownMatch) : onCustomAdd(otherKey));
 
   return (
     <div className="mb-5">
@@ -321,27 +369,33 @@ export function BasicLabSelector({
         <div className="flex gap-2">
           <input
             className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            list={otherDatalistId}
             onChange={(e) => onCustomChange(otherKey, e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                onCustomAdd(otherKey);
+                submitOther();
               }
             }}
-            placeholder="Add a test that doesn't fit any category above..."
+            placeholder="Add a test that doesn't fit any category above, or search all tests..."
             type="text"
-            value={customInputs[otherKey] ?? ""}
+            value={otherValue}
           />
+          <datalist id={otherDatalistId}>
+            {ALL_BASIC_LAB_TESTS.map((test) => (
+              <option key={test} value={test} />
+            ))}
+          </datalist>
           <button
             className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
             disabled={
-              !(customInputs[otherKey] ?? "").trim() ||
-              services.includes((customInputs[otherKey] ?? "").trim())
+              !otherValue.trim() ||
+              (otherKnownMatch ? services.includes(otherKnownMatch) : services.includes(otherValue.trim()))
             }
-            onClick={() => onCustomAdd(otherKey)}
+            onClick={submitOther}
             type="button"
           >
-            Add
+            {otherKnownMatch && services.includes(otherKnownMatch) ? "Already added" : "Add"}
           </button>
         </div>
 

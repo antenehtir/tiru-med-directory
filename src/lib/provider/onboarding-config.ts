@@ -85,40 +85,17 @@ export const ADDIS_SUB_CITIES = [
 // scanning for one specific line in a list this long — the request that
 // undid it was literally "this is haphazard". Alphabetical is the one order
 // a provider can navigate without already knowing the list.
-//
-// Seven surgical department names moved OUT of SPECIALTIES and into this
-// list below: Colorectal Surgery, Endocrine and Breast Surgery, Hepatobiliary
-// Surgery, Maxillofacial Surgery, Plastic and Reconstructive Surgery, Trauma
-// Surgery and Vascular Surgery. A clinician's read on the mixed list: these
-// are procedure lines a General Surgery department performs, not
-// departments a facility in this directory organises itself around the way
-// it does around Cardiothoracic Surgery, Neurosurgery, Orthopedic Surgery or
-// General Surgery itself — which stayed in SPECIALTIES as the ones that
-// genuinely are separate departments here. Recategorise on the next pass if
-// that line was drawn in the wrong place; moving a string between these two
-// arrays needs no migration, since a facility's stored `services` value does
-// not care which checklist section renders it — PROVIDED the string itself
-// is untouched. These seven keep their original Title Case rather than
-// folding onto this list's first-word-cap style for exactly that reason:
-// Hallelujah and others already have "Colorectal Surgery" sitting in their
-// stored services array, ticked, and a recase here would have silently
-// un-ticked it — the string stops matching the checklist entry and falls to
-// the leftover "Additional Services" pile instead. Caught by reloading
-// Hallelujah's page after this edit and seeing exactly that happen.
 export const MAIN_SERVICES = [
   "Ambulance service",
   "ART clinic",
   "Chronic disease follow-up",
-  "Colorectal Surgery",
   "Delivery / Maternity care",
   "Dental procedure",
   "Dialysis",
   "Emergency care",
-  "Endocrine and Breast Surgery",
   "Executive / Comprehensive check-up",
   "Eye care procedure",
   "General OPD / Outpatient consultation",
-  "Hepatobiliary Surgery",
   "ICU",
   "Imaging / Radiology",
   "Inpatient admission",
@@ -129,17 +106,13 @@ export const MAIN_SERVICES = [
   // Surgery", "Laparoscopic surgery", "Neuro-Vascular Laparoscopic Surgery").
   "Laparoscopic surgery",
   "Major surgery",
-  "Maxillofacial Surgery",
   "Minor surgery",
   "NICU",
   "Pharmacy service",
-  "Plastic and Reconstructive Surgery",
   "Specialist consultation",
   "TB clinic",
   "Telemedicine consultation",
-  "Trauma Surgery",
   "Vaccination",
-  "Vascular Surgery",
 ] as const;
 
 // Alphabetical. This used to be ordered so a subspecialty sat directly under
@@ -151,13 +124,6 @@ export const MAIN_SERVICES = [
 // together as a side effect (every "Pediatric X" sorts next to the others,
 // just ahead of bare "Pediatrics"), so the one grouping worth keeping
 // survives without being the organising rule.
-//
-// Seven surgical department names — Colorectal Surgery, Endocrine and Breast
-// Surgery, Hepatobiliary Surgery, Maxillofacial Surgery, Plastic and
-// Reconstructive Surgery, Trauma Surgery, Vascular Surgery — moved to
-// MAIN_SERVICES (see the note there); General Surgery, Cardiothoracic Surgery,
-// Orthopedic Surgery, Neurosurgery and Pediatric Surgery stayed here as the
-// ones this directory's facilities actually organise a department around.
 //
 // The subspecialties here were not invented. Every one was typed by hand into
 // "Add a service not listed" by a real provider — thirteen of them by Lancet
@@ -188,16 +154,20 @@ export const SPECIALTIES = [
   "Anesthesiology",
   "Cardiology",
   "Cardiothoracic Surgery",
+  "Colorectal Surgery",
   "Dental",
   "Dermatology",
   "Emergency Medicine",
+  "Endocrine and Breast Surgery",
   "Endocrinology",
   "ENT",
   "Gastroenterology and Hepatology",
   "General Surgery",
   "Hematology",
+  "Hepatobiliary Surgery",
   "Infectious Diseases",
   "Internal Medicine",
+  "Maxillofacial Surgery",
   "MCH (Maternal and Child Health)",
   "Neonatology",
   "Nephrology",
@@ -211,6 +181,8 @@ export const SPECIALTIES = [
   "Orthopedics",
   "Pathology",
   "Pediatric Cardiology",
+  "Pediatric Emergency",
+  "Pediatric Endocrinology",
   "Pediatric Infectious Diseases",
   "Pediatric Nephrology",
   "Pediatric Neurology",
@@ -219,13 +191,16 @@ export const SPECIALTIES = [
   "Pediatric Surgery",
   "Pediatrics",
   "Physiotherapy",
+  "Plastic and Reconstructive Surgery",
   "Psychiatry",
   "Psychology / Counseling",
   "Pulmonology and Critical Care Medicine",
   "Radiology",
   "Rheumatology",
   "Speech and Language Therapy",
+  "Trauma Surgery",
   "Urology",
+  "Vascular Surgery",
 ] as const;
 
 export const PAYMENT_METHODS = [
