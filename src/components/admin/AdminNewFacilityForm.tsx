@@ -18,12 +18,6 @@ import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
 const inputClass =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
 
-// Sub-cities a facility can span. "Multiple" is the answer for a chain, and
-// answering it opens the list below rather than ending the question there —
-// the live data already stores these as "lideta / arada", so the tick boxes
-// produce the format the rest of the app has always read.
-const REAL_SUB_CITIES = ADDIS_SUB_CITIES.filter((s) => s !== "Multiple");
-
 export function AdminNewFacilityForm() {
   const [state, formAction, isPending] = useActionState<CreateFacilityResult, FormData>(
     createFacility,
@@ -35,7 +29,6 @@ export function AdminNewFacilityForm() {
   // resolves it to the category actually stored.
   const [category, setCategory] = useState("");
   const [subCity, setSubCity] = useState("");
-  const [subCities, setSubCities] = useState<string[]>([]);
   const [specialties, setSpecialties] = useState<string[]>([]);
 
   const choice = resolveCategoryChoice(category);
@@ -46,7 +39,6 @@ export function AdminNewFacilityForm() {
   // Complex without naming them one at a time.
   const isSpecialty =
     choice?.stores === "Specialty Center" || choice?.stores === "Medical Plaza";
-  const isMultipleSubCity = subCity === "Multiple";
 
   function toggle(list: string[], value: string) {
     return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -261,45 +253,6 @@ export function AdminNewFacilityForm() {
               ))}
             </select>
           </div>
-
-          {isMultipleSubCity && (
-            <div className="rounded-xl border border-border bg-background p-4">
-              <p className="text-sm font-semibold text-foreground">Which sub-cities?</p>
-              <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
-                Tick each one this facility has a site in. Saying only
-                &ldquo;Multiple&rdquo; tells a patient nothing about whether one
-                of them is near them.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {REAL_SUB_CITIES.map((name) => {
-                  const on = subCities.includes(name);
-                  return (
-                    <button
-                      className={[
-                        "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                        on
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-foreground hover:bg-muted",
-                      ].join(" ")}
-                      key={name}
-                      onClick={() => setSubCities((prev) => toggle(prev, name))}
-                      type="button"
-                    >
-                      {name}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Slash-separated, matching what the live rows already hold
-                  ("lideta / arada") and what mapDBRowToFacility splits on. */}
-              <input name="sub_cities" type="hidden" value={subCities.join(" / ")} />
-              {subCities.length > 0 && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Saved as “{subCities.join(" / ")}”
-                </p>
-              )}
-            </div>
-          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="area">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { PhoneIcon } from "@/components/cards/contact-icons";
 import { createTelHref, splitPhoneNumbers } from "@/lib/contact-actions";
 import { subCityLabel } from "@/lib/format-location";
@@ -36,14 +37,24 @@ function BranchPhones({ phone, phone2 }: { phone: string; phone2?: string }) {
   );
 }
 
-function BranchDetailRow({ branch, mainServices }: { branch: FacilityBranch; mainServices: string[] }) {
-  const [open, setOpen] = useState(false);
+function BranchDetailRow({
+  branch,
+  mainServices,
+  highlighted,
+}: {
+  branch: FacilityBranch;
+  mainServices: string[];
+  highlighted: boolean;
+}) {
+  const [open, setOpen] = useState(highlighted);
   const panelId = useId();
+  const additional = branch.additionalServices ?? [];
   const hasDetail =
     Boolean(branch.phone || branch.phone_2) ||
     Boolean(branch.subCity) ||
     branch.schedule != null ||
-    mainServices.length > 0;
+    mainServices.length > 0 ||
+    additional.length > 0;
 
   const excluded = branch.excludedServices ?? [];
   const servicesLine =
@@ -52,9 +63,20 @@ function BranchDetailRow({ branch, mainServices }: { branch: FacilityBranch; mai
       : excluded.length === 0
         ? "Offers the same services as the main listing."
         : `Offers the same services as the main listing, except: ${excluded.join(", ")}. Visit the main branch for those.`;
+  const additionalServicesLine =
+    additional.length === 0 ? null : `Also offers here (not at the main branch): ${additional.join(", ")}.`;
 
   return (
-    <div className="border-b border-border py-2 last:border-0">
+    <div
+      className={`border-b border-border px-2 py-2 last:border-0 ${
+        highlighted ? "rounded-lg bg-primary/5 ring-1 ring-primary/30" : ""
+      }`}
+    >
+      {highlighted ? (
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          The branch you were shown as nearby
+        </p>
+      ) : null}
       <div className="flex items-center justify-between gap-2">
         <button
           aria-controls={hasDetail ? panelId : undefined}
@@ -82,6 +104,15 @@ function BranchDetailRow({ branch, mainServices }: { branch: FacilityBranch; mai
           ) : branch.name && branch.area ? (
             <p className="text-xs text-muted-foreground/70">{branch.area}</p>
           ) : null}
+          {/* The chevron alone was easy to miss — nothing about a small
+              rotated arrow on a text row reads as "there is more here" at a
+              glance, especially on a touch screen with no hover state to
+              reveal it. Spelling out what tapping reveals is a stronger,
+              more standard affordance than a bigger or bolder icon would
+              have been. */}
+          {hasDetail && !open ? (
+            <p className="mt-0.5 text-xs font-medium text-primary">Tap for phone, hours & services →</p>
+          ) : null}
         </button>
         {branch.maps_link ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={branch.maps_link} rel="noopener noreferrer" target="_blank">Map →</a> : null}
       </div>
@@ -98,6 +129,7 @@ function BranchDetailRow({ branch, mainServices }: { branch: FacilityBranch; mai
               : "Same hours as the main listing."}
           </p>
           {servicesLine ? <p className="mt-2 text-xs text-muted-foreground">{servicesLine}</p> : null}
+          {additionalServicesLine ? <p className="mt-2 text-xs text-muted-foreground">{additionalServicesLine}</p> : null}
         </div>
       ) : null}
     </div>
@@ -118,11 +150,26 @@ export function FacilityBranchList({
   branches: FacilityBranch[];
   mainServices: string[];
 }) {
+  // Set by FacilityCard when this page was reached because a specific
+  // branch, not the main listing, was the nearest point on /nearby —
+  // carried across as a query param since that is the only channel a plain
+  // navigation between two independent pages has. Matched case-
+  // insensitively against name-or-area, the same fallback BranchDetailRow's
+  // own title line already uses, so it still lines up for a branch with no
+  // name of its own.
+  const highlightedBranch = useSearchParams().get("branch");
+
   return (
     <div className="flex flex-col">
-      {branches.map((branch, index) => (
-        <BranchDetailRow branch={branch} key={index} mainServices={mainServices} />
-      ))}
+      {branches.map((branch, index) => {
+        const label = branch.name || branch.area;
+        const highlighted = Boolean(
+          highlightedBranch && label && label.toLowerCase() === highlightedBranch.toLowerCase(),
+        );
+        return (
+          <BranchDetailRow branch={branch} highlighted={highlighted} key={index} mainServices={mainServices} />
+        );
+      })}
     </div>
   );
 }

@@ -30,8 +30,7 @@ export async function createFacility(
 
   const name = String(formData.get("name") ?? "").trim();
   const categoryLabel = String(formData.get("category") ?? "").trim();
-  const chosenSubCity = String(formData.get("sub_city") ?? "").trim();
-  const tickedSubCities = String(formData.get("sub_cities") ?? "").trim();
+  const subCity = String(formData.get("sub_city") ?? "").trim();
   const area = String(formData.get("area") ?? "").trim();
   const phonesRaw = String(formData.get("phones") ?? "");
   const rawSubtype = String(formData.get("diagnostic_subtype") ?? "").trim();
@@ -89,12 +88,6 @@ export async function createFacility(
   if (isSpecialty && specialties.length === 0) {
     return { error: "Tick at least one specialty." };
   }
-
-  // "Multiple" on its own tells a patient nothing. When the sub-cities were
-  // ticked, store them in the slash-separated form the live rows already use
-  // and mapDBRowToFacility already splits on.
-  const subCity =
-    chosenSubCity === "Multiple" && tickedSubCities ? tickedSubCities : chosenSubCity;
 
   const phones = phonesRaw
     .split("\n")

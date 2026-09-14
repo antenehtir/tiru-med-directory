@@ -86,6 +86,11 @@ export type FacilityBranch = {
   // automatically; an admin/provider only ever has to say what's missing
   // at one particular site, never retype what's the same everywhere.
   excludedServices?: string[];
+  // The reverse case: something this branch offers that the main listing
+  // does not. A branch is not required to be a strict subset of the main
+  // site — a Bole branch that added an MRI suite the main location never
+  // got is a real, reported shape, not an edge case.
+  additionalServices?: string[];
 };
 
 export type Facility = {
@@ -129,6 +134,14 @@ export type Facility = {
   paymentMethods?: string[];
   insuranceNote?: string | null;
   patientGroups?: string[];
+  /** Collected in onboarding (Step 1) alongside patientGroups, but never
+   *  read into this type until now — the facility page had "languages
+   *  spoken" data on file for every listing that answered it and nowhere
+   *  to show it. */
+  languages?: string[];
+  /** Free text — parking, wheelchair access, elevator, entrance directions.
+   *  Same gap as languages: collected in Step 2, never surfaced publicly. */
+  accessNotes?: string | null;
   /** Additional locations beyond the primary one — the entry-count a
    *  provider chose during onboarding (2, "more than 6", etc.), one less
    *  than the number of physical branches since the primary location isn't

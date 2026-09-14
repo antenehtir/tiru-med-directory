@@ -60,6 +60,8 @@ type DBFacility = {
   payment_methods: unknown;
   insurance_note: string | null;
   patient_groups: unknown;
+  languages: unknown;
+  access_notes: string | null;
   updated_at: string | null;
   branch_count: number | null;
   branches: unknown;
@@ -222,6 +224,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,
     patientGroups: toStringArray(row.patient_groups),
+    languages: toStringArray(row.languages),
+    accessNotes: row.access_notes ?? null,
     branchCount: row.branch_count ?? undefined,
     branches: Array.isArray(row.branches) ? (row.branches as FacilityBranch[]) : undefined,
   };

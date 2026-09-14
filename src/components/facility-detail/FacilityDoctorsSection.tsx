@@ -48,9 +48,22 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
   const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
 
   return (
-    <div className="flex gap-4 rounded-card border border-border bg-background p-5 shadow-card transition hover:shadow-lift sm:flex-row">
+    <div className="group relative isolate flex gap-4 rounded-card border border-border bg-background p-5 shadow-card transition hover:shadow-lift sm:flex-row">
+      {/* Tapping anywhere on the card used to do nothing — only the small
+          "View full profile" text at the bottom was a link, which on a
+          touch screen is an easy miss on a card this size. Same overlay-link
+          technique FacilityCard already uses: this sits at the back
+          (z-0), everything else renders in front of it (z-10 below), so a
+          tap on the bio's own "Show more" button or the profile link still
+          reaches that element first and only a tap on the empty card
+          background falls through to this. */}
+      <Link
+        aria-label={`View ${formatDoctorDisplayName(doctor.title, doctor.full_name)}'s profile`}
+        className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        href={`/specialists/${profileSlug}`}
+      />
       {/* Photo / initials avatar */}
-      <div className="shrink-0">
+      <div className="relative z-10 shrink-0">
         {doctor.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -66,7 +79,7 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
       </div>
 
       {/* Details */}
-      <div className="min-w-0 flex-1">
+      <div className="relative z-10 min-w-0 flex-1">
         <p className="text-base font-semibold leading-tight text-foreground">
           {formatDoctorDisplayName(doctor.title, doctor.full_name)}
         </p>

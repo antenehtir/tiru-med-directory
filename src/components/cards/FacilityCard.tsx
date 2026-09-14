@@ -20,7 +20,18 @@ const MAX_VISIBLE_SERVICE_PILLS = 3;
 // explanation, the badge earns it. See VerificationBadge for why the common
 // state is the quiet one.
 
-type FacilityCardProps = { facility: Facility; distanceLabel?: string; highlightLabel?: string };
+type FacilityCardProps = {
+  facility: Facility;
+  distanceLabel?: string;
+  highlightLabel?: string;
+  // Set only when the distance above was measured from a BRANCH, not the
+  // main listing — /nearby now checks every branch's own coordinates, not
+  // only the main pin, so a facility whose branch is two blocks away and
+  // whose main site is across town surfaces correctly. Without naming which
+  // site that distance is actually to, a visitor would tap through expecting
+  // the branch and land on the main location's own address instead.
+  nearestBranchName?: string;
+};
 type FacilityBannerProps = { facility: Facility; heightClassName?: string };
 
 export function FacilityBanner({ facility, heightClassName }: FacilityBannerProps) {
@@ -103,8 +114,17 @@ function StatRow({ facility }: { facility: Facility }) {
   return <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldIcon className="size-3.5 shrink-0 text-primary/70" />Insurance accepted</div>;
 }
 
-export function FacilityCard({ facility, distanceLabel, highlightLabel }: FacilityCardProps) {
-  const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
+export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestBranchName }: FacilityCardProps) {
+  // Carries which branch this card was actually found through onto the
+  // detail page, which auto-opens and highlights that same branch's row
+  // (see FacilityBranchList) — without this, "Bole Branch is the nearest
+  // branch" on the card would land on a page giving no visual sign of which
+  // of possibly several branches that was.
+  const detailHref = facility.detailHref
+    ? facility.detailHref
+    : nearestBranchName
+      ? `/facilities/${facility.slug}?branch=${encodeURIComponent(nearestBranchName)}`
+      : `/facilities/${facility.slug}`;
   // The sub-city already has its own pill directly above this line, so
   // printing "abenet, lideta" under a "Lideta" chip said it twice and made the
   // tail of the address look like part of the street. Only the street half is
@@ -151,6 +171,12 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel }: Facili
           {distanceLabel ? <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-soft-accent px-2.5 py-1 text-[13px] font-bold leading-none text-primary"><MapPinIcon className="size-3.5 shrink-0" />{distanceLabel}</span> : null}
         </div>
         <Link className="pointer-events-auto mt-1.5 line-clamp-2 min-h-[2.3em] break-words font-display text-[19px] font-semibold leading-[1.15] text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} title={facility.name}>{facility.name}</Link>
+        {nearestBranchName ? (
+          <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-primary">
+            <MapPinIcon className="size-3 shrink-0" />
+            {nearestBranchName} is the nearest branch
+          </p>
+        ) : null}
         {/* One locality slot, never empty and never a placeholder gap.
             Location is optional, so most cards carry no distance most of the
             time: the slot shows the sub-city then, and swaps to the distance

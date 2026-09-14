@@ -191,20 +191,53 @@ export function NearbyPage({
   // of them fed this ranking step and died here. Unlocated the list still
   // renders — alphabetically, and with no distance label, since an unknown
   // distance should read as absent rather than as zero.
-  const rankedFacilities = useMemo((): { facility: NearbyFacility; distanceKm?: number }[] => {
+  // The closest point a facility actually has, which is not always its main
+  // pin — a facility whose main location sits across town can still have a
+  // branch two blocks from the visitor, and a facility whose main location
+  // has never resolved coordinates at all (an unparsed maps link, say) can
+  // still be findable here through a branch that has its own. Both cases
+  // were previously invisible: the old ranking read only facility.coordinates
+  // and dropped anything without it, main pin or not.
+  function nearestPoint(
+    facility: NearbyFacility,
+  ): { distanceKm: number; branchName?: string } | undefined {
+    let best: { distanceKm: number; branchName?: string } | undefined =
+      facility.coordinates
+        ? { distanceKm: calculateDistanceKm(userLocation!, facility.coordinates) }
+        : undefined;
+
+    for (const branch of facility.branches ?? []) {
+      if (branch.latitude == null || branch.longitude == null) continue;
+      const distanceKm = calculateDistanceKm(userLocation!, {
+        latitude: branch.latitude,
+        longitude: branch.longitude,
+      });
+      if (!best || distanceKm < best.distanceKm) {
+        best = { distanceKm, branchName: branch.name || branch.area || "This branch" };
+      }
+    }
+    return best;
+  }
+
+  const rankedFacilities = useMemo((): {
+    facility: NearbyFacility;
+    distanceKm?: number;
+    nearestBranchName?: string;
+  }[] => {
     if (!userLocation) {
       return [...openFilteredFacilities]
         .sort((left, right) => left.name.localeCompare(right.name))
         .map((facility) => ({ facility }));
     }
 
+    type RankedEntry = { facility: NearbyFacility; distanceKm: number; nearestBranchName?: string };
     return openFilteredFacilities
-      .filter((facility) => facility.coordinates)
-      .map((facility) => ({
-        facility,
-        distanceKm: calculateDistanceKm(userLocation, facility.coordinates!),
-      }))
-      .sort((left, right) => (left.distanceKm ?? 0) - (right.distanceKm ?? 0));
+      .map((facility): RankedEntry | null => {
+        const match = nearestPoint(facility);
+        return match ? { facility, distanceKm: match.distanceKm, nearestBranchName: match.branchName } : null;
+      })
+      .filter((entry): entry is RankedEntry => entry !== null)
+      .sort((left, right) => left.distanceKm - right.distanceKm);
   }, [openFilteredFacilities, userLocation]);
 
   const rankedSpecialists = useMemo(() => {
@@ -441,13 +474,14 @@ export function NearbyPage({
                 </span>
               </div>
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {visibleRankedFacilities.map(({ facility, distanceKm }) => (
+                {visibleRankedFacilities.map(({ facility, distanceKm, nearestBranchName }) => (
                   <FacilityCard
                     distanceLabel={
                       distanceKm === undefined ? undefined : formatDistanceKm(distanceKm)
                     }
                     facility={facility}
                     key={facility.id}
+                    nearestBranchName={nearestBranchName}
                   />
                 ))}
               </div>

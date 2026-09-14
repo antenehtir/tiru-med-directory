@@ -6,6 +6,7 @@ import { CollapsiblePillList } from "./CollapsiblePillList";
 import { CollapsibleServiceGroup } from "./CollapsibleServiceGroup";
 import { groupFacilityServices, sortByFrequency } from "@/lib/facility/service-groups";
 import { absorbCompoundSpecialties, getFacilityMedicalSpecialties } from "@/lib/facility/specialty-display";
+import { matchesQueryTokens, splitQueryTokens } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 
 type FacilityServicesSectionProps = {
@@ -79,11 +80,17 @@ export function FacilityServicesSection({ facility, serviceFrequency = {} }: Fac
   // front rather than inside a useMemo is fine here: the list a facility page
   // carries tops out in the hundreds of strings, not a size where this costs
   // anything a visitor would notice.
+  // Same matcher /search and the header dropdown already use, word-boundary
+  // prefixes and typo tolerance included — this used to be a plain substring
+  // check, which is why typing "optalmology" here found nothing on a
+  // facility that lists "Ophthalmology": a substring scan has no notion of a
+  // dropped letter, only the shared matcher does.
+  const searchTokens = splitQueryTokens(trimmedQuery);
   const searchResults = isSearching
     ? buildSearchIndex(medicalSpecialties, groups)
         .map((section) => ({
           label: section.label,
-          items: section.items.filter((item) => item.toLowerCase().includes(trimmedQuery)),
+          items: section.items.filter((item) => matchesQueryTokens(item, searchTokens)),
         }))
         .filter((section) => section.items.length > 0)
     : [];

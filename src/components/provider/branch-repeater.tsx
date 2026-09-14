@@ -92,6 +92,10 @@ export function BranchRepeater({
   const allowedExtra = unbounded ? Infinity : Math.max(0, maxBranches - 1);
   const canAdd = value.length < allowedExtra;
   const remaining = unbounded ? 0 : allowedExtra - value.length;
+  // Keyed by branch index, not persisted anywhere — just the in-progress
+  // text for the "additional service" input on each branch card, cleared
+  // once that branch's Add button is pressed.
+  const [additionalDraft, setAdditionalDraft] = useState<Record<number, string>>({});
 
   function update(index: number, partial: Partial<FacilityBranch>) {
     const next = [...value];
@@ -332,13 +336,36 @@ export function BranchRepeater({
 
               {mainServices && mainServices.length > 0 && (
                 <div className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-sm font-medium text-foreground">Services at this branch</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Every service on the main listing is assumed available
-                    here too. Tap any that this branch does NOT offer — the
-                    public page will point visitors to the main branch for
-                    those.
-                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Services at this branch</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Every service on the main listing is assumed available
+                        here too. Tap any that this branch does NOT offer — the
+                        public page will point visitors to the main branch for
+                        those.
+                      </p>
+                    </div>
+                    {/* Earns its place once most of the list needs marking
+                        unavailable — a branch that only shares a handful of
+                        services with the main listing otherwise means
+                        tapping every OTHER pill by hand. One tap sets or
+                        clears all of them; individual pills still work
+                        normally afterward for the exceptions to the
+                        exception. */}
+                    <button
+                      className="shrink-0 text-xs font-medium text-primary hover:underline"
+                      onClick={() => {
+                        const allExcluded = mainServices.every((s) => (branch.excludedServices ?? []).includes(s));
+                        commit(update(i, { excludedServices: allExcluded ? [] : [...mainServices] }));
+                      }}
+                      type="button"
+                    >
+                      {mainServices.every((s) => (branch.excludedServices ?? []).includes(s))
+                        ? "Clear all"
+                        : "Mark all unavailable"}
+                    </button>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {mainServices.map((service) => {
                       const excluded = (branch.excludedServices ?? []).includes(service);
@@ -358,6 +385,62 @@ export function BranchRepeater({
                         </Pill>
                       );
                     })}
+                  </div>
+
+                  {/* The reverse case — a branch that offers something the
+                      main listing does not (a satellite site that added an
+                      MRI suite, say). Free text rather than the full
+                      catalogue picker: this is meant for the genuinely
+                      branch-specific extra, not a second place to re-tick
+                      the main checklist. */}
+                  <div className="mt-3 border-t border-border pt-3">
+                    <p className="text-sm font-medium text-foreground">
+                      Anything this branch offers that the main listing doesn&apos;t?
+                    </p>
+                    <BranchField
+                      label="Additional service at this branch"
+                      onChange={(v) => setAdditionalDraft((prev) => ({ ...prev, [i]: v }))}
+                      onCommit={() => {}}
+                      placeholder="e.g. MRI suite"
+                      value={additionalDraft[i] ?? ""}
+                    />
+                    <button
+                      className="mt-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!(additionalDraft[i] ?? "").trim()}
+                      onClick={() => {
+                        const value = (additionalDraft[i] ?? "").trim();
+                        if (!value) return;
+                        const current = branch.additionalServices ?? [];
+                        if (current.includes(value)) return;
+                        commit(update(i, { additionalServices: [...current, value] }));
+                        setAdditionalDraft((prev) => ({ ...prev, [i]: "" }));
+                      }}
+                      type="button"
+                    >
+                      + Add
+                    </button>
+                    {(branch.additionalServices ?? []).length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {(branch.additionalServices ?? []).map((service) => (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-success-border bg-success-bg px-2.5 py-1 text-xs font-medium text-success-text" key={service}>
+                            {service}
+                            <button
+                              aria-label={`Remove ${service}`}
+                              onClick={() =>
+                                commit(
+                                  update(i, {
+                                    additionalServices: (branch.additionalServices ?? []).filter((s) => s !== service),
+                                  }),
+                                )
+                              }
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -41,8 +41,22 @@ export function Step1IdentityForm({
   // other field on this page does.
   const isLive = claim.status === "approved" && Boolean(claim.facility_id);
   const [nameChangeRequest, setNameChangeRequest] = useState("");
-  const [nameChangeStatus, setNameChangeStatus] = useState<"idle" | "sending" | "sent">("idle");
-  const [facilityTypeStatus, setFacilityTypeStatus] = useState<"idle" | "saved" | "requested">("idle");
+  const [nameChangeReason, setNameChangeReason] = useState("");
+  const [nameChangeState, setNameChangeState] = useState<
+    { phase: "idle" } | { phase: "sending" } | { phase: "sent" } | { phase: "error"; message: string }
+  >({ phase: "idle" });
+  // A reason is required once the listing is live (requestFacilityTypeChange
+  // enforces this server-side too) — so picking a new type does not submit
+  // it immediately the way it used to; it stages the choice and asks why
+  // before the "Submit request" button becomes usable.
+  const [facilityTypeReason, setFacilityTypeReason] = useState("");
+  const [facilityTypeState, setFacilityTypeState] = useState<
+    | { phase: "idle" }
+    | { phase: "sending" }
+    | { phase: "saved" }
+    | { phase: "sent" }
+    | { phase: "error"; message: string }
+  >({ phase: "idle" });
   // Not one of proposed_*'s fields — facility_type lives on provider_accounts,
   // so it is saved through its own action (requestFacilityTypeChange) rather
   // than the autoSave() wrapper every other field on this page uses.
@@ -183,9 +197,9 @@ export function Step1IdentityForm({
                 <label className="text-sm font-medium text-foreground" htmlFor="facility_type_select">
                   Facility type
                 </label>
-                {facilityTypeStatus === "saved" ? (
+                {facilityTypeState.phase === "saved" ? (
                   <span className="text-xs text-muted-foreground">Saved</span>
-                ) : facilityTypeStatus === "requested" ? (
+                ) : facilityTypeState.phase === "sent" ? (
                   <span className="text-xs font-medium text-primary">Change requested</span>
                 ) : null}
               </div>
@@ -195,10 +209,20 @@ export function Step1IdentityForm({
                 onChange={(e) => {
                   const label = e.target.value;
                   setSelectedFacilityType(label);
-                  startTransition(async () => {
-                    const result = await requestFacilityTypeChange(label);
-                    setFacilityTypeStatus(result.requested ? "requested" : "saved");
-                  });
+                  setFacilityTypeState({ phase: "idle" });
+                  // Before approval there is nothing to review yet — this is
+                  // still the same free choice signup itself offers, so it
+                  // still applies the moment it's picked. Once live, picking
+                  // a value only stages it; a reason is required below
+                  // before "Submit request" does anything.
+                  if (!isLive) {
+                    startTransition(async () => {
+                      const result = await requestFacilityTypeChange(label, "");
+                      setFacilityTypeState(
+                        result.status === "error" ? { phase: "error", message: result.message } : { phase: "saved" },
+                      );
+                    });
+                  }
                 }}
                 value={selectedFacilityType}
               >
@@ -211,11 +235,51 @@ export function Step1IdentityForm({
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground">
-                {isLive
-                  ? "Your listing is live, so this doesn't change immediately — it sends the new type to Tiru for review, and an admin applies it once they've confirmed it."
-                  : "Changing this moves your listing to a different section of the directory once it's approved. It does not change the services you have already listed — worth a check afterward if the new type expects a different checklist."}
-              </p>
+
+              {isLive && selectedFacilityType !== currentFacilityTypeLabel() ? (
+                <div className="mt-1 flex flex-col gap-1.5 rounded-lg border border-dashed border-primary/30 bg-card p-3">
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor="facility_type_reason">
+                    Reason for this change *
+                  </label>
+                  <textarea
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    id="facility_type_reason"
+                    onChange={(e) => setFacilityTypeReason(e.target.value)}
+                    placeholder="Why does this listing need to change type — e.g. we added inpatient beds and now operate as a hospital"
+                    rows={2}
+                    value={facilityTypeReason}
+                  />
+                  <button
+                    className="self-start rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!facilityTypeReason.trim() || facilityTypeState.phase === "sending"}
+                    onClick={() => {
+                      setFacilityTypeState({ phase: "sending" });
+                      startTransition(async () => {
+                        const result = await requestFacilityTypeChange(selectedFacilityType, facilityTypeReason);
+                        if (result.status === "error") {
+                          setFacilityTypeState({ phase: "error", message: result.message });
+                        } else {
+                          setFacilityTypeState({ phase: "sent" });
+                          setFacilityTypeReason("");
+                        }
+                      });
+                    }}
+                    type="button"
+                  >
+                    {facilityTypeState.phase === "sending" ? "Sending…" : "Submit request"}
+                  </button>
+                </div>
+              ) : null}
+
+              {facilityTypeState.phase === "error" ? (
+                <p className="text-xs font-medium text-error">{facilityTypeState.message}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {isLive
+                    ? "Your listing is live, so this doesn't change immediately — it sends the new type to Tiru for review, with your reason, and an admin applies it once they've confirmed it."
+                    : "Changing this moves your listing to a different section of the directory once it's approved. It does not change the services you have already listed — worth a check afterward if the new type expects a different checklist."}
+                </p>
+              )}
             </div>
           )}
 
@@ -236,36 +300,56 @@ export function Step1IdentityForm({
                 <label className="text-xs font-medium text-muted-foreground" htmlFor="name_change_request">
                   Request a different name
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    id="name_change_request"
-                    onChange={(e) => setNameChangeRequest(e.target.value)}
-                    placeholder="New name for this listing"
-                    type="text"
-                    value={nameChangeRequest}
-                  />
-                  <button
-                    className="shrink-0 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={!nameChangeRequest.trim() || nameChangeStatus === "sending"}
-                    onClick={() => {
-                      const requested = nameChangeRequest.trim();
-                      setNameChangeStatus("sending");
-                      startTransition(async () => {
-                        await requestFacilityNameChange(requested);
-                        setNameChangeStatus("sent");
-                        setNameChangeRequest("");
-                      });
-                    }}
-                    type="button"
-                  >
-                    {nameChangeStatus === "sending" ? "Sending…" : "Submit request"}
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {nameChangeStatus === "sent"
-                    ? "Sent to Tiru for review. Your listing keeps its current name until an admin applies the change."
-                    : "Sends the new name to Tiru for review — it does not change immediately."}
+                <input
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  id="name_change_request"
+                  onChange={(e) => setNameChangeRequest(e.target.value)}
+                  placeholder="New name for this listing"
+                  type="text"
+                  value={nameChangeRequest}
+                />
+                {nameChangeRequest.trim() ? (
+                  <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-primary/30 bg-card p-3">
+                    <label className="text-xs font-medium text-muted-foreground" htmlFor="name_change_reason">
+                      Reason for this change *
+                    </label>
+                    <textarea
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      id="name_change_reason"
+                      onChange={(e) => setNameChangeReason(e.target.value)}
+                      placeholder="Why does this listing need a different name — e.g. rebrand, or a typo from when it was first added"
+                      rows={2}
+                      value={nameChangeReason}
+                    />
+                    <button
+                      className="self-start rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!nameChangeReason.trim() || nameChangeState.phase === "sending"}
+                      onClick={() => {
+                        const requested = nameChangeRequest.trim();
+                        setNameChangeState({ phase: "sending" });
+                        startTransition(async () => {
+                          const result = await requestFacilityNameChange(requested, nameChangeReason);
+                          if (result.status === "error") {
+                            setNameChangeState({ phase: "error", message: result.message });
+                          } else {
+                            setNameChangeState({ phase: "sent" });
+                            setNameChangeRequest("");
+                            setNameChangeReason("");
+                          }
+                        });
+                      }}
+                      type="button"
+                    >
+                      {nameChangeState.phase === "sending" ? "Sending…" : "Submit request"}
+                    </button>
+                  </div>
+                ) : null}
+                <p className={`text-xs ${nameChangeState.phase === "error" ? "font-medium text-error" : "text-muted-foreground"}`}>
+                  {nameChangeState.phase === "error"
+                    ? nameChangeState.message
+                    : nameChangeState.phase === "sent"
+                      ? "Sent to Tiru for review. Your listing keeps its current name until an admin applies the change."
+                      : "Sends the new name to Tiru for review — it does not change immediately."}
                 </p>
               </div>
             </div>

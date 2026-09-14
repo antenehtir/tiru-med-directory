@@ -57,6 +57,14 @@ export const CLAIMANT_ROLES = [
   "Other",
 ] as const;
 
+// "Multiple" was removed from this list — a facility's own sub-city no
+// longer has to describe branches it operates elsewhere, now that every
+// branch carries its own real sub-city (see FacilityBranch.subCity). A
+// facility already stored with "multiple" as its value keeps working
+// exactly as before (get-facilities.ts's isMultiOrOnline check and
+// AdminFacilityLocationEditor's "keep the stored value as an option even if
+// it isn't canonical" pattern both still handle it) — this only stops it
+// being offered as a fresh choice.
 export const ADDIS_SUB_CITIES = [
   "Addis Ketema",
   "Akaki Kaliti",
@@ -67,9 +75,9 @@ export const ADDIS_SUB_CITIES = [
   "Kolfe Keranio",
   "Lideta",
   "Nifas Silk-Lafto",
+  "Sheger City",
   "Yeka",
   "Lemi Kura",
-  "Multiple",
 ] as const;
 
 // Home visit, Travel medicine, Medical certificate and Blood bank were

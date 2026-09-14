@@ -316,8 +316,19 @@ export function FacilityDetailHeader({ facility }: FacilityDetailHeaderProps) {
               {facility.location ? (
                 <div className="flex items-center justify-between gap-2 border-b border-border py-2">
                   <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground">{facility.location}</p>
-                    <p className="text-xs text-muted-foreground/70">Main Branch</p>
+                    {/* Same street/sub-city split the single-location layout
+                        below already uses — this row used to just print the
+                        raw concatenated `location` string, which buried the
+                        sub-city inside it (or, for a facility with no street
+                        recorded, showed nothing distinguishing "Main Branch"
+                        from any other row at all). */}
+                    <p className="text-sm text-muted-foreground">
+                      {address.street || (address.subCity ? subCityLabel(address.subCity) : facility.location)}
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Main Branch
+                      {address.street && address.subCity ? ` · ${subCityLabel(address.subCity)}` : ""}
+                    </p>
                   </div>
                   {mapsHref ? <a className="shrink-0 text-xs font-semibold text-primary hover:underline" href={mapsHref} rel="noopener noreferrer" target="_blank">Map →</a> : null}
                 </div>
