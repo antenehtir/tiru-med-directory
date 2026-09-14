@@ -151,6 +151,12 @@ export function Step1IdentityForm({
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     setValidationError(null);
+    // Once live, the "name" field below is replaced by a read-only display
+    // plus the separate request-a-change box (name_change_request) — there is
+    // no form element named "name" to check anymore, so this validation does
+    // not apply. Without this guard, every save on a live facility's Step 1
+    // failed this check unconditionally and never actually submitted.
+    if (isLive) return;
     const form = e.currentTarget;
     const nameInput = form.elements.namedItem("name") as HTMLInputElement;
     if (!nameInput?.value?.trim()) {
