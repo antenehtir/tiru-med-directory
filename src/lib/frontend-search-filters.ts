@@ -411,6 +411,62 @@ export function normalizeFacilityCategoryParam(
   return FACILITY_CATEGORY_PARAM_ALIASES[normalized];
 }
 
+function facilitySearchableValues(facility: Facility): string[] {
+  return [
+    facility.name,
+    facility.category,
+    // subcategory is often a comma-joined summary of every specialty a
+    // facility offers ("Internal Medicine, Cardiology, ..., Endocrinology,
+    // ..., Paediatrics, ...") rather than one named thing. Treating that
+    // whole joined string as a single field let two UNRELATED specialties
+    // that both happen to appear somewhere in the list satisfy the "same
+    // field" tier-2 bonus below — exactly the cross-department false match
+    // tiering is meant to rule out, and how a hospital offering separate
+    // Paediatrics and Endocrinology departments (nothing pediatric about
+    // its endocrinology) out-ranked a facility that actually lists
+    // "Paediatric Endocrinology" as one service. Split so each named
+    // specialty in the summary is its own value.
+    ...(facility.subcategory ?? "").split(",").map((s) => s.trim()),
+    facility.location,
+    facility.address,
+    facility.subCity ?? "",
+    facility.area ?? "",
+    facility.workingHours,
+    facility.availabilityNote ?? "",
+    facility.verificationStatus,
+    ...facility.services,
+  ];
+}
+
+// How well a multi-word query matched, used only to ORDER results that
+// already passed the filter below — never to exclude one, since broader
+// recall is still the right default for a directory search.
+//
+// matchesTokens/matchesQueryTokens is an AND across every token found
+// ANYWHERE in the combined text, which is why searching "Pediatric
+// Endocrinology" surfaced a general pediatrics hospital and a facility
+// offering unrelated "Pediatric Surgery" ahead of the facilities that
+// actually list "Pediatric Endocrinology" as one specific service —
+// "Pediatric" landing on one department and "Endocrinology" on a
+// completely separate one satisfied the filter identically to a facility
+// naming the exact combined specialty, and with no ranking at all,
+// whichever happened to sort first in the base array won the top slot.
+//
+// Tier 3: the query appears verbatim as a substring somewhere. Tier 2:
+// every token appears together within the SAME single field (a facility's
+// own "Pediatric Endocrinology" service, say). Tier 1: the tokens only
+// matched when spread across different fields.
+function queryMatchTier(values: string[], tokens: string[], normalizedQuery: string): number {
+  const nonEmpty = values.filter(Boolean);
+  if (tokens.length > 1 && nonEmpty.some((v) => v.toLowerCase().includes(normalizedQuery))) {
+    return 3;
+  }
+  if (nonEmpty.some((v) => matchesQueryTokens(v, tokens))) {
+    return 2;
+  }
+  return 1;
+}
+
 export function filterFacilitiesByQuery(
   facilities: Facility[],
   query: string,
@@ -421,31 +477,27 @@ export function filterFacilitiesByQuery(
     return facilities;
   }
 
-  return facilities.filter(
-    (facility) =>
+  const tokens = splitQueryTokens(normalizedQuery);
+
+  return facilities
+    .map((facility) => {
       // Sub-cities are matched with the shared matcher rather than the plain
       // substring scan below, so canonical names like "Kolfe Keranio" resolve
       // against the short form actually stored ("kolfe").
-      (facility.subCities ?? []).some((subCity) =>
+      const subCityHit = (facility.subCities ?? []).some((subCity) =>
         subCityMatches(subCity, normalizedQuery),
-      ) ||
-      matchesTokens(
-      [
-        facility.name,
-        facility.category,
-        facility.subcategory,
-        facility.location,
-        facility.address,
-        facility.subCity ?? "",
-        facility.area ?? "",
-        facility.workingHours,
-        facility.availabilityNote ?? "",
-        facility.verificationStatus,
-        ...facility.services,
-      ],
-      normalizedQuery,
-    ),
-  );
+      );
+      const values = facilitySearchableValues(facility);
+      const tokenHit = matchesQueryTokens(values.filter(Boolean).join(" "), tokens);
+      if (!subCityHit && !tokenHit) return null;
+      return {
+        facility,
+        tier: tokenHit ? queryMatchTier(values, tokens, normalizedQuery) : 1,
+      };
+    })
+    .filter((entry): entry is { facility: Facility; tier: number } => entry !== null)
+    .sort((a, b) => b.tier - a.tier)
+    .map((entry) => entry.facility);
 }
 
 export function filterDoctorsByQuery(

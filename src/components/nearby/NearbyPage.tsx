@@ -132,14 +132,22 @@ export function NearbyPage({
 
     return categoryFacilities.filter((facility) => {
       // Broad multi-specialty facilities (Medical Plaza category, or a
-      // services list spanning many unrelated specialty domains) dilute
-      // focused pills with unrelated results — they still show under "All"
-      // and, now, under the Medical Plaza pill above.
+      // services list that itself says "multispecialty") dilute a focused
+      // pill with unrelated results — they still show under "All" and, now,
+      // under the Medical Plaza pill above.
+      //
+      // A raw services.length >= 15 threshold used to stand in as a proxy
+      // for "broad multispecialty" too, on the theory that a long list means
+      // many departments. It measured the wrong thing: a thoroughly
+      // documented single-specialty hospital lists just as many individual
+      // procedures under ONE department. Checked against the live directory,
+      // it excluded 14 of the 15 Specialty Centers that actually list
+      // Cardiology from the Cardiology pill — cardiac centers are exactly
+      // the facilities detailed enough to name every procedure they offer.
       const isBroadMultispecialty =
         facility.category === "Medical Plaza" ||
         facility.subcategory?.toLowerCase().includes("multispecialt") ||
-        facility.services.some((s) => s.toLowerCase().includes("multispecialt")) ||
-        facility.services.length >= 15;
+        facility.services.some((s) => s.toLowerCase().includes("multispecialt"));
 
       if (isBroadMultispecialty) {
         return false;

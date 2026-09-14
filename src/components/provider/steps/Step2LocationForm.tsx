@@ -25,7 +25,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
   const [subCity, setSubCity] = useState((claim.proposed_sub_city as string) ?? "");
   const [area, setArea] = useState((claim.proposed_area as string) ?? "");
   const [landmark, setLandmark] = useState((claim.proposed_landmark as string) ?? "");
-  const [buildingDesc, setBuildingDesc] = useState((claim.proposed_building_desc as string) ?? "");
   const [accessNotes, setAccessNotes] = useState((claim.proposed_access_notes as string) ?? "");
   const [mapsLink, setMapsLink] = useState((claim.proposed_maps_link as string) ?? "");
   const [lat, setLat] = useState<number | null>((claim.proposed_latitude as number) ?? null);
@@ -181,24 +180,6 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <input name="landmark" type="hidden" value="" />
             <p className="text-xs text-muted-foreground">
               The neighborhood patients would recognize, plus a well-known nearby place — e.g. &quot;Bole Medhanialem, next to Edna Mall&quot;
-            </p>
-          </div>
-
-          {/* Building description */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="building_desc">
-              Building description
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="building_desc"
-              name="building_desc"
-              placeholder="e.g. 3rd floor, blue gate"
-              type="text"
-              {...field(buildingDesc, setBuildingDesc, { building_desc: buildingDesc })}
-            />
-            <p className="text-xs text-muted-foreground">
-              Floor, building color/name, where reception is
             </p>
           </div>
 
