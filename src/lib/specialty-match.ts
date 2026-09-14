@@ -17,11 +17,19 @@ import type { Facility } from "@/types/facility";
 // "Lancet General Hospital" qualifying on the word "General Surgery".
 const GENERAL_CATEGORIES = new Set(["general hospital", "medical plaza"]);
 
-export function isSpecialistFocused(facility: Facility, specialty: string): boolean {
-  const aliases = getSpecialtyAliases(specialty);
+// Alias-array form, generalized so a caller with its own curated alias list —
+// /nearby's specialty pills carry their own (NEARBY_SPECIALTY_PILLS), not a
+// SPECIALTY_OPTIONS label getSpecialtyAliases can look up — gets the same
+// specialist-vs-general judgment as the SPECIALTY_OPTIONS-keyed pages, rather
+// than a second, drifting implementation.
+export function isSpecialistFocusedByAliases(facility: Facility, aliases: string[]): boolean {
   if (!aliases.length) return false;
   if (GENERAL_CATEGORIES.has((facility.category ?? "").trim().toLowerCase())) return false;
   return matchesAnyAlias(facility.name ?? "", aliases);
+}
+
+export function isSpecialistFocused(facility: Facility, specialty: string): boolean {
+  return isSpecialistFocusedByAliases(facility, getSpecialtyAliases(specialty));
 }
 
 // Ranks facilities whose main business is this specialty above general
@@ -31,14 +39,19 @@ export function isSpecialistFocused(facility: Facility, specialty: string): bool
 // 106 active facilities — Psychiatry 6 specialist / 4 general, Dermatology 5/7,
 // Surgery 9/11, Ophthalmology 2/8, Pediatrics 3/23. Order within each group is
 // preserved, so this only ever moves specialists up; it never reshuffles peers.
-export function rankBySpecialtyFocus(facilities: Facility[], specialty: string): Facility[] {
-  if (!specialty) return facilities;
+export function rankByAliasFocus(facilities: Facility[], aliases: string[]): Facility[] {
+  if (!aliases.length) return facilities;
   const specialists: Facility[] = [];
   const general: Facility[] = [];
   for (const facility of facilities) {
-    (isSpecialistFocused(facility, specialty) ? specialists : general).push(facility);
+    (isSpecialistFocusedByAliases(facility, aliases) ? specialists : general).push(facility);
   }
   return [...specialists, ...general];
+}
+
+export function rankBySpecialtyFocus(facilities: Facility[], specialty: string): Facility[] {
+  if (!specialty) return facilities;
+  return rankByAliasFocus(facilities, getSpecialtyAliases(specialty));
 }
 
 // The service a facility lists that caused it to match, so a general hospital
@@ -51,15 +64,33 @@ export function rankBySpecialtyFocus(facilities: Facility[], specialty: string):
 // growing a second copy that would drift.
 function listedServices(facility: Facility): string[] {
   const custom = Object.values(facility.customServiceCategories ?? {}).flat();
-  return [...(facility.services ?? []), ...custom].filter(Boolean);
+  // customServiceCategories exists to record which category a custom service
+  // was typed under, not to name a service the main list doesn't already
+  // have — a provider re-selecting an existing service into a custom slot
+  // stores it in both places, and without deduping it here every reader of
+  // this list (matched-service chips included) saw it as two distinct
+  // entries and highlighted it twice.
+  return Array.from(new Set([...(facility.services ?? []), ...custom])).filter(Boolean);
+}
+
+// Every listed service that matched, not just the first — a facility can
+// legitimately offer "Cardiology", "Cardiac intervention" AND "Pediatric
+// cardiology" at once, and showing only one hides how deep the match
+// actually goes. matchedServiceForAliases (below) is this list's first
+// entry, kept for callers that only ever show one highlighted chip.
+export function matchedServicesForAliases(
+  facility: Facility,
+  aliases: string[],
+): string[] {
+  if (!aliases.length) return [];
+  return listedServices(facility).filter((service) => matchesAnyAlias(service, aliases));
 }
 
 export function matchedServiceForAliases(
   facility: Facility,
   aliases: string[],
 ): string | undefined {
-  if (!aliases.length) return undefined;
-  return listedServices(facility).find((service) => matchesAnyAlias(service, aliases));
+  return matchedServicesForAliases(facility, aliases)[0];
 }
 
 // Free-text form. Uses the query-token rule rather than the alias rule, for

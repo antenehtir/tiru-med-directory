@@ -12,9 +12,17 @@ type FacilityCardGridProps = {
 export function FacilityCardGrid({ facilities, highlightByFacilityId, distanceByFacilityId }: FacilityCardGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {facilities.map((facility) => (
-        <FacilityCard distanceLabel={distanceByFacilityId?.[facility.id]} facility={facility} highlightLabel={highlightByFacilityId?.[facility.id]} key={facility.id} />
-      ))}
+      {facilities.map((facility) => {
+        const highlight = highlightByFacilityId?.[facility.id];
+        return (
+          <FacilityCard
+            distanceLabel={distanceByFacilityId?.[facility.id]}
+            facility={facility}
+            highlightLabels={highlight ? [highlight] : undefined}
+            key={facility.id}
+          />
+        );
+      })}
     </div>
   );
 }

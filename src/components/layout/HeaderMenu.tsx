@@ -4,18 +4,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ROLE_OPTIONS, roleIcons } from "@/components/layout/SignInMenu";
 
-// The compact header's overflow menu. Below xl the header used to end in five
-// separate controls — Emergency, theme, search, list-your-facility, sign in —
-// five taps of equal weight competing in a 44px-tall strip, which reads as a
-// toolbar rather than as a header with a point of view.
+// The compact header's overflow menu. Below xl the header used to end in
+// several separate controls — theme, search, list-your-facility, sign in —
+// competing in a 44px-tall strip, which reads as a toolbar rather than as a
+// header with a point of view.
 //
-// Emergency and the theme toggle stay out here. Emergency because of what it
-// is for: a control you may need to find without reading, which is the one
-// case that earns permanent space. The theme toggle because it is a display
-// setting people flip while looking at the page, and burying it behind a menu
-// means opening the menu to see the effect of the thing you just changed.
+// The theme toggle stays out here: it is a display setting people flip while
+// looking at the page, and burying it behind a menu means opening the menu to
+// see the effect of the thing you just changed.
 //
-// The other three fold in here. Search and List-your-facility are both already
+// The rest fold in here. Search and List-your-facility are both already
 // reachable from the bottom tab bar on exactly the widths where this menu
 // shows, so out here they were a second copy of a control the visitor already
 // has, spending header room to do it.

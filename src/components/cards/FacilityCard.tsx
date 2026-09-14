@@ -23,7 +23,9 @@ const MAX_VISIBLE_SERVICE_PILLS = 3;
 type FacilityCardProps = {
   facility: Facility;
   distanceLabel?: string;
-  highlightLabel?: string;
+  // Every listed service that caused this card to match the active filter —
+  // see ServicePillRow for why this is plural rather than one label.
+  highlightLabels?: string[];
   // Set only when the distance above was measured from a BRANCH, not the
   // main listing — /nearby now checks every branch's own coordinates, not
   // only the main pin, so a facility whose branch is two blocks away and
@@ -78,25 +80,30 @@ function AvailabilityLine({ facility }: { facility: Facility }) {
   return null;
 }
 
-// highlightLabel is the service that caused this facility to match the active
-// specialty filter. It is pulled to the front and given the accent variant so
-// a general hospital appearing in an eye-care list visibly earns its place.
-// The overflow counter is a real <button>, not a decorative pill: it said
-// "+17 more" and did nothing, which reads as a broken control. Expanding
-// happens in place — the whole card is already a link to the detail page, so
-// navigating away to read a service list would throw away the comparison the
-// visitor is in the middle of making. preventDefault/stopPropagation keep the
-// press off the card-wide overlay link underneath.
-function ServicePillRow({ services, highlightLabel }: { services: string[]; highlightLabel?: string }) {
+// highlightLabels are every listed service that caused this facility to
+// match the active specialty filter — not just the first. A cardiac center
+// offering "Cardiology", "Cardiac intervention" AND "Pediatric cardiology"
+// under a Cardiology search should show all three lit up, not one with the
+// rest demoted to looking like unrelated services. Each is pulled to the
+// front and given the accent variant so a general hospital appearing in an
+// eye-care list visibly earns its place. The overflow counter is a real
+// <button>, not a decorative pill: it said "+17 more" and did nothing, which
+// reads as a broken control. Expanding happens in place — the whole card is
+// already a link to the detail page, so navigating away to read a service
+// list would throw away the comparison the visitor is in the middle of
+// making. preventDefault/stopPropagation keep the press off the card-wide
+// overlay link underneath.
+function ServicePillRow({ services, highlightLabels = [] }: { services: string[]; highlightLabels?: string[] }) {
   const [expanded, setExpanded] = useState(false);
-  const rest = highlightLabel ? services.filter((s) => s !== highlightLabel) : services;
-  if (!rest.length && !highlightLabel) return null;
-  const room = highlightLabel ? MAX_VISIBLE_SERVICE_PILLS - 1 : MAX_VISIBLE_SERVICE_PILLS;
+  const highlightSet = new Set(highlightLabels);
+  const rest = services.filter((s) => !highlightSet.has(s));
+  if (!rest.length && highlightLabels.length === 0) return null;
+  const room = Math.max(0, MAX_VISIBLE_SERVICE_PILLS - highlightLabels.length);
   const visible = expanded ? rest : rest.slice(0, room);
   const overflowCount = rest.length - Math.min(rest.length, room);
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
-      {highlightLabel ? <Pill size="sm" variant="info">{highlightLabel}</Pill> : null}
+      {highlightLabels.map((label) => <Pill key={label} size="sm" variant="info">{label}</Pill>)}
       {visible.map((service, index) => <Pill key={`${service}-${index}`} size="sm" variant="muted">{service}</Pill>)}
       {overflowCount > 0 ? (
         <button
@@ -117,7 +124,7 @@ function StatRow({ facility }: { facility: Facility }) {
   return <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldIcon className="size-3.5 shrink-0 text-primary/70" />Insurance accepted</div>;
 }
 
-export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestBranch }: FacilityCardProps) {
+export function FacilityCard({ facility, distanceLabel, highlightLabels, nearestBranch }: FacilityCardProps) {
   const nearestBranchName = nearestBranch ? nearestBranch.name || nearestBranch.area : undefined;
   // Carries which branch this card was actually found through onto the
   // detail page, which auto-opens and highlights that same branch's row
@@ -206,7 +213,7 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestB
         {addressLine ? <p className="mt-1.5 truncate text-[13px] text-muted-foreground" title={addressLine}>{addressLine}</p> : null}
         <AvailabilityLine facility={facility} />
         <StatRow facility={facility} />
-        <ServicePillRow highlightLabel={highlightLabel} services={facility.services} />
+        <ServicePillRow highlightLabels={highlightLabels} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
           {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
           {directionsHref ? <a aria-label={`Directions to ${nearestBranchName ? `${facility.name}, ${nearestBranchName}` : facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title={nearestBranchName ? `Directions (${nearestBranchName})` : "Directions"}><MapPinIcon className="size-4 shrink-0" /></a> : null}

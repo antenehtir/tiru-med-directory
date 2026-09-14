@@ -202,14 +202,17 @@ function SearchResultsPageInner({
                     general hospital returned for "EEG" visibly earns its place,
                     instead of hiding the reason behind "+N more". The helper is
                     shared with those pages rather than reimplemented. */}
-                {visibleFacilities.map((facility) => (
-                  <FacilityCard
-                    distanceLabel={distanceByFacilityId?.[facility.id]}
-                    facility={facility}
-                    highlightLabel={matchedServiceForQuery(facility, query)}
-                    key={facility.id}
-                  />
-                ))}
+                {visibleFacilities.map((facility) => {
+                  const matched = matchedServiceForQuery(facility, query);
+                  return (
+                    <FacilityCard
+                      distanceLabel={distanceByFacilityId?.[facility.id]}
+                      facility={facility}
+                      highlightLabels={matched ? [matched] : undefined}
+                      key={facility.id}
+                    />
+                  );
+                })}
                 {visibleDoctors.map((doctor) => (
                   <DoctorCard key={doctor.id} doctor={doctor} />
                 ))}

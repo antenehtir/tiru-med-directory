@@ -15,6 +15,7 @@ import {
 } from "@/lib/frontend-search-filters";
 import { isFacilityOpenNow } from "@/lib/schedule-availability";
 import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/nearby-distance";
+import { isSpecialistFocusedByAliases, matchedServicesForAliases } from "@/lib/specialty-match";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { SpecialistCard } from "@/components/specialists/SpecialistCard";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
@@ -164,6 +165,22 @@ export function NearbyPage({
     });
   }, [categoryFacilities, selectedCategory, selectedNearbySpecialty]);
 
+  // The active pill's own alias list, when one genuinely applies — Medical
+  // Plaza is excluded because it matches on category/name rather than
+  // services (see the branch above), so "which service matched" and
+  // "is this facility specialist-focused in this alias" don't mean anything
+  // for it. Drives both the specialist-first ranking and the highlighted
+  // service chips below; a facility can legitimately offer more than one
+  // matching service ("Cardiology", "Cardiac intervention", "Pediatric
+  // cardiology" all at once), so both are keyed off the same alias list
+  // rather than a single "the" match.
+  const selectedPillAliases = useMemo(() => {
+    if (selectedCategory !== "specialty" || !selectedNearbySpecialty) return null;
+    const pill = NEARBY_SPECIALTY_PILLS.find((p) => p.display === selectedNearbySpecialty);
+    if (!pill || pill.display === "Medical Plaza") return null;
+    return pill.aliases;
+  }, [selectedCategory, selectedNearbySpecialty]);
+
   // Client-side name filter — runs over the already-fetched, already
   // category-filtered list, no new query. Lets someone check "is [facility]
   // in here at all" directly instead of scrolling a distance-sorted grid
@@ -227,6 +244,19 @@ export function NearbyPage({
     return best;
   }
 
+  // 1 when the active specialty pill's aliases appear in the facility's own
+  // NAME (a real "X Cardiac Center"), 0 otherwise — same proxy
+  // rankBySpecialtyFocus uses on /facilities?specialty=. Distance alone put a
+  // physiotherapy clinic two blocks away ahead of an actual neurology center
+  // twenty minutes further out, because a physio clinic offering stroke
+  // rehab still matches the Neurology pill's aliases and "near" said nothing
+  // about how central neurology is to what it does. The band decides first;
+  // distance (or name, unlocated) only orders WITHIN a band, so a visitor
+  // asking for a specialty still sees the closest genuine match first, just
+  // never behind a loosely-related one that merely happens to be closer.
+  const focusBand = (facility: NearbyFacility): number =>
+    selectedPillAliases && isSpecialistFocusedByAliases(facility, selectedPillAliases) ? 1 : 0;
+
   const rankedFacilities = useMemo((): {
     facility: NearbyFacility;
     distanceKm?: number;
@@ -234,7 +264,7 @@ export function NearbyPage({
   }[] => {
     if (!userLocation) {
       return [...openFilteredFacilities]
-        .sort((left, right) => left.name.localeCompare(right.name))
+        .sort((left, right) => focusBand(right) - focusBand(left) || left.name.localeCompare(right.name))
         .map((facility) => ({ facility }));
     }
 
@@ -245,8 +275,12 @@ export function NearbyPage({
         return match ? { facility, distanceKm: match.distanceKm, nearestBranch: match.branch } : null;
       })
       .filter((entry): entry is RankedEntry => entry !== null)
-      .sort((left, right) => left.distanceKm - right.distanceKm);
-  }, [openFilteredFacilities, userLocation]);
+      .sort(
+        (left, right) =>
+          focusBand(right.facility) - focusBand(left.facility) || left.distanceKm - right.distanceKm,
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openFilteredFacilities, userLocation, selectedPillAliases]);
 
   const rankedSpecialists = useMemo(() => {
     if (!userLocation) {
@@ -285,6 +319,19 @@ export function NearbyPage({
 
   const visibleRankedFacilities = rankedFacilities.slice(0, visibleFacilityCount);
   const hasMoreFacilities = rankedFacilities.length > visibleFacilityCount;
+
+  // Every service on each visible card that matched the active pill — see
+  // FacilityCard's ServicePillRow for why a facility can light up more than
+  // one at once. Computed only over what's actually rendered, not the whole
+  // ranked list, since it's redone on every reveal-more click otherwise.
+  const highlightsByFacilityId = useMemo(() => {
+    if (!selectedPillAliases) return {};
+    const map: Record<string, string[]> = {};
+    for (const { facility } of visibleRankedFacilities) {
+      map[facility.id] = matchedServicesForAliases(facility, selectedPillAliases);
+    }
+    return map;
+  }, [visibleRankedFacilities, selectedPillAliases]);
 
   const visibleRankedSpecialists = rankedSpecialists.slice(0, visibleSpecialistCount);
   const hasMoreSpecialists = rankedSpecialists.length > visibleSpecialistCount;
@@ -488,6 +535,7 @@ export function NearbyPage({
                       distanceKm === undefined ? undefined : formatDistanceKm(distanceKm)
                     }
                     facility={facility}
+                    highlightLabels={highlightsByFacilityId[facility.id]}
                     key={facility.id}
                     nearestBranch={nearestBranch}
                   />
