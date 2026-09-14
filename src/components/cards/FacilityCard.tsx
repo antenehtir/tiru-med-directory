@@ -9,10 +9,10 @@ import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
 import { createPublicContactActions } from "@/lib/contact-actions";
-import { facilityDirectionsHref } from "@/lib/directions";
+import { branchDirectionsHref, facilityDirectionsHref } from "@/lib/directions";
 import { facilityLocalityLabel, splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
-import type { Facility } from "@/types/facility";
+import type { Facility, FacilityBranch } from "@/types/facility";
 
 const MAX_VISIBLE_SERVICE_PILLS = 3;
 // Every card carries its provenance now, not only the exceptions. The legend
@@ -27,10 +27,13 @@ type FacilityCardProps = {
   // Set only when the distance above was measured from a BRANCH, not the
   // main listing — /nearby now checks every branch's own coordinates, not
   // only the main pin, so a facility whose branch is two blocks away and
-  // whose main site is across town surfaces correctly. Without naming which
-  // site that distance is actually to, a visitor would tap through expecting
-  // the branch and land on the main location's own address instead.
-  nearestBranchName?: string;
+  // whose main site is across town surfaces correctly. Carrying the branch
+  // itself (not just its name) lets the card show THAT branch's own address
+  // and route directions to it, instead of the main site's — showing the
+  // main address under a "the branch near you" note read as if it still
+  // described the main site, and the directions button sent visitors across
+  // town to it even when a branch was two blocks away.
+  nearestBranch?: FacilityBranch;
 };
 type FacilityBannerProps = { facility: Facility; heightClassName?: string };
 
@@ -114,7 +117,8 @@ function StatRow({ facility }: { facility: Facility }) {
   return <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldIcon className="size-3.5 shrink-0 text-primary/70" />Insurance accepted</div>;
 }
 
-export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestBranchName }: FacilityCardProps) {
+export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestBranch }: FacilityCardProps) {
+  const nearestBranchName = nearestBranch ? nearestBranch.name || nearestBranch.area : undefined;
   // Carries which branch this card was actually found through onto the
   // detail page, which auto-opens and highlights that same branch's row
   // (see FacilityBranchList) — without this, "Bole Branch is the nearest
@@ -131,18 +135,34 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestB
   // shown here; when a distance pill has taken the locality slot, the sub-city
   // comes back with its label so the card never loses it silently.
   const cardAddress = splitFacilityAddress(facility);
-  const addressLine = cardAddress.subCity
-    ? // No street half means the area was only ever the sub-city again
-      // ("bole, bole"), so the labelled sub-city IS the whole address.
-      !cardAddress.street
-      ? subCityLabel(cardAddress.subCity)
-      : distanceLabel
-        ? `${cardAddress.street} · ${subCityLabel(cardAddress.subCity)}`
-        : cardAddress.street
-    : facility.location || facility.address;
+  // A card led to by a branch shows THAT branch's own address, not the main
+  // site's — printing the main address under "X is the nearest branch" read
+  // as though it still described the main site, which is exactly backwards
+  // for a card whose whole point is "the close one is over here instead".
+  const branchAddressLine = nearestBranch
+    ? [nearestBranch.landmark || nearestBranch.area, nearestBranch.subCity ? subCityLabel(nearestBranch.subCity) : null]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+  const addressLine = branchAddressLine
+    ? branchAddressLine
+    : cardAddress.subCity
+      ? // No street half means the area was only ever the sub-city again
+        // ("bole, bole"), so the labelled sub-city IS the whole address.
+        !cardAddress.street
+        ? subCityLabel(cardAddress.subCity)
+        : distanceLabel
+          ? `${cardAddress.street} · ${subCityLabel(cardAddress.subCity)}`
+          : cardAddress.street
+      : facility.location || facility.address;
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
-  const directionsHref = facilityDirectionsHref(facility);
+  // Routes to the nearest BRANCH when this card was matched through one,
+  // falling back to the main site's directions if that branch has neither
+  // coordinates nor its own maps link on file.
+  const directionsHref = nearestBranch
+    ? (branchDirectionsHref(nearestBranch) ?? facilityDirectionsHref(facility))
+    : facilityDirectionsHref(facility);
   const localityLabel = distanceLabel ?? facilityLocalityLabel(facility);
   // View details carries the filled treatment on every card, without
   // exception. It used to swap with Call on round-the-clock listings, which
@@ -189,7 +209,7 @@ export function FacilityCard({ facility, distanceLabel, highlightLabel, nearestB
         <ServicePillRow highlightLabel={highlightLabel} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
           {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
-          {directionsHref ? <a aria-label={`Directions to ${facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title="Directions"><MapPinIcon className="size-4 shrink-0" /></a> : null}
+          {directionsHref ? <a aria-label={`Directions to ${nearestBranchName ? `${facility.name}, ${nearestBranchName}` : facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title={nearestBranchName ? `Directions (${nearestBranchName})` : "Directions"}><MapPinIcon className="size-4 shrink-0" /></a> : null}
           <Link className={`flex min-h-11 flex-1 items-center justify-center rounded-control text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary-hover`} href={detailHref}>View details</Link>
         </div>
       </div>

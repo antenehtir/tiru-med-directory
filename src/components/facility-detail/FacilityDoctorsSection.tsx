@@ -31,7 +31,7 @@ function BioBlock({ bio }: { bio: string }) {
       {expanded ? bio : `${bio.slice(0, LIMIT)}…`}
       {" "}
       <button
-        className="font-medium text-primary hover:underline"
+        className="pointer-events-auto relative z-20 font-medium text-primary hover:underline"
         onClick={() => setExpanded((v) => !v)}
         type="button"
       >
@@ -63,7 +63,7 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
         href={`/specialists/${profileSlug}`}
       />
       {/* Photo / initials avatar */}
-      <div className="relative z-10 shrink-0">
+      <div className="pointer-events-none relative z-10 shrink-0">
         {doctor.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -78,11 +78,18 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
         )}
       </div>
 
-      {/* Details */}
-      <div className="relative z-10 min-w-0 flex-1">
+      {/* Details. pointer-events-none here is load-bearing, not decoration:
+          without it this div — even the plain text and whitespace inside it,
+          which has no click handler of its own — sits visually above the
+          overlay Link at z-0 and swallows every tap before it ever reaches
+          the link, so the "whole card is clickable" affordance below silently
+          did nothing except on the couple of small elements re-enabling
+          pointer-events explicitly. */}
+      <div className="pointer-events-none relative z-10 min-w-0 flex-1">
         <p className="text-base font-semibold leading-tight text-foreground">
           {formatDoctorDisplayName(doctor.title, doctor.full_name)}
         </p>
+        <p className="mt-0.5 text-xs font-medium text-primary">Tap to view full profile &amp; schedule →</p>
 
         {(displayRole || doctor.appointment_required) && (
           <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -121,10 +128,10 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
         )}
 
         <Link
-          className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
+          className="pointer-events-auto relative z-20 mt-3 inline-block text-sm font-semibold text-primary hover:underline"
           href={`/specialists/${profileSlug}`}
         >
-          View full profile →
+          View full profile &amp; schedule →
         </Link>
       </div>
     </div>

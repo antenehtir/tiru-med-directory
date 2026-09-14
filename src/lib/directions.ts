@@ -1,4 +1,4 @@
-import type { Facility } from "@/types/facility";
+import type { Facility, FacilityBranch } from "@/types/facility";
 
 // A "Directions" action, not a "view this place" action. Where coordinates
 // exist we build a Google Maps *directions* intent, so the link opens with
@@ -28,4 +28,24 @@ export function facilityDirectionsHref(facility: Facility): string | null {
   );
 
   return mapsChannel?.href ?? null;
+}
+
+// Same routing-intent link as facilityDirectionsHref, but to one specific
+// branch. /nearby ranks every branch's own coordinates, not just the main
+// pin (see NearbyPage's nearestPoint), so a card whose nearest point is a
+// branch two blocks away needs a directions link that actually routes there
+// rather than across town to the main listing.
+export function branchDirectionsHref(branch: FacilityBranch): string | null {
+  const { latitude, longitude } = branch;
+
+  if (
+    typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude)
+  ) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+  }
+
+  return branch.maps_link?.trim() || null;
 }

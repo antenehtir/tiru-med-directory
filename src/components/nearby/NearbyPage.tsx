@@ -18,7 +18,7 @@ import { calculateDistanceKm, formatDistanceKm, type Coordinates } from "@/lib/n
 import { useGeolocation } from "@/lib/useGeolocation";
 import { SpecialistCard } from "@/components/specialists/SpecialistCard";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
-import type { Facility } from "@/types/facility";
+import type { Facility, FacilityBranch } from "@/types/facility";
 
 export type NearbyFacility = Facility & {
   coordinates?: Coordinates;
@@ -200,8 +200,8 @@ export function NearbyPage({
   // and dropped anything without it, main pin or not.
   function nearestPoint(
     facility: NearbyFacility,
-  ): { distanceKm: number; branchName?: string } | undefined {
-    let best: { distanceKm: number; branchName?: string } | undefined =
+  ): { distanceKm: number; branch?: FacilityBranch } | undefined {
+    let best: { distanceKm: number; branch?: FacilityBranch } | undefined =
       facility.coordinates
         ? { distanceKm: calculateDistanceKm(userLocation!, facility.coordinates) }
         : undefined;
@@ -213,7 +213,7 @@ export function NearbyPage({
         longitude: branch.longitude,
       });
       if (!best || distanceKm < best.distanceKm) {
-        best = { distanceKm, branchName: branch.name || branch.area || "This branch" };
+        best = { distanceKm, branch };
       }
     }
     return best;
@@ -222,7 +222,7 @@ export function NearbyPage({
   const rankedFacilities = useMemo((): {
     facility: NearbyFacility;
     distanceKm?: number;
-    nearestBranchName?: string;
+    nearestBranch?: FacilityBranch;
   }[] => {
     if (!userLocation) {
       return [...openFilteredFacilities]
@@ -230,11 +230,11 @@ export function NearbyPage({
         .map((facility) => ({ facility }));
     }
 
-    type RankedEntry = { facility: NearbyFacility; distanceKm: number; nearestBranchName?: string };
+    type RankedEntry = { facility: NearbyFacility; distanceKm: number; nearestBranch?: FacilityBranch };
     return openFilteredFacilities
       .map((facility): RankedEntry | null => {
         const match = nearestPoint(facility);
-        return match ? { facility, distanceKm: match.distanceKm, nearestBranchName: match.branchName } : null;
+        return match ? { facility, distanceKm: match.distanceKm, nearestBranch: match.branch } : null;
       })
       .filter((entry): entry is RankedEntry => entry !== null)
       .sort((left, right) => left.distanceKm - right.distanceKm);
@@ -474,14 +474,14 @@ export function NearbyPage({
                 </span>
               </div>
               <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {visibleRankedFacilities.map(({ facility, distanceKm, nearestBranchName }) => (
+                {visibleRankedFacilities.map(({ facility, distanceKm, nearestBranch }) => (
                   <FacilityCard
                     distanceLabel={
                       distanceKm === undefined ? undefined : formatDistanceKm(distanceKm)
                     }
                     facility={facility}
                     key={facility.id}
-                    nearestBranchName={nearestBranchName}
+                    nearestBranch={nearestBranch}
                   />
                 ))}
               </div>

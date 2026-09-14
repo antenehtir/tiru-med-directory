@@ -243,24 +243,34 @@ function queryTokenVariants(token: string): string[] {
   return list;
 }
 
-// Plain Levenshtein (single-character insert/delete/substitute) edit
-// distance. No transposition step — a swapped pair of letters costs 2 here
-// rather than 1, which just makes the threshold below slightly stricter for
-// that one typo shape and is not worth a second DP table for.
+// Optimal string alignment (restricted Damerau-Levenshtein) edit distance:
+// insert/delete/substitute at cost 1, plus a swapped adjacent pair at cost 1
+// rather than 2. A plain Levenshtein table charged "ophthalmology" typed as
+// "optalmolgoy" 4 edits (2 dropped letters + a 2-substitution swap of the
+// trailing "og") and missed it outright; the swap is one real typo, not two,
+// and counting it as such is what a keyboard-adjacent slip actually costs.
 function levenshteinDistance(a: string, b: string): number {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
 
+  let twoRowsAgo: number[] = [];
   let previousRow = Array.from({ length: b.length + 1 }, (_, j) => j);
   for (let i = 1; i <= a.length; i++) {
     const currentRow = [i];
     for (let j = 1; j <= b.length; j++) {
-      currentRow[j] =
-        a[i - 1] === b[j - 1]
-          ? previousRow[j - 1]
-          : 1 + Math.min(previousRow[j - 1], previousRow[j], currentRow[j - 1]);
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let value = Math.min(
+        previousRow[j] + 1,
+        currentRow[j - 1] + 1,
+        previousRow[j - 1] + cost,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        value = Math.min(value, twoRowsAgo[j - 2] + 1);
+      }
+      currentRow[j] = value;
     }
+    twoRowsAgo = previousRow;
     previousRow = currentRow;
   }
   return previousRow[b.length];
@@ -271,10 +281,15 @@ function levenshteinDistance(a: string, b: string): number {
 // letters gets any tolerance at all — "ent"/"eat"/"end" are all one edit
 // apart and all mean something different, which is exactly the false-match
 // class matchesQueryTokens' word-boundary rule already exists to keep out.
+// Longer medical terms ("ophthalmology", "otolaryngology") can carry two or
+// three typos in the same word without becoming ambiguous with anything else
+// in the catalogue, so the allowance keeps growing past the 7-letter tier
+// rather than capping there.
 function typoTolerance(length: number): number {
   if (length < 4) return 0;
   if (length <= 7) return 1;
-  return 2;
+  if (length <= 10) return 2;
+  return 3;
 }
 
 // Fallback for when nothing in `text` starts with the token or any of its
