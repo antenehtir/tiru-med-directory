@@ -16,6 +16,7 @@ export const SPECIALTY_OPTIONS = [
   "Oncology",
   "Gastroenterology",
   "Fertility",
+  "Nutrition",
   "Multiple specialties",
   "Other",
 ] as const;
@@ -52,10 +53,42 @@ export const SURGERY_ALIASES = [
 // A hospital that lists both keeps its match, because removing "Dental
 // Surgery" leaves "General Surgery" standing. "neurosurgery" is deliberately
 // absent from the qualifiers: it is an explicit alias above.
+//
+// "retina"/"retinal" was added the same way the others were: LA VISTA
+// Specialty Eye Clinic lists "Surgical Retina" — qualifier AFTER the surgery
+// word rather than before, the one shape the pattern otherwise only tests one
+// way round — and without a matching branch here it read as bare "Surgical",
+// tagging an eye clinic with the general Surgery specialty and, downstream,
+// offering ENT surgical centres as "similar facilities" to it.
 export const QUALIFIED_SURGERY_PATTERN = new RegExp(
   "\\b(?:dental|oral|maxillofacial|hair\\s+transplant|plastic|cosmetic|aesthetic|reconstructive|" +
-    "orthopedic|orthopaedic|spinal|spine|eye|ophthalmic|refractive|cataract|lasik)\\s*" +
-    "(?:and\\s+\\w+\\s+)?surg\\w+",
+    "orthopedic|orthopaedic|spinal|spine|eye|ophthalmic|refractive|cataract|lasik|retinal?)\\s*" +
+    "(?:and\\s+\\w+\\s+)?surg\\w+" +
+    "|\\bsurg\\w+\\s+retinal?\\b",
+  "gi",
+);
+
+// Canonical Pediatrics alias list — pulled out to a named export (like
+// SURGERY_ALIASES above) so it can double as the WeakMap key
+// QUALIFIED_PEDIATRIC_PATTERN below is keyed on in frontend-search-filters.ts.
+export const PEDIATRICS_ALIASES = ["pediatric", "paediatric", "paeds", "nicu", "neonatolog"];
+
+// A pediatric-flavoured sub-service of a DIFFERENT specialty, removed from a
+// facility's text before the aliases above are tested against it — the same
+// reasoning as QUALIFIED_SURGERY_PATTERN just above. "Pediatric Eye Care" is
+// an eye clinic's own service, not evidence the clinic also practises
+// general pediatric medicine.
+//
+// This was not hypothetical: LA VISTA Specialty Eye Clinic's only
+// pediatric-flavoured listing is exactly "Pediatric Eye Care", and matching
+// it as the general Pediatrics specialty put a maternal/children's hospital
+// and an ENT centre (both of which separately list their own "Pediatric ENT"
+// / "Pediatric X" sub-services) into its "Similar facilities" rail — an eye
+// clinic, an ENT clinic and an MCH hospital sharing nothing but the word
+// "pediatric" used three different ways.
+export const QUALIFIED_PEDIATRIC_PATTERN = new RegExp(
+  "\\bp(?:a)?ediatric\\w*\\s+(?:eye|ophthalm\\w*|ent\\b|ear|nose|throat|dental|dentistry|dermatolog\\w*|" +
+    "cardiolog\\w*|neurolog\\w*|orthop(?:a)?edic\\w*|urolog\\w*|surg\\w*|psychiatr\\w*|gastroenterolog\\w*)",
   "gi",
 );
 

@@ -131,6 +131,10 @@ export type Facility = {
   walkinAppointment?: string | null;
   appointmentModalities?: FacilityAppointmentModality[];
   schedule?: FacilityScheduleRow[];
+  /** Tri-state: undefined/null means the admin has never answered this, true
+   *  means the listing is closed on public holidays, false means it stays
+   *  open. Collected on the admin edit form (AdminFacilityServicesEditor). */
+  closedOnPublicHolidays?: boolean | null;
   paymentMethods?: string[];
   insuranceNote?: string | null;
   patientGroups?: string[];

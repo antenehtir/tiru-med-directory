@@ -1,4 +1,5 @@
 import { Pill } from "@/components/ui/Pill";
+import { CORPORATE_CREDIT_COMPANY_PREFIX } from "@/lib/provider/onboarding-config";
 import type { Facility } from "@/types/facility";
 
 type FacilityInformationSectionProps = {
@@ -6,7 +7,15 @@ type FacilityInformationSectionProps = {
 };
 
 export function FacilityInformationSection({ facility }: FacilityInformationSectionProps) {
-  const paymentMethods = facility.paymentMethods ?? [];
+  // Corporate company names ride inside payment_methods as their own
+  // prefixed entries (see CORPORATE_CREDIT_COMPANY_PREFIX) rather than a raw
+  // pill each — shown as one readable line under the pills instead, the same
+  // way the insurance note already sits under the Insurance pill.
+  const allPaymentMethods = facility.paymentMethods ?? [];
+  const corporateCompanies = allPaymentMethods
+    .filter((m) => m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX))
+    .map((m) => m.slice(CORPORATE_CREDIT_COMPANY_PREFIX.length));
+  const paymentMethods = allPaymentMethods.filter((m) => !m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX));
   const patientGroups = facility.patientGroups ?? [];
   const languages = facility.languages ?? [];
   const accessNotes = facility.accessNotes?.trim();
@@ -68,6 +77,11 @@ export function FacilityInformationSection({ facility }: FacilityInformationSect
             </div>
             {paymentMethods.includes("Insurance") && facility.insuranceNote ? (
               <p className="mt-2 text-sm leading-5 text-muted-foreground">Insurance note: {facility.insuranceNote}</p>
+            ) : null}
+            {paymentMethods.includes("Corporate credit agreement") && corporateCompanies.length > 0 ? (
+              <p className="mt-2 text-sm leading-5 text-muted-foreground">
+                Corporate accounts: {corporateCompanies.join(", ")}
+              </p>
             ) : null}
           </div>
         ) : null}

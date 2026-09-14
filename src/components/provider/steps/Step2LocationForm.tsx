@@ -152,40 +152,35 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             </select>
           </div>
 
-          {/* Area */}
-          <div className="flex flex-col gap-1.5">
+          {/* Area and landmark used to be two separate required fields here,
+              unlike anywhere else this fact is asked — both answer the same
+              underlying question ("where, roughly, is this") and splitting
+              it in two doubled the typing for no real gain. Merged into one
+              field, stored in `area`; `landmark` is cleared on the first
+              edit so old separately-typed data (shown joined, once) does not
+              linger as a stale duplicate underneath. Same treatment
+              branch-repeater.tsx already gives every branch. */}
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <label className="text-sm font-medium text-foreground" htmlFor="area">
-              Area / neighborhood *
+              Area / neighborhood &amp; landmark *
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="area"
               name="area"
+              onBlur={() => autoSave({ area, landmark: "" })}
+              onChange={(e) => {
+                setArea(e.target.value);
+                setLandmark("");
+              }}
+              placeholder="e.g. Bole Medhanialem, next to Edna Mall"
               required
               type="text"
-              {...field(area, setArea, { area })}
+              value={[area, landmark].filter(Boolean).join(", ")}
             />
+            <input name="landmark" type="hidden" value="" />
             <p className="text-xs text-muted-foreground">
-              The neighborhood patients would recognize, e.g. &quot;Bole Medhanialem&quot;
-            </p>
-          </div>
-
-          {/* Landmark */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="landmark">
-              Nearby landmark *
-            </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="landmark"
-              name="landmark"
-              placeholder="e.g. Next to Bole Medhanialem Church"
-              required
-              type="text"
-              {...field(landmark, setLandmark, { landmark })}
-            />
-            <p className="text-xs text-muted-foreground">
-              A well-known nearby place, e.g. &quot;next to Edna Mall&quot;
+              The neighborhood patients would recognize, plus a well-known nearby place — e.g. &quot;Bole Medhanialem, next to Edna Mall&quot;
             </p>
           </div>
 

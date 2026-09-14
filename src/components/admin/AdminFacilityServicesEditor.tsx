@@ -22,6 +22,7 @@ import {
   HOME_CARE_SERVICES,
   AMBULANCE_VEHICLE_TYPES,
   PAYMENT_METHODS,
+  CORPORATE_CREDIT_COMPANY_PREFIX,
   EMERGENCY_TYPES,
   WALKIN_APPOINTMENT_OPTIONS,
   DIAGNOSTIC_SUBTYPE_OPTIONS,
@@ -112,6 +113,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
   const [paymentMethods, setPaymentMethods] = useState<string[]>(arr(facility.payment_methods));
   const [insuranceNote, setInsuranceNote] = useState((facility.insurance_note as string) ?? "");
   const [customPayment, setCustomPayment] = useState("");
+  const [corporateCompanyDraft, setCorporateCompanyDraft] = useState("");
   const [walkinPolicy, setWalkinPolicy] = useState((facility.walkin_appointment as string) ?? "");
   const [appointmentModalities, setAppointmentModalities] = useState<AppointmentModality[]>(
     (facility.appointment_modalities as AppointmentModality[]) ?? [],
@@ -184,10 +186,21 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
 
   function togglePayment(method: string) {
     setPaymentMethods((prev) => {
-      const next = prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method];
+      let next = prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method];
       if (method === "Insurance" && !next.includes("Insurance")) setInsuranceNote("");
+      if (method === "Corporate credit agreement" && !next.includes("Corporate credit agreement")) {
+        next = next.filter((m) => !m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX));
+      }
       return next;
     });
+  }
+
+  function addCorporateCompany() {
+    const name = corporateCompanyDraft.trim();
+    if (!name) return;
+    const entry = `${CORPORATE_CREDIT_COMPANY_PREFIX}${name}`;
+    setPaymentMethods((prev) => (prev.includes(entry) ? prev : [...prev, entry]));
+    setCorporateCompanyDraft("");
   }
 
   const knownLists: readonly (readonly string[])[] = isPharmacy
@@ -711,6 +724,56 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               ))}
             </div>
 
+            {paymentMethods.includes("Corporate credit agreement") && (
+              <div className="rounded-lg border border-dashed border-primary/30 bg-card p-3">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="admin_corporate_company_draft">
+                  Which companies do you have a corporate credit agreement with? (optional)
+                </label>
+                <div className="mt-1.5 flex gap-2">
+                  <input
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    id="admin_corporate_company_draft"
+                    onChange={(e) => setCorporateCompanyDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCorporateCompany();
+                      }
+                    }}
+                    placeholder="e.g. Ethiopian Airlines"
+                    type="text"
+                    value={corporateCompanyDraft}
+                  />
+                  <button
+                    className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                    disabled={!corporateCompanyDraft.trim()}
+                    onClick={addCorporateCompany}
+                    type="button"
+                  >
+                    Add
+                  </button>
+                </div>
+                {paymentMethods.some((m) => m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX)) && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {paymentMethods
+                      .filter((m) => m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX))
+                      .map((entry) => (
+                        <span className={getPillClassName("selected", "md")} key={entry}>
+                          {entry.slice(CORPORATE_CREDIT_COMPANY_PREFIX.length)}
+                          <button
+                            className="hover:text-red-200"
+                            onClick={() => setPaymentMethods((prev) => prev.filter((m) => m !== entry))}
+                            type="button"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-2 flex gap-2">
               <input
                 className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -743,10 +806,12 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
               </button>
             </div>
 
-            {paymentMethods.some((m) => !(PAYMENT_METHODS as readonly string[]).includes(m)) && (
+            {paymentMethods.some(
+              (m) => !(PAYMENT_METHODS as readonly string[]).includes(m) && !m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX),
+            ) && (
               <div className="flex flex-wrap gap-2">
                 {paymentMethods
-                  .filter((m) => !(PAYMENT_METHODS as readonly string[]).includes(m))
+                  .filter((m) => !(PAYMENT_METHODS as readonly string[]).includes(m) && !m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX))
                   .map((custom) => (
                     <span key={custom} className={getPillClassName("selected", "md")}>
                       {custom}

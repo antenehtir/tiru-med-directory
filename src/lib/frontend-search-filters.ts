@@ -1,4 +1,6 @@
 import {
+  PEDIATRICS_ALIASES,
+  QUALIFIED_PEDIATRIC_PATTERN,
   QUALIFIED_SURGERY_PATTERN,
   SPECIALTY_OPTIONS,
   SURGERY_ALIASES,
@@ -33,7 +35,7 @@ export const specialtySubFilters = ["All specialties", ...SPECIALTY_OPTIONS];
 // Uses word-boundary regex — "ent" must appear as a standalone word, not inside "center".
 const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   "Internal Medicine": ["internal medicine"],
-  "Pediatrics": ["pediatric", "paediatric", "paeds", "nicu", "neonatolog"],
+  "Pediatrics": PEDIATRICS_ALIASES,
   "Maternal & Child Health": ["maternal", "child health", "mch"],
   // Added "obgyn"/"ob-gyn"/"ob/gyn": Habari Medical Plaza tags itself "OBGYN"
   // and matched none of the five original aliases, silently undercounting.
@@ -58,6 +60,10 @@ const SPECIALTY_ALIAS_MAP: Record<string, string[]> = {
   // Same wording NEARBY_SPECIALTY_PILLS already uses for its own Fertility
   // pill — one alias list for the idea, not two that could drift.
   "Fertility": ["fertility", "reproductive", "infertility", "ivf"],
+  // Same alias set NEARBY_SPECIALTY_PILLS' own "Nutrition" pill already uses —
+  // "nutrition" alone reaches "Nutrition and Dietetics" too, since a >=5-letter
+  // stem gets a trailing \w* (buildAliasPattern).
+  "Nutrition": ["nutrition", "nutritional", "dietitian", "dietary"],
   "Multiple specialties": ["multispecialty", "multi-specialty", "multiple specialt"],
   "Other": [],
 };
@@ -85,6 +91,7 @@ function buildAliasPattern(alias: string): RegExp {
 // ask, which is the same reasoning that made the alias list itself shared.
 const ALIAS_TEXT_EXCLUSIONS = new WeakMap<string[], RegExp>([
   [SURGERY_ALIASES, QUALIFIED_SURGERY_PATTERN],
+  [PEDIATRICS_ALIASES, QUALIFIED_PEDIATRIC_PATTERN],
 ]);
 
 export function matchesAnyAlias(text: string, aliases: string[]): boolean {

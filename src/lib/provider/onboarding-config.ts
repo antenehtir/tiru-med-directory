@@ -224,6 +224,15 @@ export const PAYMENT_METHODS = [
   "Corporate credit agreement",
 ] as const;
 
+// "Corporate credit agreement" alone does not say WHICH company — a facility
+// with one can have several (a hospital billing three different employers).
+// Each named company is stored as its own entry in the same payment_methods
+// array, prefixed so it can be told apart from an ordinary custom payment
+// method typed into "Add payment method not listed..." and rendered on its
+// own line rather than as a stray pill. No new column: payment_methods is
+// already a free-form text[] built for exactly this kind of open-ended add.
+export const CORPORATE_CREDIT_COMPANY_PREFIX = "Corporate credit agreement: ";
+
 // Alphabetical. This used to be ordered by how a radiology department is
 // organised — plain film, contrast studies, cross-sectional, nuclear,
 // cardiac, neuro and respiratory, endoscopy, then the rest — which reads well

@@ -109,7 +109,7 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => resolveFacilityCardCategoryKey(f) === "ambulance",
   },
   {
-    label: "ENT (Head and neck care)",
+    label: "ENT (Ear, Nose, Throat care)",
     href: `/facilities?specialty=${encodeURIComponent("ENT (Ear, Nose, Throat)")}`,
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "ENT (Ear, Nose, Throat)"),
@@ -136,10 +136,19 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Dental"),
   },
   {
-    label: "Mental health care",
+    label: "Psychiatry / Psychology (Mental health care)",
     href: `/facilities?specialty=${encodeURIComponent("Psychiatry & Mental Health")}`,
     iconKey: "clinic",
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Psychiatry & Mental Health"),
+  },
+  {
+    // Reaches facilities that only listed the service ("Nutrition and
+    // Dietetics") with no separate specialty checklist entry — the alias
+    // prefix-matches on "nutrition" alone, same as every other chip here.
+    label: "Nutrition",
+    href: `/facilities?specialty=${encodeURIComponent("Nutrition")}`,
+    iconKey: "clinic",
+    matches: (f) => specialtyMatchesAliases(mergedTags(f), "Nutrition"),
   },
   {
     // Was reachable only as physiotherapy, which is a different profession.

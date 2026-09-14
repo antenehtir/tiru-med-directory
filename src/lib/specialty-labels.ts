@@ -16,8 +16,8 @@ const PUBLIC_LABELS: Record<string, string> = {
   // One label covering both disciplines. The data does not separate them
   // cleanly and a visitor looking for help does not arrive knowing which one
   // they need; the specialty page carries a refinement for those who do.
-  "Psychiatry & Mental Health": "Mental health care (Psychology and Psychiatry)",
-  "ENT (Ear, Nose, Throat)": "ENT (Head and neck care)",
+  "Psychiatry & Mental Health": "Psychiatry / Psychology (Mental health care)",
+  "ENT (Ear, Nose, Throat)": "ENT (Ear, Nose, Throat care)",
 
   // Proposed wording, following the same rule: name the body part or the
   // person, not the discipline, and keep it to two or three words.

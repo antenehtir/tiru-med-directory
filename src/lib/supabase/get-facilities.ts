@@ -65,6 +65,7 @@ type DBFacility = {
   updated_at: string | null;
   branch_count: number | null;
   branches: unknown;
+  closed_on_public_holidays: boolean | null;
   // Migration 046. Absent on a database that has not run it, which is why
   // phoneNumbersOf falls back to the two columns above rather than assuming.
   phones: unknown;
@@ -159,7 +160,20 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     ? []
     : rawSubCity.split("/").map((s) => s.trim()).filter(Boolean);
 
-  const workingHours = row.working_hours ?? "Contact provider for current hours.";
+  // Home care is the one category where round-the-clock is the norm, not
+  // the exception (see ScheduleBuilder's emphasize247), so a listing that
+  // never answered the hours question at all reads as "24/7" rather than
+  // the generic "contact provider" placeholder that made a genuinely
+  // always-on caregiver service look like it might not be reachable at
+  // 3am. Anything actually typed — a real schedule, or free-text hours —
+  // still wins; this only fills the true blank.
+  const hasExplicitHours =
+    Boolean(row.working_hours?.trim()) || (Array.isArray(row.schedule) && row.schedule.length > 0);
+  const workingHours = hasExplicitHours
+    ? (row.working_hours ?? "Contact provider for current hours.")
+    : row.category === "Home Care"
+      ? "Open 24 hours"
+      : "Contact provider for current hours.";
   const isOpen = workingHours.trim().toLowerCase() === "24/7";
 
   // services and special_services are separate DB columns that can (and do,
@@ -221,6 +235,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
       ? (row.appointment_modalities as FacilityAppointmentModality[])
       : undefined,
     schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
+    closedOnPublicHolidays: row.closed_on_public_holidays ?? null,
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,
     patientGroups: toStringArray(row.patient_groups),
@@ -320,13 +335,31 @@ export async function getSimilarFacilities(
       });
     };
 
-    return data
+    const ranked = data
       .map((row) => mapDBRowToFacility(row as DBFacility))
       .map((candidate) => ({
         candidate,
-        band: Math.round(specialtyOverlapScore(mine, getFacilitySpecialtyLabels(candidate)) * 20),
+        overlap: specialtyOverlapScore(mine, getFacilitySpecialtyLabels(candidate)),
         km: distanceOf(candidate),
-      }))
+      }));
+
+    // Band 0 used to still show up here, ranked last but present — so on an
+    // eye clinic's page, any nearby pediatric or ENT clinic that shared
+    // NOTHING with it filled the rail once the genuine eye-care peers ran
+    // out, because it tied every other zero-overlap facility on the same
+    // band and distance was the only thing left to sort by. A shared band
+    // is not "somewhat similar", it is "nothing in common" — that should
+    // drop a candidate, not just rank it lower.
+    //
+    // Only when the facility itself has no identifiable specialty label
+    // (mine.length === 0 — its services never matched the curated list) is
+    // there nothing to compare on, so this falls back to the original
+    // same-category-nearest-first behaviour rather than showing nothing at
+    // all for every under-tagged listing in the directory.
+    const relevant = mine.length === 0 ? ranked : ranked.filter((entry) => entry.overlap > 0);
+
+    return relevant
+      .map((entry) => ({ ...entry, band: Math.round(entry.overlap * 20) }))
       // Name last, so the rail is stable between renders rather than
       // reshuffling on every request for facilities that tie on both.
       .sort(

@@ -113,6 +113,29 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
       ) : (
         <p className="mt-3 text-sm text-muted-foreground">{facility.workingHours}</p>
       )}
+
+      {/* closedOnPublicHolidays is admin-only today (AdminFacilityServicesEditor)
+          and was never read anywhere a visitor could see it — the checkbox's
+          own hint text ("Shown on the listing so nobody travels on a holiday
+          to a closed door") promised this and nothing delivered it. Three
+          states, matching the checkbox: unanswered gets a prompt to confirm
+          rather than silence, since the listing genuinely does not know. */}
+      {facility.closedOnPublicHolidays === true ? (
+        <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-muted-foreground">
+          <span aria-hidden="true">🎌</span>
+          Closed on public holidays.
+        </p>
+      ) : facility.closedOnPublicHolidays === false ? (
+        <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-success-text">
+          <span aria-hidden="true">🎌</span>
+          Open on public holidays too.
+        </p>
+      ) : (
+        <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <span aria-hidden="true">⚠️</span>
+          Hours on public holidays are not confirmed yet — check with the facility before visiting on one.
+        </p>
+      )}
     </section>
   );
 }
