@@ -124,17 +124,12 @@ export async function autoSaveStep1(data: {
       .eq("id", provider.id);
 
     // name is deliberately withheld from the live sync once a listing is
-    // public. Every other field on this page still writes straight through —
-    // a facility's name is different: it is the one thing on the page a
+    // public — syncToFacilityIfApproved excludes it unconditionally for
+    // exactly this reason. A facility's name is the one thing on the page a
     // random search result is trusted by, and letting it change with no
     // review is a bigger door than "the working hours were wrong for an
-    // hour". requestFacilityNameChange below is the only path to it now;
-    // this just makes sure autosaving the rest of the form on this same page
-    // cannot smuggle a name edit through alongside them.
-    await syncToFacilityIfApproved(supabase, updatedClaim, {
-      excludeFields: ["name"],
-      changeNote: "identity details",
-    });
+    // hour". requestFacilityNameChange below is the only path to it now.
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "identity details" });
   }
 }
 

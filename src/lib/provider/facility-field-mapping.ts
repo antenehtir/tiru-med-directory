@@ -90,6 +90,21 @@ export function filterNonEmpty(fields: Record<string, unknown>): Record<string, 
 // of the fix: the next time a write is blocked for any reason — a new column
 // added without matching RLS coverage, say — it shows up on
 // /admin/audit-log instead of requiring another by-hand comparison.
+//
+// That logging caught a second, previously invisible bug within hours of
+// shipping: a claim whose proposed_name had never been set (a provider who
+// never revisited the identity step after their listing went live) sent
+// name: null into this UPDATE, and facilities.name is NOT NULL — so the
+// WHOLE write failed, including an unrelated services edit the provider
+// actually made. filterNonEmpty (below) is the fix the admin approval path
+// already had (mergeProposedDataIntoFacility calls it) and this one never
+// did — RLS blocking every write at 0 rows matched meant this had no chance
+// to surface until 028 let the write actually reach the table.
+//
+// name is additionally hard-excluded, always, regardless of caller: once a
+// listing is public its name only changes through requestFacilityNameChange
+// (src/app/provider/(console)/onboarding/identity/actions.ts, admin-
+// reviewed), never through an ordinary autosave on any step.
 export async function syncToFacilityIfApproved(
   supabase: ProviderSupabaseClient,
   claim: ClaimRow,
@@ -101,7 +116,8 @@ export async function syncToFacilityIfApproved(
   const providerId = claim.provider_id as string;
   const changeNote = options?.changeNote ?? "listing details";
 
-  const toSync = buildFacilityFieldsFromClaim(claim);
+  const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(claim));
+  delete toSync.name;
   for (const field of options?.excludeFields ?? []) delete toSync[field];
 
   const { data: syncedRows, error } = await supabase
