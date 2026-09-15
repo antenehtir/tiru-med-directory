@@ -2,31 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { updateFacilityIdentity } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
-import { FACILITY_CATEGORY_CHOICES, FACILITY_CATEGORY_OTHER_LABEL } from "@/lib/frontend-search-filters";
+import {
+  FACILITY_CATEGORY_CHOICES,
+  FACILITY_CATEGORY_OTHER_LABEL,
+  resolveFacilityCategoryLabel,
+} from "@/lib/frontend-search-filters";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
 type Facility = Record<string, unknown>;
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
-}
-
-// Which dropdown label corresponds to the currently stored category +
-// subcategory. "Medical Complex" and "Multi-specialty Center" both store as
-// "Specialty Center" and are told apart only by subcategory (describesAs),
-// so the label can't be read off category alone. A category that matches
-// none of the curated choices at all — an old import synonym like
-// "Healthcare Financing" or "Telemedicine" — resolves to Other, which is
-// also where a facility genuinely needs free text to go; the admin sees the
-// real current value either way instead of a silently wrong default.
-function resolveLabel(category: string, subcategory: string): string {
-  if (subcategory) {
-    const described = FACILITY_CATEGORY_CHOICES.find((c) => c.describesAs === subcategory);
-    if (described) return described.label;
-  }
-  const plain = FACILITY_CATEGORY_CHOICES.find((c) => c.stores === category && !c.describesAs);
-  if (plain) return plain.label;
-  return category ? FACILITY_CATEGORY_OTHER_LABEL : "";
 }
 
 // Name and category — the two facts about a listing that used to have
@@ -52,7 +38,7 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
   const [name, setName] = useState(str(facility.name));
   const storedCategory = str(facility.category);
   const storedSubcategory = str(facility.subcategory);
-  const initialLabel = resolveLabel(storedCategory, storedSubcategory);
+  const initialLabel = resolveFacilityCategoryLabel(storedCategory, storedSubcategory);
 
   const [categoryLabel, setCategoryLabel] = useState(initialLabel);
   const isOther = categoryLabel === FACILITY_CATEGORY_OTHER_LABEL;

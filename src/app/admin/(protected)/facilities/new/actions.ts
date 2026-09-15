@@ -122,7 +122,7 @@ export async function createFacility(
     record_number: nextRecordNumber,
     // Nobody from the facility has confirmed any of this yet. The badge is
     // one-way from here: updateFacilityBadge refuses to come back down to
-    // community-submitted once a facility is Owned or Verified.
+    // community-submitted once a facility is Facility Managed or Verified.
     verification_status: "community-submitted",
     is_active: true,
     // Specialties are real catalogue services, so they seed this rather than

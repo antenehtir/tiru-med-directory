@@ -28,11 +28,14 @@ export async function updateFacilityBadge(facilityId: string, newStatus: string)
     .eq("id", facilityId)
     .single();
 
-  // One-way badge gate: once a facility reaches Owned or Verified it can
-  // never be demoted back to CS. Enforce server-side so the UI can't be bypassed.
+  // One-way badge gate: once a facility reaches Facility Managed or Verified
+  // it can never be demoted back to CS. Enforce server-side so the UI can't
+  // be bypassed.
   const locked = ["facility-owned", "verified"];
   if (locked.includes(current?.verification_status ?? "") && newStatus === "community-submitted") {
-    throw new Error("Cannot downgrade to CS — once a facility is Owned or Verified the badge is permanent.");
+    throw new Error(
+      "Cannot downgrade to CS — once a facility is Facility Managed or Verified the badge is permanent.",
+    );
   }
 
   const { error } = await supabase

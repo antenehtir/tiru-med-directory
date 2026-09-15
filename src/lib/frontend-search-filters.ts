@@ -664,6 +664,30 @@ export function resolveCategoryChoice(label: string): FacilityCategoryChoice | u
   return FACILITY_CATEGORY_CHOICES.find((choice) => choice.label === label);
 }
 
+// The reverse direction: which choice LABEL a stored category + subcategory
+// pair displays as. "Medical Complex" and "Multi-specialty Center" both
+// store as "Specialty Center" and are told apart only by subcategory
+// (describesAs) — reading category alone would show every one of them as
+// plain "Specialty Center". A category the taxonomy has never covered (an
+// old import synonym like "Healthcare Financing" or "Telemedicine") resolves
+// to FACILITY_CATEGORY_OTHER_LABEL rather than surfacing as its own
+// permanent, unexplained bucket. Shared by the admin facility list's
+// category filter/column and the identity editor's dropdown preselection,
+// so the two always agree on what a given row IS.
+export function resolveFacilityCategoryLabel(
+  category: string,
+  subcategory: string | null | undefined,
+): string {
+  const sub = subcategory ?? "";
+  if (sub) {
+    const described = FACILITY_CATEGORY_CHOICES.find((c) => c.describesAs === sub);
+    if (described) return described.label;
+  }
+  const plain = FACILITY_CATEGORY_CHOICES.find((c) => c.stores === category && !c.describesAs);
+  if (plain) return plain.label;
+  return category ? FACILITY_CATEGORY_OTHER_LABEL : "";
+}
+
 // True when a stored category resolves to a real category key. Used at the
 // claim-approval boundary so an unmappable value is caught before it becomes
 // an invisible facility row.

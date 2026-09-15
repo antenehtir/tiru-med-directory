@@ -8,7 +8,7 @@ async function getFacilities() {
   const [{ data, error }] = await Promise.all([
     supabase
       .from("facilities")
-      .select("id, slug, name, category, sub_city, area, verification_status, record_number, phone, working_hours, emergency_service, is_active, deactivation_category, deactivated_at, branch_count")
+      .select("id, slug, name, category, subcategory, sub_city, area, verification_status, record_number, phone, working_hours, emergency_service, is_active, deactivation_category, deactivated_at, branch_count")
       .order("record_number", { ascending: true }),
   ]);
 

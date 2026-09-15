@@ -9,12 +9,14 @@ import {
 } from "@/app/admin/(protected)/facilities/actions";
 import { Badge } from "@/components/ui/Badge";
 import type { BadgeVariant } from "@/lib/design-tokens";
+import { resolveFacilityCategoryLabel } from "@/lib/frontend-search-filters";
 
 type Facility = {
   id: string;
   slug: string;
   name: string;
   category: string;
+  subcategory: string | null;
   sub_city: string | null;
   area: string | null;
   verification_status: string;
@@ -54,12 +56,12 @@ function getAvailableBadgeOptions(currentStatus: string) {
   if (currentStatus === "community-submitted") {
     return [
       { value: "community-submitted", label: "CS" },
-      { value: "facility-owned", label: "Owned" },
+      { value: "facility-owned", label: "FM" },
     ];
   }
-  // Once Owned or Verified: CS is locked out permanently.
+  // Once Facility Managed or Verified: CS is locked out permanently.
   return [
-    { value: "facility-owned", label: "Owned" },
+    { value: "facility-owned", label: "FM" },
     { value: "verified", label: "Verified" },
   ];
 }
@@ -90,7 +92,15 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
   } | null>(null);
   const [deactivateForm, setDeactivateForm] = useState({ category: "", reason: "" });
 
-  const categories = Array.from(new Set(facilities.map((f) => f.category))).sort();
+  // Derived from the same taxonomy the Identity editor's own dropdown
+  // offers, not the raw category column — "Medical Complex" and
+  // "Multi-specialty Center" both store as plain "Specialty Center" and
+  // never appeared as their own filter option before, and a legacy,
+  // unmapped category (an old import synonym like "Healthcare Financing")
+  // showed as its own permanent bucket instead of folding into Other.
+  const categories = Array.from(
+    new Set(facilities.map((f) => resolveFacilityCategoryLabel(f.category, f.subcategory))),
+  ).sort();
 
   const filtered = facilities.filter((f) => {
     const matchesSearch =
@@ -98,7 +108,9 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
       f.name.toLowerCase().includes(search.toLowerCase()) ||
       (f.area ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (f.sub_city ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || f.category === categoryFilter;
+    const matchesCategory =
+      categoryFilter === "all" ||
+      resolveFacilityCategoryLabel(f.category, f.subcategory) === categoryFilter;
     const matchesBadge = badgeFilter === "all" || f.verification_status === badgeFilter;
     const isInactive = f.is_active === false;
     const matchesActive =
@@ -110,7 +122,11 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
 
   function handleBadgeChange(facilityId: string, currentStatus: string, newStatus: string) {
     if (currentStatus === "verified" && newStatus === "facility-owned") {
-      if (!confirm("Are you sure you want to downgrade this facility from Verified to Owned?"))
+      if (
+        !confirm(
+          "Are you sure you want to downgrade this facility from Verified to Facility Managed?",
+        )
+      )
         return;
     }
     setUpdatingId(facilityId);
@@ -180,7 +196,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
         >
           <option value="all">All badges</option>
           <option value="community-submitted">CS only</option>
-          <option value="facility-owned">Owned only</option>
+          <option value="facility-owned">FM only</option>
           <option value="verified">Verified only</option>
         </select>
         <select
@@ -230,7 +246,9 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                       <div className="text-xs text-muted-foreground">{facility.phone}</div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{facility.category}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {resolveFacilityCategoryLabel(facility.category, facility.subcategory)}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {[facility.area, facility.sub_city].filter(Boolean).join(", ")}
                   </td>
