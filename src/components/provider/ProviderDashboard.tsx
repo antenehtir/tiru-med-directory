@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { calculateCompletion, missingRequiredFieldKeys } from "@/lib/provider/onboarding-config";
+import { formatAddisDate } from "@/lib/addis-time";
 
 type ProviderAccount = {
   id: string;
@@ -36,11 +37,7 @@ function continueOnboardingHref(phase: number | null | undefined): string {
 
 function formatDate(value: string | null): string {
   if (!value) return "recently";
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return formatAddisDate(value, { year: "numeric", month: "long", day: "numeric" }, "en-US");
 }
 
 function ProgressRing({ pct, ringColorClass }: { pct: number; ringColorClass: string }) {

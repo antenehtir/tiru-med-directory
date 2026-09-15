@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { addAdminUser, removeAdminUser, updateAdminRole } from "@/app/admin/(protected)/users/actions";
+import { formatAddisDate } from "@/lib/addis-time";
 
 type AdminUser = {
   id: string;
@@ -101,11 +102,7 @@ export function AdminUserList({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {new Date(user.created_at).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {formatAddisDate(user.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     {isSelf ? (

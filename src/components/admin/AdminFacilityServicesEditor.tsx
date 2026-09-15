@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityServices } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
+import { formatAddisTime } from "@/lib/addis-time";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import {
   BasicLabSelector,
@@ -360,7 +361,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
             </p>
           </div>
           {savedAt && !isPending && (
-            <span className="text-xs text-muted-foreground">Saved {savedAt.toLocaleTimeString()}</span>
+            <span className="text-xs text-muted-foreground">Saved {formatAddisTime(savedAt)}</span>
           )}
         </div>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode, type SVGProps } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { formatAddisDate } from "@/lib/addis-time";
 import type { BadgeVariant } from "@/lib/design-tokens";
 
 type NavItem = {
@@ -114,11 +115,7 @@ function StatusBadge({ status }: { status: string | null }) {
 
 function formatDate(value: string | null): string {
   if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatAddisDate(value, { year: "numeric", month: "short", day: "numeric" }, "en-US");
 }
 
 type SidebarContentProps = {

@@ -3,6 +3,14 @@
 // hours (FacilityHoursSection) and doctor availability (SpecialistCard,
 // FacilityDoctorsSection, SpecialistAvailabilitySection) so this calculation
 // only exists in one place.
+//
+// "Now" is always the Addis wall clock. These schedules describe Addis
+// facilities, and the components below render in both a server tree (UTC on
+// the host) and a client tree (the viewer's own zone) — so reading the
+// ambient clock meant the same doctor was "available now" at different real
+// times depending on which page you arrived from.
+
+import { addisWallClock } from "@/lib/addis-time";
 
 export const DAYS_ORDER = [
   "Monday",
@@ -34,8 +42,12 @@ export type ScheduleRow = {
   closed: boolean;
 };
 
+// Reads the Addis wall clock, not the clock of whatever machine is running
+// this. The same component renders on the server for a facility page and in
+// the browser for the /specialists list, so "today" used to mean UTC in one
+// place and the viewer's own zone in the other. See lib/addis-time.ts.
 export function getTodayName(now: Date = new Date()): DayName {
-  return JS_DAY_TO_NAME[now.getDay()];
+  return JS_DAY_TO_NAME[addisWallClock(now).dayIndex];
 }
 
 export function normalizeDay(raw: string): DayName | null {
@@ -98,8 +110,8 @@ export function getAvailabilityStatus<T extends ScheduleRow>(
 ): AvailabilityStatus {
   if (!schedule || schedule.length === 0) return { state: "unavailable" };
 
-  const todayName = getTodayName(now);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const { dayIndex, minutes: nowMin } = addisWallClock(now);
+  const todayName = JS_DAY_TO_NAME[dayIndex];
   const dayMap = buildDayMap(schedule);
   const todayRow = dayMap.get(todayName) ?? null;
 

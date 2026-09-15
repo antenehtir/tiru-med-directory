@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
+import { addisDayKey } from "@/lib/addis-time";
 import {
   BadgeDistributionChart,
   SubmissionsTrendChart,
@@ -62,41 +63,43 @@ async function getDashboardStats() {
   };
 }
 
-function dayKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
 async function getSubmissionsTrend(): Promise<SubmissionTrendDatum[]> {
   const supabase = await createAdminSupabaseClient();
 
-  const since = new Date();
-  since.setDate(since.getDate() - 29);
-  since.setHours(0, 0, 0, 0);
-
-  const { data, error } = await supabase
-    .from("facility_claims")
-    .select("submitted_at, facility_id")
-    .not("submitted_at", "is", null)
-    .gte("submitted_at", since.toISOString());
+  // Buckets are Addis calendar days, and the arithmetic runs on the day key
+  // rather than on an instant, so the run of 30 days cannot drift: a claim
+  // submitted at 1 AM Addis belongs to that morning's bar, not to the
+  // previous one, which is where UTC bucketing put it. Ethiopia does not
+  // observe DST, so every step here is exactly 24 hours.
+  const startOfWindow = new Date(`${addisDayKey()}T00:00:00Z`);
+  startOfWindow.setUTCDate(startOfWindow.getUTCDate() - 29);
 
   const days: SubmissionTrendDatum[] = [];
   for (let i = 0; i < 30; i++) {
-    const d = new Date(since);
-    d.setDate(d.getDate() + i);
+    const d = new Date(startOfWindow);
+    d.setUTCDate(startOfWindow.getUTCDate() + i);
     days.push({
-      date: dayKey(d),
-      label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      date: d.toISOString().slice(0, 10),
+      label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }),
       newListings: 0,
       claims: 0,
     });
   }
+
+  // The window opens at Addis midnight on the first bucket's day (+03:00),
+  // so the query covers exactly the days being charted.
+  const { data, error } = await supabase
+    .from("facility_claims")
+    .select("submitted_at, facility_id")
+    .not("submitted_at", "is", null)
+    .gte("submitted_at", `${days[0].date}T00:00:00+03:00`);
 
   if (error || !data) return days;
 
   const byDay = new Map(days.map((d) => [d.date, d]));
   for (const row of data) {
     if (!row.submitted_at) continue;
-    const key = dayKey(new Date(row.submitted_at));
+    const key = addisDayKey(new Date(row.submitted_at));
     const bucket = byDay.get(key);
     if (!bucket) continue;
     if (row.facility_id === null) bucket.newListings += 1;

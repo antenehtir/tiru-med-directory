@@ -1,5 +1,6 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { fieldLabel, isItemDelta, isListDelta } from "@/lib/audit/change-summary";
+import { formatAddisDateTime } from "@/lib/addis-time";
 
 async function getAuditLog() {
   const supabase = await createAdminSupabaseClient();
@@ -10,32 +11,6 @@ async function getAuditLog() {
     .limit(200);
   if (error) return [];
   return data ?? [];
-}
-
-// This page is a server component, so a bare toLocaleString formats in the
-// SERVER's timezone — UTC on the host — while the provider console's
-// "Draft saved 3:22:29 PM" is a client component formatting in the
-// browser's. The same save therefore appeared three hours apart in two
-// places, and the audit log was the one that was wrong.
-//
-// Pinned to Addis rather than handed to the browser: every admin and
-// provider on this directory is in one timezone, and an audit trail wants a
-// single fixed reference frame anyway — "when did this happen" should not
-// depend on where the person asking is sitting.
-const DISPLAY_TIME_ZONE = "Africa/Addis_Ababa";
-
-function formatAuditTimestamp(value: unknown): string {
-  if (typeof value !== "string" || !value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: DISPLAY_TIME_ZONE,
-  });
 }
 
 // Long lists get a head and a count rather than the whole thing — the point
@@ -193,7 +168,7 @@ export default async function AdminAuditLogPage() {
                     className={`border-b border-border last:border-0 hover:bg-muted/20 ${isProblem ? "bg-red-50 dark:bg-red-950/20" : ""}`}
                   >
                     <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                      {formatAuditTimestamp(entry.created_at)}
+                      {formatAddisDateTime(entry.created_at as string | null)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{actorText}</td>
                     <td className={`px-4 py-3 font-medium ${isProblem ? "text-red-600 dark:text-red-400" : "text-foreground"}`}>

@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { formatAddisTime } from "@/lib/addis-time";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { updateFacilityLocation } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
@@ -154,7 +155,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
           </div>
           {savedAt && !isPending && (
             <span className="text-xs text-muted-foreground">
-              Saved {savedAt.toLocaleTimeString()}
+              Saved {formatAddisTime(savedAt)}
             </span>
           )}
         </div>

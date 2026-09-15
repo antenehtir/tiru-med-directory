@@ -1,5 +1,6 @@
 "use client";
 
+import { formatAddisTime } from "@/lib/addis-time";
 import { useState, useTransition } from "react";
 import { updateFacilityIdentity } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import {
@@ -142,7 +143,7 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
           </p>
         </div>
         {savedAt && !isPending && (
-          <span className="text-xs text-muted-foreground">Saved {savedAt.toLocaleTimeString()}</span>
+          <span className="text-xs text-muted-foreground">Saved {formatAddisTime(savedAt)}</span>
         )}
       </div>
 

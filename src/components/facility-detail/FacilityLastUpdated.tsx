@@ -1,4 +1,5 @@
 import type { Facility } from "@/types/facility";
+import { formatAddisDate } from "@/lib/addis-time";
 
 type FacilityLastUpdatedProps = {
   facility: Facility;
@@ -18,11 +19,11 @@ export function FacilityLastUpdated({ facility }: FacilityLastUpdatedProps) {
     return null;
   }
 
-  const formatted = date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formatted = formatAddisDate(
+    date,
+    { year: "numeric", month: "long", day: "numeric" },
+    "en-US",
+  );
 
   return (
     <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-primary">

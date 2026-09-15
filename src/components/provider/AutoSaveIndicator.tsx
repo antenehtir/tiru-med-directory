@@ -1,4 +1,5 @@
 import { Spinner } from "./Spinner";
+import { formatAddisTime } from "@/lib/addis-time";
 
 type AutoSaveIndicatorProps = {
   isPending: boolean;
@@ -31,7 +32,7 @@ export function AutoSaveIndicator({
         lastSaved && (
           <>
             <span className="size-1.5 shrink-0 rounded-full bg-success" />
-            Draft saved {lastSaved.toLocaleTimeString()}
+            Draft saved {formatAddisTime(lastSaved)}
           </>
         )
       )}

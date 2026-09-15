@@ -9,6 +9,7 @@ import {
   getAvailabilityStatus,
   getTodayName,
 } from "@/lib/schedule-availability";
+import { addisWallClock } from "@/lib/addis-time";
 
 type FacilityHoursSectionProps = {
   facility: Facility;
@@ -17,7 +18,10 @@ type FacilityHoursSectionProps = {
 export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
   const now = new Date();
   const todayName = getTodayName(now);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Addis wall clock, not the viewer's: these are Addis opening hours, and a
+  // visitor reading this from another timezone should see whether the doors
+  // are open there, not here.
+  const nowMin = addisWallClock(now).minutes;
 
   const { dayMap, is24_7, openNow, opensAt } = useMemo(() => {
     const schedule = facility.schedule;

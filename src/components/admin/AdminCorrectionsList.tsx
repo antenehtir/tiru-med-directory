@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { updateCorrectionStatus } from "@/app/admin/(protected)/corrections/actions";
+import { formatAddisDateTime } from "@/lib/addis-time";
 
 export type CorrectionRequest = {
   id: string;
@@ -47,13 +48,7 @@ function parseDescription(description: string | null): {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatAddisDateTime(iso);
 }
 
 const VALID_TABS: Tab[] = ["all", "pending", "reviewed", "resolved", "dismissed"];

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityContact } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
+import { formatAddisTime } from "@/lib/addis-time";
 import { normalizeUrl } from "@/lib/normalize-url";
 import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
 import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
@@ -111,7 +112,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
           <p className="text-sm text-muted-foreground">How should patients reach you?</p>
         </div>
         {savedAt && !isPending && (
-          <span className="text-xs text-muted-foreground">Saved {savedAt.toLocaleTimeString()}</span>
+          <span className="text-xs text-muted-foreground">Saved {formatAddisTime(savedAt)}</span>
         )}
       </div>
 

@@ -9,6 +9,7 @@ import {
   getAvailabilityStatus,
   getTodayName,
 } from "@/lib/schedule-availability";
+import { addisWallClock } from "@/lib/addis-time";
 
 export function SpecialistAvailabilitySection({
   schedule,
@@ -17,7 +18,8 @@ export function SpecialistAvailabilitySection({
 }) {
   const now = new Date();
   const todayName = getTodayName(now);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Addis wall clock, not the viewer's — see FacilityHoursSection.
+  const nowMin = addisWallClock(now).minutes;
 
   const { dayMap, availableNow } = useMemo(() => {
     if (!schedule || schedule.length === 0) {
