@@ -362,7 +362,7 @@ export async function updateFacilityContact(
   revalidatePath("/");
 }
 
-const IDENTITY_COLUMNS = "name, category";
+const IDENTITY_COLUMNS = "name, category, subcategory";
 
 // name and category deliberately had no editor anywhere before this. A
 // facility's name is not permanent — a centre rebrands, or a typo from the
@@ -379,6 +379,12 @@ const IDENTITY_COLUMNS = "name, category";
 type FacilityIdentityFields = Partial<{
   name: string;
   category: string;
+  // Only ever sent when the chosen category is one of the "describes as"
+  // labels (Medical Complex, Multi-specialty Center) or a genuinely free-
+  // typed "Other" description — never for a plain category choice, since
+  // subcategory doubles as most facilities' own short description text and
+  // switching between two plain categories has nothing to say about it.
+  subcategory: string | null;
 }>;
 
 export async function updateFacilityIdentity(

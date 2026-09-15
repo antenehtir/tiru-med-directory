@@ -2,13 +2,31 @@
 
 import { useState, useTransition } from "react";
 import { updateFacilityIdentity } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
-import { FACILITY_CATEGORY_OPTIONS } from "@/lib/frontend-search-filters";
+import { FACILITY_CATEGORY_CHOICES, FACILITY_CATEGORY_OTHER_LABEL } from "@/lib/frontend-search-filters";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
 type Facility = Record<string, unknown>;
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+// Which dropdown label corresponds to the currently stored category +
+// subcategory. "Medical Complex" and "Multi-specialty Center" both store as
+// "Specialty Center" and are told apart only by subcategory (describesAs),
+// so the label can't be read off category alone. A category that matches
+// none of the curated choices at all — an old import synonym like
+// "Healthcare Financing" or "Telemedicine" — resolves to Other, which is
+// also where a facility genuinely needs free text to go; the admin sees the
+// real current value either way instead of a silently wrong default.
+function resolveLabel(category: string, subcategory: string): string {
+  if (subcategory) {
+    const described = FACILITY_CATEGORY_CHOICES.find((c) => c.describesAs === subcategory);
+    if (described) return described.label;
+  }
+  const plain = FACILITY_CATEGORY_CHOICES.find((c) => c.stores === category && !c.describesAs);
+  if (plain) return plain.label;
+  return category ? FACILITY_CATEGORY_OTHER_LABEL : "";
 }
 
 // Name and category — the two facts about a listing that used to have
@@ -19,6 +37,13 @@ function str(value: unknown): string {
 // Kept as its own tab rather than folded into Location or Services &
 // Specialties: those already commit an admin to one existing mental model
 // each, and this section governs both of them at once.
+//
+// The category list is the same FACILITY_CATEGORY_CHOICES the provider-side
+// identity form and the admin's "new facility" form already use — Medical
+// Plaza, Medical Complex and Multi-specialty Center included — plus a real
+// free-typed Other, rather than the plainer 7-value stored-category list
+// this editor used to offer. An admin correcting a listing's type deserves
+// at least the choice a provider's own review request already has.
 export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }) {
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<Date | null>(null);
@@ -26,27 +51,59 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
 
   const [name, setName] = useState(str(facility.name));
   const storedCategory = str(facility.category);
-  const [category, setCategory] = useState(storedCategory);
+  const storedSubcategory = str(facility.subcategory);
+  const initialLabel = resolveLabel(storedCategory, storedSubcategory);
 
-  // Same reasoning as AdminFacilityLocationEditor's sub-city select: a
-  // stored category value that isn't in the canonical list (an old import
-  // synonym like "Healthcare Financing" or "Telemedicine") is kept as its
-  // own option rather than silently dropped, so the select shows what is
-  // actually live instead of defaulting to the first canonical entry.
-  const isCanonicalCategory = (FACILITY_CATEGORY_OPTIONS as readonly string[]).includes(storedCategory);
-  const categoryOptions = isCanonicalCategory || !storedCategory
-    ? [...FACILITY_CATEGORY_OPTIONS]
-    : [storedCategory, ...FACILITY_CATEGORY_OPTIONS];
+  const [categoryLabel, setCategoryLabel] = useState(initialLabel);
+  const isOther = categoryLabel === FACILITY_CATEGORY_OTHER_LABEL;
+  // Only pre-filled when the CURRENT state is itself an Other case — a
+  // legacy category the taxonomy doesn't recognise, or nothing set at all.
+  // A facility that already resolves to a curated label starts with these
+  // blank; they only matter once Other is actually chosen.
+  const [otherDescription, setOtherDescription] = useState(
+    initialLabel === FACILITY_CATEGORY_OTHER_LABEL ? storedSubcategory || storedCategory : "",
+  );
+  const [otherBehavesAs, setOtherBehavesAs] = useState(
+    initialLabel === FACILITY_CATEGORY_OTHER_LABEL &&
+      FACILITY_CATEGORY_CHOICES.some((c) => c.stores === storedCategory && !c.describesAs)
+      ? storedCategory
+      : "",
+  );
 
-  // State, not a ref: this baseline is read during render (nameChanged/
-  // categoryChanged below, which drive the Save button's disabled state), and
+  // State, not a ref: this baseline is read during render (categoryChanged
+  // below, which drives the Save button's disabled state), and
   // react-hooks/refs forbids reading ref.current there — a render triggered
   // by anything else could show a stale baseline. AdminFacilityLocationEditor
   // hit the same thing first and settled on state for the same reason.
-  const [initial, setInitial] = useState({ name: str(facility.name), category: storedCategory });
+  const [initial, setInitial] = useState({
+    name: str(facility.name),
+    category: storedCategory,
+    subcategory: storedSubcategory,
+  });
 
   const nameChanged = name.trim() !== initial.name;
-  const categoryChanged = category !== initial.category;
+
+  // What the current selection actually resolves to — category always,
+  // subcategory only when this specific choice has something to say about
+  // it. undefined means "leave subcategory alone": most facilities use it as
+  // their own free-text description, unrelated to the describesAs taxonomy,
+  // and switching between two plain categories (Clinic -> Diagnostic Center,
+  // say) has no business overwriting that.
+  function resolvedFields(): { category: string; subcategory: string | undefined } | null {
+    if (isOther) {
+      if (!otherDescription.trim() || !otherBehavesAs) return null;
+      return { category: otherBehavesAs, subcategory: otherDescription.trim() };
+    }
+    const choice = FACILITY_CATEGORY_CHOICES.find((c) => c.label === categoryLabel);
+    if (!choice) return null;
+    return { category: choice.stores, subcategory: choice.describesAs };
+  }
+
+  const resolved = resolvedFields();
+  const categoryChanged =
+    resolved !== null &&
+    (resolved.category !== initial.category ||
+      (resolved.subcategory !== undefined && resolved.subcategory !== initial.subcategory));
   const isDirty = nameChanged || categoryChanged;
 
   function handleSave() {
@@ -55,10 +112,17 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
       setError("Facility name is required.");
       return;
     }
+    if (isOther && (!otherDescription.trim() || !otherBehavesAs)) {
+      setError("Describe the facility and choose which category it works most like.");
+      return;
+    }
 
     const fields: Record<string, unknown> = {};
     if (nameChanged) fields.name = name.trim();
-    if (categoryChanged) fields.category = category;
+    if (categoryChanged && resolved) {
+      fields.category = resolved.category;
+      if (resolved.subcategory !== undefined) fields.subcategory = resolved.subcategory;
+    }
 
     if (Object.keys(fields).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
@@ -68,7 +132,11 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
     startTransition(async () => {
       try {
         await updateFacilityIdentity(facility.id as string, fields);
-        setInitial({ name: name.trim(), category });
+        setInitial({
+          name: name.trim(),
+          category: resolved?.category ?? initial.category,
+          subcategory: resolved?.subcategory ?? initial.subcategory,
+        });
         setSavedAt(new Date());
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to save.");
@@ -113,15 +181,16 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
           <select
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="admin_identity_category"
-            onChange={(e) => setCategory(e.target.value)}
-            value={category}
+            onChange={(e) => setCategoryLabel(e.target.value)}
+            value={categoryLabel}
           >
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-                {option === storedCategory && !isCanonicalCategory ? "  (current value)" : ""}
+            <option value="">Select…</option>
+            {FACILITY_CATEGORY_CHOICES.map((option) => (
+              <option key={option.label} value={option.label}>
+                {option.label}
               </option>
             ))}
+            <option value={FACILITY_CATEGORY_OTHER_LABEL}>{FACILITY_CATEGORY_OTHER_LABEL}</option>
           </select>
           <p className="text-xs text-muted-foreground">
             Changing this moves the listing to a different section of the
@@ -130,14 +199,47 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
             Services & Specialties tab afterward if the new category expects
             a different checklist.
           </p>
-          {!isCanonicalCategory && storedCategory ? (
-            <p className="text-xs text-muted-foreground">
-              &ldquo;{storedCategory}&rdquo; is not one of the standard categories. It
-              is kept as an option so saving does not overwrite it unless you
-              deliberately pick something else.
-            </p>
-          ) : null}
         </div>
+
+        {isOther && (
+          <div className="flex flex-col gap-4 rounded-xl border border-border bg-background p-4 sm:col-span-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="admin_identity_category_other">
+                Describe this facility
+              </label>
+              <input
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                id="admin_identity_category_other"
+                onChange={(e) => setOtherDescription(e.target.value)}
+                placeholder="e.g. Rehabilitation Centre"
+                type="text"
+                value={otherDescription}
+              />
+              <p className="text-xs text-muted-foreground">Shown on the listing as its description.</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="admin_identity_category_behaves_as">
+                Which of these does it work most like?
+              </label>
+              <select
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                id="admin_identity_category_behaves_as"
+                onChange={(e) => setOtherBehavesAs(e.target.value)}
+                value={otherBehavesAs}
+              >
+                <option value="">Choose one…</option>
+                {FACILITY_CATEGORY_CHOICES.filter((c) => !c.describesAs).map((c) => (
+                  <option key={c.stores} value={c.stores}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Browse has a fixed set of buckets — this decides which one the listing files under.
+              </p>
+            </div>
+          </div>
+        )}
       </FieldGrid>
 
       {error && (
