@@ -8,7 +8,7 @@ import { WorkingHoursIndicator } from "@/components/cards/WorkingHoursIndicator"
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { Pill } from "@/components/ui/Pill";
-import { createPublicContactActions } from "@/lib/contact-actions";
+import { branchCallHref, createPublicContactActions } from "@/lib/contact-actions";
 import { branchDirectionsHref, facilityDirectionsHref } from "@/lib/directions";
 import { facilityLocalityLabel, splitFacilityAddress, subCityLabel } from "@/lib/format-location";
 import { getAvailabilityStatus, isRoundTheClockHours } from "@/lib/schedule-availability";
@@ -163,7 +163,12 @@ export function FacilityCard({ facility, distanceLabel, highlightLabels, nearest
           : cardAddress.street
       : facility.location || facility.address;
   const categoryKey = resolveFacilityCardCategoryKey(facility);
-  const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
+  // Dials the nearest BRANCH's own line when this card was matched through
+  // one, falling back to the main facility's number if that branch has none
+  // on file — same fallback shape as directionsHref just below.
+  const callHref =
+    (nearestBranch && branchCallHref(nearestBranch)) ||
+    createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone")?.href;
   // Routes to the nearest BRANCH when this card was matched through one,
   // falling back to the main site's directions if that branch has neither
   // coordinates nor its own maps link on file.
@@ -215,7 +220,7 @@ export function FacilityCard({ facility, distanceLabel, highlightLabels, nearest
         <StatRow facility={facility} />
         <ServicePillRow highlightLabels={highlightLabels} services={facility.services} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-3">
-          {callAction ? <a aria-label={`Call ${facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted`} href={callAction.href}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
+          {callHref ? <a aria-label={`Call ${nearestBranchName ? `${facility.name}, ${nearestBranchName}` : facility.name}`} className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border border-border bg-card text-foreground hover:border-strong-border hover:bg-muted`} href={callHref}><PhoneIcon className="size-4 shrink-0" />Call</a> : null}
           {directionsHref ? <a aria-label={`Directions to ${nearestBranchName ? `${facility.name}, ${nearestBranchName}` : facility.name}`} className="flex size-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground transition-colors hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={directionsHref} rel="noopener noreferrer" target="_blank" title={nearestBranchName ? `Directions (${nearestBranchName})` : "Directions"}><MapPinIcon className="size-4 shrink-0" /></a> : null}
           <Link className={`flex min-h-11 flex-1 items-center justify-center rounded-control text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary-hover`} href={detailHref}>View details</Link>
         </div>

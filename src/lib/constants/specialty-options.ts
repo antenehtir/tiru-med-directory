@@ -196,7 +196,11 @@ export const NEARBY_SPECIALTY_PILLS: {
     // (Medical Plaza category, or "Medical Complex" by name/subcategory).
     // Kept here as the record of what this pill means, not as live matching
     // logic.
-    display: "Medical Plaza",
+    // Covers both Medical Plaza (the category) and Medical Complex (a
+    // describesAs synonym filed under Specialty Center) — the pill's own
+    // label used to name only the first, which read as though a Medical
+    // Complex listing wasn't included at all.
+    display: "Medical Plaza/Complex",
     aliases: ["medical plaza", "medical complex"],
   },
 ];

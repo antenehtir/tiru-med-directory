@@ -89,6 +89,23 @@ export function createTelHref(value: string): string | undefined {
   return telValue ? `tel:${telValue}` : undefined;
 }
 
+// Same routing-intent pairing as branchDirectionsHref in lib/directions.ts —
+// a card the visitor reached through a specific branch (see /nearby's
+// nearestPoint) should dial THAT branch's own line, not the main facility's.
+// Without this a "CMC branch is the nearest branch" card's Call button rang
+// the main desk across town, the exact wrong number for someone standing
+// next to the branch it just told them was closest.
+export function branchCallHref(branch: { phone: string; phone_2?: string }): string | undefined {
+  const numbers = [branch.phone, branch.phone_2].filter((v): v is string => Boolean(v?.trim()));
+  for (const raw of numbers) {
+    for (const num of splitPhoneNumbers(raw)) {
+      const href = createTelHref(num);
+      if (href) return href;
+    }
+  }
+  return undefined;
+}
+
 function createActionHref(
   channel: PublicContactChannelInput,
 ): string | undefined {

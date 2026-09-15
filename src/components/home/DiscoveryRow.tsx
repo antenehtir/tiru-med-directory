@@ -6,7 +6,7 @@ import {
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { facilityCategoryIcons } from "@/components/facilities/category-icons";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { ChipScroller } from "./ChipScroller";
+import { ChipScroller } from "@/components/ui/ChipScroller";
 import { specialtyMatchesAliases } from "@/lib/frontend-search-filters";
 import type { Facility } from "@/types/facility";
 

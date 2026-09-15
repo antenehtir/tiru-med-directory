@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FacilityCard } from "@/components/cards/FacilityCard";
 import { Badge } from "@/components/ui/Badge";
+import { ChipScroller } from "@/components/ui/ChipScroller";
 import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyState";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import { Pill } from "@/components/ui/Pill";
@@ -122,7 +123,7 @@ export function NearbyPage({
     // what mixed Sante Medical Center — an ordinary Specialty Center that
     // happens to cover several departments — into a pill meant for Habari
     // Medical Plaza and New Leaf Medical Complex specifically.
-    if (selectedPill.display === "Medical Plaza") {
+    if (selectedPill.display === "Medical Plaza/Complex") {
       return categoryFacilities.filter(
         (facility) =>
           facility.category === "Medical Plaza" ||
@@ -177,7 +178,7 @@ export function NearbyPage({
   const selectedPillAliases = useMemo(() => {
     if (selectedCategory !== "specialty" || !selectedNearbySpecialty) return null;
     const pill = NEARBY_SPECIALTY_PILLS.find((p) => p.display === selectedNearbySpecialty);
-    if (!pill || pill.display === "Medical Plaza") return null;
+    if (!pill || pill.display === "Medical Plaza/Complex") return null;
     return pill.aliases;
   }, [selectedCategory, selectedNearbySpecialty]);
 
@@ -427,7 +428,14 @@ export function NearbyPage({
       </div>
 
       {selectedCategory === "specialty" ? (
-        <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
+        // Same scroller the homepage's category row uses — an edge fade that
+        // only appears on the side there is still more to see, rather than a
+        // row that just stops at "ENT" with nothing telling a visitor there
+        // was more to swipe to. Sized to match the category chips just
+        // above rather than the small size this row used to sit at, which
+        // read as a lesser, easy-to-skip row instead of the same kind of
+        // control.
+        <ChipScroller ariaLabel="Filter nearby facilities by specialty">
           {[{ display: "All", aliases: [] }, ...NEARBY_SPECIALTY_PILLS].map((pill) => {
             const isActive =
               pill.display === "All"
@@ -435,21 +443,22 @@ export function NearbyPage({
                 : selectedNearbySpecialty === pill.display;
 
             return (
-              <Pill
-                ariaPressed={isActive}
-                className="shrink-0 whitespace-nowrap"
-                key={pill.display}
-                onClick={() =>
-                  setSelectedNearbySpecialty(pill.display === "All" ? "" : pill.display)
-                }
-                size="sm"
-                variant={isActive ? "selected" : "default"}
-              >
-                {pill.display}
-              </Pill>
+              <li className="snap-start" key={pill.display}>
+                <Pill
+                  ariaPressed={isActive}
+                  className="min-h-11 shrink-0 whitespace-nowrap"
+                  onClick={() =>
+                    setSelectedNearbySpecialty(pill.display === "All" ? "" : pill.display)
+                  }
+                  size="lg"
+                  variant={isActive ? "selected" : "default"}
+                >
+                  {pill.display}
+                </Pill>
+              </li>
             );
           })}
-        </div>
+        </ChipScroller>
       ) : null}
       </>
       ) : null}
