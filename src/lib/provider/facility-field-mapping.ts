@@ -7,6 +7,7 @@
 //     values directly to the live facilities row with no re-approval gate.
 
 import type { createProviderSupabaseClient } from "@/lib/supabase/provider-client";
+import { summarizeFacilityChanges } from "@/lib/audit/change-summary";
 
 type ClaimRow = Record<string, unknown>;
 type ProviderSupabaseClient = Awaited<ReturnType<typeof createProviderSupabaseClient>>;
@@ -120,19 +121,46 @@ export async function syncToFacilityIfApproved(
   delete toSync.name;
   for (const field of options?.excludeFields ?? []) delete toSync[field];
 
+  // What the live row holds right now, limited to the columns about to be
+  // written. Two things depend on this: the audit entry can say what
+  // actually changed instead of just "something was saved", and an autosave
+  // that changed nothing (a blur with no edit, a second fire of the same
+  // save) can stop here rather than writing a row and logging a no-op —
+  // which is what put two identical entries in the log seconds apart.
+  const { data: before } = await supabase
+    .from("facilities")
+    .select(Object.keys(toSync).join(", "))
+    .eq("id", facilityId)
+    .single();
+
+  const { changed, old_value, new_value, changedLabels } = summarizeFacilityChanges(
+    before as Record<string, unknown> | null,
+    toSync,
+  );
+
+  // Only skip on a snapshot we actually read: if that select came back
+  // empty, "nothing changed" is indistinguishable from "we can't see the
+  // row", and the second one is the case worth writing through to find out.
+  if (before && changed.length === 0) return;
+
   const { data: syncedRows, error } = await supabase
     .from("facilities")
     .update({ ...toSync, updated_at: new Date().toISOString() })
     .eq("id", facilityId)
     .select("id");
 
+  // The attempted change rides along on all three outcomes, so a failed or
+  // blocked entry says what was lost, not just that something was.
+  const attempted = { old_value, new_value };
+
   if (error) {
     console.error("syncToFacilityIfApproved failed:", error.message);
     await logProviderAudit(supabase, {
+      ...attempted,
       providerId,
       facilityId,
       action: "provider_live_sync_failed",
-      note: `Edit to ${changeNote} failed to save to the public page: ${error.message}`,
+      note: `Edit to ${changedLabels || changeNote} failed to save to the public page: ${error.message}`,
     });
     return;
   }
@@ -143,19 +171,21 @@ export async function syncToFacilityIfApproved(
       facilityId,
     );
     await logProviderAudit(supabase, {
+      ...attempted,
       providerId,
       facilityId,
       action: "provider_live_sync_blocked",
-      note: `Edit to ${changeNote} did not reach the public page (0 rows updated — check the facilities RLS policy)`,
+      note: `Edit to ${changedLabels || changeNote} did not reach the public page (0 rows updated — check the facilities RLS policy)`,
     });
     return;
   }
 
   await logProviderAudit(supabase, {
+    ...attempted,
     providerId,
     facilityId,
     action: "provider_edit_synced",
-    note: `Updated ${changeNote}`,
+    note: `Updated ${changedLabels || changeNote}`,
   });
 }
 
@@ -164,7 +194,14 @@ export async function syncToFacilityIfApproved(
 // failed) by the time this runs, so this only ever adds a record of it.
 async function logProviderAudit(
   supabase: ProviderSupabaseClient,
-  entry: { providerId: string; facilityId: string; action: string; note: string },
+  entry: {
+    providerId: string;
+    facilityId: string;
+    action: string;
+    note: string;
+    old_value: Record<string, unknown>;
+    new_value: Record<string, unknown>;
+  },
 ): Promise<void> {
   try {
     const { error } = await supabase.from("audit_log").insert({
@@ -172,6 +209,8 @@ async function logProviderAudit(
       action: entry.action,
       entity_type: "facility",
       entity_id: entry.facilityId,
+      old_value: entry.old_value,
+      new_value: entry.new_value,
       note: entry.note,
     });
     if (error) console.error("audit_log insert failed:", error.message);

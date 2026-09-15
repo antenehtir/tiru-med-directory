@@ -126,13 +126,20 @@ function ScheduleRowItem({
         <span className="text-muted-foreground">Closed on these days</span>
       </label>
 
-      {/* Hours — hidden when closed */}
+      {/* Hours — hidden when closed.
+          min-w-0 on both columns is load-bearing, not tidying: a flex item
+          defaults to min-width:auto, and a <select> reports an intrinsic
+          width wide enough for its longest option ("Open 24 hours"). Without
+          it the Opens column refuses to shrink below that, so the two
+          columns stop being equal halves and Closes is pushed past the card
+          edge — worst inside the two-up grid, where each card is already
+          half width. */}
       {!row.closed && (
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col gap-1 flex-1">
+        <div className="flex items-end gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">Opens</label>
             <select
-              className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               onChange={(e) => onUpdate({ open: e.target.value })}
               value={row.open}
             >
@@ -143,10 +150,10 @@ function ScheduleRowItem({
             </select>
           </div>
           {row.open !== "Open 24 hours" && (
-            <div className="flex flex-col gap-1 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
               <label className="text-xs text-muted-foreground">Closes</label>
               <select
-                className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 onChange={(e) => onUpdate({ close: e.target.value })}
                 value={row.close}
               >

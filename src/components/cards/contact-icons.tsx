@@ -194,15 +194,32 @@ export function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// Just the play triangle, not the rounded-rect frame around it — the badge
-// this sits inside already supplies that frame (same reasoning as TikTok and
-// LinkedIn above: the container is the shape, the icon is the mark inside
-// it), and a second frame drawn inside the badge's own rounded corners would
-// double up.
+// The real YouTube mark: the rounded "tubular" body with the play triangle
+// knocked out of it. This used to be a bare triangle on the theory that the
+// badge behind it already supplied the frame — but unlike TikTok's note or
+// LinkedIn's "in", YouTube's triangle is not the mark on its own. A play
+// triangle is the universal symbol for "video"; it names no platform, and
+// next to five siblings that each resolve to their own brand it was the one
+// that didn't.
+//
+// Path is the canonical single-color logo from simple-icons, filled in
+// currentColor (white here) with the triangle knocked out so the badge's red
+// shows through it — the standard white-on-color reduction of this logo.
+// fillRule evenodd rather than relying on subpath winding: the knockout is
+// the whole point, and this guarantees it.
+//
+// Scaled about its own centre because simple-icons draws it 24 wide in a
+// 24x24 box — full width in a circular badge would push its corners past the
+// circle.
 export function YouTubeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M9.5 8.3v7.4a.6.6 0 00.91.51l6.2-3.7a.6.6 0 000-1.03l-6.2-3.7a.6.6 0 00-.91.52z" />
+      <g transform="translate(12 12) scale(0.72) translate(-12 -12)">
+        <path
+          fillRule="evenodd"
+          d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+        />
+      </g>
     </svg>
   );
 }

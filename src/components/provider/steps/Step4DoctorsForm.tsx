@@ -209,45 +209,46 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
-        This step is optional. You can skip it and still submit your listing.
+      {/* One notice, not four. This step used to open with an amber "this
+          step is optional" bar, then a bordered card headed "Optional — but
+          this is the step that gets you found", then a standalone "Skip this
+          step" link, then a note about appointment policy — two of which said
+          optional and two of which offered the same exit. A provider reading
+          four stacked blocks before the first input reads none of them.
+
+          The incentive is kept and sits on the step where the work happens
+          rather than only on the review screen, but it earns one sentence.
+          It is shown only to hospitals and specialty centres: for a pharmacy
+          or an ambulance service a doctor roster is beside the point, and an
+          encouragement that does not apply teaches people to ignore the next
+          one. Either way the step really is optional, and the skip sits
+          inside the same block as the reason not to. */}
+      <div className="rounded-xl border border-border bg-sunken p-4">
+        <p className="text-sm font-semibold text-foreground">
+          {namesSpecialists ? "Optional — but this is the step that gets you found" : "This step is optional"}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          {namesSpecialists
+            ? "Visitors search for a person and a day — a cardiologist on Tuesday, a paediatrician on Saturday morning. Naming your specialists and the days they are in answers that; a phone number alone cannot."
+            : "You can skip it and still submit your listing."}
+        </p>
+        <a
+          className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+          href="/provider/onboarding/media"
+        >
+          Skip this step →
+        </a>
       </div>
 
-      {/* The incentive sits on the step where the work happens, not only on
-          the review screen — a provider who has already decided to skip has
-          left before they reach the summary.
-
-          Shown only to hospitals and specialty centres. For a pharmacy or an
-          ambulance service a doctor roster is genuinely beside the point, and
-          an encouragement that does not apply teaches people to ignore the
-          next one. It sits under the "optional" notice rather than replacing
-          it: the step really is optional, and saying otherwise to get a form
-          filled would be a lie the listing is built on. */}
-      {namesSpecialists && (
-        <div className="rounded-xl border border-border bg-sunken p-4">
-          <p className="text-sm font-semibold text-foreground">
-            Optional — but this is the step that gets you found
-          </p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Visitors searching Tiru look for a person and a day: a cardiologist
-            on a Tuesday, a paediatrician on a Saturday morning. A listing that
-            names its specialists and the days they are in can answer that;
-            one that does not can only offer a phone number. Listings that
-            answer it get shown to more of the people asking.
-          </p>
-        </div>
+      {/* Why there is no per-doctor appointment toggle below. Only worth
+          saying once the facility-level policy actually has a value to point
+          at — otherwise it describes a setting the provider has not met. */}
+      {typeof claim.proposed_walkin_appointment === "string" && claim.proposed_walkin_appointment && (
+        <p className="text-xs text-muted-foreground">
+          Appointment availability for every doctor follows your facility&apos;s policy from the
+          previous step ({claim.proposed_walkin_appointment}).
+        </p>
       )}
-      <a
-        className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-        href="/provider/onboarding/media"
-      >
-        Skip this step →
-      </a>
-      <p className="text-xs text-muted-foreground">
-        Appointment availability for every doctor follows your facility&apos;s walk-in / appointment
-        policy set in the previous step
-        {claim.proposed_walkin_appointment ? ` (currently "${claim.proposed_walkin_appointment}")` : ""}.
-      </p>
 
       {doctors.map((doctor, index) => {
         const showSpecialty = clinicalRoles.includes(doctor.role);

@@ -3,6 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { FACILITIES_CACHE_TAG } from "@/lib/supabase/get-facilities";
+import { summarizeFacilityChanges } from "@/lib/audit/change-summary";
 
 // Admin direct-edit save path for an existing, live facility row. Unlike the
 // provider-onboarding autosave actions (autoSaveStep2/autoSaveStep3), this
@@ -22,52 +23,6 @@ async function loadFacilitySnapshot(
   return data as Record<string, unknown> | null;
 }
 
-// audit_log's old_value/new_value are rendered by the admin audit-log page
-// as Object.values(v)[0] — so every value stored here must be a scalar, the
-// way updateFacilityBadge's {verification_status: "..."} is. Arrays and
-// nested objects (a schedule row, a services list) crash that page, so
-// everything is flattened to a display string first.
-function toAuditText(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  if (Array.isArray(value)) {
-    if (value.every((v) => typeof v === "string")) return (value as string[]).join(", ");
-    // Branches are objects. Reduce them to their names rather than dumping the
-    // objects: a non-scalar in old_value/new_value is what crashed the whole
-    // audit-log page with "Objects are not valid as a React child".
-    const named = value
-      .map((v) =>
-        v && typeof v === "object" && "name" in (v as Record<string, unknown>)
-          ? String((v as Record<string, unknown>).name || "(unnamed)")
-          : null,
-      )
-      .filter((v): v is string => v !== null);
-    if (named.length === value.length) return named.join(", ");
-    return `${value.length} item(s)`;
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
-}
-
-// Only the fields that actually changed, so the log reads as a diff rather
-// than a dump of every column the section happens to touch.
-function diffForAudit(
-  before: Record<string, unknown> | null,
-  after: Record<string, unknown>,
-): { old_value: Record<string, string>; new_value: Record<string, string>; changed: string[] } {
-  const old_value: Record<string, string> = {};
-  const new_value: Record<string, string> = {};
-  const changed: string[] = [];
-  for (const [key, next] of Object.entries(after)) {
-    const prevText = toAuditText(before?.[key]);
-    const nextText = toAuditText(next);
-    if (prevText === nextText) continue;
-    old_value[key] = prevText;
-    new_value[key] = nextText;
-    changed.push(key);
-  }
-  return { old_value, new_value, changed };
-}
-
 async function logFacilityEdit(
   supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
   adminId: string,
@@ -77,7 +32,10 @@ async function logFacilityEdit(
   after: Record<string, unknown>,
   facilityName: string | undefined,
 ) {
-  const { old_value, new_value, changed } = diffForAudit(before, after);
+  // Item-level for lists, before/after for scalars — see change-summary.ts
+  // for why a field-level diff was useless on a facility carrying a hundred
+  // services.
+  const { old_value, new_value, changed, changedLabels } = summarizeFacilityChanges(before, after);
   if (changed.length === 0) return;
 
   const { error } = await supabase.from("audit_log").insert({
@@ -87,7 +45,7 @@ async function logFacilityEdit(
     entity_id: facilityId,
     old_value,
     new_value,
-    note: `Admin edited ${changed.join(", ")} on "${facilityName ?? facilityId}"`,
+    note: `Admin edited ${changedLabels} on "${facilityName ?? facilityId}"`,
   });
   // Surfaced rather than swallowed: a silent failure here means an admin edit
   // landed on the live listing with no trace of who made it.

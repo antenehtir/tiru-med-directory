@@ -1,4 +1,5 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
+import { fieldLabel, isListDelta } from "@/lib/audit/change-summary";
 
 async function getAuditLog() {
   const supabase = await createAdminSupabaseClient();
@@ -11,15 +12,26 @@ async function getAuditLog() {
   return data ?? [];
 }
 
-// Entries are written by several different admin actions, and not all of
-// them store a flat {field: scalar} pair the way updateFacilityBadge does —
-// a value that is an array or a nested object would otherwise throw
-// "Objects are not valid as a React child" and take the whole page down.
-function firstValueText(value: Record<string, unknown>): string {
-  const first = Object.values(value)[0];
-  if (first === null || first === undefined) return "—";
-  if (typeof first === "object") return JSON.stringify(first);
-  return String(first);
+// Long lists get a head and a count rather than the whole thing — the point
+// of the column is "what moved", and twelve service names in a table cell
+// stop being readable well before the hundred that prompted this.
+const MAX_ITEMS_SHOWN = 6;
+
+function itemSummary(items: string[]): string {
+  if (items.length <= MAX_ITEMS_SHOWN) return items.join(", ");
+  return `${items.slice(0, MAX_ITEMS_SHOWN).join(", ")} +${items.length - MAX_ITEMS_SHOWN} more`;
+}
+
+// Values are written by several different actions across several years of
+// this table, so nothing here assumes a shape: a list delta renders as
+// +added / −removed, a scalar renders before → after, and anything else
+// (including rows written before either convention) falls back to text.
+// A raw object reaching JSX is what once crashed this page with "Objects
+// are not valid as a React child".
+function asText(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
 const ACTION_LABELS: Record<string, string> = {
@@ -42,6 +54,56 @@ const ACTION_LABELS: Record<string, string> = {
 // with their own colour so they don't read as routine activity next to
 // everything that saved cleanly.
 const PROBLEM_ACTIONS = new Set(["provider_live_sync_blocked", "provider_live_sync_failed"]);
+
+// One row per field that changed. A list field shows only what moved; a
+// scalar shows what it was and what it became.
+function ChangeCell({
+  oldValue,
+  newValue,
+}: {
+  oldValue: Record<string, unknown> | null;
+  newValue: Record<string, unknown> | null;
+}) {
+  const fields = Object.keys(newValue ?? {});
+  if (fields.length === 0) return <>—</>;
+
+  return (
+    <div className="space-y-1.5">
+      {fields.map((field) => {
+        const next = newValue?.[field];
+        const label = fieldLabel(field);
+
+        if (isListDelta(next)) {
+          return (
+            <div key={field}>
+              <span className="font-medium text-foreground">{label}</span>{" "}
+              {next.removed.length > 0 && (
+                <span className="text-red-600 dark:text-red-400">
+                  −{itemSummary(next.removed)}
+                </span>
+              )}
+              {next.removed.length > 0 && next.added.length > 0 && " "}
+              {next.added.length > 0 && (
+                <span className="text-teal-600 dark:text-teal-400">
+                  +{itemSummary(next.added)}
+                </span>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div key={field}>
+            <span className="font-medium text-foreground">{label}</span>{" "}
+            <span className="text-red-600 dark:text-red-400">{asText(oldValue?.[field])}</span>
+            {" → "}
+            <span className="text-teal-600 dark:text-teal-400">{asText(next)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default async function AdminAuditLogPage() {
   const entries = await getAuditLog();
@@ -112,13 +174,7 @@ export default async function AdminAuditLogPage() {
                       {(entry.note ?? "—") as string}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {oldVal && newVal ? (
-                        <span>
-                          <span className="text-red-500">{firstValueText(oldVal)}</span>
-                          {" → "}
-                          <span className="text-teal-600">{firstValueText(newVal)}</span>
-                        </span>
-                      ) : "—"}
+                      <ChangeCell newValue={newVal} oldValue={oldVal} />
                     </td>
                   </tr>
                 );
