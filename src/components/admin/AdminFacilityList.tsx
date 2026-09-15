@@ -9,7 +9,7 @@ import {
 } from "@/app/admin/(protected)/facilities/actions";
 import { Badge } from "@/components/ui/Badge";
 import type { BadgeVariant } from "@/lib/design-tokens";
-import { resolveFacilityCategoryLabel } from "@/lib/frontend-search-filters";
+import { FACILITY_CATEGORY_OTHER_LABEL, resolveFacilityCategoryLabel } from "@/lib/frontend-search-filters";
 
 type Facility = {
   id: string;
@@ -51,6 +51,17 @@ const DEACTIVATION_CATEGORIES = [
   "Temporarily closed",
   "Other",
 ];
+
+// "— describe it" is an instruction for someone about to type a
+// description, which is what the label means on a category SELECT
+// (Identity editor, New facility form). Everywhere on this page it names a
+// category that has already been set — a read-only column, a filter bucket
+// — nobody is describing anything here, so the bare word is what actually
+// applies.
+function categoryDisplayLabel(category: string, subcategory: string | null): string {
+  const label = resolveFacilityCategoryLabel(category, subcategory);
+  return label === FACILITY_CATEGORY_OTHER_LABEL ? "Other" : label;
+}
 
 function getAvailableBadgeOptions(currentStatus: string) {
   if (currentStatus === "community-submitted") {
@@ -98,9 +109,17 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
   // never appeared as their own filter option before, and a legacy,
   // unmapped category (an old import synonym like "Healthcare Financing")
   // showed as its own permanent bucket instead of folding into Other.
+  // Other sorts last, not wherever "O" happens to land alphabetically — it
+  // is a catch-all, not a real category, and reads as a deliberate leftover
+  // bucket only when it trails the real ones instead of sitting between
+  // Medical Plaza and Pharmacy.
   const categories = Array.from(
     new Set(facilities.map((f) => resolveFacilityCategoryLabel(f.category, f.subcategory))),
-  ).sort();
+  ).sort((a, b) => {
+    if (a === FACILITY_CATEGORY_OTHER_LABEL) return 1;
+    if (b === FACILITY_CATEGORY_OTHER_LABEL) return -1;
+    return a.localeCompare(b);
+  });
 
   const filtered = facilities.filter((f) => {
     const matchesSearch =
@@ -177,7 +196,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
           <option value="all">All categories</option>
           {categories.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {c === FACILITY_CATEGORY_OTHER_LABEL ? "Other" : c}
             </option>
           ))}
         </select>
@@ -247,7 +266,7 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {resolveFacilityCategoryLabel(facility.category, facility.subcategory)}
+                    {categoryDisplayLabel(facility.category, facility.subcategory)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {[facility.area, facility.sub_city].filter(Boolean).join(", ")}
