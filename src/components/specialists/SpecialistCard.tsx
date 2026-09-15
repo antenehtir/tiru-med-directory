@@ -2,12 +2,12 @@ import Link from "next/link";
 import { MapPinIcon } from "@/components/cards/contact-icons";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { Badge } from "@/components/ui/Badge";
+import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { personInitials } from "@/lib/person-initials";
 import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
 import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
-
-const OFFICIAL_BADGE_STATUSES = new Set(["facility-owned", "verified"]);
+import type { VerificationStatus } from "@/types/verification";
 
 export function SpecialistCard({
   specialist,
@@ -20,7 +20,6 @@ export function SpecialistCard({
   const locationLine = [specialist.facilityArea, specialist.facilitySubCity]
     .filter(Boolean)
     .join(", ");
-  const isOfficial = OFFICIAL_BADGE_STATUSES.has(specialist.facilityBadge);
   const profileHref = `/specialists/${specialist.slug}`;
   // One clean title ("General Pediatrician") instead of the role badge
   // ("Specialist") and the specialty · subspecialty line sitting side by
@@ -75,21 +74,24 @@ export function SpecialistCard({
         <span className="font-medium text-foreground group-hover:text-primary">
           {specialist.facilityName}
         </span>
-        {isOfficial && (
-          <Badge size="sm" variant="info">Official</Badge>
-        )}
+        {/* The old "Official" pill claimed more than the product checks —
+            VerificationBadge replaced it everywhere else a while ago (see
+            its own comment); this card had been left on the stale local
+            copy. Not compact: this page carries no CS/FM legend for an
+            abbreviation to lean on. */}
+        <VerificationBadge size="sm" status={specialist.facilityBadge as VerificationStatus} />
       </div>
       {locationLine && <p className="text-xs text-muted-foreground">{locationLine}</p>}
 
-      {/* Most specialist visits need booking ahead — leaving this out when
-          the facility never answered the question would silently read as
-          "walk in any time", which is wrong far more often than it's right.
-          appointmentPolicyDescription's fallback says so plainly instead. */}
-      <p
-        className={`text-xs font-medium ${appointment.isStated ? "text-foreground" : "text-muted-foreground"}`}
-      >
+      {/* A real badge, not a line of colored text — most specialist visits
+          need booking ahead, and this is one of the first things a visitor
+          decides on, so it earns the same visual weight as "Available now"
+          rather than blending into the surrounding text. Leaving it out
+          when the facility never answered would silently read as "walk in
+          any time", which is wrong far more often than it's right. */}
+      <Badge size="sm" variant={appointment.isStated ? "info" : "warning"}>
         {appointment.text}
-      </p>
+      </Badge>
 
       <span className="mt-1 text-sm font-semibold text-primary">
         Tap to view full profile &amp; schedule →

@@ -3,9 +3,11 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { CorrectionCta } from "@/components/ui/CorrectionCta";
 import { Pill } from "@/components/ui/Pill";
+import { VerificationBadge } from "@/components/trust/VerificationBadge";
 import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
 import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
 import type { SpecialistDetail, SpecialistListItem } from "@/lib/supabase/get-specialists";
+import type { VerificationStatus } from "@/types/verification";
 import { SpecialistAvailabilitySection } from "./SpecialistAvailabilitySection";
 import { SpecialistCard } from "./SpecialistCard";
 
@@ -19,8 +21,6 @@ function getInitials(name: string): string {
     .join("");
 }
 
-const OFFICIAL_BADGE_STATUSES = new Set(["facility-owned", "verified"]);
-
 function telHref(phone: string): string {
   return `tel:${phone.replace(/\s/g, "")}`;
 }
@@ -33,7 +33,6 @@ export function SpecialistDetailPage({
   similarSpecialists?: SpecialistListItem[];
 }) {
   const initials = getInitials(specialist.fullName);
-  const isOfficial = OFFICIAL_BADGE_STATUSES.has(specialist.facilityBadge);
   const facilityHref = `/facilities/${specialist.facilitySlug}`;
   // One clean title instead of the role badge and the specialty ·
   // subspecialty line saying overlapping things — see SpecialistCard for the
@@ -80,18 +79,20 @@ export function SpecialistDetailPage({
                   <p className="mt-2 text-lg font-medium text-primary">{title}</p>
                 )}
 
-                {/* Most specialist visits need booking ahead — leaving this
-                    out when the facility never answered the question would
-                    silently read as "walk in any time", which is wrong far
-                    more often than it's right. */}
-                <p
-                  className={`mt-2 text-sm font-medium ${
-                    appointment.isStated ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {appointment.isStated ? "📅 " : "⚠️ "}
-                  {appointment.text}
-                </p>
+                {/* A real badge, not a line of colored text — most
+                    specialist visits need booking ahead, and this is one of
+                    the first things a visitor decides on, so it earns the
+                    same visual weight as the Weekly schedule section's own
+                    "Available now" badge rather than reading as another line
+                    of body copy. Leaving it out when the facility never
+                    answered would silently read as "walk in any time",
+                    which is wrong far more often than it's right. */}
+                <div className="mt-3">
+                  <Badge size="md" variant={appointment.isStated ? "info" : "warning"}>
+                    {appointment.isStated ? "📅 " : "⚠️ "}
+                    {appointment.text}
+                  </Badge>
+                </div>
 
                 <p className="mt-3 text-base leading-7 text-muted-foreground">
                   Practices at{" "}
@@ -101,13 +102,14 @@ export function SpecialistDetailPage({
                   >
                     {specialist.facilityName}
                   </Link>
-                  {isOfficial && (
-                    <span className="ml-2 inline-flex align-middle">
-                      <Badge size="sm" variant="info">
-                        Official
-                      </Badge>
-                    </span>
-                  )}
+                  {/* The old "Official" pill claimed more than the product
+                      checks — VerificationBadge replaced it everywhere else
+                      a while ago (see its own comment); this page had been
+                      left on the stale local copy. Not compact: nothing on
+                      this page explains a bare "FM"/"CS" abbreviation. */}
+                  <span className="ml-2 inline-flex align-middle">
+                    <VerificationBadge size="sm" status={specialist.facilityBadge as VerificationStatus} />
+                  </span>
                 </p>
               </div>
             </div>

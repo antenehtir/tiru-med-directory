@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
+import { Badge } from "@/components/ui/Badge";
 import { toSlug } from "@/lib/slugify";
 import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
 import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
@@ -108,13 +109,11 @@ function DoctorCard({
             the facility never answered the question would silently read as
             "walk in any time", which is wrong far more often than it's
             right. */}
-        <p
-          className={`mt-1.5 text-xs font-medium ${
-            appointment.isStated ? "text-foreground" : "text-muted-foreground"
-          }`}
-        >
-          {appointment.text}
-        </p>
+        <div className="mt-1.5">
+          <Badge size="sm" variant={appointment.isStated ? "info" : "warning"}>
+            {appointment.text}
+          </Badge>
+        </div>
 
         {hasBio && <BioBlock bio={doctor.bio!} />}
 
