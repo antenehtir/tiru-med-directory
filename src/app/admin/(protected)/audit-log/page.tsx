@@ -4,7 +4,7 @@ async function getAuditLog() {
   const supabase = await createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("audit_log")
-    .select("*, admin_users(display_name, email)")
+    .select("*, admin_users(display_name, email), provider_accounts(display_name, facility_name)")
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) return [];
@@ -33,7 +33,15 @@ const ACTION_LABELS: Record<string, string> = {
   facility_contact_edited: "Contact edited",
   facility_location_edited: "Location edited",
   facility_created: "Facility created",
+  provider_edit_synced: "Provider edit saved",
+  provider_live_sync_blocked: "Provider edit did NOT go live",
+  provider_live_sync_failed: "Provider edit failed to save",
 };
+
+// Entries where something went wrong reaching the public page — surfaced
+// with their own colour so they don't read as routine activity next to
+// everything that saved cleanly.
+const PROBLEM_ACTIONS = new Set(["provider_live_sync_blocked", "provider_live_sync_failed"]);
 
 export default async function AdminAuditLogPage() {
   const entries = await getAuditLog();
@@ -43,7 +51,7 @@ export default async function AdminAuditLogPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Audit Log</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Full history of admin actions — last 200 entries
+          Full history of admin actions and provider edits — last 200 entries
         </p>
       </div>
 
@@ -51,7 +59,7 @@ export default async function AdminAuditLogPage() {
         <div className="rounded-2xl border border-border bg-card p-12 text-center">
           <p className="text-lg font-semibold text-foreground">No actions recorded yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Admin actions like badge changes will appear here.
+            Admin actions like badge changes, and provider edits to their own listing, will appear here.
           </p>
         </div>
       ) : (
@@ -60,7 +68,7 @@ export default async function AdminAuditLogPage() {
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-4 py-3 text-left font-semibold text-foreground">When</th>
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Admin</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Actor</th>
                 <th className="px-4 py-3 text-left font-semibold text-foreground">Action</th>
                 <th className="px-4 py-3 text-left font-semibold text-foreground">Detail</th>
                 <th className="px-4 py-3 text-left font-semibold text-foreground">Change</th>
@@ -69,13 +77,22 @@ export default async function AdminAuditLogPage() {
             <tbody>
               {entries.map((entry: Record<string, unknown>) => {
                 const admin = entry.admin_users as Record<string, string> | null;
+                const provider = entry.provider_accounts as Record<string, string> | null;
                 const oldVal = entry.old_value as Record<string, unknown> | null;
                 const newVal = entry.new_value as Record<string, unknown> | null;
+                const isProblem = PROBLEM_ACTIONS.has(entry.action as string);
+                // Every row has exactly one actor — admin_id and provider_id
+                // are set by different writers and never both at once.
+                const actorText = admin
+                  ? (admin.display_name ?? admin.email ?? "Admin")
+                  : provider
+                    ? `${provider.display_name ?? provider.facility_name ?? "Provider"} (provider)`
+                    : "—";
 
                 return (
                   <tr
                     key={entry.id as number}
-                    className="border-b border-border last:border-0 hover:bg-muted/20"
+                    className={`border-b border-border last:border-0 hover:bg-muted/20 ${isProblem ? "bg-red-50 dark:bg-red-950/20" : ""}`}
                   >
                     <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                       {entry.created_at
@@ -87,10 +104,8 @@ export default async function AdminAuditLogPage() {
                           })
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {admin?.display_name ?? admin?.email ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-foreground">
+                    <td className="px-4 py-3 text-muted-foreground">{actorText}</td>
+                    <td className={`px-4 py-3 font-medium ${isProblem ? "text-red-600 dark:text-red-400" : "text-foreground"}`}>
                       {ACTION_LABELS[entry.action as string] ?? (entry.action as string)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">

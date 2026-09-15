@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { buildFacilityFieldsFromClaim } from "@/lib/provider/facility-field-mapping";
+import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 import { resolveCategoryChoice } from "@/lib/frontend-search-filters";
 
 export async function saveStep1(formData: FormData) {
@@ -123,28 +123,18 @@ export async function autoSaveStep1(data: {
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
 
-    if ((updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
-      const toSync = buildFacilityFieldsFromClaim(updatedClaim);
-      // name is deliberately withheld from the live sync once a listing is
-      // public. Every other field on this page still writes straight
-      // through — a facility's name is different: it is the one thing on
-      // the page a random search result is trusted by, and letting it
-      // change with no review is a bigger door than "the working hours
-      // were wrong for an hour". requestFacilityNameChange below is the
-      // only path to it now; this just makes sure autosaving the rest of
-      // the form on this same page cannot smuggle a name edit through
-      // alongside them.
-      delete toSync.name;
-      const { data: syncedRows, error: liveUpdateError } = await supabase
-        .from("facilities")
-        .update({ ...toSync, updated_at: new Date().toISOString() })
-        .eq("id", updatedClaim.facility_id as string)
-        .select("id");
-      if (liveUpdateError) console.error("autoSaveStep1 live sync failed:", liveUpdateError.message);
-      else if (!syncedRows || syncedRows.length === 0) {
-        console.error("autoSaveStep1 live sync affected 0 rows — likely blocked by facilities RLS policy", updatedClaim.facility_id);
-      }
-    }
+    // name is deliberately withheld from the live sync once a listing is
+    // public. Every other field on this page still writes straight through —
+    // a facility's name is different: it is the one thing on the page a
+    // random search result is trusted by, and letting it change with no
+    // review is a bigger door than "the working hours were wrong for an
+    // hour". requestFacilityNameChange below is the only path to it now;
+    // this just makes sure autosaving the rest of the form on this same page
+    // cannot smuggle a name edit through alongside them.
+    await syncToFacilityIfApproved(supabase, updatedClaim, {
+      excludeFields: ["name"],
+      changeNote: "identity details",
+    });
   }
 }
 

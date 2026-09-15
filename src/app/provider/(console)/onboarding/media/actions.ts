@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
-import { buildFacilityFieldsFromClaim } from "@/lib/provider/facility-field-mapping";
+import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 
 export type Step5Data = {
   entrance_photo_urls: string[];
@@ -90,17 +90,8 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
     .update({ completion_pct: nextOverallPct })
     .eq("id", provider.id);
 
-  if (updatedClaim && (updatedClaim.status as string) === "approved" && updatedClaim.facility_id) {
-    const toSync = buildFacilityFieldsFromClaim(updatedClaim);
-    const { data: syncedRows, error: liveUpdateError } = await supabase
-      .from("facilities")
-      .update({ ...toSync, updated_at: new Date().toISOString() })
-      .eq("id", updatedClaim.facility_id as string)
-      .select("id");
-    if (liveUpdateError) console.error("autoSaveStep5 live sync failed:", liveUpdateError.message);
-    else if (!syncedRows || syncedRows.length === 0) {
-      console.error("autoSaveStep5 live sync affected 0 rows — likely blocked by facilities RLS policy", updatedClaim.facility_id);
-    }
+  if (updatedClaim) {
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "photos & media" });
   }
 
   return { ok: true };
