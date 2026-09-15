@@ -306,6 +306,15 @@ function typoTolerance(length: number): number {
 // answers a different question ("how far is this phrase") than the one
 // being asked here ("did they mean this one word").
 function hasFuzzyWordMatch(token: string, text: string): boolean {
+  // A token that is ALREADY a real, complete catalogue term needs no typo
+  // correction — the visitor typed exactly what they meant. Without this,
+  // "Neurology" (itself a valid, correctly-spelled specialty) fuzzy-matched
+  // "Urology" purely because the two words are two deletions apart, mixing
+  // an unrelated specialty into every neurology search. Typo tolerance is
+  // for closing the gap between what someone typed and a real word — not for
+  // treating two different real words as interchangeable because they
+  // happen to be edit-distance-close.
+  if (CATALOG_TERMS.has(token.toLowerCase())) return false;
   const tolerance = typoTolerance(token.length);
   if (tolerance === 0) return false;
   const words = text.toLowerCase().match(/[a-z]+/g);
