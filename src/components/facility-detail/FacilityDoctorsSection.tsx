@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
-import { Badge } from "@/components/ui/Badge";
-import { Pill } from "@/components/ui/Pill";
 import { toSlug } from "@/lib/slugify";
-import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
+import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
+import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
 import type { Facility, FacilityDoctor } from "@/types/facility";
 
 function getInitials(name: string): string {
@@ -41,9 +40,23 @@ function BioBlock({ bio }: { bio: string }) {
   );
 }
 
-function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facilitySlug: string }) {
+function DoctorCard({
+  doctor,
+  facilitySlug,
+  walkinAppointment,
+}: {
+  doctor: FacilityDoctor;
+  facilitySlug: string;
+  walkinAppointment: string | null;
+}) {
   const initials = getInitials(doctor.full_name);
   const displayRole = doctor.role === "Other" && doctor.role_other ? doctor.role_other : doctor.role;
+  // One clean title ("General Pediatrician") instead of the role text and a
+  // separate specialty · subspecialty line saying overlapping things — falls
+  // back to the raw role for the non-clinical roles (Nurse, Pharmacist, ...)
+  // that were never asked for a specialty.
+  const title = specialistTitle(doctor.specialty, doctor.subspecialty) || displayRole;
+  const appointment = appointmentPolicyDescription(walkinAppointment);
   const hasBio = doctor.bio && doctor.bio.trim().length > 0;
   const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
 
@@ -89,27 +102,19 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
         <p className="text-base font-semibold leading-tight text-foreground">
           {formatDoctorDisplayName(doctor.title, doctor.full_name)}
         </p>
-        <p className="mt-0.5 text-xs font-medium text-primary">Tap to view full profile &amp; schedule →</p>
+        {title && <p className="mt-1 text-sm font-medium text-primary">{title}</p>}
 
-        {(displayRole || doctor.appointment_required) && (
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {displayRole && (
-              <span className="text-sm text-muted-foreground">{displayRole}</span>
-            )}
-            {doctor.appointment_required && (
-              <Badge size="sm" variant="warning">By appointment</Badge>
-            )}
-          </div>
-        )}
-
-        {(doctor.specialty || doctor.subspecialty) && (
-          <p className="mt-1.5 text-sm font-medium text-primary">
-            {doctor.specialty}
-            {doctor.subspecialty ? (
-              <span className="font-normal text-muted-foreground"> · {doctor.subspecialty}</span>
-            ) : null}
-          </p>
-        )}
+        {/* Most specialist visits need booking ahead — leaving this out when
+            the facility never answered the question would silently read as
+            "walk in any time", which is wrong far more often than it's
+            right. */}
+        <p
+          className={`mt-1.5 text-xs font-medium ${
+            appointment.isStated ? "text-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {appointment.text}
+        </p>
 
         {hasBio && <BioBlock bio={doctor.bio!} />}
 
@@ -117,22 +122,15 @@ function DoctorCard({ doctor, facilitySlug }: { doctor: FacilityDoctor; facility
           <AvailabilityIndicator schedule={doctor.available_schedule} />
         </div>
 
-        {doctor.languages.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {doctor.languages.map((lang) => (
-              <Pill key={lang} size="sm" variant="default">
-                {lang}
-              </Pill>
-            ))}
-          </div>
-        )}
-
-        <Link
-          className="pointer-events-auto relative z-20 mt-3 inline-block text-sm font-semibold text-primary hover:underline"
-          href={`/specialists/${profileSlug}`}
-        >
-          View full profile &amp; schedule →
-        </Link>
+        {/* The one visible call to action, styled to actually read as one —
+            it used to duplicate a matching link at the bottom of the card,
+            which said the same thing twice for no reason once the whole
+            card became tappable. */}
+        <p className="pointer-events-auto relative z-20 mt-3 text-sm font-semibold text-primary">
+          <Link className="hover:underline" href={`/specialists/${profileSlug}`}>
+            Tap to view full profile &amp; schedule →
+          </Link>
+        </p>
       </div>
     </div>
   );
@@ -157,7 +155,12 @@ export function FacilityDoctorsSection({ facility }: { facility: Facility }) {
       )}
       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
         {doctors.map((doctor) => (
-          <DoctorCard doctor={doctor} facilitySlug={facility.slug} key={doctor.id} />
+          <DoctorCard
+            doctor={doctor}
+            facilitySlug={facility.slug}
+            key={doctor.id}
+            walkinAppointment={facility.walkinAppointment ?? null}
+          />
         ))}
       </div>
     </section>

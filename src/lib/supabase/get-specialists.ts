@@ -12,7 +12,12 @@ export type SpecialistListItem = {
   subspecialty: string;
   photoUrl: string | null;
   languages: string[];
-  appointmentRequired: boolean;
+  // Appointment policy is fundamentally a facility-level fact, not a
+  // per-doctor one — Step4DoctorsForm already derives every doctor's own
+  // appointment_required from it rather than asking twice — so the display
+  // layer reads it straight from the facility instead of a lossy boolean
+  // copy that could never represent "the facility never answered this".
+  facilityWalkinAppointment: string | null;
   availableSchedule: DoctorScheduleRow[];
   facilityId: string;
   facilityName: string;
@@ -51,11 +56,12 @@ type DBFacilityRow = {
   latitude: number | null;
   longitude: number | null;
   verification_status: string;
+  walkin_appointment: string | null;
   doctors: unknown;
 };
 
 const FACILITY_SELECT =
-  "id, slug, name, category, area, sub_city, phone, email, website, whatsapp, telegram, maps_link, latitude, longitude, verification_status, doctors";
+  "id, slug, name, category, area, sub_city, phone, email, website, whatsapp, telegram, maps_link, latitude, longitude, verification_status, walkin_appointment, doctors";
 
 function flattenFacilityDoctors(row: DBFacilityRow): SpecialistDetail[] {
   const doctors = Array.isArray(row.doctors) ? (row.doctors as DoctorEntry[]) : [];
@@ -78,7 +84,7 @@ function flattenFacilityDoctors(row: DBFacilityRow): SpecialistDetail[] {
         subspecialty: doctor.subspecialty ?? "",
         photoUrl: doctor.photo_url || null,
         languages: Array.isArray(doctor.languages) ? doctor.languages : [],
-        appointmentRequired: Boolean(doctor.appointment_required),
+        facilityWalkinAppointment: row.walkin_appointment ?? null,
         facilityId: row.id,
         facilityName: row.name,
         facilitySlug: row.slug,

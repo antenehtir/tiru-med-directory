@@ -157,6 +157,152 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
   Other: ["Other (specify)"],
 };
 
+// A patient reads "Specialist" (the role) next to "Pediatrics · General
+// Pediatrics" (specialty · subspecialty) as three separate facts to
+// reconcile into one idea — what kind of doctor this actually is. This maps
+// every subspecialty and top-level specialty in MEDICAL_SPECIALTIES to the
+// single natural title a patient would actually use ("General
+// Pediatrician"), so the card and detail page can say the one true thing
+// instead of the taxonomy's own field names. Curated explicitly rather than
+// derived by suffix rule (-ology -> -ologist and similar patterns cover most
+// entries but not all — "Pediatrics", "Dentistry", "ENT" and a handful of
+// others are irregular, and a wrong guess reads worse than the duplication
+// this replaces).
+const SPECIALTY_PRACTITIONER_TITLES: Record<string, string> = {
+  "Internal Medicine": "Internist",
+  "General Internal Medicine": "Internist",
+  "Cardiology": "Cardiologist",
+  "Pulmonology and Critical Care Medicine": "Pulmonologist",
+  "Endocrinology": "Endocrinologist",
+  "Hematology": "Hematologist",
+  "Gastroenterology and Hepatology": "Gastroenterologist",
+  "Infectious Diseases": "Infectious Disease Specialist",
+  "Nephrology": "Nephrologist",
+  "Oncology": "Oncologist",
+  "Rheumatology": "Rheumatologist",
+
+  "Surgery": "Surgeon",
+  "General Surgery": "General Surgeon",
+  "Cardiothoracic Surgery": "Cardiothoracic Surgeon",
+  "Colorectal Surgery": "Colorectal Surgeon",
+  "Endocrine and Breast Surgery": "Endocrine and Breast Surgeon",
+  "Hepatobiliary Surgery": "Hepatobiliary Surgeon",
+  "Maxillofacial Surgery": "Maxillofacial Surgeon",
+  "Neurosurgery": "Neurosurgeon",
+  "Orthopedic Surgery": "Orthopedic Surgeon",
+  "Pediatric Surgery": "Pediatric Surgeon",
+  "Plastic and Reconstructive Surgery": "Plastic Surgeon",
+  "Trauma Surgery": "Trauma Surgeon",
+  "Urology": "Urologist",
+  "Vascular Surgery": "Vascular Surgeon",
+
+  "Obstetrics and Gynecology": "OB/GYN",
+  "General OB/GYN": "OB/GYN",
+  "Maternal-Fetal Medicine": "Maternal-Fetal Medicine Specialist",
+  "Reproductive Endocrinology": "Reproductive Endocrinologist",
+  "Gynecologic Oncology": "Gynecologic Oncologist",
+  "Urogynecology": "Urogynecologist",
+
+  "Pediatrics": "Pediatrician",
+  "General Pediatrics": "General Pediatrician",
+  "Neonatology": "Neonatologist",
+  "Pediatric Cardiology": "Pediatric Cardiologist",
+  "Pediatric Infectious Diseases": "Pediatric Infectious Disease Specialist",
+  "Pediatric Nephrology": "Pediatric Nephrologist",
+  "Pediatric Neurology": "Pediatric Neurologist",
+  "Pediatric Oncology": "Pediatric Oncologist",
+
+  "Psychiatry and Neurology": "Psychiatrist",
+  "General Psychiatry": "Psychiatrist",
+  "Child and Adolescent Psychiatry": "Child and Adolescent Psychiatrist",
+  "Neurology": "Neurologist",
+  "Neuropsychiatry": "Neuropsychiatrist",
+  "Addiction Medicine": "Addiction Medicine Specialist",
+
+  "Radiology": "Radiologist",
+  "Diagnostic Radiology": "Diagnostic Radiologist",
+  "Interventional Radiology": "Interventional Radiologist",
+  "Nuclear Medicine": "Nuclear Medicine Physician",
+  "Neuroradiology": "Neuroradiologist",
+
+  "Anesthesiology": "Anesthesiologist",
+  "General Anesthesiology": "Anesthesiologist",
+  "Pain Management": "Pain Management Specialist",
+  "Critical Care Medicine": "Critical Care Specialist",
+
+  "Dermatology": "Dermatologist",
+  "General Dermatology": "Dermatologist",
+  "Dermatopathology": "Dermatopathologist",
+  "Cosmetic Dermatology": "Cosmetic Dermatologist",
+
+  "Ophthalmology": "Ophthalmologist",
+  "General Ophthalmology": "Ophthalmologist",
+  "Retina": "Retina Specialist",
+  "Cornea": "Cornea Specialist",
+  "Glaucoma": "Glaucoma Specialist",
+  "Oculoplastics": "Oculoplastic Surgeon",
+
+  "ENT": "ENT Specialist",
+  "General ENT": "ENT Specialist",
+  "Head and Neck Surgery": "Head and Neck Surgeon",
+  "Rhinology": "Rhinologist",
+  "Otology": "Otologist",
+  "Laryngology": "Laryngologist",
+
+  "Orthopedics": "Orthopedic Surgeon",
+  "General Orthopedics": "Orthopedic Surgeon",
+  "Spine": "Spine Surgeon",
+  "Sports Medicine": "Sports Medicine Specialist",
+  "Joint Replacement": "Joint Replacement Surgeon",
+  "Hand Surgery": "Hand Surgeon",
+
+  "Dentistry": "Dentist",
+  "General Dentistry": "Dentist",
+  "Orthodontics": "Orthodontist",
+  "Periodontics": "Periodontist",
+  "Endodontics": "Endodontist",
+  "Oral Surgery": "Oral Surgeon",
+  "Prosthodontics": "Prosthodontist",
+  "Pediatric Dentistry": "Pediatric Dentist",
+
+  "Emergency Medicine": "Emergency Medicine Physician",
+  "General Emergency Medicine": "Emergency Medicine Physician",
+  "Trauma": "Trauma Specialist",
+
+  "Family Medicine": "Family Physician",
+  "General Family Medicine": "Family Physician",
+  "Geriatrics": "Geriatrician",
+
+  "Pathology": "Pathologist",
+  "Anatomic Pathology": "Anatomic Pathologist",
+  "Clinical Pathology": "Clinical Pathologist",
+  "Forensic Pathology": "Forensic Pathologist",
+};
+
+// "Other" and "Other (specify)" are placeholders, not real answers — a
+// provider who picked one either typed something into the follow-up field
+// (which overwrites this value directly, so it never actually reaches here
+// as literal "Other") or left it blank, and either way it has nothing to
+// contribute to a title.
+function isRealSpecialtyValue(value: string | undefined): value is string {
+  const trimmed = value?.trim();
+  return Boolean(trimmed) && trimmed !== "Other" && trimmed !== "Other (specify)";
+}
+
+// The one clean label for what kind of doctor this is — subspecialty wins
+// when it names something more specific than its parent specialty, falling
+// back to the specialty itself, and finally to whatever text is actually
+// there rather than showing nothing.
+export function specialistTitle(specialty: string, subspecialty: string): string {
+  if (isRealSpecialtyValue(subspecialty)) {
+    return SPECIALTY_PRACTITIONER_TITLES[subspecialty] ?? subspecialty;
+  }
+  if (isRealSpecialtyValue(specialty)) {
+    return SPECIALTY_PRACTITIONER_TITLES[specialty] ?? specialty;
+  }
+  return "";
+}
+
 export const DOCTOR_LANGUAGES = [
   "Amharic",
   "English",

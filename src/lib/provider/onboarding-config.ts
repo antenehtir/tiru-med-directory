@@ -476,6 +476,32 @@ export const WALKIN_APPOINTMENT_OPTIONS = [
   "Walk-in preferred, appointment available",
 ] as const;
 
+// A specialist card/detail page needs a full, plain sentence, not the pill-
+// sized noun FacilityDetailHeader shortens "Appointment required" to
+// ("Appointments") — a visitor deciding whether to just show up or call
+// ahead is a different question from the facility page's own category
+// label. Most specialist visits genuinely need booking, so an UNSET policy
+// (a provider who never answered this) says so explicitly rather than
+// silently reading as "walk in, no appointment needed" — which is exactly
+// what a bare, un-fallback-guarded boolean would have defaulted to.
+const WALKIN_POLICY_DESCRIPTIONS: Record<string, string> = {
+  "Walk-in only": "Walk-in accepted — no appointment needed",
+  "Appointment required": "Appointment required",
+  "Both walk-in and appointment": "Walk-in or appointment accepted",
+  "Walk-in preferred, appointment available": "Walk-in preferred — appointment available",
+};
+
+export function appointmentPolicyDescription(walkinAppointment: string | null | undefined): {
+  text: string;
+  isStated: boolean;
+} {
+  const trimmed = walkinAppointment?.trim();
+  if (trimmed && WALKIN_POLICY_DESCRIPTIONS[trimmed]) {
+    return { text: WALKIN_POLICY_DESCRIPTIONS[trimmed], isStated: true };
+  }
+  return { text: "Check with facility about appointment", isStated: false };
+}
+
 export const DAYS_OF_WEEK = [
   "Monday",
   "Tuesday",

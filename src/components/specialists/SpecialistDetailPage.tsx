@@ -3,7 +3,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { CorrectionCta } from "@/components/ui/CorrectionCta";
 import { Pill } from "@/components/ui/Pill";
-import { formatDoctorDisplayName } from "@/lib/provider/doctor-types";
+import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
+import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
 import type { SpecialistDetail, SpecialistListItem } from "@/lib/supabase/get-specialists";
 import { SpecialistAvailabilitySection } from "./SpecialistAvailabilitySection";
 import { SpecialistCard } from "./SpecialistCard";
@@ -34,6 +35,12 @@ export function SpecialistDetailPage({
   const initials = getInitials(specialist.fullName);
   const isOfficial = OFFICIAL_BADGE_STATUSES.has(specialist.facilityBadge);
   const facilityHref = `/facilities/${specialist.facilitySlug}`;
+  // One clean title instead of the role badge and the specialty ·
+  // subspecialty line saying overlapping things — see SpecialistCard for the
+  // same treatment, and specialistTitle for why subspecialty wins and for
+  // the role fallback (Nurse, Pharmacist, ...) non-clinical roles need.
+  const title = specialistTitle(specialist.specialty, specialist.subspecialty) || specialist.role;
+  const appointment = appointmentPolicyDescription(specialist.facilityWalkinAppointment);
   const hasBio = specialist.bio.trim().length > 0;
   const directionsHref =
     specialist.facilityMapsLink ||
@@ -69,32 +76,22 @@ export function SpecialistDetailPage({
                   {formatDoctorDisplayName(specialist.title, specialist.fullName)}
                 </h1>
 
-                {(specialist.role || specialist.appointmentRequired) && (
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {specialist.role && (
-                      <Badge size="sm" variant="muted">
-                        {specialist.role}
-                      </Badge>
-                    )}
-                    {specialist.appointmentRequired && (
-                      <Badge size="sm" variant="warning">
-                        By appointment
-                      </Badge>
-                    )}
-                  </div>
+                {title && (
+                  <p className="mt-2 text-lg font-medium text-primary">{title}</p>
                 )}
 
-                {(specialist.specialty || specialist.subspecialty) && (
-                  <p className="mt-3 text-base font-medium text-primary">
-                    {specialist.specialty}
-                    {specialist.subspecialty ? (
-                      <span className="font-normal text-muted-foreground">
-                        {" "}
-                        · {specialist.subspecialty}
-                      </span>
-                    ) : null}
-                  </p>
-                )}
+                {/* Most specialist visits need booking ahead — leaving this
+                    out when the facility never answered the question would
+                    silently read as "walk in any time", which is wrong far
+                    more often than it's right. */}
+                <p
+                  className={`mt-2 text-sm font-medium ${
+                    appointment.isStated ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {appointment.isStated ? "📅 " : "⚠️ "}
+                  {appointment.text}
+                </p>
 
                 <p className="mt-3 text-base leading-7 text-muted-foreground">
                   Practices at{" "}
