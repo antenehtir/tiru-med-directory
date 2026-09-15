@@ -5,11 +5,13 @@ import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
+import { wantsToStayOnStep } from "@/lib/provider/save-intent";
 
 export async function saveStep2(formData: FormData) {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
+  const stayOnStep = wantsToStayOnStep(formData);
   const supabase = await createProviderSupabaseClient();
 
   const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
@@ -81,7 +83,14 @@ export async function saveStep2(formData: FormData) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
+
+    // Same gap as Step 1 had: this action holds the step's authoritative
+    // FormData and was never pushing it to the live row — only autoSaveStep2
+    // was, from a separate request racing this one.
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "location details" });
   }
+
+  if (stayOnStep) return;
 
   // phase 3 = services (the step they land on next), matching login's phaseToSlug map
   await supabase

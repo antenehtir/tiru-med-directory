@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/services/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { SubmitButton } from "@/components/provider/SubmitButton";
+import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import {
   MAIN_SERVICES,
@@ -1430,9 +1431,27 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
         >
           ← Back
         </a>
-        <SubmitButton className="px-6" loadingText="Saving…">
-          Save &amp; continue →
-        </SubmitButton>
+        {/* The Save button carries the intent field so saveStep3 commits and
+            stops instead of advancing the phase. See lib/provider/save-intent.ts. */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <SubmitButton
+            className="px-5"
+            loadingText="Saving…"
+            name={SAVE_INTENT_FIELD}
+            value={SAVE_INTENT_STAY}
+            variant="secondary"
+          >
+            Save
+          </SubmitButton>
+          <SubmitButton
+            className="px-6"
+            loadingText="Saving…"
+            name={SAVE_INTENT_FIELD}
+            value={SAVE_INTENT_CONTINUE}
+          >
+            Save &amp; continue →
+          </SubmitButton>
+        </div>
       </div>
     </form>
   );

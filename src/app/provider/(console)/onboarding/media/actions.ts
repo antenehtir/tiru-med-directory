@@ -144,6 +144,18 @@ export async function saveStep5AndContinue(data: Step5Data) {
   const currentOverallPct = provider.completion_pct ?? 0;
   const nextOverallPct = Math.min(100, Math.max(0, currentOverallPct - oldScore + newScore));
 
+  // Same gap the other four steps had: this action holds the photo set the
+  // provider actually pressed the button on, and was never pushing it to the
+  // live row — only autoSaveStep5 was.
+  const { data: updatedClaim } = await supabase
+    .from("facility_claims")
+    .select("*")
+    .eq("id", claimId)
+    .single();
+  if (updatedClaim) {
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "photos & media" });
+  }
+
   // phase 6 = review (the step they land on next), matching login's phaseToSlug map
   await supabase
     .from("provider_accounts")

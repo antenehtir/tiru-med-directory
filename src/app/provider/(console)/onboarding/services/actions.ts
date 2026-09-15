@@ -5,11 +5,13 @@ import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
+import { wantsToStayOnStep } from "@/lib/provider/save-intent";
 
 export async function saveStep3(formData: FormData) {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
+  const stayOnStep = wantsToStayOnStep(formData);
   const supabase = await createProviderSupabaseClient();
   const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
   if (!claimId) {
@@ -93,7 +95,15 @@ export async function saveStep3(formData: FormData) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
+
+    // Same gap as Steps 1 and 2 had: this action holds the step's
+    // authoritative FormData and was never pushing it to the live row.
+    await syncToFacilityIfApproved(supabase, updatedClaim, {
+      changeNote: "services & specialties",
+    });
   }
+
+  if (stayOnStep) return;
 
   // Pharmacies don't list doctors/named staff — skip straight past the
   // Doctors step (phase 4) to Photos & docs (phase 5). See also

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { saveStep2, autoSaveStep2 } from "@/app/provider/(console)/onboarding/location/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { SubmitButton } from "@/components/provider/SubmitButton";
+import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-repeater";
 import { normalizeUrl } from "@/lib/normalize-url";
@@ -455,9 +456,27 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
         >
           ← Back
         </a>
-        <SubmitButton className="px-6" loadingText="Saving…">
-          Save &amp; continue →
-        </SubmitButton>
+        {/* The Save button carries the intent field so saveStep2 commits and
+            stops instead of advancing the phase. See lib/provider/save-intent.ts. */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <SubmitButton
+            className="px-5"
+            loadingText="Saving…"
+            name={SAVE_INTENT_FIELD}
+            value={SAVE_INTENT_STAY}
+            variant="secondary"
+          >
+            Save
+          </SubmitButton>
+          <SubmitButton
+            className="px-6"
+            loadingText="Saving…"
+            name={SAVE_INTENT_FIELD}
+            value={SAVE_INTENT_CONTINUE}
+          >
+            Save &amp; continue →
+          </SubmitButton>
+        </div>
       </div>
     </form>
   );

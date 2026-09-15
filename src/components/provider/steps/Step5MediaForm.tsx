@@ -236,7 +236,30 @@ export function Step5MediaForm({
 
 
 
+  // Which of the two buttons is working, so the spinner appears on the one
+  // that was actually pressed rather than on both.
+  const [pendingAction, setPendingAction] = useState<"save" | "continue" | null>(null);
+
+  // Save without leaving. Uploads already autosave as they land, but that is
+  // invisible work on a timer — "Save & continue" was the only control that
+  // said anything had been committed, so staying on the page to keep
+  // arranging photos meant trusting a timestamp.
+  function handleSave() {
+    setPendingAction("save");
+    startTransition(async () => {
+      const result = await autoSaveStep5(urls);
+      if (result.ok) {
+        setSaveError(null);
+        setLastSaved(new Date());
+      } else {
+        setSaveError(result.error ?? "Save failed — please try again.");
+      }
+      setPendingAction(null);
+    });
+  }
+
   function handleSaveAndContinue() {
+    setPendingAction("continue");
     startTransition(async () => {
       await saveStep5AndContinue(urls);
     });
@@ -494,21 +517,41 @@ export function Step5MediaForm({
             View submission status →
           </a>
         ) : (
-          <button
-            className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!permissionChecked || isPending}
-            onClick={handleSaveAndContinue}
-            type="button"
-          >
-            {isPending ? (
-              <>
-                <Spinner tone="on-primary" />
-                Saving…
-              </>
-            ) : (
-              "Save & continue →"
-            )}
-          </button>
+          /* Save is not gated on the permission checkbox the way Continue
+             is: that confirmation is about publishing, and saving a draft
+             photo arrangement to come back to is not publishing it. */
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <button
+              className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isPending}
+              onClick={handleSave}
+              type="button"
+            >
+              {pendingAction === "save" ? (
+                <>
+                  <Spinner />
+                  Saving…
+                </>
+              ) : (
+                "Save"
+              )}
+            </button>
+            <button
+              className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!permissionChecked || isPending}
+              onClick={handleSaveAndContinue}
+              type="button"
+            >
+              {pendingAction === "continue" ? (
+                <>
+                  <Spinner tone="on-primary" />
+                  Saving…
+                </>
+              ) : (
+                "Save & continue →"
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

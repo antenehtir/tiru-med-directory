@@ -10,6 +10,7 @@ import {
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { PillOption } from "@/components/provider/PillOption";
 import { SubmitButton } from "@/components/provider/SubmitButton";
+import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import {
   OWNERSHIP_TYPES,
   LANGUAGES,
@@ -594,8 +595,25 @@ export function Step1IdentityForm({
         </p>
       )}
 
-      <div className="flex items-center justify-end">
-        <SubmitButton className="px-6" loadingText="Saving…">
+      {/* Two buttons, one form, one action: the Save button carries the
+          intent field so saveStep1 knows to commit and stop rather than
+          advance the phase and redirect. See lib/provider/save-intent.ts. */}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <SubmitButton
+          className="px-5"
+          loadingText="Saving…"
+          name={SAVE_INTENT_FIELD}
+          value={SAVE_INTENT_STAY}
+          variant="secondary"
+        >
+          Save
+        </SubmitButton>
+        <SubmitButton
+          className="px-6"
+          loadingText="Saving…"
+          name={SAVE_INTENT_FIELD}
+          value={SAVE_INTENT_CONTINUE}
+        >
           Save &amp; continue →
         </SubmitButton>
       </div>

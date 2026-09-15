@@ -80,6 +80,11 @@ export async function saveStep4AndContinue(doctors: DoctorEntry[]) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
+
+    // Same gap the other four steps had: this action holds the roster the
+    // provider actually pressed the button on, and was never pushing it to
+    // the live row — only autoSaveStep4 was.
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "doctor roster" });
   }
 
   // phase 5 = media (the step they land on next), matching login's phaseToSlug map

@@ -8,6 +8,12 @@ type SubmitButtonProps = {
   loadingText: string;
   className?: string;
   variant?: "primary" | "secondary";
+  // A submitting button contributes its own name/value to the FormData, and
+  // only the button actually pressed does. That is how a form with both
+  // "Save" and "Save & continue" tells the server action which one the
+  // provider meant, without a second action or a duplicated form.
+  name?: string;
+  value?: string;
 };
 
 const variantClasses: Record<NonNullable<SubmitButtonProps["variant"]>, string> = {
@@ -26,16 +32,30 @@ export function SubmitButton({
   loadingText,
   className = "",
   variant = "primary",
+  name,
+  value,
 }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+  const { pending, data } = useFormStatus();
+
+  // Every submit button in a form sees the same `pending`, so a form with
+  // both "Save" and "Save & continue" would spin both at once. `data` is the
+  // FormData actually submitted, and it includes the pressed button's own
+  // name/value pair — so a button that declares one can tell whether it was
+  // the button pressed. One that declares none keeps the old behaviour.
+  const isPressedButton = !name || data?.get(name) === value;
+  const showLoading = pending && isPressedButton;
 
   return (
     <button
+      // Still disabled whenever the form is in flight, pressed or not: that
+      // is what prevents a double submit.
       className={`flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${variantClasses[variant]} ${className}`}
       disabled={pending}
+      name={name}
       type="submit"
+      value={value}
     >
-      {pending ? (
+      {showLoading ? (
         <>
           <Spinner tone={variant === "primary" ? "on-primary" : "primary"} />
           {loadingText}

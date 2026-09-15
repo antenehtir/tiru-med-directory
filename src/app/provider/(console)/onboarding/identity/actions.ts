@@ -5,12 +5,14 @@ import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
 import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
+import { wantsToStayOnStep } from "@/lib/provider/save-intent";
 import { resolveCategoryChoice } from "@/lib/frontend-search-filters";
 
 export async function saveStep1(formData: FormData) {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
 
+  const stayOnStep = wantsToStayOnStep(formData);
   const supabase = await createProviderSupabaseClient();
 
   const name = formData.get("name") as string;
@@ -58,7 +60,19 @@ export async function saveStep1(formData: FormData) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
+
+    // This action writes the authoritative FormData for the step, and until
+    // now it was the one save path that never pushed the result to the live
+    // row — only autoSaveStep1 did. Autosave usually covers it by firing on
+    // the blur that clicking this button causes, but that is a separate
+    // request racing this one, and "usually" is how a field ends up saved in
+    // the draft and stale on the public page.
+    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "identity details" });
   }
+
+  // Save-and-stay ends here: the provider is still working on this step, so
+  // neither the phase nor the URL should move on without them.
+  if (stayOnStep) return;
 
   // phase 2 = location (the step they land on next), matching login's phaseToSlug map
   await supabase
