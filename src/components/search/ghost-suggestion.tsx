@@ -97,15 +97,22 @@ export function GhostTextOverlay({
   );
 }
 
-// Shared "did the caret just ask to accept the ghost?" check: Tab, with
-// nothing selected and the caret sitting at the end of the typed text — the
-// same place accepting the completion would extend from. Exported so both
-// search bars ask the same question rather than two slightly different
-// ones.
+// Shared "did the caret just ask to accept the ghost?" check: Tab, or the
+// Right arrow — the key that already means "move to the end of the text",
+// which is exactly where the caret already sits whenever a completion is
+// showing, so it would otherwise do nothing at all. Both require nothing
+// selected and the caret sitting at the end of the typed text — the same
+// place accepting the completion would extend from. Shift is only excluded
+// for Tab (Shift+Tab means "focus backward"); Shift+ArrowRight extends a
+// selection, which never applies here since the caret is already at the end
+// with nothing selected. Exported so both search bars ask the same question
+// rather than two slightly different ones.
 export function isAcceptGhostKey(
   event: { key: string; shiftKey: boolean },
   input: HTMLInputElement | null,
 ): boolean {
-  if (event.key !== "Tab" || event.shiftKey || !input) return false;
+  if (!input) return false;
+  if (event.key !== "Tab" && event.key !== "ArrowRight") return false;
+  if (event.key === "Tab" && event.shiftKey) return false;
   return input.selectionStart === input.value.length && input.selectionEnd === input.value.length;
 }

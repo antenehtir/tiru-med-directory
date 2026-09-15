@@ -175,13 +175,14 @@ export const facilityCategoryBadgeClasses: Record<FacilityCardCategoryKey, strin
 
 // Short display label for the category badge. Mirrors the real taxonomy used
 // by /facilities and the filter modal (FacilityCategoryFilter) rather than a
-// generic label set — this app doesn't split "Lab" from "Imaging", both are
-// the single "diagnostics" category.
+// generic label set — this app doesn't split "Lab" from "Imaging" into two
+// categories, both file under the single "diagnostics" one, so the label
+// names both rather than only the more common of the two.
 export const facilityCategoryBadgeLabels: Record<FacilityCardCategoryKey, string> = {
   hospital: "Hospital",
   specialty: "Specialty Center",
   clinic: "Clinic",
-  diagnostics: "Diagnostics / Lab",
+  diagnostics: "Diagnostics (Lab/Imaging)",
   pharmacy: "Pharmacy",
   ambulance: "Ambulance",
   "home-care": "Home Care",

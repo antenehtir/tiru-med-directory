@@ -85,7 +85,7 @@ const CANDIDATES: ChipCandidate[] = [
     matches: (f) => specialtyMatchesAliases(mergedTags(f), "Fertility"),
   },
   {
-    label: "Diagnostics / Lab",
+    label: "Diagnostics (Lab/Imaging)",
     href: "/facilities?category=diagnostics",
     iconKey: "diagnostics",
     matches: (f) => resolveFacilityCardCategoryKey(f) === "diagnostics",

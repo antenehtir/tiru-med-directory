@@ -25,6 +25,13 @@ export type DoctorEntry = {
 
 export const DOCTOR_TITLES = ["Dr.", "Mr.", "Mrs.", "Ms.", "Prof.", "Other"] as const;
 
+// Radiologist and Psychiatrist used to be their own solo entries here,
+// alongside — and overlapping — "Specialist": a radiologist or psychiatrist
+// picking "Specialist" and then Radiology/Psychiatry as their specialty
+// describes the exact same doctor as picking the solo role did, so the same
+// person could end up filed two different ways depending on which one a
+// provider happened to click. Specialist is the one path now; the specialty
+// picker is where Radiology and Psychiatry actually live.
 export const DOCTOR_ROLES = [
   "General Practitioner",
   "Specialist",
@@ -35,8 +42,6 @@ export const DOCTOR_ROLES = [
   "Pharmacist",
   "Lab Technician",
   "Physiotherapist",
-  "Radiologist",
-  "Psychiatrist",
   "Nutritionist",
   "Optometrist",
   "Other",
@@ -48,8 +53,6 @@ export const CLINICAL_ROLES = [
   "Specialist",
   "Surgeon",
   "Dentist",
-  "Psychiatrist",
-  "Radiologist",
   "Emergency Medicine",
 ] as const;
 
@@ -75,8 +78,20 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Gastroenterology and Hepatology",
     "Infectious Diseases",
     "Nephrology",
-    "Oncology",
     "Rheumatology",
+    "Other",
+  ],
+  // Its own category now rather than a single subspecialty buried inside
+  // Internal Medicine — an oncologist is filed under Internal Medicine only
+  // by convention, and the subspecialty list already covers Gynecologic and
+  // Pediatric Oncology separately, so "Oncology" as internal medicine's own
+  // entry answered a narrower question than the specialty actually is.
+  Oncology: [
+    "Medical Oncology",
+    "Radiation Oncology",
+    "Surgical Oncology",
+    "Gynecologic Oncology",
+    "Pediatric Oncology",
     "Other",
   ],
   Surgery: [
@@ -91,8 +106,16 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Pediatric Surgery",
     "Plastic and Reconstructive Surgery",
     "Trauma Surgery",
-    "Urology",
     "Vascular Surgery",
+    "Other",
+  ],
+  // Same reasoning as Oncology above — urology is its own field in practice,
+  // not a subspecialty someone finds by first picking Surgery.
+  Urology: [
+    "General Urology",
+    "Uro-oncology",
+    "Pediatric Urology",
+    "Andrology",
     "Other",
   ],
   "Obstetrics and Gynecology": [
@@ -114,12 +137,25 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Pediatric Surgery",
     "Other",
   ],
-  "Psychiatry and Neurology": [
+  // Psychiatry and Neurology used to share one category — two different
+  // fields (mental health vs. the nervous system) that only look adjacent
+  // because "neuro-" shows up in both. A psychiatrist and a neurologist are
+  // not interchangeable, and filing both under one label made every
+  // neurologist's record say "Psychiatry and Neurology" whether or not they
+  // treat a single psychiatric condition.
+  Psychiatry: [
     "General Psychiatry",
     "Child and Adolescent Psychiatry",
-    "Neurology",
     "Neuropsychiatry",
     "Addiction Medicine",
+    "Other",
+  ],
+  Neurology: [
+    "General Neurology",
+    "Epilepsy",
+    "Stroke and Vascular Neurology",
+    "Movement Disorders",
+    "Neuromuscular Disorders",
     "Other",
   ],
   Radiology: [
@@ -178,8 +214,12 @@ const SPECIALTY_PRACTITIONER_TITLES: Record<string, string> = {
   "Gastroenterology and Hepatology": "Gastroenterologist",
   "Infectious Diseases": "Infectious Disease Specialist",
   "Nephrology": "Nephrologist",
-  "Oncology": "Oncologist",
   "Rheumatology": "Rheumatologist",
+
+  "Oncology": "Oncologist",
+  "Medical Oncology": "Medical Oncologist",
+  "Radiation Oncology": "Radiation Oncologist",
+  "Surgical Oncology": "Surgical Oncologist",
 
   "Surgery": "Surgeon",
   "General Surgery": "General Surgeon",
@@ -193,8 +233,13 @@ const SPECIALTY_PRACTITIONER_TITLES: Record<string, string> = {
   "Pediatric Surgery": "Pediatric Surgeon",
   "Plastic and Reconstructive Surgery": "Plastic Surgeon",
   "Trauma Surgery": "Trauma Surgeon",
-  "Urology": "Urologist",
   "Vascular Surgery": "Vascular Surgeon",
+
+  "Urology": "Urologist",
+  "General Urology": "Urologist",
+  "Uro-oncology": "Uro-oncologist",
+  "Pediatric Urology": "Pediatric Urologist",
+  "Andrology": "Andrologist",
 
   "Obstetrics and Gynecology": "OB/GYN",
   "General OB/GYN": "OB/GYN",
@@ -212,12 +257,18 @@ const SPECIALTY_PRACTITIONER_TITLES: Record<string, string> = {
   "Pediatric Neurology": "Pediatric Neurologist",
   "Pediatric Oncology": "Pediatric Oncologist",
 
-  "Psychiatry and Neurology": "Psychiatrist",
+  "Psychiatry": "Psychiatrist",
   "General Psychiatry": "Psychiatrist",
   "Child and Adolescent Psychiatry": "Child and Adolescent Psychiatrist",
-  "Neurology": "Neurologist",
   "Neuropsychiatry": "Neuropsychiatrist",
   "Addiction Medicine": "Addiction Medicine Specialist",
+
+  "Neurology": "Neurologist",
+  "General Neurology": "Neurologist",
+  "Epilepsy": "Epileptologist",
+  "Stroke and Vascular Neurology": "Vascular Neurologist",
+  "Movement Disorders": "Movement Disorder Specialist",
+  "Neuromuscular Disorders": "Neuromuscular Specialist",
 
   "Radiology": "Radiologist",
   "Diagnostic Radiology": "Diagnostic Radiologist",

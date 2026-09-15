@@ -19,7 +19,7 @@ const facilityCategories: {
   },
   { label: "Clinics", href: "/facilities?category=clinic", value: "clinic" },
   {
-    label: "Diagnostics / Lab",
+    label: "Diagnostics (Lab/Imaging)",
     href: "/facilities?category=diagnostics",
     value: "diagnostics",
   },

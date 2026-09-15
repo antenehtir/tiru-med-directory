@@ -127,25 +127,10 @@ export function HeaderMenu() {
               {ROLE_OPTIONS.map((role) => {
                 const RoleIcon = roleIcons[role.key];
 
-                if (role.disabled) {
-                  return (
-                    <div
-                      className="flex cursor-not-allowed items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/60"
-                      key={role.key}
-                    >
-                      <RoleIcon className="size-4 shrink-0" />
-                      <span className="min-w-0 flex-1 font-medium leading-tight">{role.label}</span>
-                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                        Soon
-                      </span>
-                    </div>
-                  );
-                }
-
                 return (
                   <Link
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
-                    href={role.href!}
+                    href={role.href}
                     key={role.key}
                     onClick={() => setIsOpen(false)}
                     role="menuitem"

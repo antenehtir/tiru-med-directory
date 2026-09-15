@@ -7,29 +7,20 @@ export type RoleOption = {
   key: string;
   label: string;
   description: string;
-  href?: string;
-  disabled: boolean;
+  href: string;
 };
 
+// Specialist and Patient/User sign-in used to sit here too, permanently
+// disabled behind a "Coming soon" badge — a dead end with no explanation
+// once that badge was the only thing saying why. Removed rather than left
+// unlabeled: a menu item that never works is worse than one that doesn't
+// exist yet.
 export const ROLE_OPTIONS: RoleOption[] = [
   {
     key: "provider",
     label: "Healthcare Provider",
     description: "Manage your facility listing",
     href: "/provider/login",
-    disabled: false,
-  },
-  {
-    key: "specialist",
-    label: "Specialist",
-    description: "For individual doctors",
-    disabled: true,
-  },
-  {
-    key: "patient",
-    label: "Patient / User",
-    description: "For patients and families",
-    disabled: true,
   },
 ];
 
@@ -66,30 +57,8 @@ function ProviderIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function SpecialistIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <Icon {...props}>
-      <path d="M6 3v6a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3" />
-      <path d="M6 3H4M18 3h2M18 15a4 4 0 0 1-4 4h-4" />
-      <circle cx="18" cy="19" r="2" />
-    </Icon>
-  );
-}
-
-function PatientIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <Icon {...props}>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-      <path d="M12 20v-3m-2-2h4" />
-    </Icon>
-  );
-}
-
 export const roleIcons: Record<string, (props: SVGProps<SVGSVGElement>) => React.JSX.Element> = {
   provider: ProviderIcon,
-  specialist: SpecialistIcon,
-  patient: PatientIcon,
 };
 
 export function SignInMenu({ compact = false }: { compact?: boolean }) {
@@ -146,28 +115,10 @@ export function SignInMenu({ compact = false }: { compact?: boolean }) {
             {ROLE_OPTIONS.map((role) => {
               const RoleIcon = roleIcons[role.key];
 
-              if (role.disabled) {
-                return (
-                  <div
-                    key={role.key}
-                    className="flex cursor-not-allowed items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/60"
-                  >
-                    <RoleIcon className="size-4 shrink-0" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium leading-tight">{role.label}</span>
-                      <span className="block truncate text-xs">{role.description}</span>
-                    </span>
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                      Coming soon
-                    </span>
-                  </div>
-                );
-              }
-
               return (
                 <Link
                   key={role.key}
-                  href={role.href!}
+                  href={role.href}
                   role="menuitem"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"

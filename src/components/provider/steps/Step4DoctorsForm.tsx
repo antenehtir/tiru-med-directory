@@ -427,6 +427,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-foreground">Availability schedule</label>
                 <ScheduleBuilder
+                  allow247={false}
                   onChange={(rows) => autoSave(updateDoctor(doctor.id, { available_schedule: rows }))}
                   value={doctor.available_schedule}
                 />

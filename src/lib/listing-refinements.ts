@@ -18,7 +18,7 @@ export const LISTING_TYPE_LABELS: Record<FacilityCategoryFilter, string> = {
   hospital: "Hospitals",
   specialty: "Specialty centers",
   clinic: "Clinics",
-  diagnostics: "Diagnostics / Lab",
+  diagnostics: "Diagnostics (Lab/Imaging)",
   pharmacy: "Pharmacies",
   ambulance: "Ambulance",
   "home-care": "Home care",

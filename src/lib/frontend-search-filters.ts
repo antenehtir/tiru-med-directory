@@ -750,7 +750,7 @@ export function getFacilityCategoryLabel(
   }
 
   if (category === "diagnostics") {
-    return "Diagnostics / Lab";
+    return "Diagnostics (Lab/Imaging)";
   }
 
   if (category === "pharmacy") {

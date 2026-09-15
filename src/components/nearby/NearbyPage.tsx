@@ -62,7 +62,7 @@ const categoryOptions: { label: string; value: FacilityCategoryFilter | "all" }[
   { label: "General Hospitals", value: "hospital" },
   { label: "Specialty Centers", value: "specialty" },
   { label: "Clinics", value: "clinic" },
-  { label: "Diagnostics / Lab", value: "diagnostics" },
+  { label: "Diagnostics (Lab/Imaging)", value: "diagnostics" },
   { label: "Pharmacies", value: "pharmacy" },
   { label: "Ambulance", value: "ambulance" },
   { label: "Home Care", value: "home-care" },
