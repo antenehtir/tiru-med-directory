@@ -201,7 +201,26 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
     }
   }
 
+  // Which of the two buttons is working, so the spinner appears on the one
+  // that was actually pressed rather than on both.
+  const [pendingAction, setPendingAction] = useState<"save" | "continue" | null>(null);
+
+  // Save without leaving. Autosave already writes on every field change, but
+  // it is invisible work on a timer — "Save & continue" was the only control
+  // that said anything had been committed, so staying on the page to keep
+  // editing meant trusting a timestamp. This is the same write autosave
+  // performs, just asked for on purpose.
+  function handleSave() {
+    setPendingAction("save");
+    startTransition(async () => {
+      await autoSaveStep4(applyFacilityAppointmentPolicy(doctors));
+      setLastSaved(new Date());
+      setPendingAction(null);
+    });
+  }
+
   function handleSaveAndContinue() {
+    setPendingAction("continue");
     startTransition(async () => {
       await saveStep4AndContinue(applyFacilityAppointmentPolicy(doctors));
     });
@@ -513,19 +532,39 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
         >
           ← Back
         </a>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
           {/* No <form> wraps this step (doctors are saved as a JS array via
               saveStep4AndContinue, not FormData) — useFormStatus/SubmitButton
               don't apply, so the pending state is shown manually from the
-              same isPending used by auto-save. */}
+              same isPending used by auto-save.
+
+              Two buttons, because they answer different questions: Save means
+              "commit this, I am staying", Continue means "commit this, I am
+              done here". Save is the quieter of the two — moving forward is
+              still the expected path through onboarding. */}
+          <button
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isPending}
+            onClick={handleSave}
+            type="button"
+          >
+            {pendingAction === "save" ? (
+              <>
+                <Spinner />
+                Saving…
+              </>
+            ) : (
+              "Save"
+            )}
+          </button>
           <button
             className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
             disabled={isPending}
             onClick={handleSaveAndContinue}
             type="button"
           >
-            {isPending ? (
+            {pendingAction === "continue" ? (
               <>
                 <Spinner tone="on-primary" />
                 Saving…

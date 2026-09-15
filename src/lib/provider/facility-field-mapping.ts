@@ -121,15 +121,18 @@ export async function syncToFacilityIfApproved(
   delete toSync.name;
   for (const field of options?.excludeFields ?? []) delete toSync[field];
 
+  // Nothing to write at all — a claim with no populated proposed_* fields.
+  // Guarded because the select below builds its column list from these keys
+  // and an empty list is not a valid select.
+  const columns = Object.keys(toSync);
+  if (columns.length === 0) return;
+
   // What the live row holds right now, limited to the columns about to be
-  // written. Two things depend on this: the audit entry can say what
-  // actually changed instead of just "something was saved", and an autosave
-  // that changed nothing (a blur with no edit, a second fire of the same
-  // save) can stop here rather than writing a row and logging a no-op —
-  // which is what put two identical entries in the log seconds apart.
+  // written, so the audit entry can say what actually changed rather than
+  // just that something was saved.
   const { data: before } = await supabase
     .from("facilities")
-    .select(Object.keys(toSync).join(", "))
+    .select(columns.join(", "))
     .eq("id", facilityId)
     .single();
 
@@ -138,14 +141,17 @@ export async function syncToFacilityIfApproved(
     toSync,
   );
 
-  // Only skip on a snapshot we actually read: if that select came back
-  // empty, "nothing changed" is indistinguishable from "we can't see the
-  // row", and the second one is the case worth writing through to find out.
-  if (before && changed.length === 0) return;
-
+  // The write is NOT conditional on `changed`. It was for one day, and that
+  // day cost a provider's edit: change detection read a doctor's languages
+  // as unchanged, so the sync was skipped and the public page silently kept
+  // the old roster. Detection decides whether to LOG, never whether to
+  // WRITE — if it is ever wrong again the cost is a missing log line, not
+  // missing data. The write is idempotent, so running it on a no-op save is
+  // free; only updated_at is held back, so "last updated" keeps meaning
+  // something.
   const { data: syncedRows, error } = await supabase
     .from("facilities")
-    .update({ ...toSync, updated_at: new Date().toISOString() })
+    .update(changed.length > 0 ? { ...toSync, updated_at: new Date().toISOString() } : toSync)
     .eq("id", facilityId)
     .select("id");
 
@@ -179,6 +185,13 @@ export async function syncToFacilityIfApproved(
     });
     return;
   }
+
+  // A save that moved nothing is not an event. Autosave fires on blur and on
+  // navigation as well as on a real edit, so logging these put two identical
+  // "Updated services & specialties" rows in the log seconds apart. Failures
+  // above are always logged, changed or not — a write that could not happen
+  // is worth recording even when there was nothing in it.
+  if (changed.length === 0) return;
 
   await logProviderAudit(supabase, {
     ...attempted,
