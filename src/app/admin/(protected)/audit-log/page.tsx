@@ -49,6 +49,18 @@ const ACTION_LABELS: Record<string, string> = {
   provider_edit_synced: "Provider edit saved",
   provider_live_sync_blocked: "Provider edit did NOT go live",
   provider_live_sync_failed: "Provider edit failed to save",
+  // These seven were written by actions elsewhere in the app but never
+  // listed here, so they fell through to the raw column value and the log
+  // showed "claim_approved_new_listing" in a table every other row of which
+  // read as a sentence.
+  facility_identity_edited: "Identity edited",
+  claim_approved_new_listing: "New listing approved",
+  claim_approved_merged: "Claim merged into listing",
+  facility_deactivated: "Facility deactivated",
+  facility_reactivated: "Facility reactivated",
+  update_admin_role: "Admin role changed",
+  remove_admin_user: "Admin user removed",
+  change_password: "Password changed",
 };
 
 // Entries where something went wrong reaching the public page — surfaced
@@ -174,11 +186,22 @@ export default async function AdminAuditLogPage() {
                     <td className={`px-4 py-3 font-medium ${isProblem ? "text-red-600 dark:text-red-400" : "text-foreground"}`}>
                       {ACTION_LABELS[entry.action as string] ?? (entry.action as string)}
                     </td>
+                    {/* Both capped and wrapping. A table-auto column grows to
+                        fit its longest cell, so one legacy row carrying a
+                        seventy-item service list stretched the table to
+                        1198px inside an 801px panel and pushed the Change
+                        column off the right edge — the column you most need
+                        to read. max-width on a <td> is unreliable in table
+                        layout, so the cap goes on a block inside it. */}
                     <td className="px-4 py-3 text-muted-foreground">
-                      {(entry.note ?? "—") as string}
+                      <div className="max-w-[16rem] break-words">
+                        {(entry.note ?? "—") as string}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      <ChangeCell newValue={newVal} oldValue={oldVal} />
+                      <div className="max-w-[20rem] break-words">
+                        <ChangeCell newValue={newVal} oldValue={oldVal} />
+                      </div>
                     </td>
                   </tr>
                 );
