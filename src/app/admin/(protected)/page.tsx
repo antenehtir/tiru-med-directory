@@ -21,7 +21,18 @@ async function getDashboardStats() {
     { count: verifiedCount },
   ] = await Promise.all([
     supabase.from("facilities").select("*", { count: "exact", head: true }),
-    supabase.from("correction_requests").select("*", { count: "exact", head: true }),
+    // Pending only. This counted every correction ever submitted while the
+    // card beneath it read "Pending review" and its link went to the pending
+    // tab — so the dashboard advertised 2 items waiting when both had been
+    // dealt with weeks earlier and the pending tab was empty. A count that is
+    // wrong in the alarming direction is worse than no count: it teaches you
+    // to ignore the number, and the one real correction gets ignored with it.
+    // Matches getPendingCorrectionsCount in the layout, which drives the
+    // sidebar badge and was already filtering correctly.
+    supabase
+      .from("correction_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending"),
     // Matches the New Listings tab on /admin/claims exactly: submitted
     // (pending_review) claims for a facility that doesn't exist yet.
     // Previously counted the unrelated `listing_requests` table (populated

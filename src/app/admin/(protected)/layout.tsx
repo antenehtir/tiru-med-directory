@@ -70,7 +70,7 @@ export default async function AdminLayout({
         </main>
       </div>
 
-      <AdminBottomNav />
+      <AdminBottomNav pendingCorrectionsCount={pendingCorrectionsCount} />
     </div>
   );
 }
