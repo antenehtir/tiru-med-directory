@@ -114,7 +114,7 @@ function serviceWords(service: string): string[] {
 // question: of everything this facility offers, which one did they ask for?
 // Taking the first service that merely passed the loose test answers it badly.
 // Searching "ANA" on a laboratory that lists ANA highlighted "Urine analysis",
-// because ana prefixes "analysis" and that entry sits earlier in the array.
+// because \bana prefixes "analysis" and that entry sits earlier in the array.
 // The chip named a test the visitor had not asked for while the one they had
 // sat further down the same card.
 function tokenMatchScore(service: string, token: string): number {

@@ -85,6 +85,14 @@ export function addisDayKey(instant: Date = new Date()): string {
   return DAY_KEY_FORMAT.format(instant);
 }
 
+// en-GB puts the day before the month ("15 Sept") but lowercases the am/pm;
+// en-US uppercases it but reorders the date. This keeps the day-first order
+// and uppercases the marker, which is how these timestamps already read
+// everywhere else in the app.
+function upperMeridiem(text: string): string {
+  return text.replace(/\b(am|pm)\b/g, (m) => m.toUpperCase());
+}
+
 function toDate(value: Date | string | number | null | undefined): Date | null {
   if (value === null || value === undefined || value === "") return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -104,36 +112,39 @@ export function formatAddisDate(
 }
 
 // Date and time — for logs and audit trails, where "when exactly" is the
-// whole point. 24-hour, because an audit trail read at a glance should not
-// hinge on spotting an am/pm.
+// whole point.
 export function formatAddisDateTime(
   value: Date | string | number | null | undefined,
   locale = "en-GB",
 ): string {
   const date = toDate(value);
   if (!date) return "—";
-  return date.toLocaleString(locale, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: ADDIS_TIME_ZONE,
-  });
+  return upperMeridiem(
+    date.toLocaleString(locale, {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: ADDIS_TIME_ZONE,
+    }),
+  );
 }
 
-// Time of day only — the "Draft saved 15:22:29" indicators.
+// Time of day only — the "Draft saved 3:22:29 PM" indicators.
 export function formatAddisTime(
   value: Date | string | number | null | undefined,
   locale = "en-GB",
 ): string {
   const date = toDate(value);
   if (!date) return "—";
-  return date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-    timeZone: ADDIS_TIME_ZONE,
-  });
+  return upperMeridiem(
+    date.toLocaleTimeString(locale, {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: ADDIS_TIME_ZONE,
+    }),
+  );
 }
