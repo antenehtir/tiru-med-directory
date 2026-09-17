@@ -78,8 +78,9 @@ export default async function AdminFacilitiesPage({
 
       {drafts.length > 0 && (
         <section
+          id="drafts"
           aria-labelledby="drafts-title"
-          className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40 sm:p-5"
+          className="mb-6 scroll-mt-20 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40 sm:p-5"
         >
           <h2 className="text-sm font-bold text-amber-900 dark:text-amber-100" id="drafts-title">
             Unfinished drafts ({drafts.length}) — not listed

@@ -19,6 +19,7 @@ async function getDashboardStats() {
     { count: csCount },
     { count: officialCount },
     { count: verifiedCount },
+    { count: draftCount },
   ] = await Promise.all([
     // Unpublished drafts (migration 063) are not in the directory yet.
     supabase.from("facilities").select("*", { count: "exact", head: true }).eq("is_draft", false),
@@ -63,6 +64,11 @@ async function getDashboardStats() {
       .from("facilities")
       .select("*", { count: "exact", head: true })
       .eq("verification_status", "verified"),
+    // Facilities an admin started and has not published yet (migration 063).
+    supabase
+      .from("facilities")
+      .select("*", { count: "exact", head: true })
+      .eq("is_draft", true),
   ]);
 
   return {
@@ -73,6 +79,7 @@ async function getDashboardStats() {
     csCount: csCount ?? 0,
     officialCount: officialCount ?? 0,
     verifiedCount: verifiedCount ?? 0,
+    draftCount: draftCount ?? 0,
   };
 }
 
@@ -177,6 +184,14 @@ export default async function AdminDashboardPage() {
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-950",
       href: "/admin/facilities?badge=facility-owned",
+    },
+    {
+      label: "Unfinished Drafts",
+      value: stats.draftCount,
+      description: "Started, not listed yet",
+      color: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-50 dark:bg-orange-950",
+      href: "/admin/facilities#drafts",
     },
   ];
 
