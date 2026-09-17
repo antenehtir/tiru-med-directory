@@ -115,7 +115,7 @@ export function HeaderMenu() {
               >
                 <path d="M12 5v14m-7-7h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
               </svg>
-              List your facility
+              List or claim your facility
             </Link>
           </div>
 

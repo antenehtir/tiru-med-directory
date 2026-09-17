@@ -5,7 +5,8 @@ import Image from "next/image";
 
 // Full-screen photo viewer for a facility's banner photos. Opens on the photo
 // that was tapped; swipe (touch), the arrow buttons, or the arrow keys move
-// between photos, and Esc or the close button closes it.
+// between photos, and Esc, the close button, or the phone's Back button
+// closes it — Back returns to the facility page rather than leaving it.
 //
 // Built on the native <dialog> element: showModal() already gives the top
 // layer, a focus trap, Esc to close and an inert page behind it, which a
@@ -57,6 +58,39 @@ export function FacilityPhotoViewer({
     };
   }, [openAt]);
 
+  // The phone's Back button should close the viewer, not leave the page. So
+  // opening it adds one history entry of its own (same URL — the existing
+  // state is kept so Next's router still recognises the entry), and Back
+  // just pops that entry. Closing any other way pops it too, so the history
+  // is left exactly as it was before the viewer opened.
+  //
+  // Nothing here waits for the dialog's own close event: in testing Chrome
+  // did not reliably fire it (on Back, and with the window in the
+  // background), which left the page thinking the viewer was still open —
+  // scrolling stayed locked and the next tap on a photo did nothing. Every
+  // way of closing tells the page directly, and the effect above then closes
+  // the dialog itself.
+  const isOpen = openAt !== null;
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (!isOpen) return;
+    window.history.pushState({ ...window.history.state, tiruPhotoViewer: true }, "");
+    const onBack = () => onCloseRef.current();
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
+  }, [isOpen]);
+
+  // The close button and Esc: step back over the entry this viewer added,
+  // which lands in onBack above and closes it. If the entry is already gone,
+  // close straight away.
+  function requestClose() {
+    if (window.history.state?.tiruPhotoViewer) window.history.back();
+    else onCloseRef.current();
+  }
+
   useEffect(() => {
     const root = trackRef.current;
     if (!root || images.length <= 1) return;
@@ -86,13 +120,20 @@ export function FacilityPhotoViewer({
     <dialog
       aria-label={`${alt} photos`}
       className="m-0 h-dvh max-h-none w-screen max-w-none bg-black p-0 text-white backdrop:bg-black"
-      onClose={onClose}
+      // The browser's own Esc handling is replaced by requestClose, so the
+      // history entry is always tidied up.
+      onCancel={(event) => {
+        event.preventDefault();
+        requestClose();
+      }}
+      // A fallback for any other way the browser closes the dialog.
+      onClose={() => {
+        if (openAt !== null) requestClose();
+      }}
       onKeyDown={(event) => {
-        // Handled here as well as by the browser: not every browser closes a
-        // modal dialog on Esc when focus sits on the dialog itself.
         if (event.key === "Escape") {
           event.preventDefault();
-          dialogRef.current?.close();
+          requestClose();
         }
         if (event.key === "ArrowRight") goTo(activeIndex + 1);
         if (event.key === "ArrowLeft") goTo(activeIndex - 1);
@@ -108,7 +149,7 @@ export function FacilityPhotoViewer({
             aria-label="Close photos"
             autoFocus
             className="flex size-11 items-center justify-center rounded-full bg-white/15 text-2xl leading-none transition hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            onClick={() => dialogRef.current?.close()}
+            onClick={requestClose}
             type="button"
           >
             ×

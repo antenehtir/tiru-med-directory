@@ -98,7 +98,7 @@ const CARDS: QuickAccessCard[] = [
     icon: facilityCategoryIcons.specialty,
   },
   {
-    label: "Diagnostics",
+    label: "Diagnostics (Lab/Imaging)",
     description: "Labs, imaging, and diagnostic tests",
     href: "/facilities?category=diagnostics",
     gradientClassName: "from-cyan-600 to-cyan-700",

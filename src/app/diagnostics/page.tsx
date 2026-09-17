@@ -8,7 +8,7 @@ import type { Facility } from "@/types/facility";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Diagnostics — Tiru",
+  title: "Diagnostics (Lab/Imaging) — Tiru",
   description: "Labs, imaging centers and diagnostic services in Addis Ababa.",
 };
 

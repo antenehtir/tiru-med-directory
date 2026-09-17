@@ -36,7 +36,7 @@ export function Header() {
           className="ml-2 hidden min-h-9 items-center rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-px hover:bg-primary-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 xl:inline-flex"
           href="/provider/signup"
         >
-          List your facility
+          List or claim your facility
         </Link>
 
         <div className="hidden xl:flex">

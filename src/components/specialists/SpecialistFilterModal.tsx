@@ -154,7 +154,7 @@ export function SpecialistFilterModal({
                 <option value="">All facility types</option>
                 {FACILITY_TYPE_OPTIONS.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {option === "Diagnostic Center" ? "Diagnostic Center (Lab/Imaging)" : option}
                   </option>
                 ))}
               </select>

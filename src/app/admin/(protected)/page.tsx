@@ -21,8 +21,14 @@ async function getDashboardStats() {
     { count: verifiedCount },
     { count: draftCount },
   ] = await Promise.all([
-    // Unpublished drafts (migration 063) are not in the directory yet.
-    supabase.from("facilities").select("*", { count: "exact", head: true }).eq("is_draft", false),
+    // Live facilities only — the card says "live records". Deactivated
+    // facilities and unpublished drafts (migration 063) are not in the
+    // directory, and counting them overstated it by the number deactivated.
+    supabase
+      .from("facilities")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+      .eq("is_draft", false),
     // Pending only. This counted every correction ever submitted while the
     // card beneath it read "Pending review" and its link went to the pending
     // tab — so the dashboard advertised 2 items waiting when both had been
@@ -55,15 +61,17 @@ async function getDashboardStats() {
       .from("facilities")
       .select("*", { count: "exact", head: true })
       .eq("verification_status", "community-submitted")
-      .eq("is_draft", false),
+      .eq("is_active", true),
     supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })
-      .eq("verification_status", "facility-owned"),
+      .eq("verification_status", "facility-owned")
+      .eq("is_active", true),
     supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })
-      .eq("verification_status", "verified"),
+      .eq("verification_status", "verified")
+      .eq("is_active", true),
     // Facilities an admin started and has not published yet (migration 063).
     supabase
       .from("facilities")
@@ -103,27 +111,55 @@ async function getSubmissionsTrend(): Promise<SubmissionTrendDatum[]> {
       label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }),
       newListings: 0,
       claims: 0,
+      adminAdded: 0,
     });
   }
 
   // The window opens at Addis midnight on the first bucket's day (+03:00),
-  // so the query covers exactly the days being charted.
-  const { data, error } = await supabase
-    .from("facility_claims")
-    .select("submitted_at, facility_id")
-    .not("submitted_at", "is", null)
-    .gte("submitted_at", `${days[0].date}T00:00:00+03:00`);
+  // so the queries cover exactly the days being charted.
+  const windowStart = `${days[0].date}T00:00:00+03:00`;
+  const [{ data: claims, error: claimsError }, { data: created }] = await Promise.all([
+    supabase
+      .from("facility_claims")
+      .select("created_at, submitted_at, facility_id, facilities ( created_at )")
+      .not("submitted_at", "is", null)
+      .gte("submitted_at", windowStart),
+    supabase
+      .from("facilities")
+      .select("id, created_at, is_draft")
+      .gte("created_at", windowStart),
+  ]);
 
-  if (error || !data) return days;
+  if (claimsError || !claims) return days;
 
   const byDay = new Map(days.map((d) => [d.date, d]));
-  for (const row of data) {
+  const bucketFor = (iso: string) => byDay.get(addisDayKey(new Date(iso)));
+
+  // A claim is a NEW LISTING when its facility did not exist yet when the
+  // provider started — not when facility_id is empty. Approving a new
+  // listing creates the facility and fills facility_id in, so the old test
+  // counted every approved new listing as a claim on an existing facility.
+  const providerListed = new Set<string>();
+  for (const row of claims) {
     if (!row.submitted_at) continue;
-    const key = addisDayKey(new Date(row.submitted_at));
-    const bucket = byDay.get(key);
+    const linked = row.facilities as unknown as { created_at: string } | null;
+    const isNewListing =
+      row.facility_id === null ||
+      (linked?.created_at != null &&
+        new Date(linked.created_at).getTime() >= new Date(row.created_at).getTime());
+    if (isNewListing && row.facility_id) providerListed.add(row.facility_id);
+    const bucket = bucketFor(row.submitted_at);
     if (!bucket) continue;
-    if (row.facility_id === null) bucket.newListings += 1;
+    if (isNewListing) bucket.newListings += 1;
     else bucket.claims += 1;
+  }
+
+  // Everything else created in the window was added by an admin. Drafts are
+  // left out until published — they are not in the directory yet.
+  for (const row of created ?? []) {
+    if (row.is_draft === true || providerListed.has(row.id)) continue;
+    const bucket = bucketFor(row.created_at);
+    if (bucket) bucket.adminAdded += 1;
   }
 
   return days;
@@ -244,8 +280,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <h2 className="text-sm font-semibold text-foreground">New submissions (last 30 days)</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">Listing requests + claims, by day</p>
+          <h2 className="text-sm font-semibold text-foreground">New facilities and claims (last 30 days)</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Listed by providers, claimed by providers, and added by the Tiru team — by day
+          </p>
           <SubmissionsTrendChart data={submissionsTrend} />
         </div>
       </div>

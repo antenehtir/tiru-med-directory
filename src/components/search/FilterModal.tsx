@@ -9,7 +9,7 @@ const FACILITY_TYPE_OPTIONS: { value: FacilityCategoryFilter; label: string }[] 
   { value: "hospital", label: "General Hospital" },
   { value: "specialty", label: "Specialty Center" },
   { value: "clinic", label: "Clinic" },
-  { value: "diagnostics", label: "Diagnostic Center" },
+  { value: "diagnostics", label: "Diagnostic Center (Lab/Imaging)" },
   { value: "pharmacy", label: "Pharmacy" },
   { value: "ambulance", label: "Ambulance Service" },
   { value: "home-care", label: "Home Care" },

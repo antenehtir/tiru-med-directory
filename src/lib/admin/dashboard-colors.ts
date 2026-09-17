@@ -28,4 +28,5 @@ export const BADGE_STATUS_LABELS: Record<string, string> = {
 export const SUBMISSION_SERIES_COLORS = {
   newListings: "#7C3AED", // violet-600 — dashboard "Listing Requests" stat card
   claims: "#E11D48", // rose-600 — dashboard "Claims Pending" stat card
+  adminAdded: "var(--primary)", // the brand teal — "Total Facilities" card family
 };

@@ -131,8 +131,8 @@ export default async function ClaimPage({
             Until then the public listing stays exactly as it is.
           </p>
         </div>
-
-        <ChooseDifferent />
+        {/* No "choose another facility" here: the claim is already with the
+            team. Switching is offered only before submitting, below. */}
       </Shell>
     );
   }

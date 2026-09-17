@@ -24,8 +24,12 @@ export type BadgeDistributionDatum = {
 export type SubmissionTrendDatum = {
   date: string;
   label: string;
+  // New facilities a provider listed (counted on the day they submitted).
   newListings: number;
+  // Claims on a facility that already existed.
   claims: number;
+  // Facilities an admin added and published themselves.
+  adminAdded: number;
 };
 
 export function BadgeDistributionChart({ data }: { data: BadgeDistributionDatum[] }) {
@@ -86,12 +90,12 @@ export function BadgeDistributionChart({ data }: { data: BadgeDistributionDatum[
 }
 
 export function SubmissionsTrendChart({ data }: { data: SubmissionTrendDatum[] }) {
-  const hasData = data.some((d) => d.newListings > 0 || d.claims > 0);
+  const hasData = data.some((d) => d.newListings > 0 || d.claims > 0 || d.adminAdded > 0);
 
   if (!hasData) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        No submissions in the last 30 days.
+        No new facilities or claims in the last 30 days.
       </div>
     );
   }
@@ -124,14 +128,19 @@ export function SubmissionsTrendChart({ data }: { data: SubmissionTrendDatum[] }
         <Bar
           dataKey="newListings"
           fill={SUBMISSION_SERIES_COLORS.newListings}
-          name="New Listings"
-          radius={[3, 3, 0, 0]}
+          name="Listed by provider"
           stackId="a"
         />
         <Bar
           dataKey="claims"
           fill={SUBMISSION_SERIES_COLORS.claims}
-          name="Claims"
+          name="Claimed by provider"
+          stackId="a"
+        />
+        <Bar
+          dataKey="adminAdded"
+          fill={SUBMISSION_SERIES_COLORS.adminAdded}
+          name="Added by Tiru team"
           radius={[3, 3, 0, 0]}
           stackId="a"
         />

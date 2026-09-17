@@ -16,7 +16,7 @@ export default function ProviderLoginPage() {
         <p className="mt-4 text-center text-sm text-muted-foreground">
           New provider?{" "}
           <a className="text-primary hover:underline" href="/provider/signup">
-            Register your facility
+            List or claim your facility
           </a>
         </p>
       </div>

@@ -648,7 +648,8 @@ export const FACILITY_CATEGORY_CHOICES: FacilityCategoryChoice[] = [
   { label: "Medical Plaza", stores: "Medical Plaza" },
   { label: "Medical Complex", stores: "Specialty Center", describesAs: "Medical Complex" },
   { label: "Clinic", stores: "Clinic" },
-  { label: "Diagnostic Center", stores: "Diagnostic Center" },
+  // The label is display only — what is stored is still "Diagnostic Center".
+  { label: "Diagnostic Center (Lab/Imaging)", stores: "Diagnostic Center" },
   { label: "Pharmacy", stores: "Pharmacy" },
   { label: "Ambulance Service", stores: "Ambulance Service" },
   { label: "Home Care", stores: "Home Care" },

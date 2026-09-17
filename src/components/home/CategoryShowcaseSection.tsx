@@ -156,7 +156,7 @@ const showcaseCategories = [
     href: "/diagnostics",
     icon: FlaskIcon,
     subtitle: "Labs, imaging and diagnostic centers",
-    title: "Diagnostics",
+    title: "Diagnostics (Lab/Imaging)",
   },
 ];
 

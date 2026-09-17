@@ -7,11 +7,11 @@ const quickLinks = [
   { label: "Specialists", href: ROUTES.specialists },
   { label: "Facilities", href: ROUTES.facilities },
   { label: "Pharmacies", href: ROUTES.pharmacies },
-  { label: "Diagnostics", href: ROUTES.diagnostics },
+  { label: "Diagnostics (Lab/Imaging)", href: ROUTES.diagnostics },
 ];
 
 const providerLinks = [
-  { label: "List your facility", href: "/provider/signup" },
+  { label: "List or claim your facility", href: "/provider/signup" },
   { label: "Provider login", href: "/provider/login" },
   { label: "Suggest correction", href: "/corrections" },
   { label: "Contact", href: "/contact" },

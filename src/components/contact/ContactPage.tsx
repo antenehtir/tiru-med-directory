@@ -94,9 +94,9 @@ type TriageCard = {
 const triageCards: TriageCard[] = [
   {
     Icon: BuildingIcon,
-    title: "List your facility",
+    title: "List or claim your facility",
     description:
-      "Add your facility, specialist practice, or service to the directory.",
+      "Add a new facility to the directory, or claim one already listed to manage it yourself.",
     href: "/provider/signup",
   },
   {
