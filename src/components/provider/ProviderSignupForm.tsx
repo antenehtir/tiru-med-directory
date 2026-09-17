@@ -256,7 +256,7 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
             type="tel"
           />
           <p className="text-xs text-muted-foreground">
-            The official number patients call. Admin will use this to verify your claim.
+            The official number patients call.
           </p>
         </div>
         </>

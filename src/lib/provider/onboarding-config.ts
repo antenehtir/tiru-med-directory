@@ -87,53 +87,54 @@ export const ADDIS_SUB_CITIES = [
 // them; 052 keeps those values visible and editable rather than orphaning
 // them, the same way 051 handled Family Medicine.
 //
-// Alphabetical, not grouped. This list was ordered by rough clinical
-// workflow for a while (OPD first, then admission, then surgery, ...), which
-// reads fine to whoever wrote the grouping and is unreadable to anyone
-// scanning for one specific line in a list this long — the request that
-// undid it was literally "this is haphazard". Alphabetical is the one order
-// a provider can navigate without already knowing the list.
+// Ordered most basic and most common first — the rule for every option list
+// on the platform, admin and provider alike. Most providers tick a handful of
+// everyday items; putting those at the top means they are done in seconds,
+// and the rare ones are still there further down. The order was set from how
+// many live facilities offer each item (measured 2026-09-17), adjusted where
+// the count is skewed by the original import rather than by what is common.
+//
+// History: this list was once grouped by clinical workflow, then made
+// alphabetical because the grouping read as haphazard. Alphabetical put
+// "General OPD" (offered by 91 of 109 facilities) in the middle of the list
+// and "Ambulance service" first, so it is now ordered by commonness instead.
 export const MAIN_SERVICES = [
-  "Ambulance service",
-  "ART clinic",
-  "Chronic disease follow-up",
-  "Delivery / Maternity care",
-  "Dental procedure",
-  "Dialysis",
-  "Emergency care",
-  "Executive / Comprehensive check-up",
-  "Eye care procedure",
   "General OPD / Outpatient consultation",
-  "ICU",
+  "Specialist consultation",
+  "Laboratory service",
+  "Pharmacy service",
+  "Emergency care",
   "Imaging / Radiology",
   "Inpatient admission",
-  "Interventional cardiac procedures",
-  "Laboratory service",
+  "Minor surgery",
+  "Major surgery",
+  "Delivery / Maternity care",
+  "Vaccination",
+  "Chronic disease follow-up",
+  "Executive / Comprehensive check-up",
+  "ICU",
+  "Ambulance service",
+  "Dental procedure",
+  "Eye care procedure",
+  "Dialysis",
+  "NICU",
   // Six facilities already advertise this and every one had to free-type it,
   // in four different spellings ("LAPAROSCOPY SURGERY", "Laparoscopic
   // Surgery", "Laparoscopic surgery", "Neuro-Vascular Laparoscopic Surgery").
   "Laparoscopic surgery",
-  "Major surgery",
-  "Minor surgery",
-  "NICU",
-  "Pharmacy service",
-  "Specialist consultation",
-  "TB clinic",
   "Telemedicine consultation",
-  "Vaccination",
+  "ART clinic",
+  "TB clinic",
+  "Interventional cardiac procedures",
   "VIP service",
   "VVIP service",
 ] as const;
 
-// Alphabetical. This used to be ordered so a subspecialty sat directly under
-// the parent a provider had just ticked ("Pediatric Nephrology" found next to
-// Pediatrics rather than eighteen pills away next to Nephrology) — a
-// deliberate choice, but one that only works for someone who already knows
-// where their department sits in the list. Alphabetical is what actually
-// scans: find the letter, find the name. The pediatric cluster still reads
-// together as a side effect (every "Pediatric X" sorts next to the others,
-// just ahead of bare "Pediatrics"), so the one grouping worth keeping
-// survives without being the organising rule.
+// Core specialties first (Internal Medicine, Pediatrics, OB/GYN, General
+// Surgery), then the common specialist departments, then surgical and
+// pediatric subspecialties last. See the ordering rule on MAIN_SERVICES.
+// Alphabetical, the previous order, put "Pediatric Emergency" (no facility
+// offers it) ahead of "Pediatrics" (44 do).
 //
 // The subspecialties here were not invented. Every one was typed by hand into
 // "Add a service not listed" by a real provider — thirteen of them by Lancet
@@ -161,66 +162,66 @@ export const MAIN_SERVICES = [
 // department answers. The compound name is now the only entry — see the note
 // above for why the solo halves were later removed as well.
 export const SPECIALTIES = [
-  "Anesthesiology",
-  "Cardiology",
-  "Cardiothoracic Surgery",
-  "Colorectal Surgery",
-  "Dental",
-  "Dermatology",
-  "Emergency Medicine",
-  "Endocrine and Breast Surgery",
-  "Endocrinology",
-  "ENT",
-  "Gastroenterology and Hepatology",
-  "General Surgery",
-  "Hematology",
-  "Hepatobiliary Surgery",
-  "Infectious Diseases",
   "Internal Medicine",
-  "Maxillofacial Surgery",
-  "MCH (Maternal and Child Health)",
-  "Neonatology",
-  "Nephrology",
-  "Neurology",
-  "Neurosurgery",
-  "Nutrition and Dietetics",
+  "Pediatrics",
   "Obstetrics and Gynecology",
-  "Oncology",
+  "General Surgery",
+  "MCH (Maternal and Child Health)",
+  "Dental",
   "Ophthalmology",
-  "Orthopedic Surgery",
+  "ENT",
+  "Dermatology",
   "Orthopedics",
+  "Cardiology",
+  "Psychiatry",
+  "Radiology",
+  "Emergency Medicine",
+  "Physiotherapy",
+  "Neurology",
+  "Gastroenterology and Hepatology",
+  "Nutrition and Dietetics",
+  "Endocrinology",
+  "Nephrology",
+  "Urology",
+  "Oncology",
+  "Anesthesiology",
+  "Pulmonology and Critical Care Medicine",
   "Pathology",
+  "Neurosurgery",
+  "Orthopedic Surgery",
+  "Psychology / Counseling",
+  "Hematology",
+  "Infectious Diseases",
+  "Rheumatology",
+  "Pediatric Surgery",
+  "Plastic and Reconstructive Surgery",
+  "Speech and Language Therapy",
+  "Neonatology",
+  "Colorectal Surgery",
+  "Vascular Surgery",
+  "Trauma Surgery",
+  "Hepatobiliary Surgery",
+  "Endocrine and Breast Surgery",
+  "Cardiothoracic Surgery",
+  "Maxillofacial Surgery",
   "Pediatric Cardiology",
-  "Pediatric Emergency",
-  "Pediatric Endocrinology",
-  "Pediatric Infectious Diseases",
-  "Pediatric Nephrology",
   "Pediatric Neurology",
   "Pediatric Oncology",
+  "Pediatric Nephrology",
+  "Pediatric Endocrinology",
+  "Pediatric Infectious Diseases",
   "Pediatric Orthopedic Surgery",
-  "Pediatric Surgery",
-  "Pediatrics",
-  "Physiotherapy",
-  "Plastic and Reconstructive Surgery",
-  "Psychiatry",
-  "Psychology / Counseling",
-  "Pulmonology and Critical Care Medicine",
-  "Radiology",
-  "Rheumatology",
-  "Speech and Language Therapy",
-  "Trauma Surgery",
-  "Urology",
-  "Vascular Surgery",
+  "Pediatric Emergency",
 ] as const;
 
 export const PAYMENT_METHODS = [
   "Cash",
   "Bank transfer",
-  "CBE Birr",
   "Telebirr",
+  "CBE Birr",
+  "Insurance",
   "POS / Card",
   "Visa / Mastercard",
-  "Insurance",
   "Corporate credit agreement",
 ] as const;
 
@@ -233,12 +234,10 @@ export const PAYMENT_METHODS = [
 // already a free-form text[] built for exactly this kind of open-ended add.
 export const CORPORATE_CREDIT_COMPANY_PREFIX = "Corporate credit agreement: ";
 
-// Alphabetical. This used to be ordered by how a radiology department is
-// organised — plain film, contrast studies, cross-sectional, nuclear,
-// cardiac, neuro and respiratory, endoscopy, then the rest — which reads well
-// to a radiologist and asks everyone else to already know the department's
-// own layout to find anything in a thirty-line checklist. Alphabetical is
-// what a provider scanning for "their" test can actually navigate.
+// Ultrasound, X-Ray and ECG first — the studies most facilities run — then
+// cross-sectional imaging and scopes, with rare procedures last. See the
+// ordering rule on MAIN_SERVICES. Alphabetical, the previous order, put
+// Ultrasound and X-Ray at the very bottom of a thirty-line list.
 //
 // Fetal Echocardiography and Paediatric Echocardiography stay separate
 // entries rather than folding into "Echocardiography": a clinic that scans a
@@ -261,37 +260,37 @@ export const CORPORATE_CREDIT_COMPANY_PREFIX = "Corporate credit agreement: ";
 // motivated them are still in the data and still searchable; they simply no
 // longer take a line each in a list every provider has to read.
 export const IMAGING_SERVICES = [
-  "Ambulatory BP Monitor",
-  "Barium Studies",
-  "Bone Marrow Biopsy",
-  "Bronchoscopy",
-  "Colonoscopy",
-  "Colposcopy",
-  "Coronary Angiography",
-  "CT Scan",
-  "DEXA Scan",
-  "Doppler Ultrasound",
-  "ECG / EKG",
-  "Echocardiography",
-  "EEG",
-  "Endoscopy",
-  "Fetal Echocardiography",
-  "Fluoroscopy",
-  "Holter Monitor",
-  "HSG (Hysterosalpingography)",
-  "Interventional Radiology",
-  "Mammography",
-  "MRI",
-  "Nuclear Medicine",
-  "Obstetric Ultrasound",
-  "Paediatric Echocardiography",
-  "PET Scan",
-  "Sleep Study (PSG)",
-  "Spirometry",
-  "Stress ECG",
-  "Transient Elastography (FibroScan)",
   "Ultrasound",
   "X-Ray",
+  "ECG / EKG",
+  "Obstetric Ultrasound",
+  "Doppler Ultrasound",
+  "CT Scan",
+  "Echocardiography",
+  "MRI",
+  "Endoscopy",
+  "Colonoscopy",
+  "Mammography",
+  "EEG",
+  "Spirometry",
+  "Stress ECG",
+  "Holter Monitor",
+  "Ambulatory BP Monitor",
+  "Colposcopy",
+  "HSG (Hysterosalpingography)",
+  "Fluoroscopy",
+  "Barium Studies",
+  "Coronary Angiography",
+  "Paediatric Echocardiography",
+  "Fetal Echocardiography",
+  "Bronchoscopy",
+  "DEXA Scan",
+  "Transient Elastography (FibroScan)",
+  "Sleep Study (PSG)",
+  "Interventional Radiology",
+  "Nuclear Medicine",
+  "PET Scan",
+  "Bone Marrow Biopsy",
 ] as const;
 
 // Each key is a panel a lab either runs or does not, which is how a lab
@@ -344,13 +343,13 @@ export const PHARMACY_CATEGORIES = [
   "Prescription (Rx)",
   "OTC Medications",
   "Supplements & Vitamins",
+  "Medical Supplies & Equipment",
+  "Baby & Maternal Care",
+  "Cosmetics & Personal Care",
+  "Vaccines",
+  "Controlled Substances",
   "Compounding",
   "Veterinary",
-  "Controlled Substances",
-  "Vaccines",
-  "Medical Supplies & Equipment",
-  "Cosmetics & Personal Care",
-  "Baby & Maternal Care",
 ] as const;
 
 export const DELIVERY_OPTIONS = ["In-store only", "Delivery only", "Both"] as const;
@@ -414,20 +413,20 @@ export const TURNAROUND_TIME_OPTIONS = [
 
 export const HOME_CARE_SERVICES = [
   "Nursing Care",
+  "Doctor Home Visits",
   "Wound Care",
-  "IV Therapy",
-  "Post-Surgical Care",
   "Physiotherapy",
-  "Occupational Therapy",
-  "Palliative Care",
+  "IV Therapy",
+  "Lab Sample Collection",
   "Elderly Care",
-  "Pediatric Care",
-  "Mental Health Support",
+  "Post-Surgical Care",
   "Medication Management",
   "Health Monitoring",
+  "Palliative Care",
+  "Pediatric Care",
+  "Mental Health Support",
+  "Occupational Therapy",
   "Caregiver Support",
-  "Doctor Home Visits",
-  "Lab Sample Collection",
 ] as const;
 
 export const MIN_VISIT_DURATION_OPTIONS = ["30 min", "1 hour", "2 hours", "Half day", "Full day"] as const;
@@ -649,4 +648,24 @@ export function missingRequiredFieldKeys(claim: Record<string, unknown>): Requir
 
 export function missingRequiredFields(claim: Record<string, unknown>): string[] {
   return missingRequiredFieldKeys(claim).map((key) => REQUIRED_FIELD_LABELS[key]);
+}
+
+// The same list, read off a facilities row instead of a claim. An admin's
+// draft facility cannot be published until this is empty — the bar a
+// provider's new listing has to clear, applied to the admin's own listings.
+export function missingFacilityRequiredFieldKeys(facility: Record<string, unknown>): RequiredFieldKey[] {
+  const text = (value: unknown) => String(value ?? "").trim();
+  const missing: RequiredFieldKey[] = [];
+
+  if (!text(facility.name)) missing.push("name");
+  if (!text(facility.category)) missing.push("category");
+  const phones = Array.isArray(facility.phones) ? facility.phones.map(text).filter(Boolean) : [];
+  if (!text(facility.phone) && phones.length === 0) missing.push("phone");
+  if (!text(facility.sub_city)) missing.push("subCity");
+  if (!text(facility.area)) missing.push("area");
+  if (facility.latitude == null || facility.longitude == null) missing.push("coordinates");
+  const services = facility.services;
+  if (!Array.isArray(services) || services.length === 0) missing.push("services");
+
+  return missing;
 }

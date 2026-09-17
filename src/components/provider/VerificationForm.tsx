@@ -115,8 +115,7 @@ export function VerificationForm({
                 type="tel"
               />
               <p className="text-xs text-muted-foreground">
-                The main public number of the facility. We&apos;ll call this
-                to verify your claim.
+                The main public number of the facility.
               </p>
             </div>
           )}

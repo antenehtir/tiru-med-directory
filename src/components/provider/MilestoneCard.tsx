@@ -144,7 +144,7 @@ export function MilestoneCard({
                 Submitted! Your listing is under review.
               </h1>
               <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                An admin will contact your registered facility number to verify your claim. This
+                Our team will verify your submission. This
                 usually takes 1–3 business days.
               </p>
             </div>
@@ -189,7 +189,7 @@ export function MilestoneCard({
             <div className="rounded-xl border border-border bg-background p-4 text-left">
               <p className="mb-2 text-sm font-semibold text-foreground">What happens next</p>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                <li>• An admin will call your registered facility number to verify your claim</li>
+                <li>• Our team will verify that you represent this facility</li>
                 <li>• Your proposed details will be reviewed before going live</li>
                 <li>• You&apos;ll be notified once your listing is approved</li>
               </ul>

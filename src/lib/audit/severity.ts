@@ -110,6 +110,10 @@ const ACTION_SEVERITY: Record<string, AuditSeverity> = {
   facility_deactivated: "attention",
   facility_reactivated: "patient",
   facility_created: "patient",
+  // A draft is invisible to patients until published, so starting or
+  // discarding one changes nothing anyone can see.
+  facility_draft_created: "routine",
+  facility_draft_discarded: "routine",
   claim_approved_new_listing: "patient",
   facility_location_edited: "patient",
   facility_contact_edited: "patient",

@@ -19,7 +19,15 @@ import { SelectAllButton } from "@/components/ui/SelectAllButton";
 const inputClass =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
 
+// Clear form remounts the fields under a new key: every input, the phone
+// list and any error go back to blank in one step, with nothing to forget to
+// reset by hand.
 export function AdminNewFacilityForm() {
+  const [formKey, setFormKey] = useState(0);
+  return <NewFacilityFields key={formKey} onClear={() => setFormKey((k) => k + 1)} />;
+}
+
+function NewFacilityFields({ onClear }: { onClear: () => void }) {
   const [state, formAction, isPending] = useActionState<CreateFacilityResult, FormData>(
     createFacility,
     undefined,
@@ -287,7 +295,10 @@ export function AdminNewFacilityForm() {
       </div>
 
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-        This creates a <strong>community-sourced</strong> listing — the badge for
+        This starts a <strong>draft</strong>. Nothing is listed until you add
+        the phone number, map pin and services in the editor and press
+        Publish — and you can discard the draft at any point before that. Once
+        published it is a <strong>community-sourced</strong> listing — the badge for
         information gathered without the facility confirming it. There is no
         licence upload here, which is the one step a provider does that this
         does not. If the facility later claims and completes onboarding, the
@@ -300,13 +311,23 @@ export function AdminNewFacilityForm() {
         </p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           className="inline-flex min-h-11 items-center justify-center rounded-control bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
           disabled={isPending}
           type="submit"
         >
-          {isPending ? "Creating…" : "Create and continue"}
+          {isPending ? "Saving draft…" : "Save draft and continue"}
+        </button>
+        <button
+          className="inline-flex min-h-11 items-center justify-center rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+          disabled={isPending}
+          onClick={() => {
+            if (window.confirm("Clear everything you've entered on this form?")) onClear();
+          }}
+          type="button"
+        >
+          Clear form
         </button>
         <Link
           className="inline-flex min-h-11 items-center justify-center rounded-control border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"

@@ -52,15 +52,18 @@ export function SpecialistsPage({ specialists }: { specialists: SpecialistListIt
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   const specialtyPills = useMemo(() => {
-    const seen = new Set<string>();
-    const pills: string[] = [];
+    // Most specialists first, the platform-wide rule for option lists: the
+    // specialty a visitor is most likely after sits nearest the start of the
+    // row. Ties fall back to alphabetical so the order doesn't shuffle.
+    const counts = new Map<string, number>();
     for (const specialist of specialists) {
       const label = specialist.specialty.trim();
-      if (!label || seen.has(label)) continue;
-      seen.add(label);
-      pills.push(label);
+      if (!label) continue;
+      counts.set(label, (counts.get(label) ?? 0) + 1);
     }
-    pills.sort((a, b) => a.localeCompare(b));
+    const pills = [...counts.keys()].sort(
+      (a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b),
+    );
     return [ALL_SPECIALTIES_LABEL, ...pills];
   }, [specialists]);
 

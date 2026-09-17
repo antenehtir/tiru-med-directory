@@ -56,8 +56,8 @@ const MIRRORED_STYLE_PROPS = [
 ] as const;
 
 // Light, greyed-out text predicting the rest of a facility, specialist, or
-// service name past what's typed — press Tab to accept it, keep typing to
-// ignore it. Rendered ON TOP of the real input (pointer-events-none, so
+// service name past what's typed — press Tab or Right arrow to accept it,
+// or tap it (a phone keyboard has neither key), keep typing to ignore it. Rendered ON TOP of the real input (pointer-events-none, so
 // typing and clicking still reach the input underneath) rather than behind
 // it, so it needs no change to the input's own background: the typed
 // portion of the overlay is invisible, letting the real input's own text
@@ -67,10 +67,12 @@ export function GhostTextOverlay({
   inputRef,
   query,
   completion,
+  onAccept,
 }: {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   completion: string;
+  onAccept: () => void;
 }) {
   const [mirroredStyle, setMirroredStyle] = useState<Record<string, string>>({});
 
@@ -92,7 +94,28 @@ export function GhostTextOverlay({
       style={mirroredStyle}
     >
       <span className="invisible">{query}</span>
-      <span className="text-muted-foreground/55">{completion}</span>
+      {/* The only part of the overlay that takes a tap. It stretches to the
+          right edge, so tapping anywhere after the typed text accepts — the
+          caret is already at the end, so that tap would otherwise do nothing.
+          Pressing down is cancelled so the input keeps focus and the phone
+          keyboard stays open. */}
+      <span
+        className="pointer-events-auto flex min-w-0 flex-1 cursor-pointer items-center self-stretch text-muted-foreground/55"
+        onClick={() => {
+          onAccept();
+          const input = inputRef.current;
+          if (!input) return;
+          input.focus();
+          requestAnimationFrame(() => {
+            const end = input.value.length;
+            input.setSelectionRange(end, end);
+          });
+        }}
+        onMouseDown={(event) => event.preventDefault()}
+        onPointerDown={(event) => event.preventDefault()}
+      >
+        {completion}
+      </span>
     </div>
   );
 }

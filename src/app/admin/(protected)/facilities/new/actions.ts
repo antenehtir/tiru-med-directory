@@ -13,8 +13,12 @@ import { toSlug } from "@/lib/slugify";
 export type CreateFacilityResult = { error: string } | undefined;
 
 // Creates a listing an admin has researched themselves, rather than one a
-// provider claimed. It is deliberately the smallest row that can exist and be
-// found: name, category, and where it is. Everything else is filled in by the
+// provider claimed. It is saved as a DRAFT — hidden from patients and from the
+// facility list — and only goes live when the admin presses Publish in the
+// editor, which requires the same fields a provider's new listing needs (see
+// draft-actions.ts). Until then the admin can discard it and nothing was ever
+// listed. It starts as the smallest row that can exist: name, category, and
+// where it is. Everything else is filled in by the
 // same Services / Contact & Social / Location editor an existing facility
 // uses, because a second copy of those controls is how two editors drift.
 //
@@ -96,6 +100,13 @@ export async function createFacility(
 
   const supabase = await createAdminSupabaseClient();
 
+  // Drafts need migration 063. Without the column there is no way to keep the
+  // row hidden, so refuse rather than publish a half-filled listing.
+  const { error: draftProbeError } = await supabase.from("facilities").select("is_draft").limit(1);
+  if (draftProbeError) {
+    return { error: "Adding facilities needs database migration 063 (facility drafts). Run it, then try again." };
+  }
+
   // Same slug strategy as claim approval: derive from the name, and only
   // disambiguate when something already holds it.
   const baseSlug = toSlug(name);
@@ -124,7 +135,10 @@ export async function createFacility(
     // one-way from here: updateFacilityBadge refuses to come back down to
     // community-submitted once a facility is Facility Managed or Verified.
     verification_status: "community-submitted",
-    is_active: true,
+    // Hidden until published. The database refuses is_active = true on a
+    // draft (063's check constraint), so the two always move together.
+    is_draft: true,
+    is_active: false,
     // Specialties are real catalogue services, so they seed this rather than
     // it starting empty. The editor's snapshot-diff guard then opens on
     // exactly what was created, with nothing for the first save to undo.
@@ -183,12 +197,12 @@ export async function createFacility(
   // nested object here crashes it with React error #31.
   await supabase.from("audit_log").insert({
     admin_id: adminUser.id,
-    action: "facility_created",
+    action: "facility_draft_created",
     entity_type: "facility",
     entity_id: created.id,
     old_value: null,
     new_value: { name },
-    note: `Admin created "${name}" (${category}) as a community-sourced listing`,
+    note: `Admin started a draft for "${name}" (${category}) — not listed until published`,
   });
 
   revalidatePath("/admin/facilities");

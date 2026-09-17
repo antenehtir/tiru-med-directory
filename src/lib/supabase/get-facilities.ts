@@ -55,6 +55,7 @@ type DBFacility = {
   verification_status: string;
   record_number: number | null;
   is_active: boolean | null;
+  is_draft?: boolean | null;
   doctors: unknown;
   schedule: unknown;
   payment_methods: unknown;
@@ -228,6 +229,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
     subCities,
     area: row.area ?? undefined,
     isActive: row.is_active ?? true,
+    isDraft: row.is_draft === true,
     doctors: Array.isArray(row.doctors) ? (row.doctors as FacilityDoctor[]) : undefined,
     emergencyType: row.emergency_type ?? null,
     walkinAppointment: row.walkin_appointment ?? null,

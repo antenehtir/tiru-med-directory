@@ -9,7 +9,11 @@ import {
 } from "@/app/admin/(protected)/facilities/actions";
 import { Badge } from "@/components/ui/Badge";
 import type { BadgeVariant } from "@/lib/design-tokens";
-import { FACILITY_CATEGORY_OTHER_LABEL, resolveFacilityCategoryLabel } from "@/lib/frontend-search-filters";
+import {
+  FACILITY_CATEGORY_CHOICES,
+  FACILITY_CATEGORY_OTHER_LABEL,
+  resolveFacilityCategoryLabel,
+} from "@/lib/frontend-search-filters";
 
 type Facility = {
   id: string;
@@ -109,17 +113,16 @@ export function AdminFacilityList({ facilities }: { facilities: Facility[] }) {
   // never appeared as their own filter option before, and a legacy,
   // unmapped category (an old import synonym like "Healthcare Financing")
   // showed as its own permanent bucket instead of folding into Other.
-  // Other sorts last, not wherever "O" happens to land alphabetically — it
-  // is a catch-all, not a real category, and reads as a deliberate leftover
-  // bucket only when it trails the real ones instead of sitting between
-  // Medical Plaza and Pharmacy.
+  // Same order as the facility-type dropdown (hospitals first), not
+  // alphabetical. Other sorts last — it is a catch-all, not a real category.
+  const categoryRank = (label: string) => {
+    if (label === FACILITY_CATEGORY_OTHER_LABEL) return Number.MAX_SAFE_INTEGER;
+    const index = FACILITY_CATEGORY_CHOICES.findIndex((c) => c.label === label);
+    return index === -1 ? FACILITY_CATEGORY_CHOICES.length : index;
+  };
   const categories = Array.from(
     new Set(facilities.map((f) => resolveFacilityCategoryLabel(f.category, f.subcategory))),
-  ).sort((a, b) => {
-    if (a === FACILITY_CATEGORY_OTHER_LABEL) return 1;
-    if (b === FACILITY_CATEGORY_OTHER_LABEL) return -1;
-    return a.localeCompare(b);
-  });
+  ).sort((a, b) => categoryRank(a) - categoryRank(b) || a.localeCompare(b));
 
   const filtered = facilities.filter((f) => {
     const matchesSearch =

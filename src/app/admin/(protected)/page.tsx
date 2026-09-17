@@ -20,7 +20,8 @@ async function getDashboardStats() {
     { count: officialCount },
     { count: verifiedCount },
   ] = await Promise.all([
-    supabase.from("facilities").select("*", { count: "exact", head: true }),
+    // Unpublished drafts (migration 063) are not in the directory yet.
+    supabase.from("facilities").select("*", { count: "exact", head: true }).eq("is_draft", false),
     // Pending only. This counted every correction ever submitted while the
     // card beneath it read "Pending review" and its link went to the pending
     // tab — so the dashboard advertised 2 items waiting when both had been
@@ -52,7 +53,8 @@ async function getDashboardStats() {
     supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })
-      .eq("verification_status", "community-submitted"),
+      .eq("verification_status", "community-submitted")
+      .eq("is_draft", false),
     supabase
       .from("facilities")
       .select("*", { count: "exact", head: true })

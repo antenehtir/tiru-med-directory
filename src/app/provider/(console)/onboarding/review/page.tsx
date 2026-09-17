@@ -56,7 +56,7 @@ export default async function ReviewStepPage() {
           <h1 className="text-lg font-bold text-foreground">Your listing has been submitted</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Your listing is currently under review. You cannot make changes while it is being
-            reviewed. An admin will contact your registered facility number to verify your claim.
+            reviewed. Our team will verify your submission.
           </p>
           <div className="mt-6 space-y-2">
             <a

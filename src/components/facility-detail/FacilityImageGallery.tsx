@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { FacilityPhotoViewer } from "./FacilityPhotoViewer";
 
 // Mirrors the scroll-snap + IntersectionObserver swipe pattern used by the
 // homepage's MobileFacilityCarousel (src/components/home/FeaturedFacilityStrip.tsx),
@@ -10,6 +11,11 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
   const scrollRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Which photo the full-screen viewer is showing, or null when it's closed.
+  const [viewerAt, setViewerAt] = useState<number | null>(null);
+  const viewer = (
+    <FacilityPhotoViewer alt={alt} images={images} onClose={() => setViewerAt(null)} openAt={viewerAt} />
+  );
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -42,14 +48,24 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
 
   if (images.length <= 1) {
     return (
-      <Image
-        alt={alt}
-        className="object-cover"
-        fill
-        priority
-        sizes="(max-width: 768px) 100vw, 800px"
-        src={images[0]}
-      />
+      <>
+        <button
+          aria-label={`View ${alt} photo full screen`}
+          className="absolute inset-0 cursor-zoom-in"
+          onClick={() => setViewerAt(0)}
+          type="button"
+        >
+          <Image
+            alt={alt}
+            className="object-cover"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 800px"
+            src={images[0]}
+          />
+        </button>
+        {viewer}
+      </>
     );
   }
 
@@ -69,14 +85,23 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
               itemRefs.current[index] = el;
             }}
           >
-            <Image
-              alt={`${alt} ${index + 1}`}
-              className="object-cover"
-              fill
-              priority={index === 0}
-              sizes="(max-width: 768px) 100vw, 800px"
-              src={url}
-            />
+            {/* A tap opens the photo full screen; a swipe still scrolls the
+                strip, because a button only fires click on a tap. */}
+            <button
+              aria-label={`View photo ${index + 1} of ${images.length} full screen`}
+              className="absolute inset-0 cursor-zoom-in"
+              onClick={() => setViewerAt(index)}
+              type="button"
+            >
+              <Image
+                alt={`${alt} ${index + 1}`}
+                className="object-cover"
+                fill
+                priority={index === 0}
+                sizes="(max-width: 768px) 100vw, 800px"
+                src={url}
+              />
+            </button>
           </div>
         ))}
       </div>
@@ -118,6 +143,7 @@ export function FacilityImageGallery({ images, alt }: { images: string[]; alt: s
           />
         ))}
       </div>
+      {viewer}
     </div>
   );
 }

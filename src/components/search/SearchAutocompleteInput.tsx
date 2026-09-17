@@ -123,7 +123,12 @@ export function SearchAutocompleteInput({
           role="combobox"
         />
 
-        <GhostTextOverlay completion={ghostCompletion} inputRef={inputRef} query={query} />
+        <GhostTextOverlay
+          completion={ghostCompletion}
+          inputRef={inputRef}
+          onAccept={() => setQuery(query + ghostCompletion)}
+          query={query}
+        />
 
         {/* isLoading was already returned by the shared hook and already
             shown here on the /search dropdown (ListingSearchBar) — this

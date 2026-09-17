@@ -162,7 +162,12 @@ export function ListingSearchBar({
           type="text"
           value={localQuery}
         />
-        <GhostTextOverlay completion={ghostCompletion} inputRef={inputRef} query={localQuery} />
+        <GhostTextOverlay
+          completion={ghostCompletion}
+          inputRef={inputRef}
+          onAccept={() => setLocalQuery(localQuery + ghostCompletion)}
+          query={localQuery}
+        />
         <SearchIcon className="absolute left-3 top-4 size-4 text-muted-foreground" />
         {isLoading ? <span className="absolute right-3 top-4"><Spinner /></span> : null}
 

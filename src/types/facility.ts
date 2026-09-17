@@ -126,6 +126,8 @@ export type Facility = {
   subCities: string[];
   area?: string;
   isActive?: boolean;
+  // An admin's unpublished draft (migration 063). Never shown publicly.
+  isDraft?: boolean;
   doctors?: FacilityDoctor[];
   emergencyType?: string | null;
   walkinAppointment?: string | null;

@@ -28,12 +28,13 @@ export async function generateMetadata({
 }: FacilityDetailRouteProps): Promise<Metadata> {
   const { slug } = await params;
   const facility = await getFacilityBySlug(slug);
+  // Only a listed facility names itself in the tab title and the search
+  // snippet — a deactivated one or an unpublished draft does not.
+  const listed = facility && facility.isActive !== false && !facility.isDraft ? facility : null;
 
   return {
-    title: facility ? `${facility.name} — Tiru` : "Facility — Tiru",
-    description: facility
-      ? `${facility.category} in ${facility.location}, Addis Ababa.`
-      : "",
+    title: listed ? `${listed.name} — Tiru` : "Facility — Tiru",
+    description: listed ? `${listed.category} in ${listed.location}, Addis Ababa.` : "",
   };
 }
 
@@ -43,7 +44,9 @@ export default async function FacilityDetailRoute({
   const { slug } = await params;
   const facility = await getFacilityBySlug(slug);
 
-  if (!facility) {
+  // A draft was never listed, so it reads as not found rather than as
+  // "no longer listed".
+  if (!facility || facility.isDraft) {
     return (
       <PageShell>
         <PageContainer className="py-16 text-center">

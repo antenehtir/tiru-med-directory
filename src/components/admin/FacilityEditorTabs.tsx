@@ -25,6 +25,16 @@ export function FacilityEditorTabs({ sections }: { sections: FacilityEditorSecti
   const initial = sections.some((s) => s.key === param) ? (param as string) : sections[0]?.key;
   const [current, setCurrent] = useState(initial);
 
+  // Follow ?section= when something other than this tab bar changes it — the
+  // draft checklist's "Location →" links, for one. Adjusted during render
+  // (React's pattern for state derived from a changing input), not in an
+  // effect, so the new tab shows without a flash of the old one.
+  const [seenParam, setSeenParam] = useState(param);
+  if (param !== seenParam) {
+    setSeenParam(param);
+    if (param && sections.some((s) => s.key === param)) setCurrent(param);
+  }
+
   function select(next: string) {
     setCurrent(next);
     const params = new URLSearchParams(searchParams.toString());

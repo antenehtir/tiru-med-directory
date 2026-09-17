@@ -110,8 +110,7 @@ export default async function ClaimPage({
             <li className="flex gap-3">
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">1</span>
               <span>
-                The Tiru team calls {facility?.name ?? "the facility"} on the number already on its
-                listing{facility?.phone ? ` (${facility.phone})` : ""} to confirm you work there.
+                The Tiru team confirms that you work at {facility?.name ?? "this facility"}.
               </span>
             </li>
             <li className="flex gap-3">

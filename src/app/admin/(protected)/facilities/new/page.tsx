@@ -13,8 +13,9 @@ export default function AdminNewFacilityPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-foreground">New facility</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add a listing you have researched yourself. It publishes as
-          community-sourced, and the facility can claim it later.
+          Add a listing you have researched yourself. It is saved as a draft
+          and listed only when you publish it — as community-sourced, which the
+          facility can claim later.
         </p>
       </div>
       <AdminNewFacilityForm />

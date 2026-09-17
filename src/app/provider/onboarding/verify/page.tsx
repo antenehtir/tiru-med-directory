@@ -32,7 +32,7 @@ export default async function VerifyPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             {isNewListing
               ? "Tell us about your role. Our team will verify your details before your listing goes live."
-              : `You're claiming ${facility?.name ?? "this facility"}. Our team will call the facility's official number to confirm you're authorized.`}
+              : `You're claiming ${facility?.name ?? "this facility"}. Our team will confirm you're authorized to manage it.`}
           </p>
         </div>
         <VerificationForm

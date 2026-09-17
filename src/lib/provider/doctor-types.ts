@@ -65,6 +65,10 @@ export const CLINICAL_ROLES = [
 // sides it is now spelled the same on both sides, and "&" is written "and"
 // throughout to match.
 //
+// Categories are ordered most common first (the platform-wide rule — see
+// MAIN_SERVICES in onboarding-config.ts), and each category's own list
+// starts with its general entry.
+//
 // Renaming stored values is safe here and was checked before doing it: the
 // live directory holds exactly two doctor records, "Pediatrics" and "General
 // Pediatrics", neither of which is renamed.
@@ -81,17 +85,23 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Rheumatology",
     "Other",
   ],
-  // Its own category now rather than a single subspecialty buried inside
-  // Internal Medicine — an oncologist is filed under Internal Medicine only
-  // by convention, and the subspecialty list already covers Gynecologic and
-  // Pediatric Oncology separately, so "Oncology" as internal medicine's own
-  // entry answered a narrower question than the specialty actually is.
-  Oncology: [
-    "Medical Oncology",
-    "Radiation Oncology",
-    "Surgical Oncology",
-    "Gynecologic Oncology",
+  Pediatrics: [
+    "General Pediatrics",
+    "Neonatology",
+    "Pediatric Cardiology",
+    "Pediatric Infectious Diseases",
+    "Pediatric Nephrology",
+    "Pediatric Neurology",
     "Pediatric Oncology",
+    "Pediatric Surgery",
+    "Other",
+  ],
+  "Obstetrics and Gynecology": [
+    "General OB/GYN",
+    "Maternal-Fetal Medicine",
+    "Reproductive Endocrinology",
+    "Gynecologic Oncology",
+    "Urogynecology",
     "Other",
   ],
   Surgery: [
@@ -109,32 +119,27 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Vascular Surgery",
     "Other",
   ],
-  // Same reasoning as Oncology above — urology is its own field in practice,
-  // not a subspecialty someone finds by first picking Surgery.
-  Urology: [
-    "General Urology",
-    "Uro-oncology",
-    "Pediatric Urology",
-    "Andrology",
+  "Family Medicine": ["General Family Medicine", "Geriatrics", "Sports Medicine", "Other"],
+  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care Medicine", "Other"],
+  Dentistry: [
+    "General Dentistry",
+    "Orthodontics",
+    "Periodontics",
+    "Endodontics",
+    "Oral Surgery",
+    "Prosthodontics",
+    "Pediatric Dentistry",
     "Other",
   ],
-  "Obstetrics and Gynecology": [
-    "General OB/GYN",
-    "Maternal-Fetal Medicine",
-    "Reproductive Endocrinology",
-    "Gynecologic Oncology",
-    "Urogynecology",
-    "Other",
-  ],
-  Pediatrics: [
-    "General Pediatrics",
-    "Neonatology",
-    "Pediatric Cardiology",
-    "Pediatric Infectious Diseases",
-    "Pediatric Nephrology",
-    "Pediatric Neurology",
-    "Pediatric Oncology",
-    "Pediatric Surgery",
+  Ophthalmology: ["General Ophthalmology", "Retina", "Cornea", "Glaucoma", "Oculoplastics", "Other"],
+  ENT: ["General ENT", "Head and Neck Surgery", "Rhinology", "Otology", "Laryngology", "Other"],
+  Dermatology: ["General Dermatology", "Dermatopathology", "Cosmetic Dermatology", "Other"],
+  Orthopedics: [
+    "General Orthopedics",
+    "Spine",
+    "Sports Medicine",
+    "Joint Replacement",
+    "Hand Surgery",
     "Other",
   ],
   // Psychiatry and Neurology used to share one category — two different
@@ -165,30 +170,29 @@ export const MEDICAL_SPECIALTIES: Record<string, string[]> = {
     "Neuroradiology",
     "Other",
   ],
+  // Same reasoning as Oncology above — urology is its own field in practice,
+  // not a subspecialty someone finds by first picking Surgery.
+  Urology: [
+    "General Urology",
+    "Uro-oncology",
+    "Pediatric Urology",
+    "Andrology",
+    "Other",
+  ],
+  // Its own category now rather than a single subspecialty buried inside
+  // Internal Medicine — an oncologist is filed under Internal Medicine only
+  // by convention, and the subspecialty list already covers Gynecologic and
+  // Pediatric Oncology separately, so "Oncology" as internal medicine's own
+  // entry answered a narrower question than the specialty actually is.
+  Oncology: [
+    "Medical Oncology",
+    "Radiation Oncology",
+    "Surgical Oncology",
+    "Gynecologic Oncology",
+    "Pediatric Oncology",
+    "Other",
+  ],
   Anesthesiology: ["General Anesthesiology", "Pain Management", "Critical Care Medicine", "Other"],
-  Dermatology: ["General Dermatology", "Dermatopathology", "Cosmetic Dermatology", "Other"],
-  Ophthalmology: ["General Ophthalmology", "Retina", "Cornea", "Glaucoma", "Oculoplastics", "Other"],
-  ENT: ["General ENT", "Head and Neck Surgery", "Rhinology", "Otology", "Laryngology", "Other"],
-  Orthopedics: [
-    "General Orthopedics",
-    "Spine",
-    "Sports Medicine",
-    "Joint Replacement",
-    "Hand Surgery",
-    "Other",
-  ],
-  Dentistry: [
-    "General Dentistry",
-    "Orthodontics",
-    "Periodontics",
-    "Endodontics",
-    "Oral Surgery",
-    "Prosthodontics",
-    "Pediatric Dentistry",
-    "Other",
-  ],
-  "Emergency Medicine": ["General Emergency Medicine", "Trauma", "Critical Care Medicine", "Other"],
-  "Family Medicine": ["General Family Medicine", "Geriatrics", "Sports Medicine", "Other"],
   Pathology: ["Anatomic Pathology", "Clinical Pathology", "Forensic Pathology", "Other"],
   Other: ["Other (specify)"],
 };

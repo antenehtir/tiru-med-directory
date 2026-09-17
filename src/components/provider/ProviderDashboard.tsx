@@ -401,8 +401,8 @@ export function ProviderDashboard({
             <div className="flex justify-center"><ClockIcon /></div>
             <h2 className="mt-3 text-lg font-bold text-foreground">Under review</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Submitted {formatDate(claim.submitted_at)}. An admin will call your facility to
-              verify your claim. This usually takes 1–3 business days.
+              Submitted {formatDate(claim.submitted_at)}. Our team will verify your
+              submission. This usually takes 1–3 business days.
             </p>
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800 dark:bg-amber-950/30">
               You cannot edit your listing while it is under review.

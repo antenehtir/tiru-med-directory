@@ -24,8 +24,8 @@ export default async function LocationStepPage() {
           <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-teal-100 text-3xl text-teal-600">✓</div>
           <h1 className="text-lg font-bold text-foreground">Your listing is under review</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your listing cannot be edited while it is under review. An admin will contact
-            your facility to verify your claim.
+            Your listing cannot be edited while it is under review. Our team will verify
+            your submission.
           </p>
           <div className="mt-6 space-y-2">
             <a className="block rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90" href="/provider/onboarding/milestone">
