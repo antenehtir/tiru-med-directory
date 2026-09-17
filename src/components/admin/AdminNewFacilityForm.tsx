@@ -14,6 +14,7 @@ import {
   SPECIALTIES,
 } from "@/lib/provider/onboarding-config";
 import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
+import { SelectAllButton } from "@/components/ui/SelectAllButton";
 
 const inputClass =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary";
@@ -156,7 +157,14 @@ export function AdminNewFacilityForm() {
 
           {isSpecialty && (
             <div className="rounded-xl border border-border bg-background p-4">
-              <p className="text-sm font-semibold text-foreground">Which specialties? *</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-foreground">Which specialties? *</p>
+                <SelectAllButton
+                  onChange={setSpecialties}
+                  options={SPECIALTIES}
+                  selected={specialties}
+                />
+              </div>
               <p className="mb-3 mt-0.5 text-xs text-muted-foreground">
                 Tick every one this facility offers — several is normal, and is
                 what makes it multi-specialty. These become its first services,

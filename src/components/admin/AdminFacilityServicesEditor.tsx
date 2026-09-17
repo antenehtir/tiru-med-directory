@@ -5,6 +5,7 @@ import { updateFacilityServices } from "@/app/admin/(protected)/facilities/[id]/
 import type { FacilityServicesFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
+import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import {
   BasicLabSelector,
   PillSelector,
@@ -722,7 +723,23 @@ export function AdminFacilityServicesEditor({
 
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">Payment methods accepted</label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-medium text-foreground">Payment methods accepted</label>
+              <SelectAllButton
+                onChange={(next) => {
+                  // Same clean-up as unticking Insurance or Corporate credit
+                  // one at a time: their follow-up details go with them.
+                  if (!next.includes("Insurance")) setInsuranceNote("");
+                  setPaymentMethods(
+                    next.includes("Corporate credit agreement")
+                      ? next
+                      : next.filter((m) => !m.startsWith(CORPORATE_CREDIT_COMPANY_PREFIX)),
+                  );
+                }}
+                options={PAYMENT_METHODS}
+                selected={paymentMethods}
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map((method) => (
                 <Pill

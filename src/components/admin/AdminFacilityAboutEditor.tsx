@@ -6,6 +6,7 @@ import type { FacilityAboutFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
 import { LANGUAGES, OWNERSHIP_TYPES, PATIENT_GROUPS } from "@/lib/provider/onboarding-config";
 import { Pill } from "@/components/ui/Pill";
+import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
 
 type Facility = Record<string, unknown>;
@@ -241,12 +242,22 @@ export function AdminFacilityAboutEditor({
         </div>
 
         <div className={`flex flex-col gap-1.5 ${FIELD_GRID_FULL}`}>
-          <p className="text-sm font-medium text-foreground">Languages spoken with patients</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">Languages spoken with patients</p>
+            <SelectAllButton onChange={setLanguages} options={LANGUAGES} selected={languages} />
+          </div>
           <PillList onChange={setLanguages} options={LANGUAGES} selected={languages} />
         </div>
 
         <div className={`flex flex-col gap-1.5 ${FIELD_GRID_FULL}`}>
-          <p className="text-sm font-medium text-foreground">Patients served</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">Patients served</p>
+            <SelectAllButton
+              onChange={setPatientGroups}
+              options={PATIENT_GROUPS}
+              selected={patientGroups}
+            />
+          </div>
           <PillList
             allowOther
             onChange={setPatientGroups}

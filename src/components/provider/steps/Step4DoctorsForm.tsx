@@ -5,6 +5,7 @@ import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/on
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { Spinner } from "@/components/provider/Spinner";
 import { Pill } from "@/components/ui/Pill";
+import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { ImageCropModal } from "@/components/ui/ImageCropModal";
 import { extensionFromFile, uploadImageToBucket } from "@/lib/storage/upload-image";
 import {
@@ -502,7 +503,14 @@ export function Step4DoctorsForm({
               )}
 
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold text-foreground">Languages spoken</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-foreground">Languages spoken</p>
+                  <SelectAllButton
+                    onChange={(languages) => autoSave(updateDoctor(doctor.id, { languages }))}
+                    options={DOCTOR_LANGUAGES}
+                    selected={doctor.languages}
+                  />
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {DOCTOR_LANGUAGES.map((lang) => (
                     <Pill

@@ -13,9 +13,17 @@ export async function createProviderSupabaseClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
+          // Same guard as the admin client. A server component (every provider
+          // page) cannot write cookies, and without this an expired session
+          // crashed the page with a server error instead of sending the
+          // provider to sign in again.
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Called from a Server Component, where cookies are read-only.
+          }
         },
       },
     },
