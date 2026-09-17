@@ -7,48 +7,34 @@ import { buildFacilityFieldsFromClaim, filterNonEmpty } from "@/lib/provider/fac
 import { toSlug } from "@/lib/slugify";
 import { sendApprovalEmail } from "@/lib/email/send-approval-email";
 
-async function mergeProposedDataIntoFacility(
+// Approving a claim on a facility Tiru already lists hands the listing over
+// as it is. Nothing from the claim is copied onto it.
+//
+// This used to merge the claim's proposed_* draft into the live row. With
+// the one-step claim there is no draft to merge — and a fresh claim row
+// defaults proposed_checkup_offered and proposed_insurance_accepted to
+// false, which filterNonEmpty keeps (false is not "empty"), so the merge
+// would have switched a facility's live check-ups and insurance off at the
+// moment of approval. The live listing is the source of truth; the verified
+// provider changes it themselves from here on.
+async function markLatestClaimApproved(
   supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
-  adminId: string,
   providerId: string,
   facilityId: string,
-): Promise<string | undefined> {
+) {
   const { data: claim } = await supabase
     .from("facility_claims")
-    .select("*")
+    .select("id")
     .eq("provider_id", providerId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (!claim) return undefined;
-
-  // Flip the claim itself to approved regardless of merge outcome below —
-  // the claim lifecycle shouldn't get stuck on a facilities write failure.
-  await supabase.from("facility_claims").update({ status: "approved" }).eq("id", claim.id);
-
-  const updateData = filterNonEmpty({
-    ...buildFacilityFieldsFromClaim(claim),
-    verification_status: "facility-owned",
-    updated_at: new Date().toISOString(),
-  });
-
-  const { error } = await supabase.from("facilities").update(updateData).eq("id", facilityId);
-
-  if (error) {
-    console.error("Claim merge into facilities failed:", error.message);
-    return "Approved but merge failed — please update the facility manually.";
-  }
-
-  await supabase.from("audit_log").insert({
-    admin_id: adminId,
-    action: "claim_approved_merged",
-    entity_type: "facility",
-    entity_id: facilityId,
-    note: `Claim ${claim.id} approved and merged into facility record`,
-  });
-
-  return undefined;
+  if (!claim) return;
+  await supabase
+    .from("facility_claims")
+    .update({ status: "approved", facility_id: facilityId })
+    .eq("id", claim.id);
 }
 
 export async function approveClaim(
@@ -60,6 +46,25 @@ export async function approveClaim(
   if (!admin) throw new Error("Unauthorized");
 
   const supabase = await createAdminSupabaseClient();
+
+  // One verified manager per facility. The claim form refuses a facility
+  // that is already managed, but two claims can be waiting on the same one,
+  // and approving both would give two accounts write access to the listing.
+  if (facilityId) {
+    const { data: existingManager } = await supabase
+      .from("provider_accounts")
+      .select("id, display_name, email")
+      .eq("facility_id", facilityId)
+      .eq("status", "approved")
+      .neq("id", providerId)
+      .limit(1)
+      .maybeSingle();
+    if (existingManager) {
+      return {
+        error: `This facility is already managed by ${existingManager.display_name || existingManager.email}. Reject this claim, or remove that account's access first.`,
+      };
+    }
+  }
 
   // Mark provider verified — runs for both existing-facility and new-listing paths.
   await supabase
@@ -74,12 +79,11 @@ export async function approveClaim(
     })
     .eq("id", providerId);
 
-  let warning: string | undefined;
   let approvedFacilityName: string | undefined;
 
   if (facilityId) {
-    // Claiming an existing seeded facility — flip it to Official and merge
-    // the provider's onboarding submission into the live facility record.
+    // Claiming an existing facility — mark it Facility Managed and hand it
+    // over as it stands.
     const { data: facility } = await supabase
       .from("facilities")
       .select("name, verification_status")
@@ -104,8 +108,7 @@ export async function approveClaim(
       note: `Claim approved for ${facility?.name}. ${callNotes}`,
     });
 
-    // Never block the approval above on this — log/surface a warning instead.
-    warning = await mergeProposedDataIntoFacility(supabase, admin.id, providerId, facilityId);
+    await markLatestClaimApproved(supabase, providerId, facilityId);
   } else {
     // New listing — provider submitted data for a facility not yet in the DB.
     // Find the submitted claim, create a facilities row from it, then wire
@@ -266,13 +269,12 @@ export async function approveClaim(
       // threshold, and printing it as a real completion figure survived the
       // threshold itself. 0 is honest when the column is unset.
       completionPct: providerData.completion_pct ?? 0,
+      kind: facilityId ? "claim" : "new_listing",
     }).catch((err) => console.error("Approval email error (non-blocking):", err));
   }
 
   revalidatePath("/admin/claims");
   revalidatePath("/admin");
-
-  return warning ? { warning } : undefined;
 }
 
 export async function rejectClaim(providerId: string, reason: string) {

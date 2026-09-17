@@ -1,91 +1,71 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  updateFacilityDoctors,
+  updateFacilityMedia,
+} from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import { AdminFacilityServicesEditor } from "@/components/admin/AdminFacilityServicesEditor";
 import { AdminFacilityContactEditor } from "@/components/admin/AdminFacilityContactEditor";
 import { AdminFacilityIdentityEditor } from "@/components/admin/AdminFacilityIdentityEditor";
 import { AdminFacilityLocationEditor } from "@/components/admin/AdminFacilityLocationEditor";
+import { AdminFacilityAboutEditor } from "@/components/admin/AdminFacilityAboutEditor";
+import { AdminFacilityCheckupsEditor } from "@/components/admin/AdminFacilityCheckupsEditor";
+import { FacilityEditorTabs, type FacilityEditorSection } from "@/components/admin/FacilityEditorTabs";
+import { Step4DoctorsForm } from "@/components/provider/steps/Step4DoctorsForm";
+import { Step5MediaForm } from "@/components/provider/steps/Step5MediaForm";
+import { mediaFromFacility, showsDoctorsSection } from "@/components/admin/facility-editor-shared";
 
-type Section = "identity" | "services" | "contact" | "location";
-
-// Sectioned, not a sequential wizard: an admin lands on whichever section the
-// URL names (deep-linkable via ?section=) and can jump to the other one
-// directly. Neither section knows the other exists — no shared
-// completion-percentage state, no "continue" gate.
+// The admin's view of the live facility editor: every section, including
+// Identity (name and category), which only an admin changes directly.
+// A verified provider gets the same sections minus Identity — see
+// ProviderListingEditor.
 export function AdminFacilityEditor({ facility }: { facility: Record<string, unknown> }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const param = searchParams.get("section");
-  const initial: Section =
-    param === "contact" ? "contact" : param === "location" ? "location" : param === "identity" ? "identity" : "services";
-  const [section, setSection] = useState<Section>(initial);
+  const facilityId = facility.id as string;
 
-  function selectSection(next: Section) {
-    setSection(next);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("section", next);
-    router.replace(`?${params.toString()}`, { scroll: false });
+  const sections: FacilityEditorSection[] = [
+    { key: "identity", label: "Identity", render: () => <AdminFacilityIdentityEditor facility={facility} /> },
+    { key: "about", label: "About", render: () => <AdminFacilityAboutEditor facility={facility} /> },
+    {
+      key: "services",
+      label: "Services & Specialties",
+      render: () => <AdminFacilityServicesEditor facility={facility} />,
+    },
+    { key: "checkups", label: "Check-ups", render: () => <AdminFacilityCheckupsEditor facility={facility} /> },
+    { key: "contact", label: "Contact & Social", render: () => <AdminFacilityContactEditor facility={facility} /> },
+    { key: "location", label: "Location", render: () => <AdminFacilityLocationEditor facility={facility} /> },
+  ];
+
+  if (showsDoctorsSection(facility)) {
+    sections.push({
+      key: "doctors",
+      label: "Doctors",
+      render: () => (
+        <Step4DoctorsForm
+          live={{
+            facilityId,
+            doctors: facility.doctors,
+            walkinAppointment: (facility.walkin_appointment as string | null) ?? null,
+            // An admin has no claim to file photos under; the facility id
+            // keeps them grouped per listing.
+            uploadFolder: facilityId,
+            save: updateFacilityDoctors,
+          }}
+        />
+      ),
+    });
   }
 
-  return (
-    <div>
-      <div className="mb-6 flex gap-2 border-b border-border">
-        <button
-          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
-            section === "identity"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => selectSection("identity")}
-          type="button"
-        >
-          Identity
-        </button>
-        <button
-          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
-            section === "services"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => selectSection("services")}
-          type="button"
-        >
-          Services & Specialties
-        </button>
-        <button
-          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
-            section === "contact"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => selectSection("contact")}
-          type="button"
-        >
-          Contact & Social
-        </button>
-        <button
-          className={`border-b-2 px-4 py-2 text-sm font-semibold transition ${
-            section === "location"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => selectSection("location")}
-          type="button"
-        >
-          Location
-        </button>
-      </div>
+  sections.push({
+    key: "photos",
+    label: "Photos",
+    render: () => (
+      <Step5MediaForm
+        claimId={facilityId}
+        initialData={mediaFromFacility(facility)}
+        live={{ facilityId, save: updateFacilityMedia }}
+      />
+    ),
+  });
 
-      {section === "identity" ? (
-        <AdminFacilityIdentityEditor facility={facility} />
-      ) : section === "services" ? (
-        <AdminFacilityServicesEditor facility={facility} />
-      ) : section === "contact" ? (
-        <AdminFacilityContactEditor facility={facility} />
-      ) : (
-        <AdminFacilityLocationEditor facility={facility} />
-      )}
-    </div>
-  );
+  return <FacilityEditorTabs sections={sections} />;
 }

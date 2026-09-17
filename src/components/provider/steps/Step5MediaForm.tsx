@@ -8,6 +8,7 @@ import {
   type Step5Data,
 } from "@/app/provider/(console)/onboarding/media/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { formatAddisTime } from "@/lib/addis-time";
 import { Spinner } from "@/components/provider/Spinner";
 import { Badge } from "@/components/ui/Badge";
 import { ImageCropModal } from "@/components/ui/ImageCropModal";
@@ -38,16 +39,29 @@ async function uploadToBucket(bucket: string, path: string, file: File): Promise
   return data.publicUrl;
 }
 
+// Editing the photos of a listing that is already live, from the shared
+// facility editor. Without it this is onboarding step 5 exactly as before.
+// With it, nothing is written until Save is pressed, and replaced or removed
+// files are left in storage: the public page keeps showing them until the
+// save goes through, so deleting them first would break the live listing
+// whenever an edit is abandoned.
+export type LiveMediaEditing = {
+  facilityId: string;
+  save: (facilityId: string, data: Step5Data) => Promise<{ ok: boolean; error?: string }>;
+};
+
 export function Step5MediaForm({
   claimId,
   initialData,
   backHref = "/provider/onboarding/doctors",
   claimStatus = null,
+  live,
 }: {
   claimId: string;
   initialData: Step5Data;
   backHref?: string;
   claimStatus?: string | null;
+  live?: LiveMediaEditing;
 }) {
   // Photos/other fields lock only while the submission is actively under
   // review (this replaces the old full-page "cannot be edited" block — the
@@ -84,7 +98,28 @@ export function Step5MediaForm({
   );
 
 
+  const [liveBaseline, setLiveBaseline] = useState(() => JSON.stringify(initialData));
+
+  function handleLiveSave() {
+    if (!live) return;
+    if (JSON.stringify(urls) === liveBaseline) {
+      setSaveError("Nothing to save — no changes were made in this section.");
+      return;
+    }
+    setSaveError(null);
+    startTransition(async () => {
+      const result = await live.save(live.facilityId, urls);
+      if (result.ok) {
+        setLiveBaseline(JSON.stringify(urls));
+        setLastSaved(new Date());
+      } else {
+        setSaveError(result.error ?? "Save failed — please try again.");
+      }
+    });
+  }
+
   function autoSave(partial: Partial<Step5Data>) {
+    if (live) return;
     startTransition(async () => {
       const result = await autoSaveStep5(partial);
       if (result.ok) {
@@ -138,7 +173,7 @@ export function Step5MediaForm({
 
     setEntranceStatus("uploading");
     try {
-      const previousUrl = slotIndex !== null ? urls.entrance_photo_urls[slotIndex] : null;
+      const previousUrl = !live && slotIndex !== null ? urls.entrance_photo_urls[slotIndex] : null;
       const url = await uploadImageToBucket(
         "facility-photos",
         claimId,
@@ -166,7 +201,7 @@ export function Step5MediaForm({
     const next = urls.entrance_photo_urls.filter((_, i) => i !== index);
     setUrls((prev) => ({ ...prev, entrance_photo_urls: next }));
     autoSave({ entrance_photo_urls: next });
-    void deleteImageFromBucket("facility-photos", removedUrl);
+    if (!live) void deleteImageFromBucket("facility-photos", removedUrl);
   }
 
   function moveEntrancePhoto(index: number, direction: -1 | 1) {
@@ -207,7 +242,13 @@ export function Step5MediaForm({
     setLogoError(null);
     setLogoStatus("uploading");
     try {
-      const url = await uploadImageToBucket("facility-photos", claimId, file, extHint, urls.logo_url);
+      const url = await uploadImageToBucket(
+        "facility-photos",
+        claimId,
+        file,
+        extHint,
+        live ? null : urls.logo_url,
+      );
       setUrls((prev) => ({ ...prev, logo_url: url }));
       autoSave({ logo_url: url });
     } catch (err) {
@@ -275,7 +316,7 @@ export function Step5MediaForm({
             rejects it. You can still view what you submitted.
           </span>
         </div>
-      ) : (
+      ) : live ? null : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
           Photos significantly improve patient trust and your listing&apos;s completeness score.
         </div>
@@ -299,7 +340,9 @@ export function Step5MediaForm({
               patients find and recognize you. The first photo is used as the main banner.
             </p>
           </div>
-          <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />
+          {/* "Draft saved" is onboarding language; a live edit shows its
+              save time next to the Save button instead. */}
+          {!live && <AutoSaveIndicator isPending={isPending} lastSaved={lastSaved} />}
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -502,6 +545,28 @@ export function Step5MediaForm({
         </label>
       )}
 
+      {live ? (
+        // Saving here publishes, so the same confirmation that gates
+        // onboarding's Continue gates this.
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {lastSaved && !isPending && (
+            <span className="text-xs text-muted-foreground">Saved {formatAddisTime(lastSaved)}</span>
+          )}
+          <button
+            className="flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={
+              !permissionChecked ||
+              isPending ||
+              entranceStatus === "uploading" ||
+              logoStatus === "uploading"
+            }
+            onClick={handleLiveSave}
+            type="button"
+          >
+            {isPending ? "Saving…" : "Save Photos"}
+          </button>
+        </div>
+      ) : (
       <div className="flex items-center justify-between">
         <a
           className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -554,6 +619,7 @@ export function Step5MediaForm({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

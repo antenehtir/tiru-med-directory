@@ -7,6 +7,7 @@ import {
   FACILITY_CATEGORY_OTHER_LABEL,
   resolveCategoryChoice,
 } from "@/lib/frontend-search-filters";
+import { loadClaimableFacility, recordClaim } from "@/lib/provider/claim-facility";
 
 export async function providerSignUp(formData: FormData) {
   const email = formData.get("email") as string;
@@ -114,5 +115,98 @@ export async function providerSignUp(formData: FormData) {
     redirect(`/provider/signup?error=account_creation_failed`);
   }
 
-  redirect("/provider/onboarding/claim");
+  // Straight to verification and the wizard. This used to go to the "is your
+  // facility already on Tiru?" search first — but that question is now asked
+  // before sign-up (/provider/signup with no parameters), so anyone reaching
+  // this form has already said their facility is not listed.
+  redirect("/provider/onboarding/verify");
+}
+
+// Sign-up for claiming a facility Tiru already lists. One form: the account,
+// the claimant's role and phone — and the claim is submitted in the same
+// step. No facility details are asked for; the live listing already has
+// them, and after verification the claimant edits it directly.
+export async function providerClaimSignUp(formData: FormData) {
+  const facilityId = String(formData.get("claim_facility_id") ?? "");
+  const back = `/provider/signup?claim=${encodeURIComponent(facilityId)}`;
+
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const displayName = String(formData.get("display_name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const roleRaw = String(formData.get("claimant_role") ?? "");
+  const roleOther = String(formData.get("claimant_role_other") ?? "").trim();
+
+  if (formData.get("terms") !== "on") redirect(`${back}&error=terms`);
+
+  const supabase = await createSignupClient();
+
+  // Checked before the account is created, so nobody ends up with an account
+  // attached to a facility they could never have claimed.
+  const claimable = await loadClaimableFacility(supabase, facilityId);
+  if (!claimable.ok) redirect(`${back}&error=${claimable.reason}`);
+  const facility = claimable.facility;
+
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error || !data.user) {
+    redirect(`${back}&error=${encodeURIComponent(error?.message ?? "signup_failed")}`);
+  }
+
+  const { error: insertError } = await supabase.from("provider_accounts").insert({
+    id: data.user.id,
+    email,
+    display_name: displayName,
+    phone,
+    claimant_role: roleRaw,
+    claimant_role_other: roleRaw === "Other" ? roleOther : null,
+    claimant_phone: phone,
+    // The facility is chosen here, not owned: nothing grants edit access
+    // until an admin approves the claim.
+    facility_id: facility.id,
+    facility_name: facility.name,
+    facility_type: facility.category,
+    verification_status_internal: "call_pending",
+    terms_accepted: true,
+    terms_accepted_at: new Date().toISOString(),
+    onboarding_phase: 0,
+    completion_pct: 0,
+    last_active_at: new Date().toISOString(),
+  });
+  if (insertError) {
+    console.error("providerClaimSignUp: provider_accounts insert failed:", insertError.message);
+    redirect(`${back}&error=account_creation_failed`);
+  }
+
+  // If this fails the account still exists; /provider/claim shows the claim
+  // form again rather than a dead end, so the claimant can resubmit.
+  const { error: claimError } = await recordClaim(
+    supabase,
+    data.user.id,
+    facility.id,
+    "pending_review",
+    facility.category,
+  );
+  if (claimError) console.error("providerClaimSignUp: claim write failed:", claimError);
+
+  redirect("/provider/claim");
+}
+
+async function createSignupClient() {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        },
+      },
+    },
+  );
 }

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { formatAddisTime } from "@/lib/addis-time";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { updateFacilityLocation } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
+import type { FacilityLocationFields } from "@/lib/facility-edit/save-sections";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-repeater";
 import type { FacilityBranch } from "@/types/facility";
@@ -26,7 +27,16 @@ function num(value: unknown): number | null {
   return typeof value === "number" ? value : null;
 }
 
-export function AdminFacilityLocationEditor({ facility }: { facility: Facility }) {
+export function AdminFacilityLocationEditor({
+  facility,
+  saveAction = updateFacilityLocation,
+}: {
+  facility: Facility;
+  // Which server action commits this section. Defaults to the admin one; the
+  // verified-provider editor passes its own, scoped to their facility. The
+  // section itself neither knows nor cares who is saving.
+  saveAction?: (facilityId: string, fields: FacilityLocationFields) => Promise<void>;
+}) {
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +119,7 @@ export function AdminFacilityLocationEditor({ facility }: { facility: Facility }
 
     startTransition(async () => {
       try {
-        await updateFacilityLocation(facility.id as string, fields);
+        await saveAction(facility.id as string, fields);
         setBaseline({
           latitude: lat,
           longitude: lng,

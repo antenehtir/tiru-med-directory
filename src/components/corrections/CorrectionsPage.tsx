@@ -41,8 +41,11 @@ export function CorrectionsPage({ facility = null }: CorrectionsPageProps) {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const claimHref = facility?.name
-    ? `/provider/signup?facility_name=${encodeURIComponent(facility.name)}`
+  // Straight to the claim sign-up for this facility. This used to pre-fill
+  // the NEW-listing form with the facility's name, which led a would-be
+  // claimant into creating a duplicate of a listing that already existed.
+  const claimHref = facility?.id
+    ? `/provider/signup?claim=${encodeURIComponent(facility.id)}`
     : "/provider/signup";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

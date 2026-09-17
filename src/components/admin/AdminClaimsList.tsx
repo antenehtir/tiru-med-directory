@@ -4,9 +4,11 @@ import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { approveClaim, rejectClaim } from "@/app/admin/(protected)/claims/actions";
 import { Pill } from "@/components/ui/Pill";
+import { formatAddisDateTime } from "@/lib/addis-time";
 
 export type Facility = {
   id: string;
+  slug: string | null;
   name: string;
   category: string;
   phone: string | null;
@@ -30,6 +32,7 @@ export type Claim = {
   verification_call_notes: string | null;
   facility_id: string | null;
   facility_name: string | null;
+  submitted_at: string | null;
   facilities: Facility | null;
 };
 
@@ -147,6 +150,7 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {isNewListing ? "Submitted" : "Claimed"} by {claim.display_name} ·{" "}
                       {claimantRole}
+                      {claim.submitted_at ? ` · ${formatAddisDateTime(claim.submitted_at)}` : ""}
                     </p>
                   </div>
                   <button
@@ -200,13 +204,41 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                               On-file phone:{" "}
                               <span className="font-semibold">{facility?.phone ?? "—"}</span>
                             </p>
+                            {facility?.slug && (
+                              <a
+                                className="text-xs font-medium text-primary hover:underline"
+                                href={`/facilities/${facility.slug}`}
+                                rel="noopener noreferrer"
+                                target="_blank"
+                              >
+                                View public listing ↗
+                              </a>
+                            )}
                           </>
                         )}
                       </div>
                     </div>
 
+                    {/* Claims filed through the one-step claim form carry no
+                        claimant-entered official number — Tiru already has
+                        it — so there is nothing to cross-check, only a number
+                        to call. Older claims still get the comparison. */}
+                    {!isNewListing && !claim.facility_official_phone_claimed && (
+                      <div className="rounded-xl bg-info-bg p-3">
+                        <p className="text-xs font-semibold text-foreground">📞 Verify by calling the facility</p>
+                        <p className="mt-1 text-sm">
+                          <span className="text-muted-foreground">Number on the listing: </span>
+                          <span className="font-semibold text-foreground">{facility?.phone ?? "—"}</span>
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Call this number — not one the claimant supplied — and ask whether{" "}
+                          {claim.display_name} works there as {claimantRole}.
+                        </p>
+                      </div>
+                    )}
+
                     {/* Phone cross-check — only for existing facility claims */}
-                    {!isNewListing && (
+                    {!isNewListing && claim.facility_official_phone_claimed && (
                       <div
                         className={`rounded-xl p-3 ${
                           phoneMatch

@@ -15,13 +15,14 @@ async function getClaims(): Promise<Claim[]> {
     .from("facility_claims")
     .select(`
       facility_id,
+      submitted_at,
       provider_accounts (
         id, email, display_name, phone, claimant_role, claimant_role_other,
         claimant_phone, facility_official_phone_claimed, work_email,
         referral_source, verification_status_internal, verification_call_notes,
         facility_name, created_at
       ),
-      facilities ( id, name, category, phone, sub_city, area, verification_status )
+      facilities ( id, slug, name, category, phone, sub_city, area, verification_status )
     `)
     .eq("status", "pending_review")
     .order("created_at", { ascending: false });
@@ -42,6 +43,7 @@ async function getClaims(): Promise<Claim[]> {
         // claim creation for existing-facility claims and stays null for
         // new listings until admin approval creates the facilities row.
         facility_id: row.facility_id,
+        submitted_at: row.submitted_at,
         facilities: (Array.isArray(row.facilities) ? row.facilities[0] : row.facilities) ?? null,
       };
     })

@@ -63,6 +63,20 @@ const ACTION_LABELS: Record<string, string> = {
   // showed "claim_approved_new_listing" in a table every other row of which
   // read as a sentence.
   facility_identity_edited: "Identity edited",
+  facility_about_edited: "About edited",
+  facility_checkups_edited: "Check-ups edited",
+  facility_doctors_edited: "Doctors edited",
+  facility_media_edited: "Photos edited",
+  // Edits a verified provider made to their own listing from the live
+  // editor. Named apart from the admin ones so the log says at a glance
+  // whether Tiru or the facility changed something.
+  provider_about_edited: "Provider edited About",
+  provider_services_edited: "Provider edited services",
+  provider_checkups_edited: "Provider edited check-ups",
+  provider_contact_edited: "Provider edited contact",
+  provider_location_edited: "Provider edited location",
+  provider_doctors_edited: "Provider edited doctors",
+  provider_media_edited: "Provider edited photos",
   claim_approved_new_listing: "New listing approved",
   claim_approved_merged: "Claim merged into listing",
   facility_deactivated: "Facility deactivated",

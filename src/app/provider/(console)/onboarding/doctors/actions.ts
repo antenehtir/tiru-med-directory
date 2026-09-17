@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 import type { DoctorEntry } from "@/lib/provider/doctor-types";
 
 export async function autoSaveStep4(doctors: DoctorEntry[]) {
@@ -38,8 +37,6 @@ export async function autoSaveStep4(doctors: DoctorEntry[]) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "doctor roster" });
   }
 }
 
@@ -80,11 +77,6 @@ export async function saveStep4AndContinue(doctors: DoctorEntry[]) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    // Same gap the other four steps had: this action holds the roster the
-    // provider actually pressed the button on, and was never pushing it to
-    // the live row — only autoSaveStep4 was.
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "doctor roster" });
   }
 
   // phase 5 = media (the step they land on next), matching login's phaseToSlug map

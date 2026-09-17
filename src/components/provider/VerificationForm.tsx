@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { submitVerification } from "@/app/provider/onboarding/verify/actions";
+import { submitClaim } from "@/app/provider/claim/actions";
+import { SubmitButton } from "@/components/provider/SubmitButton";
 import { CLAIMANT_ROLES } from "@/lib/provider/onboarding-config";
 
 type ProviderData = {
@@ -15,19 +17,26 @@ type ProviderData = {
   work_email: string;
 };
 
+// `claim` is the one-step form for claiming a facility already on Tiru: role
+// and contact only, then the claim is submitted for verification. Without it
+// this is the new-listing verification step exactly as before, which leads
+// on into the onboarding wizard.
 export function VerificationForm({
   facilityName,
   isNewListing,
   provider,
+  mode = "verify",
 }: {
   facilityName: string | null;
   isNewListing: boolean;
   provider: ProviderData;
+  mode?: "verify" | "claim";
 }) {
   const [role, setRole] = useState(provider.claimant_role);
+  const isClaim = mode === "claim";
 
   return (
-    <form action={submitVerification} className="space-y-6">
+    <form action={isClaim ? submitClaim : submitVerification} className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="space-y-4">
           {/* Role */}
@@ -88,7 +97,10 @@ export function VerificationForm({
           </div>
 
           {/* Facility official phone — cross-check */}
-          {!isNewListing && (
+          {/* Not asked on a claim: Tiru already has the facility's official
+              number and calls that one — a number the claimant types in is
+              the one thing that cannot be used to verify them. */}
+          {!isNewListing && !isClaim && (
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground" htmlFor="facility_official_phone_claimed">
                 Facility&apos;s official phone number *
@@ -125,6 +137,7 @@ export function VerificationForm({
           </div>
 
           {/* Referral */}
+          {!isClaim && (
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="referral_source">
               How did you hear your facility is on Tiru?
@@ -137,23 +150,32 @@ export function VerificationForm({
               type="text"
             />
           </div>
+          )}
         </div>
 
-        <div className="mt-5 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
-          <p className="text-xs text-amber-700 dark:text-amber-400">
-            Your listing will remain in review until our team verifies your
-            details. You can complete your profile now — it goes live once approved.
-          </p>
-        </div>
+        {!isClaim && (
+          <div className="mt-5 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              Your listing will remain in review until our team verifies your
+              details. You can complete your profile now — it goes live once approved.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end">
-        <button
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          type="submit"
-        >
-          Submit & continue →
-        </button>
+        {isClaim ? (
+          <SubmitButton className="px-6" loadingText="Submitting…">
+            Submit claim for verification
+          </SubmitButton>
+        ) : (
+          <button
+            className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            type="submit"
+          >
+            Submit & continue →
+          </button>
+        )}
       </div>
     </form>
   );

@@ -1,16 +1,16 @@
-// Shared mapping from facility_claims.proposed_* fields to their facilities table equivalents.
-// Used by:
-//   - Admin claim approval (approveClaim / mergeProposedDataIntoFacility) to populate the
-//     facilities row when a claim is first approved.
-//   - Approved-provider step saves: every autoSaveStepN below calls syncToFacilityIfApproved,
-//     which checks claim.status === 'approved' itself and, if so, pushes the updated proposed
-//     values directly to the live facilities row with no re-approval gate.
-
-import type { createProviderSupabaseClient } from "@/lib/supabase/provider-client";
-import { summarizeFacilityChanges } from "@/lib/audit/change-summary";
+// Shared mapping from facility_claims.proposed_* fields to their facilities
+// table equivalents. Used only when admin approval turns a NEW-listing
+// submission into a facilities row (approveClaim).
+//
+// It no longer keeps a live listing in step with a claim draft. That job
+// belonged to syncToFacilityIfApproved, which re-sent the whole draft on
+// every onboarding autosave — so any change made outside the wizard (by an
+// admin, or later by the provider) could be overwritten by an older draft.
+// Verified providers now edit their listing directly through the shared
+// facility editor (lib/facility-edit/save-sections.ts), and the draft is not
+// consulted again after approval.
 
 type ClaimRow = Record<string, unknown>;
-type ProviderSupabaseClient = Awaited<ReturnType<typeof createProviderSupabaseClient>>;
 
 export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, unknown> {
   return {
@@ -75,159 +75,4 @@ export function filterNonEmpty(fields: Record<string, unknown>): Record<string, 
   return Object.fromEntries(
     Object.entries(fields).filter(([, v]) => v !== null && v !== undefined && v !== ""),
   );
-}
-
-// Every provider edit to an already-approved listing is supposed to land on
-// the public facilities row immediately. It silently didn't for 2.5 months
-// (2026-07-02 to 2026-09-15): facilities had RLS enabled with no UPDATE
-// policy for the provider role, so this write matched 0 rows and returned
-// success with no error — nothing surfaced it until someone happened to
-// compare the claim against the live row by hand. See
-// supabase/migrations_draft/028_facilities_provider_update_policy.sql for
-// the policy that actually fixes the write, and 056/057/058 for the one
-// facility that drifted before it was applied.
-//
-// Logging every attempt to audit_log (success AND failure) is the other half
-// of the fix: the next time a write is blocked for any reason — a new column
-// added without matching RLS coverage, say — it shows up on
-// /admin/audit-log instead of requiring another by-hand comparison.
-//
-// That logging caught a second, previously invisible bug within hours of
-// shipping: a claim whose proposed_name had never been set (a provider who
-// never revisited the identity step after their listing went live) sent
-// name: null into this UPDATE, and facilities.name is NOT NULL — so the
-// WHOLE write failed, including an unrelated services edit the provider
-// actually made. filterNonEmpty (below) is the fix the admin approval path
-// already had (mergeProposedDataIntoFacility calls it) and this one never
-// did — RLS blocking every write at 0 rows matched meant this had no chance
-// to surface until 028 let the write actually reach the table.
-//
-// name is additionally hard-excluded, always, regardless of caller: once a
-// listing is public its name only changes through requestFacilityNameChange
-// (src/app/provider/(console)/onboarding/identity/actions.ts, admin-
-// reviewed), never through an ordinary autosave on any step.
-export async function syncToFacilityIfApproved(
-  supabase: ProviderSupabaseClient,
-  claim: ClaimRow,
-  options?: { excludeFields?: string[]; changeNote?: string },
-): Promise<void> {
-  if ((claim.status as string) !== "approved" || !claim.facility_id) return;
-
-  const facilityId = claim.facility_id as string;
-  const providerId = claim.provider_id as string;
-  const changeNote = options?.changeNote ?? "listing details";
-
-  const toSync = filterNonEmpty(buildFacilityFieldsFromClaim(claim));
-  delete toSync.name;
-  for (const field of options?.excludeFields ?? []) delete toSync[field];
-
-  // Nothing to write at all — a claim with no populated proposed_* fields.
-  // Guarded because the select below builds its column list from these keys
-  // and an empty list is not a valid select.
-  const columns = Object.keys(toSync);
-  if (columns.length === 0) return;
-
-  // What the live row holds right now, limited to the columns about to be
-  // written, so the audit entry can say what actually changed rather than
-  // just that something was saved.
-  const { data: before } = await supabase
-    .from("facilities")
-    .select(columns.join(", "))
-    .eq("id", facilityId)
-    .single();
-
-  const { changed, old_value, new_value, changedLabels } = summarizeFacilityChanges(
-    before as Record<string, unknown> | null,
-    toSync,
-  );
-
-  // The write is NOT conditional on `changed`. It was for one day, and that
-  // day cost a provider's edit: change detection read a doctor's languages
-  // as unchanged, so the sync was skipped and the public page silently kept
-  // the old roster. Detection decides whether to LOG, never whether to
-  // WRITE — if it is ever wrong again the cost is a missing log line, not
-  // missing data. The write is idempotent, so running it on a no-op save is
-  // free; only updated_at is held back, so "last updated" keeps meaning
-  // something.
-  const { data: syncedRows, error } = await supabase
-    .from("facilities")
-    .update(changed.length > 0 ? { ...toSync, updated_at: new Date().toISOString() } : toSync)
-    .eq("id", facilityId)
-    .select("id");
-
-  // The attempted change rides along on all three outcomes, so a failed or
-  // blocked entry says what was lost, not just that something was.
-  const attempted = { old_value, new_value };
-
-  if (error) {
-    console.error("syncToFacilityIfApproved failed:", error.message);
-    await logProviderAudit(supabase, {
-      ...attempted,
-      providerId,
-      facilityId,
-      action: "provider_live_sync_failed",
-      note: `Edit to ${changedLabels || changeNote} failed to save to the public page: ${error.message}`,
-    });
-    return;
-  }
-
-  if (!syncedRows || syncedRows.length === 0) {
-    console.error(
-      "syncToFacilityIfApproved affected 0 rows — likely blocked by facilities RLS policy",
-      facilityId,
-    );
-    await logProviderAudit(supabase, {
-      ...attempted,
-      providerId,
-      facilityId,
-      action: "provider_live_sync_blocked",
-      note: `Edit to ${changedLabels || changeNote} did not reach the public page (0 rows updated — check the facilities RLS policy)`,
-    });
-    return;
-  }
-
-  // A save that moved nothing is not an event. Autosave fires on blur and on
-  // navigation as well as on a real edit, so logging these put two identical
-  // "Updated services & specialties" rows in the log seconds apart. Failures
-  // above are always logged, changed or not — a write that could not happen
-  // is worth recording even when there was nothing in it.
-  if (changed.length === 0) return;
-
-  await logProviderAudit(supabase, {
-    ...attempted,
-    providerId,
-    facilityId,
-    action: "provider_edit_synced",
-    note: `Updated ${changedLabels || changeNote}`,
-  });
-}
-
-// A failed audit-log write must never take down the actual save it is
-// describing — the facility write above has already happened (or already
-// failed) by the time this runs, so this only ever adds a record of it.
-async function logProviderAudit(
-  supabase: ProviderSupabaseClient,
-  entry: {
-    providerId: string;
-    facilityId: string;
-    action: string;
-    note: string;
-    old_value: Record<string, unknown>;
-    new_value: Record<string, unknown>;
-  },
-): Promise<void> {
-  try {
-    const { error } = await supabase.from("audit_log").insert({
-      provider_id: entry.providerId,
-      action: entry.action,
-      entity_type: "facility",
-      entity_id: entry.facilityId,
-      old_value: entry.old_value,
-      new_value: entry.new_value,
-      note: entry.note,
-    });
-    if (error) console.error("audit_log insert failed:", error.message);
-  } catch (err) {
-    console.error("audit_log insert threw:", err);
-  }
 }

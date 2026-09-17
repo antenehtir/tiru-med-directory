@@ -78,7 +78,24 @@ const ALL_NAV_ITEMS: NavItem[] = [
 // calculateCompletion's redistribution of the doctors step weight).
 const FACILITY_TYPES_WITHOUT_DOCTORS_STEP = new Set(["Pharmacy"]);
 
-function getNavItems(facilityType: string | null): NavItem[] {
+// What the console is for, for this provider right now:
+//   wizard — building a new listing, step by step (unchanged)
+//   claim  — claiming an existing listing, waiting on verification
+//   live   — verified; editing their facility directly
+export type ProviderConsoleMode = "wizard" | "claim" | "live";
+
+const LIVE_NAV_ITEMS: NavItem[] = [
+  { label: "Overview", href: "/provider/dashboard", step: null, icon: OverviewIcon },
+  { label: "Your listing", href: "/provider/listing", step: null, icon: IdentityIcon },
+];
+
+const CLAIM_NAV_ITEMS: NavItem[] = [
+  { label: "Your claim", href: "/provider/claim", step: null, icon: IdentityIcon },
+];
+
+function getNavItems(mode: ProviderConsoleMode, facilityType: string | null): NavItem[] {
+  if (mode === "live") return LIVE_NAV_ITEMS;
+  if (mode === "claim") return CLAIM_NAV_ITEMS;
   if (facilityType && FACILITY_TYPES_WITHOUT_DOCTORS_STEP.has(facilityType)) {
     return ALL_NAV_ITEMS.filter((item) => item.href !== "/provider/onboarding/doctors");
   }
@@ -263,6 +280,7 @@ export function ProviderConsoleShell({
   claimStatus,
   submissionStep,
   facilityType = null,
+  mode = "wizard",
   children,
 }: {
   facilityName: string;
@@ -271,11 +289,12 @@ export function ProviderConsoleShell({
   claimStatus: string | null;
   submissionStep: number | null;
   facilityType?: string | null;
+  mode?: ProviderConsoleMode;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navItems = getNavItems(facilityType);
+  const navItems = getNavItems(mode, facilityType);
 
   // Lock body scroll while the mobile drawer is open.
   useEffect(() => {

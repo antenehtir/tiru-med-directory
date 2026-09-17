@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { selectFacilityToClaim, startNewListing } from "@/app/provider/onboarding/claim/actions";
 
 type SearchResult = {
@@ -12,7 +13,16 @@ type SearchResult = {
   verification_status: string;
 };
 
-export function ClaimFacilityForm({ providerId }: { providerId: string }) {
+// Two places use this search. Signed in (`providerId` given), choosing a
+// facility files the claim straight away. Signed out — the front door at
+// /provider/signup — choosing one leads to the short claim sign-up for that
+// facility, and "not listed" leads to the new-listing sign-up. Either way the
+// claim/new-listing split happens here, before anything is typed, rather
+// than halfway through onboarding.
+export function ClaimFacilityForm({ providerId }: { providerId?: string }) {
+  const router = useRouter();
+  const signedIn = Boolean(providerId);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<SearchResult | null>(null);
@@ -80,10 +90,22 @@ export function ClaimFacilityForm({ providerId }: { providerId: string }) {
 
   function handleClaim() {
     if (!selected) return;
-    startTransition(() => selectFacilityToClaim(selected.id));
+    setClaimError(null);
+    if (!signedIn) {
+      router.push(`/provider/signup?claim=${encodeURIComponent(selected.id)}`);
+      return;
+    }
+    startTransition(async () => {
+      const result = await selectFacilityToClaim(selected.id);
+      if (result?.error) setClaimError(result.error);
+    });
   }
 
   function handleNewListing() {
+    if (!signedIn) {
+      router.push("/provider/signup?path=new");
+      return;
+    }
     startTransition(() => startNewListing());
   }
 
@@ -178,6 +200,12 @@ export function ClaimFacilityForm({ providerId }: { providerId: string }) {
         >
           {isPending ? "Claiming..." : `Claim "${selected.name}"`}
         </button>
+      )}
+
+      {claimError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+          {claimError}
+        </p>
       )}
 
       {selected && selected.verification_status === "facility-owned" && (

@@ -5,6 +5,11 @@ import { VerificationForm } from "@/components/provider/VerificationForm";
 export default async function VerifyPage() {
   const provider = await getProviderAccount();
   if (!provider) redirect("/provider/login");
+  // Claims on an existing facility have their own one-step form now; this
+  // page, and the wizard it leads into, are for new listings only.
+  if (provider.facility_id) {
+    redirect(provider.status === "approved" ? "/provider/listing" : "/provider/claim");
+  }
 
   const facility = provider.facilities as {
     name?: string;

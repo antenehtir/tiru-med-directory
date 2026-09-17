@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
-import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 
 export type Step5Data = {
   entrance_photo_urls: string[];
@@ -71,15 +70,12 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
   }
   if (data.logo_url !== undefined) updates.proposed_logo_url = data.logo_url || null;
 
-  let updatedClaim: Record<string, unknown> | null = null;
   if (Object.keys(updates).length > 0) {
     const { error } = await supabase.from("facility_claims").update(updates).eq("id", claimId);
     if (error) {
       console.error("autoSaveStep5 failed:", error.message);
       return { ok: false, error: "Save failed — please try again." };
     }
-    const { data } = await supabase.from("facility_claims").select("*").eq("id", claimId).single();
-    updatedClaim = data ?? null;
   }
 
   const currentOverallPct = provider.completion_pct ?? 0;
@@ -89,10 +85,6 @@ export async function autoSaveStep5(data: Partial<Step5Data>): Promise<AutoSaveR
     .from("provider_accounts")
     .update({ completion_pct: nextOverallPct })
     .eq("id", provider.id);
-
-  if (updatedClaim) {
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "photos & media" });
-  }
 
   return { ok: true };
 }
@@ -143,18 +135,6 @@ export async function saveStep5AndContinue(data: Step5Data) {
 
   const currentOverallPct = provider.completion_pct ?? 0;
   const nextOverallPct = Math.min(100, Math.max(0, currentOverallPct - oldScore + newScore));
-
-  // Same gap the other four steps had: this action holds the photo set the
-  // provider actually pressed the button on, and was never pushing it to the
-  // live row — only autoSaveStep5 was.
-  const { data: updatedClaim } = await supabase
-    .from("facility_claims")
-    .select("*")
-    .eq("id", claimId)
-    .single();
-  if (updatedClaim) {
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "photos & media" });
-  }
 
   // phase 6 = review (the step they land on next), matching login's phaseToSlug map
   await supabase

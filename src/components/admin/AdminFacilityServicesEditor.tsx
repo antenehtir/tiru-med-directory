@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityServices } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
+import type { FacilityServicesFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import {
@@ -57,7 +58,16 @@ function arr(value: unknown): string[] {
   return Array.isArray(value) ? (value as string[]) : [];
 }
 
-export function AdminFacilityServicesEditor({ facility }: { facility: Facility }) {
+export function AdminFacilityServicesEditor({
+  facility,
+  saveAction = updateFacilityServices,
+}: {
+  facility: Facility;
+  // Which server action commits this section. Defaults to the admin one; the
+  // verified-provider editor passes its own, scoped to their facility. The
+  // section itself neither knows nor cares who is saving.
+  saveAction?: (facilityId: string, fields: FacilityServicesFields) => Promise<void>;
+}) {
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -320,7 +330,7 @@ export function AdminFacilityServicesEditor({ facility }: { facility: Facility }
 
     startTransition(async () => {
       try {
-        await updateFacilityServices(facility.id as string, fields);
+        await saveAction(facility.id as string, fields);
         // The pruned value, not the state it was pruned from — the baseline
         // has to match what the database now holds, or the next save reads as
         // dirty forever against a difference that was never sent.

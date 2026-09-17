@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 import { wantsToStayOnStep } from "@/lib/provider/save-intent";
 import { resolveCategoryChoice } from "@/lib/frontend-search-filters";
 
@@ -60,14 +59,6 @@ export async function saveStep1(formData: FormData) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    // This action writes the authoritative FormData for the step, and until
-    // now it was the one save path that never pushed the result to the live
-    // row — only autoSaveStep1 did. Autosave usually covers it by firing on
-    // the blur that clicking this button causes, but that is a separate
-    // request racing this one, and "usually" is how a field ends up saved in
-    // the draft and stale on the public page.
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "identity details" });
   }
 
   // Save-and-stay ends here: the provider is still working on this step, so
@@ -136,14 +127,6 @@ export async function autoSaveStep1(data: {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    // name is deliberately withheld from the live sync once a listing is
-    // public — syncToFacilityIfApproved excludes it unconditionally for
-    // exactly this reason. A facility's name is the one thing on the page a
-    // random search result is trusted by, and letting it change with no
-    // review is a bigger door than "the working hours were wrong for an
-    // hour". requestFacilityNameChange below is the only path to it now.
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "identity details" });
   }
 }
 

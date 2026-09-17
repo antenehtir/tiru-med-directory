@@ -1,391 +1,75 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
-import { FACILITIES_CACHE_TAG } from "@/lib/supabase/get-facilities";
-import { summarizeFacilityChanges } from "@/lib/audit/change-summary";
+import {
+  saveAboutSection,
+  saveCheckupsSection,
+  saveContactSection,
+  saveDoctorsSection,
+  saveIdentitySection,
+  saveLocationSection,
+  saveMediaSection,
+  saveServicesSection,
+  type FacilityAboutFields,
+  type FacilityCheckupFields,
+  type FacilityContactFields,
+  type FacilityEditor,
+  type FacilityIdentityFields,
+  type FacilityLocationFields,
+  type FacilityMediaFields,
+  type FacilityServicesFields,
+} from "@/lib/facility-edit/save-sections";
 
-// Admin direct-edit save path for an existing, live facility row. Unlike the
-// provider-onboarding autosave actions (autoSaveStep2/autoSaveStep3), this
-// writes straight to `facilities` — there is no facility_claims row to vet,
-// because this is an admin editing a listing that already exists, not an
-// external submission being reviewed. Every write is logged to audit_log
-// using the same {admin_id, action, entity_type, entity_id, old_value,
-// new_value, note} shape already used by updateFacilityBadge/deactivateFacility
-// in ../actions.ts, and never touches verification_status.
-
-async function loadFacilitySnapshot(
-  supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
-  facilityId: string,
-  columns: string,
-) {
-  const { data } = await supabase.from("facilities").select(columns).eq("id", facilityId).single();
-  return data as Record<string, unknown> | null;
-}
-
-async function logFacilityEdit(
-  supabase: Awaited<ReturnType<typeof createAdminSupabaseClient>>,
-  adminId: string,
-  facilityId: string,
-  action: string,
-  before: Record<string, unknown> | null,
-  after: Record<string, unknown>,
-  facilityName: string | undefined,
-) {
-  // Item-level for lists, before/after for scalars — see change-summary.ts
-  // for why a field-level diff was useless on a facility carrying a hundred
-  // services.
-  const { old_value, new_value, changed, changedLabels } = summarizeFacilityChanges(before, after);
-  if (changed.length === 0) return;
-
-  const { error } = await supabase.from("audit_log").insert({
-    admin_id: adminId,
-    action,
-    entity_type: "facility",
-    entity_id: facilityId,
-    old_value,
-    new_value,
-    note: `Admin edited ${changedLabels} on "${facilityName ?? facilityId}"`,
-  });
-  // Surfaced rather than swallowed: a silent failure here means an admin edit
-  // landed on the live listing with no trace of who made it.
-  if (error) throw new Error(`Facility updated, but the audit log write failed: ${error.message}`);
-}
-
-const SERVICES_COLUMNS =
-  "name, services, special_services, custom_service_categories, schedule, working_hours, payment_methods, insurance_note, walkin_appointment, appointment_modalities, emergency_type, diagnostic_subtype, closed_on_public_holidays";
-
-// Every key is optional: the editor sends only what the admin actually
-// changed, so an untouched column is never overwritten with a UI default.
-type FacilityServicesFields = {
-  services?: string[];
-  // Legacy CSV-import column. The editor only ever sends an empty array here
-  // — see AdminFacilityServicesEditor's hadSpecialServices — retiring it into
-  // services rather than managing it as a field of its own.
-  special_services?: string[];
-  custom_service_categories?: Record<string, string[]>;
-  schedule?: unknown;
-  working_hours?: string;
-  payment_methods?: string[];
-  insurance_note?: string | null;
-  walkin_appointment?: string | null;
-  appointment_modalities?: unknown;
-  emergency_type?: string | null;
-  // Which service lists a Diagnostic Center is shown. Only three values are
-  // meaningful and the column's CHECK constraint enforces them, but the guard
-  // is here too: a bad value would not error, it would quietly hide a list the
-  // facility needs.
-  diagnostic_subtype?: string | null;
-  // Three-state: null means nobody has answered, which the listing shows as
-  // silence rather than as "open on holidays".
-  closed_on_public_holidays?: boolean | null;
-};
-
-export async function updateFacilityServices(
-  facilityId: string,
-  fields: FacilityServicesFields,
-) {
-  const adminUser = await getAdminUser();
-  if (!adminUser) throw new Error("Unauthorized");
-
-  if (Object.keys(fields).length === 0) return;
-
-  if (fields.services && fields.services.length === 0) {
-    throw new Error("At least one service is required.");
-  }
-
-  if (
-    fields.diagnostic_subtype != null &&
-    !["lab", "imaging", "both"].includes(fields.diagnostic_subtype)
-  ) {
-    throw new Error(`Unknown diagnostic subtype "${fields.diagnostic_subtype}".`);
-  }
-
-  const supabase = await createAdminSupabaseClient();
-  const before = await loadFacilitySnapshot(supabase, facilityId, SERVICES_COLUMNS);
-
-  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
-  if (error) throw new Error(error.message);
-
-  await logFacilityEdit(
-    supabase,
-    adminUser.id,
-    facilityId,
-    "facility_services_edited",
-    before,
-    fields,
-    before?.name as string | undefined,
-  );
-
-  revalidatePath("/admin/facilities");
-  revalidatePath(`/admin/facilities/${facilityId}/edit`);
-  revalidatePath("/facilities/[slug]", "page");
-  // The listing pages read the shared, tagged facility list instead of
-  // querying per request, so clearing the routes alone would just re-render
-  // them from the same stale list. updateTag is the read-your-own-writes form,
-  // which is exactly what an admin pressing Save expects.
-  updateTag(FACILITIES_CACHE_TAG);
-  revalidatePath("/facilities");
-  revalidatePath("/search");
-  revalidatePath("/");
-}
-
-const LOCATION_COLUMNS =
-  "name, latitude, longitude, maps_link, sub_city, area, branches, branch_count";
-
-// Same partial contract as the other two sections.
-type FacilityLocationFields = Partial<{
-  latitude: number | null;
-  longitude: number | null;
-  maps_link: string | null;
-  sub_city: string | null;
-  area: string | null;
-  branches: unknown;
-  branch_count: number;
-}>;
-
-// Matches the bounds /api/provider/resolve-maps-link already enforces, so a
-// coordinate cannot be saved here that the picker itself would have rejected.
-function isWithinAddis(lat: number, lng: number): boolean {
-  return lat >= 8.7 && lat <= 9.3 && lng >= 38.5 && lng <= 39.0;
-}
-
-export async function updateFacilityLocation(
-  facilityId: string,
-  fields: FacilityLocationFields,
-) {
-  const adminUser = await getAdminUser();
-  if (!adminUser) throw new Error("Unauthorized");
-
-  if (Object.keys(fields).length === 0) return;
-
-  // Latitude and longitude only ever move together — a row carrying one
-  // without the other cannot be placed on a map at all.
-  const movingLat = fields.latitude !== undefined;
-  const movingLng = fields.longitude !== undefined;
-  if (movingLat !== movingLng) {
-    throw new Error("Latitude and longitude must be set together.");
-  }
-  if (movingLat && movingLng) {
-    const { latitude, longitude } = fields;
-    if (typeof latitude !== "number" || typeof longitude !== "number") {
-      throw new Error("Coordinates must both be numbers.");
-    }
-    if (!isWithinAddis(latitude, longitude)) {
-      throw new Error(
-        `${latitude}, ${longitude} is outside Addis Ababa — check the map link before saving.`,
-      );
-    }
-  }
-
-  // branch_count is never accepted from the client: it is the number of sites,
-  // which is exactly branches.length + 1 (the array holds the ADDITIONAL sites;
-  // the facility row itself is site one). Two fields that must agree but can be
-  // set independently is the drift this codebase has been bitten by repeatedly
-  // — the category maps, the nav route list, the category vocabulary. One
-  // source of truth: count the array.
-  const payload: Record<string, unknown> = { ...fields };
-  if (Array.isArray(fields.branches)) {
-    payload.branch_count = fields.branches.length + 1;
-  } else {
-    delete payload.branch_count;
-  }
-
-  const supabase = await createAdminSupabaseClient();
-  const before = await loadFacilitySnapshot(supabase, facilityId, LOCATION_COLUMNS);
-
-  const { error } = await supabase.from("facilities").update(payload).eq("id", facilityId);
-  if (error) throw new Error(error.message);
-
-  await logFacilityEdit(
-    supabase,
-    adminUser.id,
-    facilityId,
-    "facility_location_edited",
-    before,
-    payload,
-    before?.name as string | undefined,
-  );
-
-  revalidatePath("/admin/facilities");
-  revalidatePath(`/admin/facilities/${facilityId}/edit`);
-  revalidatePath("/facilities/[slug]", "page");
-  // The listing pages read the shared, tagged facility list instead of
-  // querying per request, so clearing the routes alone would just re-render
-  // them from the same stale list. updateTag is the read-your-own-writes form,
-  // which is exactly what an admin pressing Save expects.
-  updateTag(FACILITIES_CACHE_TAG);
-  revalidatePath("/facilities");
-  revalidatePath("/search");
-  revalidatePath("/");
-  // /nearby ranks by these coordinates, so a stale cache there is the whole
-  // point of this edit going unnoticed.
-  revalidatePath("/nearby");
-}
-
-const CONTACT_COLUMNS =
-  "name, phone, phone_2, phones, whatsapp, telegram, email, website, instagram, facebook, tiktok, linkedin, youtube";
-
-const URL_FIELDS = ["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const;
-
-function isValidUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-// Partial for the same reason as the services payload: only the fields the
-// admin actually changed are sent, so nothing else on the row is rewritten.
-type FacilityContactFields = Partial<{
-  // The full list. phone and phone_2 remain its first two entries and are
-  // always sent alongside it, so a reader that knows only the old columns and
-  // one that reads the array can never disagree about a facility's numbers.
-  phones: string[];
-  phone: string;
-  phone_2: string | null;
-  whatsapp: string | null;
-  telegram: string | null;
-  email: string | null;
-  website: string | null;
-  instagram: string | null;
-  facebook: string | null;
-  tiktok: string | null;
-  linkedin: string | null;
-  youtube: string | null;
-}>;
-
-export async function updateFacilityContact(
-  facilityId: string,
-  fields: FacilityContactFields,
-) {
-  const adminUser = await getAdminUser();
-  if (!adminUser) throw new Error("Unauthorized");
-
-  if (Object.keys(fields).length === 0) return;
-
-  // Only enforced when phone is part of this edit — an untouched phone is
-  // simply absent from the payload, not an attempt to clear it.
-  if (fields.phone !== undefined && !fields.phone.trim()) {
-    throw new Error("Primary phone is required.");
-  }
-
-  if (fields.phones !== undefined) {
-    if (fields.phones.length === 0) {
-      throw new Error("At least one phone number is required.");
-    }
-    // The pair has to mirror the head of the list. They are written together
-    // here, but a caller sending only one of them would leave the row
-    // describing two different sets of numbers depending on who read it.
-    if (fields.phone !== undefined && fields.phones[0] !== fields.phone) {
-      throw new Error("The first number and the primary phone must match.");
-    }
-  }
-
-  for (const key of URL_FIELDS) {
-    const value = fields[key];
-    if (value && !isValidUrl(value)) {
-      throw new Error(`"${value}" is not a valid URL for ${key}.`);
-    }
-  }
-
-  const supabase = await createAdminSupabaseClient();
-  const before = await loadFacilitySnapshot(supabase, facilityId, CONTACT_COLUMNS);
-
-  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
-  if (error) throw new Error(error.message);
-
-  await logFacilityEdit(
-    supabase,
-    adminUser.id,
-    facilityId,
-    "facility_contact_edited",
-    before,
-    fields,
-    before?.name as string | undefined,
-  );
-
-  revalidatePath("/admin/facilities");
-  revalidatePath(`/admin/facilities/${facilityId}/edit`);
-  revalidatePath("/facilities/[slug]", "page");
-  // The listing pages read the shared, tagged facility list instead of
-  // querying per request, so clearing the routes alone would just re-render
-  // them from the same stale list. updateTag is the read-your-own-writes form,
-  // which is exactly what an admin pressing Save expects.
-  updateTag(FACILITIES_CACHE_TAG);
-  revalidatePath("/facilities");
-  revalidatePath("/search");
-  revalidatePath("/");
-}
-
-const IDENTITY_COLUMNS = "name, category, subcategory";
-
-// name and category deliberately had no editor anywhere before this. A
-// facility's name is not permanent — a centre rebrands, or a typo from the
-// original import survives to today — and its category is not permanent
-// either: a clinic that adds inpatient beds becomes a hospital, a specialty
-// centre that narrows its scope becomes a diagnostic lab. Both need to be
-// changeable from the outset rather than bolted on once the first request
-// for it arrives.
+// Admin direct-edit save path for an existing, live facility row. Writes
+// straight to `facilities`: this is an admin editing a listing that already
+// exists, not an external submission being reviewed.
 //
-// category must be a value FACILITY_CATEGORY_DB_MAP recognises — the same
-// guard approveClaim already applies before a claim can go live, reused here
-// so an admin cannot quietly repeat the "Hospital"/"Telemedicine" mistake
-// that made those rows invisible to every category filter.
-type FacilityIdentityFields = Partial<{
-  name: string;
-  category: string;
-  // Only ever sent when the chosen category is one of the "describes as"
-  // labels (Medical Complex, Multi-specialty Center) or a genuinely free-
-  // typed "Other" description — never for a plain category choice, since
-  // subcategory doubles as most facilities' own short description text and
-  // switching between two plain categories has nothing to say about it.
-  subcategory: string | null;
-}>;
+// Validation, the before-snapshot, the write and the audit entry live in
+// lib/facility-edit/save-sections.ts, shared with the verified-provider
+// editor. This file only establishes that the caller is an admin.
 
-export async function updateFacilityIdentity(
-  facilityId: string,
-  fields: FacilityIdentityFields,
-) {
+async function adminEditor(): Promise<FacilityEditor> {
   const adminUser = await getAdminUser();
   if (!adminUser) throw new Error("Unauthorized");
+  return { kind: "admin", id: adminUser.id, supabase: await createAdminSupabaseClient() };
+}
 
-  if (Object.keys(fields).length === 0) return;
+export async function updateFacilityServices(facilityId: string, fields: FacilityServicesFields) {
+  await saveServicesSection(await adminEditor(), facilityId, fields);
+}
 
-  if (fields.name !== undefined && !fields.name.trim()) {
-    throw new Error("Facility name is required.");
+export async function updateFacilityContact(facilityId: string, fields: FacilityContactFields) {
+  await saveContactSection(await adminEditor(), facilityId, fields);
+}
+
+export async function updateFacilityLocation(facilityId: string, fields: FacilityLocationFields) {
+  await saveLocationSection(await adminEditor(), facilityId, fields);
+}
+
+export async function updateFacilityIdentity(facilityId: string, fields: FacilityIdentityFields) {
+  await saveIdentitySection(await adminEditor(), facilityId, fields);
+}
+
+export async function updateFacilityAbout(facilityId: string, fields: FacilityAboutFields) {
+  await saveAboutSection(await adminEditor(), facilityId, fields);
+}
+
+export async function updateFacilityCheckups(facilityId: string, fields: FacilityCheckupFields) {
+  await saveCheckupsSection(await adminEditor(), facilityId, fields);
+}
+
+export async function updateFacilityDoctors(facilityId: string, doctors: unknown[]) {
+  await saveDoctorsSection(await adminEditor(), facilityId, doctors);
+}
+
+export async function updateFacilityMedia(
+  facilityId: string,
+  fields: FacilityMediaFields,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await saveMediaSection(await adminEditor(), facilityId, fields);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Save failed." };
   }
-
-  if (fields.category !== undefined) {
-    const { isMappedFacilityCategory } = await import("@/lib/frontend-search-filters");
-    if (!isMappedFacilityCategory(fields.category)) {
-      throw new Error(`"${fields.category}" is not a supported facility category.`);
-    }
-  }
-
-  const supabase = await createAdminSupabaseClient();
-  const before = await loadFacilitySnapshot(supabase, facilityId, IDENTITY_COLUMNS);
-
-  const { error } = await supabase.from("facilities").update(fields).eq("id", facilityId);
-  if (error) throw new Error(error.message);
-
-  await logFacilityEdit(
-    supabase,
-    adminUser.id,
-    facilityId,
-    "facility_identity_edited",
-    before,
-    fields,
-    (fields.name ?? before?.name) as string | undefined,
-  );
-
-  revalidatePath("/admin/facilities");
-  revalidatePath(`/admin/facilities/${facilityId}/edit`);
-  revalidatePath("/facilities/[slug]", "page");
-  updateTag(FACILITIES_CACHE_TAG);
-  revalidatePath("/facilities");
-  revalidatePath("/search");
-  revalidatePath("/");
 }

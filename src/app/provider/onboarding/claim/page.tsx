@@ -14,9 +14,6 @@ export default async function ClaimFacilityPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="mb-8">
-          <div className="mb-3 inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            Step 1 of 4
-          </div>
           <h1 className="text-2xl font-bold text-foreground">
             Is your facility already on Tiru?
           </h1>

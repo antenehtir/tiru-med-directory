@@ -31,6 +31,10 @@ function str(value: unknown): string {
 // free-typed Other, rather than the plainer 7-value stored-category list
 // this editor used to offer. An admin correcting a listing's type deserves
 // at least the choice a provider's own review request already has.
+//
+// Admin only. A verified provider requests name and type changes for review
+// instead (FacilityChangeRequestCard), so this section is never handed a
+// provider save action.
 export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }) {
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<Date | null>(null);

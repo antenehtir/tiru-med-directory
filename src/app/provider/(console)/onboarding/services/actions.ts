@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
 import { calculateCompletion } from "@/lib/provider/onboarding-config";
-import { syncToFacilityIfApproved } from "@/lib/provider/facility-field-mapping";
 import { wantsToStayOnStep } from "@/lib/provider/save-intent";
 
 export async function saveStep3(formData: FormData) {
@@ -95,12 +94,6 @@ export async function saveStep3(formData: FormData) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    // Same gap as Steps 1 and 2 had: this action holds the step's
-    // authoritative FormData and was never pushing it to the live row.
-    await syncToFacilityIfApproved(supabase, updatedClaim, {
-      changeNote: "services & specialties",
-    });
   }
 
   if (stayOnStep) return;
@@ -186,7 +179,5 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
       .from("provider_accounts")
       .update({ completion_pct: completionPct })
       .eq("id", provider.id);
-
-    await syncToFacilityIfApproved(supabase, updatedClaim, { changeNote: "services & specialties" });
   }
 }

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { updateFacilityContact } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
+import type { FacilityContactFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
 import { normalizeUrl } from "@/lib/normalize-url";
 import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
@@ -13,7 +14,16 @@ function str(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-export function AdminFacilityContactEditor({ facility }: { facility: Facility }) {
+export function AdminFacilityContactEditor({
+  facility,
+  saveAction = updateFacilityContact,
+}: {
+  facility: Facility;
+  // Which server action commits this section. Defaults to the admin one; the
+  // verified-provider editor passes its own, scoped to their facility. The
+  // section itself neither knows nor cares who is saving.
+  saveAction?: (facilityId: string, fields: FacilityContactFields) => Promise<void>;
+}) {
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +105,7 @@ export function AdminFacilityContactEditor({ facility }: { facility: Facility })
 
     startTransition(async () => {
       try {
-        await updateFacilityContact(facility.id as string, changed);
+        await saveAction(facility.id as string, changed);
         initial.current = { ...initial.current, ...changed };
         setSavedAt(new Date());
       } catch (e) {

@@ -155,6 +155,70 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+export type LiveFacilitySummary = {
+  doctors: unknown;
+  photo_urls: unknown;
+  photo_url: string | null;
+  updated_at: string | null;
+};
+
+const LIVE_SHORTCUTS = [
+  { label: "Edit services →", href: "/provider/listing?section=services" },
+  { label: "Update doctors →", href: "/provider/listing?section=doctors" },
+  { label: "Change photos →", href: "/provider/listing?section=photos" },
+];
+
+// The overview for a verified provider. Figures come from the live listing,
+// not the claim draft — after approval the draft is never updated again, so
+// counting its doctors would report a roster the public page no longer shows.
+function LiveOverview({ facility }: { facility: LiveFacilitySummary }) {
+  const doctorCount = Array.isArray(facility.doctors) ? facility.doctors.length : 0;
+  const photoCount = Array.isArray(facility.photo_urls)
+    ? facility.photo_urls.length
+    : facility.photo_url
+      ? 1
+      : 0;
+  const lastUpdated = facility.updated_at ? formatDate(facility.updated_at) : "—";
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <p className="font-semibold text-foreground">Your listing is live</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          You manage it directly — anything you save appears on the public page straight away.
+        </p>
+        <a
+          className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          href="/provider/listing"
+        >
+          Edit your listing →
+        </a>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard label="Doctors listed" value={String(doctorCount)} />
+        <StatCard label="Photos" value={String(photoCount)} />
+        <StatCard label="Last updated" value={lastUpdated} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <p className="mb-3 font-semibold text-foreground">Quick edit</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {LIVE_SHORTCUTS.map((shortcut) => (
+            <a
+              key={shortcut.href}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-center text-sm font-medium text-foreground transition hover:border-primary hover:text-primary"
+              href={shortcut.href}
+            >
+              {shortcut.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const QUICK_EDIT_SHORTCUTS = [
   { label: "Edit services →", href: "/provider/onboarding/services" },
   { label: "Add a doctor →", href: "/provider/onboarding/doctors" },
@@ -197,9 +261,12 @@ function ApprovedOverview({ provider, claim }: { provider: ProviderAccount; clai
 export function ProviderDashboard({
   provider,
   claim,
+  liveFacility = null,
 }: {
   provider: ProviderAccount;
   claim: FacilityClaim | null;
+  // Set only for a verified provider with a facility to manage.
+  liveFacility?: LiveFacilitySummary | null;
 }) {
   const submissionStep = (claim?.submission_step as number | null) ?? 0;
   const pct = claim ? calculateCompletion(claim) : 0;
@@ -215,6 +282,21 @@ export function ProviderDashboard({
 
   const showQuickLinks = claim?.status !== "pending_review" && claim?.status !== "approved";
   const showCompletionBreakdown = Boolean(claim) && claim?.status === "pending";
+
+  if (liveFacility) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+        <LiveOverview facility={liveFacility} />
+
+        <div className="mt-8 text-center">
+          <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
+            Need help? Contact us
+          </a>
+          <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
+        </div>
+      </div>
+    );
+  }
 
   if (claim?.status === "approved") {
     return (

@@ -2,13 +2,13 @@
 
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { providerSignUp } from "@/app/provider/signup/actions";
+import { providerClaimSignUp, providerSignUp } from "@/app/provider/signup/actions";
 import {
   FACILITY_CATEGORY_CHOICES,
   FACILITY_CATEGORY_OTHER_LABEL,
   resolveCategoryChoice,
 } from "@/lib/frontend-search-filters";
-import { DIAGNOSTIC_SUBTYPE_OPTIONS } from "@/lib/provider/onboarding-config";
+import { CLAIMANT_ROLES, DIAGNOSTIC_SUBTYPE_OPTIONS } from "@/lib/provider/onboarding-config";
 import { PasswordStrengthHint } from "./PasswordStrengthHint";
 import { SubmitButton } from "./SubmitButton";
 
@@ -44,7 +44,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ProviderSignupFormInner() {
+function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignupFacility }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [password, setPassword] = useState("");
@@ -68,7 +68,11 @@ function ProviderSignupFormInner() {
       ? "You must accept the terms to continue."
       : errorParam === "account_creation_failed"
         ? "Account creation failed. Please try again."
-        : errorParam
+        : errorParam === "already_managed"
+          ? "This facility is already managed by a verified account. If you work there, contact the Tiru team."
+          : errorParam === "not_found"
+            ? "That facility could not be found. Please search for it again."
+            : errorParam
           ? errorParam
           : null;
 
@@ -83,7 +87,31 @@ function ProviderSignupFormInner() {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <form action={providerSignUp} className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form
+        action={claimFacility ? providerClaimSignUp : providerSignUp}
+        className="flex flex-col gap-4"
+        onSubmit={handleSubmit}
+      >
+        {claimFacility ? (
+          <>
+            <SectionLabel>The facility you&apos;re claiming</SectionLabel>
+            <input name="claim_facility_id" type="hidden" value={claimFacility.id} />
+            <div className="rounded-xl border border-primary bg-primary/5 p-3">
+              <p className="text-sm font-semibold text-foreground">{claimFacility.name}</p>
+              {claimFacility.location && (
+                <p className="text-xs text-muted-foreground">{claimFacility.location}</p>
+              )}
+              <a className="mt-1 inline-block text-xs font-medium text-primary hover:underline" href="/provider/signup">
+                Not this one? Search again
+              </a>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tiru already has this facility&apos;s details — you won&apos;t need to enter them.
+              Once we&apos;ve verified you work there, you can edit the listing yourself.
+            </p>
+          </>
+        ) : (
+        <>
         <SectionLabel>About your facility</SectionLabel>
 
         <div className="flex flex-col gap-1.5">
@@ -231,6 +259,8 @@ function ProviderSignupFormInner() {
             The official number patients call. Admin will use this to verify your claim.
           </p>
         </div>
+        </>
+        )}
 
         <div className="mt-2 border-t border-border pt-4">
           <SectionLabel>Your account</SectionLabel>
@@ -266,7 +296,7 @@ function ProviderSignupFormInner() {
             <option disabled value="">
               Select your role
             </option>
-            {ROLE_OPTIONS.map((role) => (
+            {(claimFacility ? CLAIMANT_ROLES : ROLE_OPTIONS).map((role) => (
               <option key={role} value={role}>
                 {role}
               </option>
@@ -423,17 +453,23 @@ function ProviderSignupFormInner() {
         )}
 
         <SubmitButton className="mt-1 w-full" loadingText="Creating account…">
-          Create account
+          {claimFacility ? "Create account & submit claim" : "Create account"}
         </SubmitButton>
       </form>
     </div>
   );
 }
 
-export function ProviderSignupForm() {
+export type ClaimSignupFacility = { id: string; name: string; location: string | null };
+
+// With `claimFacility`, this is the short sign-up for claiming a facility
+// already on Tiru: the facility questions are replaced by the facility that
+// was chosen, and the account is created with the claim already submitted.
+// Without it, this is the new-listing sign-up exactly as before.
+export function ProviderSignupForm({ claimFacility }: { claimFacility?: ClaimSignupFacility }) {
   return (
     <Suspense>
-      <ProviderSignupFormInner />
+      <ProviderSignupFormInner claimFacility={claimFacility} />
     </Suspense>
   );
 }

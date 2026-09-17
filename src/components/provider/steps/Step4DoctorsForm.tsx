@@ -18,6 +18,7 @@ import {
   type DoctorEntry,
 } from "@/lib/provider/doctor-types";
 import { ScheduleBuilder } from "@/components/provider/ScheduleBuilder";
+import { formatAddisTime } from "@/lib/addis-time";
 
 const DOCTOR_PHOTO_ASPECT = 1;
 
@@ -45,7 +46,30 @@ function normalizeDoctor(raw: Partial<DoctorEntry>): DoctorEntry {
   };
 }
 
-export function Step4DoctorsForm({ claim }: { claim: Claim }) {
+// Editing the doctor roster of a listing that is already live, from the
+// shared facility editor (admin, or the facility's own verified provider).
+// The roster comes from and goes to facilities.doctors, not a claim draft.
+export type LiveDoctorsEditing = {
+  facilityId: string;
+  doctors: unknown;
+  walkinAppointment: string | null;
+  // Storage folder for doctor photos. Onboarding files them under the claim
+  // id; a live edit keeps using the facility's claim when it has one.
+  uploadFolder: string;
+  save: (facilityId: string, doctors: DoctorEntry[]) => Promise<void>;
+};
+
+// Without `live`, this is onboarding step 4 exactly as before: autosave to
+// the claim draft, Skip / Back / Save & continue. With it, nothing is written
+// until Save is pressed — the listing is public, and an autosave on every
+// blur would publish half-typed names and log each keystroke as an edit.
+export function Step4DoctorsForm({
+  claim = {},
+  live,
+}: {
+  claim?: Claim;
+  live?: LiveDoctorsEditing;
+}) {
   // Specialist schedules earn their prominence on the facility types where a
   // visitor searches by discipline rather than by building.
   const namesSpecialists = ["Hospital", "Specialty Center"].includes(
@@ -54,18 +78,21 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const claimId = (claim.id as string) ?? "unknown";
+  const claimId = live?.uploadFolder ?? (claim.id as string) ?? "unknown";
 
   // The doctor-level "Appointment required?" question was removed as a
   // duplicate of this facility-level policy (set in the hours/availability
   // step) — every doctor's appointment_required now just follows it.
-  const facilityAppointmentRequired = claim.proposed_walkin_appointment === "Appointment required";
+  const walkinPolicy = live ? live.walkinAppointment : claim.proposed_walkin_appointment;
+  const facilityAppointmentRequired = walkinPolicy === "Appointment required";
 
   function applyFacilityAppointmentPolicy(list: DoctorEntry[]): DoctorEntry[] {
     return list.map((d) => ({ ...d, appointment_required: facilityAppointmentRequired }));
   }
 
-  const existingDoctors = claim.proposed_doctors as Partial<DoctorEntry>[] | null;
+  const existingDoctors = (live ? live.doctors : claim.proposed_doctors) as
+    | Partial<DoctorEntry>[]
+    | null;
   const [doctors, setDoctors] = useState<DoctorEntry[]>(
     existingDoctors && existingDoctors.length > 0
       ? existingDoctors.map(normalizeDoctor)
@@ -76,7 +103,41 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [photoErrors, setPhotoErrors] = useState<Record<string, string>>({});
 
+  // Blank cards stay on screen to type into but never reach the public
+  // listing — a live roster cannot carry an unnamed doctor.
+  function publishableRoster(list: DoctorEntry[]): DoctorEntry[] {
+    return applyFacilityAppointmentPolicy(list).filter((d) => d.full_name.trim());
+  }
+  const [liveBaseline, setLiveBaseline] = useState(() =>
+    JSON.stringify(
+      publishableRoster(
+        existingDoctors && existingDoctors.length > 0 ? existingDoctors.map(normalizeDoctor) : [],
+      ),
+    ),
+  );
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+  function handleLiveSave() {
+    if (!live) return;
+    setLiveError(null);
+    const roster = publishableRoster(doctors);
+    if (JSON.stringify(roster) === liveBaseline) {
+      setLiveError("Nothing to save — no changes were made in this section.");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        await live.save(live.facilityId, roster);
+        setLiveBaseline(JSON.stringify(roster));
+        setLastSaved(new Date());
+      } catch (e) {
+        setLiveError(e instanceof Error ? e.message : "Failed to save.");
+      }
+    });
+  }
+
   function autoSave(next: DoctorEntry[]) {
+    if (live) return;
     const withPolicy = applyFacilityAppointmentPolicy(next);
     startTransition(async () => {
       await autoSaveStep4(withPolicy);
@@ -174,7 +235,11 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
     pendingPhotoFileRef.current = null;
 
     const { doctorId: id } = crop;
-    const previousUrl = doctors.find((d) => d.id === id)?.photo_url || null;
+    // On a live listing the old photo is still what the public page shows
+    // until Save is pressed, so it is not deleted here — replacing it would
+    // otherwise leave the listing pointing at a removed file whenever the
+    // edit is abandoned. The cost is an unused file left in storage.
+    const previousUrl = live ? null : doctors.find((d) => d.id === id)?.photo_url || null;
     setUploadingId(id);
 
     try {
@@ -242,6 +307,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
           encouragement that does not apply teaches people to ignore the next
           one. Either way the step really is optional, and the skip sits
           inside the same block as the reason not to. */}
+      {!live && (
       <div className="rounded-xl border border-border bg-sunken p-4">
         <p className="text-sm font-semibold text-foreground">
           {namesSpecialists ? "Optional — but this is the step that gets you found" : "This step is optional"}
@@ -258,14 +324,16 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
           Skip this step →
         </a>
       </div>
+      )}
 
       {/* Why there is no per-doctor appointment toggle below. Only worth
           saying once the facility-level policy actually has a value to point
           at — otherwise it describes a setting the provider has not met. */}
-      {typeof claim.proposed_walkin_appointment === "string" && claim.proposed_walkin_appointment && (
+      {typeof walkinPolicy === "string" && walkinPolicy && (
         <p className="text-xs text-muted-foreground">
-          Appointment availability for every doctor follows your facility&apos;s policy from the
-          previous step ({claim.proposed_walkin_appointment}).
+          {live
+            ? `Appointment availability for every doctor follows the facility's walk-in / appointment policy (${walkinPolicy}).`
+            : `Appointment availability for every doctor follows your facility's policy from the previous step (${walkinPolicy}).`}
         </p>
       )}
 
@@ -280,7 +348,11 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
               <h2 className="text-lg font-bold text-foreground">
                 Doctor / Staff #{index + 1}
               </h2>
-              {doctors.length > 1 && (
+              {/* Onboarding keeps one card on screen to fill in. A live
+                  listing has to be able to drop its last doctor too — a
+                  roster that can never reach zero cannot be corrected when
+                  that doctor leaves. */}
+              {(live || doctors.length > 1) && (
                 <button
                   className="shrink-0 text-xs text-red-500 hover:text-red-600"
                   onClick={() => removeDoctor(doctor.id)}
@@ -525,6 +597,28 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
         + Add another doctor
       </button>
 
+      {live ? (
+        <div className="space-y-3">
+          {liveError && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+              {liveError}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {lastSaved && !isPending && (
+              <span className="text-xs text-muted-foreground">Saved {formatAddisTime(lastSaved)}</span>
+            )}
+            <button
+              className="flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isPending || uploadingId !== null}
+              onClick={handleLiveSave}
+              type="button"
+            >
+              {isPending ? "Saving…" : "Save Doctors"}
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="flex items-center justify-between">
         <a
           className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -575,6 +669,7 @@ export function Step4DoctorsForm({ claim }: { claim: Claim }) {
           </button>
         </div>
       </div>
+      )}
 
       {photoCrop && (
         <ImageCropModal
