@@ -533,11 +533,11 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
     if (claim.proposed_name) pct += 10;
   }
 
-  // Step 2 (30%): sub_city + area + landmark + phone + (map pin OR maps link)
-  const hasLocation =
-    claim.proposed_sub_city &&
-    claim.proposed_area &&
-    claim.proposed_landmark;
+  // Step 2 (30%): sub_city + area + phone + (map pin OR maps link).
+  // Landmark is no longer required: it was merged into the area field (and
+  // is cleared on the first edit), so requiring it meant step 2 could never
+  // count and no new listing could reach 100%.
+  const hasLocation = claim.proposed_sub_city && claim.proposed_area;
   const hasContact = claim.proposed_phone;
   const hasMap =
     (claim.proposed_latitude && claim.proposed_longitude) ||

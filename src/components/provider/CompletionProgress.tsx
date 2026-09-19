@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 // The listing's completion percentage, shown in the provider menu and on the
 // phone's top bar while a new listing is being filled in.
@@ -15,11 +15,21 @@ const RefreshCompletionContext = createContext<() => void>(() => {});
 
 export function CompletionRefreshProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
   }, []);
+
+  // The console layout is not re-rendered when moving between steps, so the
+  // meter kept the number from the previous page. Re-read it on each step.
+  const firstPath = useRef(pathname);
+  useEffect(() => {
+    if (pathname === firstPath.current) return;
+    firstPath.current = pathname;
+    router.refresh();
+  }, [pathname, router]);
 
   const refresh = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
