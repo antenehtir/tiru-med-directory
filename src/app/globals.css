@@ -578,3 +578,16 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Admin dashboard "New facilities and claims" series (see
+   src/lib/admin/dashboard-colors.ts). Tailwind palette steps the app already
+   uses; validated for colour-blind separation and contrast in both modes. */
+:root {
+  --chart-activity-team: var(--color-teal-600);
+  --chart-activity-listed: var(--color-violet-600);
+  --chart-activity-claimed: var(--color-orange-600);
+}
+
+[data-theme="dark"] {
+  --chart-activity-listed: var(--color-violet-500);
+}

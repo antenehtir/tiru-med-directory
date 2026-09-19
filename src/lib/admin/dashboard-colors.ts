@@ -19,14 +19,16 @@ export const BADGE_STATUS_LABELS: Record<string, string> = {
   verified: "Verified",
 };
 
-// No existing semantic token distinguishes "claim on an existing facility"
-// vs. "brand-new listing request" elsewhere in the app (the Provider
-// Submissions tabs use plain selected/muted Pill states, not fixed colors)
-// — these match the dashboard's own Listing Requests / Claims Pending stat
-// card accents (text-violet-600 / text-rose-600) instead, the closest
-// existing color association for these two categories.
-export const SUBMISSION_SERIES_COLORS = {
-  newListings: "#7C3AED", // violet-600 — dashboard "Listing Requests" stat card
-  claims: "#E11D48", // rose-600 — dashboard "Claims Pending" stat card
-  adminAdded: "var(--primary)", // the brand teal — "Total Facilities" card family
-};
+// The three series of the "New facilities and claims" chart, in stack order
+// (bottom to top). Colours are the --chart-activity-* variables in
+// globals.css — teal, violet and orange from the Tailwind palette the app
+// already uses, with a dark-mode step for violet. The set was checked with a
+// colour-vision validator in both modes: every pair stays distinct for
+// colour-blind readers and each clears 3:1 against the card. Red was dropped
+// for claims because red means "needs attention" elsewhere in the admin
+// area. The dashboard's "Claims Pending" card uses the same orange.
+export const ACTIVITY_SERIES = [
+  { key: "adminAdded", label: "Added by Tiru team", color: "var(--chart-activity-team)" },
+  { key: "newListings", label: "Listed by provider", color: "var(--chart-activity-listed)" },
+  { key: "claims", label: "Claimed by provider", color: "var(--chart-activity-claimed)" },
+] as const;
