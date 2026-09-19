@@ -22,7 +22,8 @@ type ScheduleBuilderProps = {
   // a form that has not been wired for it shows nothing rather than a
   // checkbox that silently does nothing.
   closedOnPublicHolidays?: boolean | null;
-  onClosedOnPublicHolidaysChange?: (value: boolean) => void;
+  // null clears the answer back to "not stated".
+  onClosedOnPublicHolidaysChange?: (value: boolean | null) => void;
   // Home Care is the one category where round-the-clock is the norm rather
   // than the exception — a caregiver can be needed at 3am — so this puts the
   // 24/7 pattern first and names why, instead of leaving a home care provider
@@ -349,26 +350,36 @@ export function ScheduleBuilder({
       </button>
 
       {onClosedOnPublicHolidaysChange && (
-        <div className="rounded-lg border border-border bg-background px-3 py-2.5">
-          <label className="flex cursor-pointer items-start gap-2 text-sm text-foreground">
-            <input
-              checked={closedOnPublicHolidays === true}
-              className="mt-0.5"
-              onChange={(e) => onClosedOnPublicHolidaysChange(e.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              Closed on public holidays
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                {closedOnPublicHolidays === null || closedOnPublicHolidays === undefined
-                  ? "Not stated yet — the listing says nothing about holidays until this is answered."
-                  : closedOnPublicHolidays
-                    ? "Shown on the listing so nobody travels on a holiday to a closed door."
-                    : "The listing will show the facility as open on public holidays."}
-              </span>
-            </span>
-          </label>
-        </div>
+        // Two tick boxes rather than one: a single "Closed on public
+        // holidays" box cannot tell "open" apart from "not answered yet",
+        // and the listing says different things for each. Ticking one clears
+        // the other; unticking the ticked one goes back to "not stated".
+        <fieldset className="rounded-lg border border-border bg-background px-3 py-2.5">
+          <legend className="px-1 text-sm font-medium text-foreground">Public holidays</legend>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
+            {([
+              [false, "Open on public holidays"],
+              [true, "Closed on public holidays"],
+            ] as const).map(([value, label]) => (
+              <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm text-foreground" key={label}>
+                <input
+                  checked={closedOnPublicHolidays === value}
+                  className="size-4 accent-[var(--primary)]"
+                  onChange={(e) => onClosedOnPublicHolidaysChange(e.target.checked ? value : null)}
+                  type="checkbox"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {closedOnPublicHolidays === null || closedOnPublicHolidays === undefined
+              ? "Not stated yet — the listing says nothing about holidays until this is answered."
+              : closedOnPublicHolidays
+                ? "Shown on the listing so nobody travels on a holiday to a closed door."
+                : "The listing will show the facility as open on public holidays."}
+          </p>
+        </fieldset>
       )}
 
       {summary && (
@@ -378,7 +389,11 @@ export function ScheduleBuilder({
           </p>
           <p className="text-xs text-foreground mt-0.5">
             {summary}
-            {closedOnPublicHolidays === true ? " · Closed on public holidays" : ""}
+            {closedOnPublicHolidays === true
+              ? " · Closed on public holidays"
+              : closedOnPublicHolidays === false
+                ? " · Open on public holidays"
+                : ""}
           </p>
         </div>
       )}

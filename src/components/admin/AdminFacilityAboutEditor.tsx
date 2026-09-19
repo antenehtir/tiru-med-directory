@@ -8,6 +8,7 @@ import { LANGUAGES, OWNERSHIP_TYPES, PATIENT_GROUPS } from "@/lib/provider/onboa
 import { Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
+import { AccessNotesField } from "@/components/provider/AccessNotesField";
 
 type Facility = Record<string, unknown>;
 
@@ -246,7 +247,7 @@ export function AdminFacilityAboutEditor({
             <p className="text-sm font-medium text-foreground">Languages spoken with patients</p>
             <SelectAllButton onChange={setLanguages} options={LANGUAGES} selected={languages} />
           </div>
-          <PillList onChange={setLanguages} options={LANGUAGES} selected={languages} />
+          <PillList allowOther onChange={setLanguages} options={LANGUAGES} selected={languages} />
         </div>
 
         <div className={`flex flex-col gap-1.5 ${FIELD_GRID_FULL}`}>
@@ -267,17 +268,8 @@ export function AdminFacilityAboutEditor({
         </div>
 
         <div className={`flex flex-col gap-1.5 ${FIELD_GRID_FULL}`}>
-          <label className="text-sm font-medium text-foreground" htmlFor="about_access_notes">
-            Access notes
-          </label>
-          <textarea
-            className={inputClass}
-            id="about_access_notes"
-            onChange={(e) => setAccessNotes(e.target.value)}
-            placeholder="Parking, entrance, accessibility…"
-            rows={2}
-            value={accessNotes}
-          />
+          <p className="text-sm font-medium text-foreground">Access notes</p>
+          <AccessNotesField onChange={setAccessNotes} value={accessNotes} />
         </div>
       </FieldGrid>
 

@@ -6,6 +6,8 @@ import type { FacilityServicesFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
+import { AddOtherList } from "@/components/ui/AddOtherList";
+import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
 import {
   BasicLabSelector,
   PillSelector,
@@ -858,16 +860,15 @@ export function AdminFacilityServicesEditor({
 
           {paymentMethods.includes("Insurance") && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="admin_insurance_note">
-                Which insurers do you accept? (optional)
-              </label>
-              <input
-                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                id="admin_insurance_note"
-                onChange={(e) => setInsuranceNote(e.target.value)}
-                placeholder="e.g. Cigna, Nyala Insurance, CBHI"
-                type="text"
-                value={insuranceNote}
+              <p className="text-sm font-medium text-foreground">Which insurers do you accept? (optional)</p>
+              <AddOtherList
+                label="Add an insurer"
+                onAdd={(name) => setInsuranceNote(joinInsurers([...splitInsurers(insuranceNote), name]) ?? "")}
+                onRemove={(name) =>
+                  setInsuranceNote(joinInsurers(splitInsurers(insuranceNote).filter((n) => n !== name)) ?? "")
+                }
+                placeholder="e.g. Nyala Insurance"
+                values={splitInsurers(insuranceNote)}
               />
             </div>
           )}

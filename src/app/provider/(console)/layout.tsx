@@ -29,6 +29,7 @@ export default async function ProviderConsoleLayout({
   return (
     <ProviderConsoleShell
       claimStatus={(claim?.status as string | undefined) ?? null}
+      completionPct={mode === "wizard" ? ((provider.completion_pct as number | null) ?? 0) : null}
       facilityName={provider.facility_name ?? facilities?.name ?? "Your facility"}
       facilitySlug={facilities?.slug ?? null}
       facilityType={(claim?.facility_type as string | undefined) ?? null}

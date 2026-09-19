@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode, type SVGProps } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { formatAddisDate } from "@/lib/addis-time";
 import type { BadgeVariant } from "@/lib/design-tokens";
+import { CompletionMeter, CompletionRefreshProvider } from "@/components/provider/CompletionProgress";
 
 type NavItem = {
   label: string;
@@ -137,6 +138,7 @@ function formatDate(value: string | null): string {
 
 type SidebarContentProps = {
   facilityName: string;
+  completionPct: number | null;
   facilitySlug: string | null;
   facilityUpdatedAt: string | null;
   claimStatus: string | null;
@@ -197,6 +199,7 @@ function SidebarNavRow({
 
 function SidebarContent({
   facilityName,
+  completionPct,
   facilitySlug,
   facilityUpdatedAt,
   claimStatus,
@@ -220,6 +223,7 @@ function SidebarContent({
             Updated {formatDate(facilityUpdatedAt)}
           </p>
         )}
+        {completionPct !== null && <CompletionMeter pct={completionPct} />}
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Provider console">
@@ -250,7 +254,7 @@ function SidebarContent({
         />
       </nav>
 
-      <div className="space-y-1 border-t border-border px-3 py-4">
+      <div className="space-y-1 border-t border-border px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {facilitySlug && (
           <a
             href={`/facilities/${facilitySlug}`}
@@ -275,6 +279,7 @@ function SidebarContent({
 
 export function ProviderConsoleShell({
   facilityName,
+  completionPct = null,
   facilitySlug,
   facilityUpdatedAt,
   claimStatus,
@@ -284,6 +289,8 @@ export function ProviderConsoleShell({
   children,
 }: {
   facilityName: string;
+  // Shown while a new listing is being filled in; null hides the meter.
+  completionPct?: number | null;
   facilitySlug: string | null;
   facilityUpdatedAt: string | null;
   claimStatus: string | null;
@@ -314,6 +321,7 @@ export function ProviderConsoleShell({
 
   const sidebarProps: SidebarContentProps = {
     facilityName,
+    completionPct,
     facilitySlug,
     facilityUpdatedAt,
     claimStatus,
@@ -324,77 +332,91 @@ export function ProviderConsoleShell({
   };
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
-      {/* Desktop persistent sidebar */}
-      <aside className="hidden w-[220px] shrink-0 border-r border-border bg-card lg:block">
-        <div className="sticky top-0 h-screen">
-          <SidebarContent {...sidebarProps} />
-        </div>
-      </aside>
+    <CompletionRefreshProvider>
+      <div className="min-h-screen bg-background lg:flex">
+        {/* Desktop persistent sidebar */}
+        <aside className="hidden w-[220px] shrink-0 border-r border-border bg-card lg:block">
+          <div className="sticky top-0 h-screen">
+            <SidebarContent {...sidebarProps} />
+          </div>
+        </aside>
 
-      {/* Mobile top bar */}
-      <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3 lg:hidden">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">Tiru</span>
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-            Provider
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-          className="flex size-11 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
-        >
-          <MenuIcon className="size-5" />
-        </button>
-      </div>
-
-      {/* Mobile slide-in drawer — kept mounted (not conditionally rendered)
-          so the transform/opacity transitions actually animate; toggled via
-          classes instead. */}
-      <div
-        aria-hidden={!mobileOpen}
-        className={`fixed inset-0 z-50 lg:hidden ${mobileOpen ? "" : "pointer-events-none"}`}
-      >
-        <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-            mobileOpen ? "opacity-100" : "opacity-0"
-          }`}
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
-        <div
-          className={`absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-card shadow-2xl transition-transform duration-300 ease-out ${
-            mobileOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-border px-4 py-4">
-            <span className="text-base font-bold text-foreground">Tiru Provider</span>
+        {/* Mobile top bar */}
+        <div className="border-b border-border bg-card lg:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-foreground">Tiru</span>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                Provider
+              </span>
+            </div>
             <button
               type="button"
-              onClick={() => setMobileOpen(false)}
-              aria-label="Close menu"
-              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+              className="flex size-11 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
             >
-              <CloseIcon className="size-4" />
+              <MenuIcon className="size-5" />
             </button>
           </div>
-          <SidebarContent {...sidebarProps} onNavigate={() => setMobileOpen(false)} />
+          {completionPct !== null && (
+            <div className="px-4 pb-3">
+              <CompletionMeter compact pct={completionPct} />
+            </div>
+          )}
+        </div>
+
+        {/* Mobile slide-in drawer — kept mounted (not conditionally rendered)
+            so the transform/opacity transitions actually animate; toggled via
+            classes instead. */}
+        <div
+          aria-hidden={!mobileOpen}
+          className={`fixed inset-0 z-50 lg:hidden ${mobileOpen ? "" : "pointer-events-none"}`}
+        >
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+              mobileOpen ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className={`absolute inset-y-0 left-0 flex w-[80%] max-w-[300px] flex-col bg-card shadow-2xl transition-transform duration-300 ease-out ${
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-4">
+              <span className="text-base font-bold text-foreground">Tiru Provider</span>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
+                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+              >
+                <CloseIcon className="size-4" />
+              </button>
+            </div>
+            {/* Takes only the height left under the drawer header. At full
+                height it overflowed the screen by the header's height and
+                pushed Sign out out of sight. */}
+            <div className="min-h-0 flex-1">
+              <SidebarContent {...sidebarProps} onNavigate={() => setMobileOpen(false)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="min-w-0 flex-1">
+          {isApproved && (
+            <div className="flex items-center justify-center border-b border-primary/20 bg-soft-accent px-4 py-2 text-center">
+              <p className="text-xs font-medium text-primary sm:text-sm">
+                Editing live listing — changes go live immediately.
+              </p>
+            </div>
+          )}
+          <main>{children}</main>
         </div>
       </div>
-
-      {/* Main content */}
-      <div className="min-w-0 flex-1">
-        {isApproved && (
-          <div className="flex items-center justify-center border-b border-primary/20 bg-soft-accent px-4 py-2 text-center">
-            <p className="text-xs font-medium text-primary sm:text-sm">
-              Editing live listing — changes go live immediately.
-            </p>
-          </div>
-        )}
-        <main>{children}</main>
-      </div>
-    </div>
+    </CompletionRefreshProvider>
   );
 }

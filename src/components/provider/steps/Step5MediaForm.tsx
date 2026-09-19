@@ -8,6 +8,8 @@ import {
   type Step5Data,
 } from "@/app/provider/(console)/onboarding/media/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { ClearStepButton } from "@/components/provider/ClearStepButton";
+import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 import { formatAddisTime } from "@/lib/addis-time";
 import { Spinner } from "@/components/provider/Spinner";
 import { Badge } from "@/components/ui/Badge";
@@ -118,6 +120,7 @@ export function Step5MediaForm({
     });
   }
 
+  const refreshCompletion = useRefreshCompletion();
   function autoSave(partial: Partial<Step5Data>) {
     if (live) return;
     startTransition(async () => {
@@ -125,6 +128,7 @@ export function Step5MediaForm({
       if (result.ok) {
         setSaveError(null);
         setLastSaved(new Date());
+        refreshCompletion();
       } else {
         // Previously this always called setLastSaved(), so a failed save
         // (e.g. an expired session) still showed "Draft saved" — the
@@ -567,6 +571,12 @@ export function Step5MediaForm({
           </button>
         </div>
       ) : (
+      <>
+      {!photosLocked && (
+        <div className="-mb-3 flex justify-end">
+          <ClearStepButton step="media" />
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <a
           className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -619,6 +629,7 @@ export function Step5MediaForm({
           </div>
         )}
       </div>
+      </>
       )}
     </div>
   );

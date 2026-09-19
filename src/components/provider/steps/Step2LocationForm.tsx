@@ -11,6 +11,9 @@ import { BranchRepeater, hasBranchContent } from "@/components/provider/branch-r
 import { normalizeUrl } from "@/lib/normalize-url";
 import type { FacilityBranch } from "@/types/facility";
 import { FieldGrid } from "@/components/ui/FieldGrid";
+import { AccessNotesField } from "@/components/provider/AccessNotesField";
+import { ClearStepButton } from "@/components/provider/ClearStepButton";
+import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 
 const MapPinPicker = dynamic(
   () => import("@/components/provider/MapPinPicker").then((m) => m.MapPinPicker),
@@ -75,10 +78,12 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const refreshCompletion = useRefreshCompletion();
   function autoSave(partial: Parameters<typeof autoSaveStep2>[0]) {
     startTransition(async () => {
       await autoSaveStep2(partial);
       setLastSaved(new Date());
+      refreshCompletion();
     });
   }
 
@@ -164,18 +169,25 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <label className="text-sm font-medium text-foreground" htmlFor="area">
               Area / neighborhood &amp; landmark *
             </label>
-            <input
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            {/* A few lines tall and not full width: a single-line box scrolled
+                the start of a long description out of sight while typing.
+                Still one line of data — Enter and pasted line breaks become
+                spaces. */}
+            <textarea
+              className="max-w-xl resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="area"
               name="area"
               onBlur={() => autoSave({ area, landmark: "" })}
               onChange={(e) => {
-                setArea(e.target.value);
+                setArea(e.target.value.replace(/\s*\n\s*/g, " "));
                 setLandmark("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
               }}
               placeholder="e.g. Bole Medhanialem, next to Edna Mall"
               required
-              type="text"
+              rows={3}
               value={[area, landmark].filter(Boolean).join(", ")}
             />
             <input name="landmark" type="hidden" value="" />
@@ -186,22 +198,18 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
 
           {/* Access notes */}
           <div className="flex flex-col gap-1.5 sm:col-span-2">
-            <label className="text-sm font-medium text-foreground" htmlFor="access_notes">
-              Access notes
-            </label>
-            <textarea
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              id="access_notes"
-              name="access_notes"
-              onBlur={() => autoSave({ access_notes: accessNotes })}
-              onChange={(e) => setAccessNotes(e.target.value)}
-              placeholder="Parking, entrance, accessibility..."
-              rows={2}
-              value={accessNotes}
-            />
-            <p className="text-xs text-muted-foreground">
-              Parking, wheelchair access, elevator, entrance directions
+            <p className="text-sm font-medium text-foreground">Access notes</p>
+            <p className="-mt-1 text-xs text-muted-foreground">
+              Tick everything that applies — parking, wheelchair access, elevator — and add directions if the entrance is hard to find.
             </p>
+            <div className="max-w-xl">
+              <AccessNotesField
+                name="access_notes"
+                onChange={setAccessNotes}
+                onCommit={(text) => autoSave({ access_notes: text })}
+                value={accessNotes}
+              />
+            </div>
           </div>
 
           {/* Map pin */}
@@ -447,6 +455,10 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             </div>
           </div>
         </FieldGrid>
+      </div>
+
+      <div className="-mb-3 flex justify-end">
+        <ClearStepButton step="location" />
       </div>
 
       <div className="flex items-center justify-between">

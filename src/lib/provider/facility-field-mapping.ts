@@ -65,6 +65,8 @@ export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, un
     payment_methods: claim.proposed_payment_methods,
     insurance_accepted: claim.proposed_insurance_accepted,
     insurance_note: claim.proposed_insurance_note,
+    // false is a real answer ("open on holidays"), which filterNonEmpty keeps.
+    closed_on_public_holidays: claim.proposed_closed_on_public_holidays,
     branches: claim.proposed_branches,
   };
 }

@@ -118,12 +118,11 @@ export function FacilityHoursSection({ facility }: FacilityHoursSectionProps) {
         <p className="mt-3 text-sm text-muted-foreground">{facility.workingHours}</p>
       )}
 
-      {/* closedOnPublicHolidays is admin-only today (AdminFacilityServicesEditor)
-          and was never read anywhere a visitor could see it — the checkbox's
-          own hint text ("Shown on the listing so nobody travels on a holiday
-          to a closed door") promised this and nothing delivered it. Three
-          states, matching the checkbox: unanswered gets a prompt to confirm
-          rather than silence, since the listing genuinely does not know. */}
+      {/* Set by the admin editor and, since the onboarding wizard's free-text
+          "Holiday availability" box was replaced, by providers too — both use
+          the Open / Closed tick boxes in ScheduleBuilder. Three states:
+          unanswered gets a prompt to confirm rather than silence, since the
+          listing genuinely does not know. */}
       {facility.closedOnPublicHolidays === true ? (
         <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-muted-foreground">
           <span aria-hidden="true">🎌</span>

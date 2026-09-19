@@ -29,7 +29,6 @@ export async function saveStep3(formData: FormData) {
   const appointmentModalities = appointmentModalitiesJson
     ? JSON.parse(appointmentModalitiesJson)
     : null;
-  const holidayHours = formData.get("holiday_hours") as string;
   const emergencyType = formData.get("emergency_type") as string;
   const walkinAppointment = formData.get("walkin_appointment") as string;
   const checkupOffered = formData.get("checkup_offered") === "yes";
@@ -56,7 +55,6 @@ export async function saveStep3(formData: FormData) {
       proposed_working_days: workingDays || null,
       proposed_working_hours: workingHours || null,
       proposed_schedule: schedule,
-      proposed_holiday_hours: holidayHours || null,
       proposed_emergency_type: emergencyType || null,
       proposed_walkin_appointment: walkinAppointment || null,
       proposed_appointment_modalities: appointmentModalities,
@@ -127,7 +125,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_working_days",
     "proposed_working_hours",
     "proposed_schedule",
-    "proposed_holiday_hours",
+    "proposed_closed_on_public_holidays",
     "proposed_emergency_type",
     "proposed_walkin_appointment",
     "proposed_appointment_modalities",

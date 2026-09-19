@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/services/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { ClearStepButton } from "@/components/provider/ClearStepButton";
+import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
@@ -41,6 +43,8 @@ import {
   PillSelector,
   type CustomServiceCategories,
 } from "@/components/provider/steps/service-pill-controls";
+import { AddOtherList } from "@/components/ui/AddOtherList";
+import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
 import type { FacilityAppointmentModality } from "@/types/facility";
 
 type Claim = Record<string, unknown>;
@@ -311,6 +315,11 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(
     (claim.proposed_payment_methods as string[]) ?? [],
   );
+  const [closedOnHolidays, setClosedOnHolidays] = useState<boolean | null>(
+    typeof claim.proposed_closed_on_public_holidays === "boolean"
+      ? claim.proposed_closed_on_public_holidays
+      : null,
+  );
   const [insuranceNote, setInsuranceNote] = useState(
     (claim.proposed_insurance_note as string) ?? "",
   );
@@ -328,10 +337,12 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
     AppointmentModality[]
   >((claim.proposed_appointment_modalities as AppointmentModality[]) ?? []);
 
+  const refreshCompletion = useRefreshCompletion();
   function autoSave(partial: Record<string, unknown>) {
     startTransition(async () => {
       await autoSaveStep3(partial);
       setLastSaved(new Date());
+      refreshCompletion();
     });
   }
 
@@ -1006,8 +1017,17 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                 Add one row per schedule pattern. Use shortcuts to quickly
                 select weekdays, weekends, or all days.
               </p>
+              {/* Holidays are answered inside the schedule, as two tick
+                  boxes. This replaced a free-text "Holiday availability"
+                  box whose answer was saved to proposed_holiday_hours —
+                  a column nothing ever copied to the public listing. */}
               <ScheduleBuilder
+                closedOnPublicHolidays={closedOnHolidays}
                 emphasize247={isHomeCare}
+                onClosedOnPublicHolidaysChange={(value) => {
+                  setClosedOnHolidays(value);
+                  autoSave({ proposed_closed_on_public_holidays: value });
+                }}
                 onChange={(rows) => {
                   setSchedule(rows);
                   autoSave({
@@ -1016,22 +1036,6 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                   });
                 }}
                 value={schedule}
-              />
-            </div>
-
-            {/* Holiday availability */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="holiday_hours">
-                Holiday availability
-              </label>
-              <input
-                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                defaultValue={(claim.proposed_holiday_hours as string) ?? ""}
-                id="holiday_hours"
-                name="holiday_hours"
-                onBlur={(e) => autoSave({ proposed_holiday_hours: e.target.value })}
-                placeholder="e.g. Open on Ethiopian holidays, Closed on international holidays"
-                type="text"
               />
             </div>
 
@@ -1400,19 +1404,26 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           {/* Insurance — signalled by ticking "Insurance" above; insurer names are optional */}
           {paymentMethods.includes("Insurance") && (
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground" htmlFor="insurance_note">
-                Which insurers do you accept? (optional)
-              </label>
-              <input
-                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                id="insurance_note"
-                name="insurance_note"
-                onBlur={(e) => autoSave({ proposed_insurance_note: e.target.value || null })}
-                onChange={(e) => setInsuranceNote(e.target.value)}
-                placeholder="e.g. Cigna, Nyala Insurance, CBHI"
-                type="text"
-                value={insuranceNote}
+              <p className="text-sm font-medium text-foreground">Which insurers do you accept? (optional)</p>
+              {/* One insurer per chip, added with the Add button or Enter. A
+                  single text box gave no sign that more than one could go in,
+                  or that what was typed had been kept. */}
+              <AddOtherList
+                label="Add an insurer"
+                onAdd={(name) => {
+                  const next = joinInsurers([...splitInsurers(insuranceNote), name]) ?? "";
+                  setInsuranceNote(next);
+                  autoSave({ proposed_insurance_note: next || null });
+                }}
+                onRemove={(name) => {
+                  const next = joinInsurers(splitInsurers(insuranceNote).filter((n) => n !== name)) ?? "";
+                  setInsuranceNote(next);
+                  autoSave({ proposed_insurance_note: next || null });
+                }}
+                placeholder="e.g. Nyala Insurance"
+                values={splitInsurers(insuranceNote)}
               />
+              <input name="insurance_note" type="hidden" value={insuranceNote} />
             </div>
           )}
         </div>
@@ -1423,6 +1434,10 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
           {validationError}
         </p>
       )}
+
+      <div className="-mb-3 flex justify-end">
+        <ClearStepButton step="services" />
+      </div>
 
       <div className="flex items-center justify-between">
         <a

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin-client";
 import { fieldLabel, isItemDelta, isListDelta } from "@/lib/audit/change-summary";
 import { formatAddisDateTime } from "@/lib/addis-time";
@@ -11,15 +12,57 @@ import {
   SEVERITY_ROW_CLASS,
 } from "@/lib/audit/severity";
 
-async function getAuditLog() {
+// Paged, newest first. This used to fetch only the latest 200 entries, so
+// anything older silently fell off the page as activity grew — the log's
+// whole point is that nothing does.
+const PAGE_SIZE = 50;
+
+async function getAuditLog(page: number) {
   const supabase = await createAdminSupabaseClient();
-  const { data, error } = await supabase
+  const from = (page - 1) * PAGE_SIZE;
+  const { data, error, count } = await supabase
     .from("audit_log")
-    .select("*, admin_users(display_name, email), provider_accounts(display_name, facility_name)")
+    .select("*, admin_users(display_name, email), provider_accounts(display_name, facility_name)", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false })
-    .limit(200);
-  if (error) return [];
-  return data ?? [];
+    .range(from, from + PAGE_SIZE - 1);
+  if (error) return { entries: [], total: 0 };
+  return { entries: data ?? [], total: count ?? 0 };
+}
+
+function Pager({ page, totalPages, total }: { page: number; totalPages: number; total: number }) {
+  if (totalPages <= 1) return null;
+  const first = (page - 1) * PAGE_SIZE + 1;
+  const last = Math.min(page * PAGE_SIZE, total);
+  const linkClass =
+    "inline-flex min-h-10 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted";
+  const disabledClass =
+    "inline-flex min-h-10 items-center rounded-lg border border-border px-4 text-sm font-semibold text-muted-foreground/50";
+  return (
+    <nav aria-label="Audit log pages" className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <p className="text-sm text-muted-foreground">
+        Showing {first.toLocaleString()}–{last.toLocaleString()} of {total.toLocaleString()} · page {page} of{" "}
+        {totalPages}
+      </p>
+      <div className="flex gap-2">
+        {page > 1 ? (
+          <Link className={linkClass} href={page === 2 ? "/admin/audit-log" : `/admin/audit-log?page=${page - 1}`}>
+            ← Newer
+          </Link>
+        ) : (
+          <span aria-disabled="true" className={disabledClass}>← Newer</span>
+        )}
+        {page < totalPages ? (
+          <Link className={linkClass} href={`/admin/audit-log?page=${page + 1}`}>
+            Older →
+          </Link>
+        ) : (
+          <span aria-disabled="true" className={disabledClass}>Older →</span>
+        )}
+      </div>
+    </nav>
+  );
 }
 
 // Long lists get a head and a count rather than the whole thing — the point
@@ -272,8 +315,16 @@ function AuditCard({ row }: { row: AuditRow }) {
   );
 }
 
-export default async function AdminAuditLogPage() {
-  const entries = await getAuditLog();
+export default async function AdminAuditLogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const requested = Math.floor(Number(pageParam));
+  const page = Number.isFinite(requested) && requested >= 1 ? requested : 1;
+  const { entries, total } = await getAuditLog(page);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const rows = entries.map((entry: Record<string, unknown>) => toRow(entry));
 
   return (
@@ -281,14 +332,17 @@ export default async function AdminAuditLogPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Audit Log</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Full history of admin actions and provider edits — last 200 entries
+          Full history of admin actions and provider edits, newest first
+          {total > 0 ? ` — ${total.toLocaleString()} entries` : ""}
         </p>
         <SeverityLegend />
       </div>
 
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <p className="text-lg font-semibold text-foreground">No actions recorded yet</p>
+          <p className="text-lg font-semibold text-foreground">
+            {page > 1 ? "No entries on this page" : "No actions recorded yet"}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Admin actions like badge changes, and provider edits to their own listing, will appear here.
           </p>
@@ -350,6 +404,8 @@ export default async function AdminAuditLogPage() {
               </tbody>
             </table>
           </div>
+
+          <Pager page={page} total={total} totalPages={totalPages} />
         </>
       )}
     </div>

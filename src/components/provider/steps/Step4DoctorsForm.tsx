@@ -3,6 +3,8 @@
 import { useRef, useState, useTransition } from "react";
 import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/onboarding/doctors/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { ClearStepButton } from "@/components/provider/ClearStepButton";
+import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 import { Spinner } from "@/components/provider/Spinner";
 import { Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
@@ -137,12 +139,14 @@ export function Step4DoctorsForm({
     });
   }
 
+  const refreshCompletion = useRefreshCompletion();
   function autoSave(next: DoctorEntry[]) {
     if (live) return;
     const withPolicy = applyFacilityAppointmentPolicy(next);
     startTransition(async () => {
       await autoSaveStep4(withPolicy);
       setLastSaved(new Date());
+      refreshCompletion();
     });
   }
 
@@ -627,6 +631,11 @@ export function Step4DoctorsForm({
           </div>
         </div>
       ) : (
+      <>
+      <div className="-mb-3 flex justify-end">
+        <ClearStepButton step="doctors" />
+      </div>
+
       <div className="flex items-center justify-between">
         <a
           className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -677,6 +686,7 @@ export function Step4DoctorsForm({
           </button>
         </div>
       </div>
+      </>
       )}
 
       {photoCrop && (

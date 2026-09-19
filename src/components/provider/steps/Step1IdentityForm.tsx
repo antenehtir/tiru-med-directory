@@ -8,6 +8,8 @@ import {
   requestFacilityTypeChange,
 } from "@/app/provider/(console)/onboarding/identity/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { ClearStepButton } from "@/components/provider/ClearStepButton";
+import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 import { PillOption } from "@/components/provider/PillOption";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
@@ -18,6 +20,8 @@ import {
 } from "@/lib/provider/onboarding-config";
 import { FACILITY_CATEGORY_CHOICES } from "@/lib/frontend-search-filters";
 import { FieldGrid } from "@/components/ui/FieldGrid";
+import { AddOtherList } from "@/components/ui/AddOtherList";
+import { SelectAllButton } from "@/components/ui/SelectAllButton";
 
 type Claim = Record<string, unknown>;
 
@@ -86,15 +90,13 @@ export function Step1IdentityForm({
   const [patientGroups, setPatientGroups] = useState<string[]>(
     (claim.proposed_patient_groups as string[]) ?? [],
   );
-  const initialPatientGroups = (claim.proposed_patient_groups as string[]) ?? [];
-  const initialOtherGroup = initialPatientGroups.find(
-    (g) => !PATIENT_GROUPS.includes(g as (typeof PATIENT_GROUPS)[number]),
-  );
-  const [otherGroupSelected, setOtherGroupSelected] = useState<boolean>(
-    Boolean(initialOtherGroup),
-  );
-  const [otherGroupText, setOtherGroupText] = useState<string>(
-    initialOtherGroup ?? "",
+  // Values typed in by hand ("Add another"), as opposed to ticked from the
+  // fixed lists. They are submitted as hidden inputs below — without them
+  // Save & continue rebuilt the lists from the ticked boxes alone and
+  // dropped anything typed.
+  const extraLanguages = languages.filter((l) => !(LANGUAGES as readonly string[]).includes(l));
+  const extraPatientGroups = patientGroups.filter(
+    (g) => !(PATIENT_GROUPS as readonly string[]).includes(g),
   );
   const [hasBranches, setHasBranches] = useState<boolean>(
     ((claim.proposed_branch_count as number) ?? 1) > 1,
@@ -103,10 +105,12 @@ export function Step1IdentityForm({
     (claim.proposed_branch_count as number) ?? 1,
   );
 
+  const refreshCompletion = useRefreshCompletion();
   function autoSave(partial: Parameters<typeof autoSaveStep1>[0]) {
     startTransition(async () => {
       await autoSaveStep1(partial);
       setLastSaved(new Date());
+      refreshCompletion();
     });
   }
 
@@ -126,26 +130,12 @@ export function Step1IdentityForm({
     autoSave({ patient_groups: next });
   }
 
-  function toggleOtherGroup() {
-    if (otherGroupSelected) {
-      const next = otherGroupText.trim()
-        ? patientGroups.filter((g) => g !== otherGroupText.trim())
-        : patientGroups;
-      setOtherGroupSelected(false);
-      setPatientGroups(next);
-      autoSave({ patient_groups: next });
-    } else {
-      setOtherGroupSelected(true);
-    }
+  function updateLanguages(next: string[]) {
+    setLanguages(next);
+    autoSave({ languages: next });
   }
 
-  function saveOtherGroupText(text: string) {
-    const trimmed = text.trim();
-    const withoutOld = otherGroupText.trim()
-      ? patientGroups.filter((g) => g !== otherGroupText.trim())
-      : patientGroups;
-    const next = trimmed ? [...withoutOld, trimmed] : withoutOld;
-    setOtherGroupText(trimmed);
+  function updatePatientGroups(next: string[]) {
     setPatientGroups(next);
     autoSave({ patient_groups: next });
   }
@@ -506,18 +496,7 @@ export function Step1IdentityForm({
               <label className="text-sm font-medium text-foreground">
                 Languages supported
               </label>
-              <button
-                className="text-xs text-primary hover:underline"
-                onClick={() => {
-                  const allSelected = languages.length === LANGUAGES.length;
-                  const next = allSelected ? [] : [...LANGUAGES];
-                  setLanguages(next);
-                  autoSave({ languages: next });
-                }}
-                type="button"
-              >
-                {languages.length === LANGUAGES.length ? "Deselect all" : "Select all"}
-              </button>
+              <SelectAllButton onChange={updateLanguages} options={LANGUAGES} selected={languages} />
             </div>
             <div className="flex flex-wrap gap-2">
               {LANGUAGES.map((lang) => (
@@ -533,6 +512,19 @@ export function Step1IdentityForm({
                 </PillOption>
               ))}
             </div>
+            <AddOtherList
+              knownOptions={LANGUAGES}
+              label="Another language"
+              onAdd={(value) =>
+                updateLanguages(languages.includes(value) ? languages : [...languages, value])
+              }
+              onRemove={(value) => updateLanguages(languages.filter((l) => l !== value))}
+              placeholder="e.g. French"
+              values={extraLanguages}
+            />
+            {extraLanguages.map((value) => (
+              <input key={value} name="languages" type="hidden" value={value} />
+            ))}
           </div>
 
           {/* Patient groups — same pattern */}
@@ -541,18 +533,11 @@ export function Step1IdentityForm({
               <label className="text-sm font-medium text-foreground">
                 Main patient groups served
               </label>
-              <button
-                className="text-xs text-primary hover:underline"
-                onClick={() => {
-                  const allSelected = patientGroups.length === PATIENT_GROUPS.length;
-                  const next = allSelected ? [] : [...PATIENT_GROUPS];
-                  setPatientGroups(next);
-                  autoSave({ patient_groups: next });
-                }}
-                type="button"
-              >
-                {patientGroups.length === PATIENT_GROUPS.length ? "Deselect all" : "Select all"}
-              </button>
+              <SelectAllButton
+                onChange={updatePatientGroups}
+                options={PATIENT_GROUPS}
+                selected={patientGroups}
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               {PATIENT_GROUPS.map((group) => (
@@ -567,24 +552,20 @@ export function Step1IdentityForm({
                   {group}
                 </PillOption>
               ))}
-              <PillOption
-                checked={otherGroupSelected}
-                name="patient_groups_other"
-                onChange={toggleOtherGroup}
-                size="lg"
-              >
-                Other
-              </PillOption>
             </div>
-            {otherGroupSelected && (
-              <input
-                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                defaultValue={otherGroupText}
-                onBlur={(e) => saveOtherGroupText(e.target.value)}
-                placeholder="Please specify"
-                type="text"
-              />
-            )}
+            <AddOtherList
+              knownOptions={PATIENT_GROUPS}
+              label="Another patient group"
+              onAdd={(value) =>
+                updatePatientGroups(patientGroups.includes(value) ? patientGroups : [...patientGroups, value])
+              }
+              onRemove={(value) => updatePatientGroups(patientGroups.filter((g) => g !== value))}
+              placeholder="e.g. Patients with disabilities"
+              values={extraPatientGroups}
+            />
+            {extraPatientGroups.map((value) => (
+              <input key={value} name="patient_groups" type="hidden" value={value} />
+            ))}
           </div>
         </FieldGrid>
       </div>
@@ -594,6 +575,10 @@ export function Step1IdentityForm({
           {validationError}
         </p>
       )}
+
+      <div className="-mb-3 flex justify-end">
+        <ClearStepButton step="identity" />
+      </div>
 
       {/* Two buttons, one form, one action: the Save button carries the
           intent field so saveStep1 knows to commit and stop rather than
