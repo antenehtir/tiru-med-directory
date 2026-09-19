@@ -169,3 +169,47 @@ export function isFacilityOpenNow(facility: {
   }
   return isRoundTheClockHours(facility.workingHours);
 }
+
+export type WeeklyScheduleLine = { days: string; hours: string };
+
+// The week at a glance: days with the same hours folded into one line —
+// "Mon–Fri · 8:00 AM – 5:00 PM", "Sat · 8:00 AM – 12:00 PM", or
+// "Mon, Wed, Fri · 9:00 AM – 1:00 PM". Closed days and days without hours
+// are left out.
+export function weeklyScheduleLines<T extends ScheduleRow>(
+  schedule: T[] | undefined | null,
+): WeeklyScheduleLine[] {
+  if (!schedule || schedule.length === 0) return [];
+  const dayMap = buildDayMap(schedule);
+
+  const hoursFor = (day: DayName): string | null => {
+    const row = dayMap.get(day);
+    if (!row || row.closed) return null;
+    if (row.open === "Open 24 hours") return "Open 24 hours";
+    if (!row.open || !row.close) return null;
+    return `${row.open} – ${row.close}`;
+  };
+
+  const lines: WeeklyScheduleLine[] = [];
+  let runStart = -1;
+  for (let i = 0; i <= DAYS_ORDER.length; i += 1) {
+    const hours = i < DAYS_ORDER.length ? hoursFor(DAYS_ORDER[i]) : null;
+    const prev = runStart >= 0 ? hoursFor(DAYS_ORDER[runStart]) : null;
+    if (runStart >= 0 && hours !== prev) {
+      const first = DAYS_ORDER[runStart].slice(0, 3);
+      const last = DAYS_ORDER[i - 1].slice(0, 3);
+      lines.push({ days: runStart === i - 1 ? first : `${first}–${last}`, hours: prev! });
+      runStart = -1;
+    }
+    if (hours && runStart < 0) runStart = i;
+  }
+
+  // Runs that share their hours become one line ("Mon, Wed, Fri").
+  const merged: WeeklyScheduleLine[] = [];
+  for (const line of lines) {
+    const same = merged.find((m) => m.hours === line.hours);
+    if (same) same.days = `${same.days}, ${line.days}`;
+    else merged.push({ ...line });
+  }
+  return merged;
+}

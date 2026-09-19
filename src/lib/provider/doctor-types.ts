@@ -19,6 +19,10 @@ export type DoctorEntry = {
   languages: string[];
   available_schedule: DoctorScheduleRow[];
   appointment_required: boolean;
+  // This doctor's own walk-in / appointment policy — one of
+  // WALKIN_APPOINTMENT_OPTIONS — or "" to follow the facility's. Some
+  // specialists see patients by appointment only even at a walk-in clinic.
+  appointment_policy?: string;
   bio: string;
   photo_url: string;
 };
@@ -404,6 +408,7 @@ export function createEmptyDoctor(): DoctorEntry {
     languages: [],
     available_schedule: [{ days: [], open: "", close: "", closed: false }],
     appointment_required: false,
+    appointment_policy: "",
     bio: "",
     photo_url: "",
   };

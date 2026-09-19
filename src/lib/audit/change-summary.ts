@@ -77,6 +77,8 @@ const FIELD_LABELS: Record<string, string> = {
   alt_name: "alternative name",
   available_schedule: "schedule",
   appointment_required: "appointment required",
+  appointment_policy: "visit type",
+  bed_count: "number of beds",
   role_other: "role (other)",
   full_name: "name",
 };

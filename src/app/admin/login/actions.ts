@@ -4,7 +4,11 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function adminSignIn(formData: FormData) {
+// A failed sign-in comes back to the form as a result instead of reloading
+// the page, so what was typed stays in the boxes to correct.
+export type AdminSignInResult = { error: "invalid" | "unauthorized" } | undefined;
+
+export async function adminSignIn(_prev: AdminSignInResult, formData: FormData): Promise<AdminSignInResult> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -33,7 +37,7 @@ export async function adminSignIn(formData: FormData) {
   });
 
   if (error || !data.session) {
-    redirect("/admin/login?error=invalid");
+    return { error: "invalid" };
   }
 
   // Verify the user is in admin_users table
@@ -45,7 +49,7 @@ export async function adminSignIn(formData: FormData) {
 
   if (!adminUser) {
     await supabase.auth.signOut();
-    redirect("/admin/login?error=unauthorized");
+    return { error: "unauthorized" };
   }
 
   redirect("/admin");

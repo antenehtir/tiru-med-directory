@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useActionState, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { providerSignIn } from "@/app/provider/login/actions";
 import { SubmitButton } from "./SubmitButton";
 
 function ProviderLoginFormInner() {
   const [showPassword, setShowPassword] = useState(false);
+  // Held here rather than left to the inputs: after a failed attempt the
+  // form keeps them, so a mistyped password is corrected, not retyped along
+  // with the email.
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [state, formAction] = useActionState(providerSignIn, undefined);
   const searchParams = useSearchParams();
-  const errorParam = searchParams.get("error");
+  const errorParam = state?.error ?? searchParams.get("error");
 
   const errorMessage =
     errorParam === "invalid"
@@ -19,7 +25,7 @@ function ProviderLoginFormInner() {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <form action={providerSignIn} className="flex flex-col gap-4">
+      <form action={formAction} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="email">
             Email
@@ -29,9 +35,11 @@ function ProviderLoginFormInner() {
             className="min-h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="email"
             name="email"
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
             type="email"
+            value={email}
           />
         </div>
 
@@ -45,9 +53,11 @@ function ProviderLoginFormInner() {
               className="min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="password"
               name="password"
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               type={showPassword ? "text" : "password"}
+              value={password}
             />
             <button
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"

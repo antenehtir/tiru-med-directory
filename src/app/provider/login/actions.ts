@@ -4,7 +4,11 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function providerSignIn(formData: FormData) {
+// A failed sign-in comes back to the form as a result instead of reloading
+// the page, so what was typed stays in the boxes to correct.
+export type SignInResult = { error: "invalid" | "not_provider" } | undefined;
+
+export async function providerSignIn(_prev: SignInResult, formData: FormData): Promise<SignInResult> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -32,7 +36,7 @@ export async function providerSignIn(formData: FormData) {
   });
 
   if (error || !data.session) {
-    redirect("/provider/login?error=invalid");
+    return { error: "invalid" };
   }
 
   // Check they have a provider_account
@@ -44,7 +48,7 @@ export async function providerSignIn(formData: FormData) {
 
   if (!provider) {
     await supabase.auth.signOut();
-    redirect("/provider/login?error=not_provider");
+    return { error: "not_provider" };
   }
 
   // Always land on the Overview tab of the provider console — it already

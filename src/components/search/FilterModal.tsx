@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { SPECIALTY_OPTIONS, SUB_CITIES } from "@/lib/constants/specialty-options";
 import { EMPTY_LISTING_FILTERS, type ListingFilters } from "@/lib/listing-filters";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
+import { suggestAreas } from "@/lib/area-suggestions";
 
 const FACILITY_TYPE_OPTIONS: { value: FacilityCategoryFilter; label: string }[] = [
   { value: "hospital", label: "General Hospital" },
@@ -26,6 +27,11 @@ type FilterModalProps = {
   onApply: (filters: ListingFilters) => void;
   onReset: () => void;
   lockedType?: FacilityCategoryFilter;
+  // The free-text areas of everything the other filters (type, sub-city,
+  // specialty) still allow, used to suggest neighbourhoods as one types.
+  areaTexts?: (draft: ListingFilters) => string[];
+  // How many results the current draft would show, for the button.
+  countMatches?: (draft: ListingFilters) => number;
 };
 
 export function FilterModal({
@@ -35,8 +41,12 @@ export function FilterModal({
   onApply,
   onReset,
   lockedType,
+  areaTexts,
+  countMatches,
 }: FilterModalProps) {
   const [draft, setDraft] = useState<ListingFilters>(filters);
+  const areaListId = useId();
+  const [areaFocused, setAreaFocused] = useState(false);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
   if (isOpen !== prevIsOpen) {
@@ -62,6 +72,10 @@ export function FilterModal({
   if (!isOpen) {
     return null;
   }
+
+  const areaSuggestions =
+    areaTexts && areaFocused ? suggestAreas(areaTexts({ ...draft, area: "" }), draft.area) : [];
+  const matchCount = countMatches ? countMatches(draft) : null;
 
   function handleApply() {
     onApply(draft);
@@ -172,24 +186,60 @@ export function FilterModal({
               <label className={labelClassName} htmlFor="filter-area">
                 Neighbourhood / Area
               </label>
-              <input
-                autoComplete="on"
-                className={selectClassName}
-                id="filter-area"
-                list="filter-area-options"
-                name="area"
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, area: event.target.value }))
-                }
-                placeholder="e.g. Bole, Sarbet, CMC, Lebu..."
-                type="text"
-                value={draft.area}
-              />
-              <datalist id="filter-area-options">
-                {SUB_CITIES.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
+              {/* Browser autofill is off: the phone remembered long addresses
+                  typed into other "area" boxes (the onboarding form) and
+                  offered them here. The suggestions below come from the
+                  facilities themselves, split into place names, with how
+                  many facilities mention each. The old list repeated the
+                  sub-city names, which the Sub-city filter already covers. */}
+              <div className="relative">
+                <input
+                  aria-autocomplete="list"
+                  aria-controls={areaListId}
+                  aria-expanded={areaSuggestions.length > 0}
+                  autoComplete="off"
+                  className={selectClassName}
+                  id="filter-area"
+                  onBlur={() => window.setTimeout(() => setAreaFocused(false), 150)}
+                  onChange={(event) =>
+                    setDraft((current) => ({ ...current, area: event.target.value }))
+                  }
+                  onFocus={() => setAreaFocused(true)}
+                  placeholder="e.g. CMC, Sarbet, Lebu, Megenagna"
+                  role="combobox"
+                  type="search"
+                  value={draft.area}
+                />
+                {areaSuggestions.length > 0 && (
+                  <ul
+                    className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto rounded-control border border-border bg-card py-1 shadow-lg"
+                    id={areaListId}
+                    role="listbox"
+                  >
+                    {areaSuggestions.map((suggestion) => (
+                      <li aria-selected="false" key={suggestion.label} role="option">
+                        <button
+                          className="flex min-h-11 w-full items-center justify-between gap-3 px-4 text-left text-sm text-foreground hover:bg-muted"
+                          onClick={() => {
+                            setDraft((current) => ({ ...current, area: suggestion.label }));
+                            setAreaFocused(false);
+                          }}
+                          onMouseDown={(event) => event.preventDefault()}
+                          type="button"
+                        >
+                          <span className="min-w-0 truncate">{suggestion.label}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {suggestion.count} {suggestion.count === 1 ? "place" : "places"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Matches the neighbourhood, landmark or address a facility lists.
+              </p>
             </div>
           </div>
 
@@ -211,7 +261,11 @@ export function FilterModal({
               onClick={handleApply}
               type="button"
             >
-              Show results
+              {matchCount === null
+                ? "Show results"
+                : matchCount === 0
+                  ? "No matches"
+                  : `Show ${matchCount} ${matchCount === 1 ? "result" : "results"}`}
             </button>
           </div>
         </div>

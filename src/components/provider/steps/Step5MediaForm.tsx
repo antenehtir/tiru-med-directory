@@ -208,6 +208,16 @@ export function Step5MediaForm({
     if (!live) void deleteImageFromBucket("facility-photos", removedUrl);
   }
 
+  // Same rule as removing a photo: the file is deleted during onboarding, and
+  // kept on a live listing until Save, because the public page still shows it
+  // until then.
+  function removeLogo() {
+    const removedUrl = urls.logo_url;
+    setUrls((prev) => ({ ...prev, logo_url: "" }));
+    autoSave({ logo_url: "" });
+    if (!live) void deleteImageFromBucket("facility-photos", removedUrl);
+  }
+
   function moveEntrancePhoto(index: number, direction: -1 | 1) {
     const target = index + direction;
     if (target < 0 || target >= urls.entrance_photo_urls.length) return;
@@ -456,14 +466,24 @@ export function Step5MediaForm({
               className="size-20 rounded-full object-cover"
               src={urls.logo_url}
             />
-            <button
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              disabled={logoStatus === "uploading" || photosLocked}
-              onClick={() => logoInputRef.current?.click()}
-              type="button"
-            >
-              {logoStatus === "uploading" ? "Uploading…" : "Change photo"}
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
+                disabled={logoStatus === "uploading" || photosLocked}
+                onClick={() => logoInputRef.current?.click()}
+                type="button"
+              >
+                {logoStatus === "uploading" ? "Uploading…" : "Change logo"}
+              </button>
+              <button
+                className="text-sm font-medium text-muted-foreground hover:text-error hover:underline disabled:opacity-50"
+                disabled={logoStatus === "uploading" || photosLocked}
+                onClick={removeLogo}
+                type="button"
+              >
+                Remove logo
+              </button>
+            </div>
           </div>
         ) : (
           <button

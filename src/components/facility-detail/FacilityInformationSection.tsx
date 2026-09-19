@@ -23,6 +23,10 @@ export function FacilityInformationSection({ facility }: FacilityInformationSect
   const hasPatientGroups = patientGroups.length > 0;
   const hasLanguages = languages.length > 0;
   const hasAccessNotes = Boolean(accessNotes);
+  // Beds only mean something alongside inpatient admission; a count left
+  // behind after that service was removed is not shown.
+  const bedCount =
+    facility.bedCount && facility.services.includes("Inpatient admission") ? facility.bedCount : null;
 
   // Address and area used to render here too, duplicating what
   // FacilityDetailHeader already shows. With those gone this section only
@@ -34,7 +38,7 @@ export function FacilityInformationSection({ facility }: FacilityInformationSect
   // reader anywhere in the app turning that data into something a visitor
   // could see — this section is the natural home, next to the other "what
   // you need to know before you go" facts it already carries.
-  if (!hasPatientGroups && !hasPayment && !hasLanguages && !hasAccessNotes) return null;
+  if (!hasPatientGroups && !hasPayment && !hasLanguages && !hasAccessNotes && !bedCount) return null;
 
   return (
     <section className="rounded-card border border-border bg-card p-5 shadow-[0_10px_26px_rgba(31,41,55,0.04)] sm:p-6">
@@ -59,6 +63,15 @@ export function FacilityInformationSection({ facility }: FacilityInformationSect
             <div className="mt-2 flex flex-wrap gap-1.5">
               {languages.map((lang) => <Pill key={lang} size="sm" variant="default">{lang}</Pill>)}
             </div>
+          </div>
+        ) : null}
+
+        {bedCount ? (
+          <div className="rounded-card border border-border bg-background p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Inpatient beds</p>
+            <p className="mt-2 text-sm text-foreground">
+              <span className="font-display text-xl font-semibold">{bedCount}</span> beds for admitted patients
+            </p>
           </div>
         ) : null}
 

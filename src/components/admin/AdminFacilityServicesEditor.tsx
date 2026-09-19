@@ -7,6 +7,7 @@ import { formatAddisTime } from "@/lib/addis-time";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { AddOtherList } from "@/components/ui/AddOtherList";
+import { BedCountField, INPATIENT_SERVICE } from "@/components/provider/BedCountField";
 import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
 import {
   BasicLabSelector,
@@ -137,6 +138,11 @@ export function AdminFacilityServicesEditor({
   // selects "*", so before 047 runs the key is missing rather than null, and a
   // control that cannot be saved is worse than no control.
   const holidayColumnExists = "closed_on_public_holidays" in facility;
+  // Beds (migration 064): the same absent-column rule.
+  const bedColumnExists = "bed_count" in facility;
+  const [bedCount, setBedCount] = useState<number | null>(
+    typeof facility.bed_count === "number" ? facility.bed_count : null,
+  );
   const [closedOnHolidays, setClosedOnHolidays] = useState<boolean | null>(
     typeof facility.closed_on_public_holidays === "boolean"
       ? facility.closed_on_public_holidays
@@ -165,6 +171,7 @@ export function AdminFacilityServicesEditor({
       typeof facility.closed_on_public_holidays === "boolean"
         ? facility.closed_on_public_holidays
         : null,
+    bedCount: typeof facility.bed_count === "number" ? facility.bed_count : null,
   });
 
   function toggleService(svc: string) {
@@ -311,6 +318,9 @@ export function AdminFacilityServicesEditor({
     ) {
       fields.diagnostic_subtype = diagnosticSubtype || null;
     }
+    if (bedColumnExists && !unchanged(bedCount, before.bedCount)) {
+      fields.bed_count = bedCount;
+    }
     if (holidayColumnExists && !unchanged(closedOnHolidays, before.closedOnPublicHolidays)) {
       fields.closed_on_public_holidays = closedOnHolidays;
     }
@@ -353,6 +363,7 @@ export function AdminFacilityServicesEditor({
           closedOnPublicHolidays: holidayColumnExists
             ? closedOnHolidays
             : before.closedOnPublicHolidays,
+          bedCount: bedColumnExists ? bedCount : before.bedCount,
           schedule: hasRealSchedule ? schedule : before.schedule,
         };
         setSavedAt(new Date());
@@ -392,6 +403,9 @@ export function AdminFacilityServicesEditor({
               services={services}
               title="General services"
             />
+            {bedColumnExists && services.includes(INPATIENT_SERVICE) && (
+              <BedCountField onChange={setBedCount} value={bedCount} />
+            )}
             <PillSelector
               customEntries={customServiceCategories.specialty ?? []}
               customValue={customInputs.specialty ?? ""}

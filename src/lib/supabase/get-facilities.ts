@@ -67,6 +67,7 @@ type DBFacility = {
   branch_count: number | null;
   branches: unknown;
   closed_on_public_holidays: boolean | null;
+  bed_count?: number | null;
   // Migration 046. Absent on a database that has not run it, which is why
   // phoneNumbersOf falls back to the two columns above rather than assuming.
   phones: unknown;
@@ -238,6 +239,7 @@ function mapDBRowToFacility(row: DBFacility): Facility {
       : undefined,
     schedule: Array.isArray(row.schedule) ? (row.schedule as FacilityScheduleRow[]) : undefined,
     closedOnPublicHolidays: row.closed_on_public_holidays ?? null,
+    bedCount: typeof row.bed_count === "number" ? row.bed_count : null,
     paymentMethods: toStringArray(row.payment_methods),
     insuranceNote: row.insurance_note ?? null,
     patientGroups: toStringArray(row.patient_groups),

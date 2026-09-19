@@ -126,6 +126,7 @@ export async function autoSaveStep3(data: Record<string, unknown>) {
     "proposed_working_hours",
     "proposed_schedule",
     "proposed_closed_on_public_holidays",
+    "proposed_bed_count",
     "proposed_emergency_type",
     "proposed_walkin_appointment",
     "proposed_appointment_modalities",

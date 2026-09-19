@@ -102,6 +102,7 @@ const CARE_FIELDS = new Set([
   "patient_groups",
   "branches",
   "branch_count",
+  "bed_count",
 ]);
 
 const ACTION_SEVERITY: Record<string, AuditSeverity> = {

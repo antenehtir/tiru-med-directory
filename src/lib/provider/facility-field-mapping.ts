@@ -67,6 +67,7 @@ export function buildFacilityFieldsFromClaim(claim: ClaimRow): Record<string, un
     insurance_note: claim.proposed_insurance_note,
     // false is a real answer ("open on holidays"), which filterNonEmpty keeps.
     closed_on_public_holidays: claim.proposed_closed_on_public_holidays,
+    bed_count: claim.proposed_bed_count,
     branches: claim.proposed_branches,
   };
 }

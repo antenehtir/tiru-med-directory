@@ -6,8 +6,9 @@ import { AvailabilityIndicator } from "@/components/ui/AvailabilityIndicator";
 import { Badge } from "@/components/ui/Badge";
 import { toSlug } from "@/lib/slugify";
 import { formatDoctorDisplayName, specialistTitle } from "@/lib/provider/doctor-types";
-import { appointmentPolicyDescription } from "@/lib/provider/onboarding-config";
-import type { Facility, FacilityDoctor } from "@/types/facility";
+import { appointmentPolicyDescription, effectiveAppointmentPolicy } from "@/lib/provider/onboarding-config";
+import type { Facility, FacilityAppointmentModality, FacilityDoctor } from "@/types/facility";
+import { DoctorBookingOptions } from "./DoctorBookingOptions";
 
 function getInitials(name: string): string {
   return name
@@ -45,10 +46,14 @@ function DoctorCard({
   doctor,
   facilitySlug,
   walkinAppointment,
+  appointmentModalities,
+  facilityPhone,
 }: {
   doctor: FacilityDoctor;
   facilitySlug: string;
   walkinAppointment: string | null;
+  appointmentModalities: FacilityAppointmentModality[] | undefined;
+  facilityPhone: string;
 }) {
   const initials = getInitials(doctor.full_name);
   const displayRole = doctor.role === "Other" && doctor.role_other ? doctor.role_other : doctor.role;
@@ -57,7 +62,9 @@ function DoctorCard({
   // back to the raw role for the non-clinical roles (Nurse, Pharmacist, ...)
   // that were never asked for a specialty.
   const title = specialistTitle(doctor.specialty, doctor.subspecialty) || displayRole;
-  const appointment = appointmentPolicyDescription(walkinAppointment);
+  // The doctor's own policy when they set one, otherwise the facility's.
+  const policy = effectiveAppointmentPolicy(doctor.appointment_policy, walkinAppointment);
+  const appointment = appointmentPolicyDescription(policy);
   const hasBio = doctor.bio && doctor.bio.trim().length > 0;
   const profileSlug = `${toSlug(doctor.full_name)}-${facilitySlug}-${(doctor.id ?? "").slice(0, 6)}`;
 
@@ -117,9 +124,18 @@ function DoctorCard({
 
         {hasBio && <BioBlock bio={doctor.bio!} />}
 
-        <div className="mt-2">
+        <div className="mt-3">
           <AvailabilityIndicator schedule={doctor.available_schedule} />
         </div>
+
+        {/* Links inside are tappable on their own: this block opts back
+            into pointer events over the card's whole-card link. */}
+        <DoctorBookingOptions
+          className="pointer-events-auto relative z-20 mt-3"
+          facilityPhone={facilityPhone}
+          modalities={appointmentModalities}
+          policy={policy}
+        />
 
         {/* The one visible call to action, styled to actually read as one —
             it used to duplicate a matching link at the bottom of the card,
@@ -158,6 +174,8 @@ export function FacilityDoctorsSection({ facility }: { facility: Facility }) {
             doctor={doctor}
             facilitySlug={facility.slug}
             key={doctor.id}
+            appointmentModalities={facility.appointmentModalities}
+            facilityPhone={facility.contactChannels?.find((channel) => channel.channelType === "phone")?.value ?? ""}
             walkinAppointment={facility.walkinAppointment ?? null}
           />
         ))}

@@ -154,6 +154,8 @@ export type FacilityServicesFields = {
   // Three-state: null means nobody has answered, which the listing shows as
   // silence rather than as "open on holidays".
   closed_on_public_holidays?: boolean | null;
+  // Inpatient beds (migration 064); null means not stated.
+  bed_count?: number | null;
 };
 
 export async function saveServicesSection(
@@ -169,6 +171,12 @@ export async function saveServicesSection(
     !["lab", "imaging", "both"].includes(fields.diagnostic_subtype)
   ) {
     throw new Error(`Unknown diagnostic subtype "${fields.diagnostic_subtype}".`);
+  }
+  if (
+    fields.bed_count != null &&
+    (!Number.isInteger(fields.bed_count) || fields.bed_count < 1 || fields.bed_count > 5000)
+  ) {
+    throw new Error("Number of beds must be a whole number between 1 and 5000.");
   }
 
   const payload: Record<string, unknown> = { ...fields };

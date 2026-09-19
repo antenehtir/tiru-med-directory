@@ -40,9 +40,8 @@ function DoctorListingExperienceInner({
 
   const visibleFilterCount = activeFilterCount - (filters.type ? 1 : 0);
 
-  const results = filterDoctorsByQuery(doctors, query).filter((doctor) =>
-    doctorMatchesListingFilters(doctor, filters),
-  );
+  const queried = filterDoctorsByQuery(doctors, query);
+  const results = queried.filter((doctor) => doctorMatchesListingFilters(doctor, filters));
 
   return (
     <div className="grid gap-4">
@@ -54,6 +53,10 @@ function DoctorListingExperienceInner({
       />
 
       <FilterModal
+        areaTexts={(draft) =>
+          queried.filter((doctor) => doctorMatchesListingFilters(doctor, draft)).map((doctor) => doctor.location)
+        }
+        countMatches={(draft) => queried.filter((doctor) => doctorMatchesListingFilters(doctor, draft)).length}
         filters={filters}
         isOpen={isOpen}
         onApply={applyFilters}

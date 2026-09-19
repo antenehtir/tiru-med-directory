@@ -40,6 +40,8 @@ export type FacilityDoctor = {
   languages: string[];
   available_schedule: FacilityDoctorScheduleRow[];
   appointment_required: boolean;
+  // "" or missing: follows the facility's walk-in / appointment policy.
+  appointment_policy?: string;
   bio: string;
   photo_url: string;
 };
@@ -137,6 +139,8 @@ export type Facility = {
    *  means the listing is closed on public holidays, false means it stays
    *  open. Collected on the admin edit form (AdminFacilityServicesEditor). */
   closedOnPublicHolidays?: boolean | null;
+  // Inpatient beds, when the facility stated them (migration 064).
+  bedCount?: number | null;
   paymentMethods?: string[];
   insuranceNote?: string | null;
   patientGroups?: string[];

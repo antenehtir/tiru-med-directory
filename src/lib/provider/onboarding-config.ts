@@ -490,6 +490,21 @@ const WALKIN_POLICY_DESCRIPTIONS: Record<string, string> = {
   "Walk-in preferred, appointment available": "Walk-in preferred — appointment available",
 };
 
+// A doctor's own policy when one is set, otherwise the facility's.
+export function effectiveAppointmentPolicy(
+  doctorPolicy: string | null | undefined,
+  facilityPolicy: string | null | undefined,
+): string | null {
+  return doctorPolicy?.trim() || facilityPolicy?.trim() || null;
+}
+
+// Whether a patient books ahead for this policy — every policy except
+// walk-in only. An unanswered policy counts, because most specialist visits
+// need booking (see appointmentPolicyDescription).
+export function policyTakesAppointments(policy: string | null | undefined): boolean {
+  return policy?.trim() !== "Walk-in only";
+}
+
 export function appointmentPolicyDescription(walkinAppointment: string | null | undefined): {
   text: string;
   isStated: boolean;

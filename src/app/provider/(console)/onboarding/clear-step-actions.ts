@@ -61,6 +61,7 @@ const STEP_FIELDS: Record<OnboardingStepKey, string[]> = {
     "proposed_payment_methods",
     "proposed_insurance_accepted",
     "proposed_insurance_note",
+    "proposed_bed_count",
   ],
   doctors: ["proposed_doctors"],
   media: ["proposed_entrance_photo_url", "proposed_entrance_photo_urls", "proposed_logo_url"],
@@ -84,7 +85,7 @@ export async function clearOnboardingStep(step: OnboardingStepKey): Promise<Clea
 
   const { data: claim } = await supabase
     .from("facility_claims")
-    .select("status")
+    .select("*")
     .eq("id", claimId)
     .single();
   if (claim?.status === "pending_review" || claim?.status === "approved") {
@@ -98,8 +99,12 @@ export async function clearOnboardingStep(step: OnboardingStepKey): Promise<Clea
     proposed_checkup_offered: false,
     proposed_insurance_accepted: false,
   };
+  // Only columns this database has: a field added by a migration that has
+  // not run yet would otherwise fail the whole update.
   const updates = Object.fromEntries(
-    fields.map((field) => [field, field in FRESH_DRAFT_VALUES ? FRESH_DRAFT_VALUES[field] : null]),
+    fields
+      .filter((field) => !claim || field in claim)
+      .map((field) => [field, field in FRESH_DRAFT_VALUES ? FRESH_DRAFT_VALUES[field] : null]),
   );
   const { data: updated, error } = await supabase
     .from("facility_claims")

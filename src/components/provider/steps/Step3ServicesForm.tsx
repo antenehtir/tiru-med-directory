@@ -44,6 +44,7 @@ import {
   type CustomServiceCategories,
 } from "@/components/provider/steps/service-pill-controls";
 import { AddOtherList } from "@/components/ui/AddOtherList";
+import { BedCountField, INPATIENT_SERVICE } from "@/components/provider/BedCountField";
 import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
 import type { FacilityAppointmentModality } from "@/types/facility";
 
@@ -315,6 +316,12 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(
     (claim.proposed_payment_methods as string[]) ?? [],
   );
+  // Beds (migration 064). Offered only once the column exists, so the
+  // autosave never names a column the database does not have yet.
+  const bedColumnExists = "proposed_bed_count" in claim;
+  const [bedCount, setBedCount] = useState<number | null>(
+    typeof claim.proposed_bed_count === "number" ? claim.proposed_bed_count : null,
+  );
   const [closedOnHolidays, setClosedOnHolidays] = useState<boolean | null>(
     typeof claim.proposed_closed_on_public_holidays === "boolean"
       ? claim.proposed_closed_on_public_holidays
@@ -572,6 +579,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               services={services}
               title="General services"
             />
+            {bedColumnExists && services.includes(INPATIENT_SERVICE) && (
+              <BedCountField
+                onChange={setBedCount}
+                onCommit={(beds) => autoSave({ proposed_bed_count: beds })}
+                value={bedCount}
+              />
+            )}
             <PillSelector
               customEntries={customServiceCategories.specialty ?? []}
               customValue={customInputs.specialty ?? ""}

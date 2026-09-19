@@ -9,7 +9,8 @@ import { Spinner } from "@/components/provider/Spinner";
 import { Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { ImageCropModal } from "@/components/ui/ImageCropModal";
-import { extensionFromFile, uploadImageToBucket } from "@/lib/storage/upload-image";
+import { deleteImageFromBucket, extensionFromFile, uploadImageToBucket } from "@/lib/storage/upload-image";
+import { WALKIN_APPOINTMENT_OPTIONS } from "@/lib/provider/onboarding-config";
 import {
   DOCTOR_TITLES,
   DOCTOR_ROLES,
@@ -83,14 +84,21 @@ export function Step4DoctorsForm({
 
   const claimId = live?.uploadFolder ?? (claim.id as string) ?? "unknown";
 
-  // The doctor-level "Appointment required?" question was removed as a
-  // duplicate of this facility-level policy (set in the hours/availability
-  // step) — every doctor's appointment_required now just follows it.
+  // The facility's walk-in / appointment policy (set in the hours step) is
+  // every doctor's default; a doctor's own "Visit type" overrides it for
+  // specialists who only see patients by appointment.
   const walkinPolicy = live ? live.walkinAppointment : claim.proposed_walkin_appointment;
   const facilityAppointmentRequired = walkinPolicy === "Appointment required";
 
+  // appointment_required is derived, never asked: from the doctor's own
+  // visit type when one is set, otherwise from the facility's policy.
   function applyFacilityAppointmentPolicy(list: DoctorEntry[]): DoctorEntry[] {
-    return list.map((d) => ({ ...d, appointment_required: facilityAppointmentRequired }));
+    return list.map((d) => ({
+      ...d,
+      appointment_required: d.appointment_policy
+        ? d.appointment_policy === "Appointment required"
+        : facilityAppointmentRequired,
+    }));
   }
 
   const existingDoctors = (live ? live.doctors : claim.proposed_doctors) as
@@ -194,6 +202,16 @@ export function Step4DoctorsForm({
 
   function handleSubspecialtyChange(id: string, subspecialty: string) {
     autoSave(updateDoctor(id, { subspecialty }));
+  }
+
+  // Clears the doctor's photo. During onboarding the file is deleted too; on
+  // a live listing it is left in storage, because the public page keeps
+  // showing it until Save is pressed.
+  function removeDoctorPhoto(id: string) {
+    const doctor = doctors.find((d) => d.id === id);
+    if (!doctor?.photo_url) return;
+    if (!live) void deleteImageFromBucket("doctor-photos", doctor.photo_url);
+    autoSave(updateDoctor(id, { photo_url: "" }));
   }
 
   const pendingPhotoFileRef = useRef<File | null>(null);
@@ -337,8 +355,8 @@ export function Step4DoctorsForm({
       {typeof walkinPolicy === "string" && walkinPolicy && (
         <p className="text-xs text-muted-foreground">
           {live
-            ? `Appointment availability for every doctor follows the facility's walk-in / appointment policy (${walkinPolicy}).`
-            : `Appointment availability for every doctor follows your facility's policy from the previous step (${walkinPolicy}).`}
+            ? `Each doctor follows the facility's walk-in / appointment policy (${walkinPolicy}) unless their own visit type is set below.`
+            : `Each doctor follows your facility's policy from the previous step (${walkinPolicy}) unless you set their own visit type below.`}
         </p>
       )}
 
@@ -369,6 +387,58 @@ export function Step4DoctorsForm({
             </div>
 
             <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                {/* First in the card: a face is how patients recognise the doctor,
+                    and it sits beside the name on every public card. */}
+                <label className="text-sm font-semibold text-foreground">Photo (optional)</label>
+                <p className="text-xs text-muted-foreground">
+                  A professional headshot helps patients recognize their doctor
+                </p>
+                <div className="flex items-center gap-3">
+                  {doctor.photo_url && (
+                    <img
+                      alt={doctor.full_name || "Doctor photo"}
+                      className="size-[60px] rounded-full object-cover"
+                      src={doctor.photo_url}
+                    />
+                  )}
+                  <button
+                    className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                    disabled={uploadingId === doctor.id}
+                    onClick={() => fileInputRefs.current[doctor.id]?.click()}
+                    type="button"
+                  >
+                    {uploadingId === doctor.id
+                      ? "Uploading…"
+                      : doctor.photo_url
+                        ? "Replace photo"
+                        : "Upload photo"}
+                  </button>
+                  {doctor.photo_url && uploadingId !== doctor.id && (
+                    <button
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:text-error"
+                      onClick={() => removeDoctorPhoto(doctor.id)}
+                      type="button"
+                    >
+                      Remove photo
+                    </button>
+                  )}
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => onPhotoFileSelected(doctor.id, e.target.files?.[0])}
+                    ref={(el) => {
+                      fileInputRefs.current[doctor.id] = el;
+                    }}
+                    type="file"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">JPG, PNG, or WEBP · Max 10MB</p>
+                {photoErrors[doctor.id] && (
+                  <p className="text-xs text-red-500">{photoErrors[doctor.id]}</p>
+                )}
+              </div>
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-foreground">Full name *</label>
                 <input
@@ -506,6 +576,31 @@ export function Step4DoctorsForm({
                 </div>
               )}
 
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground" htmlFor={`visit-${doctor.id}`}>
+                  Visit type
+                </label>
+                <select
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  id={`visit-${doctor.id}`}
+                  onChange={(e) => autoSave(updateDoctor(doctor.id, { appointment_policy: e.target.value }))}
+                  value={doctor.appointment_policy ?? ""}
+                >
+                  <option value="">
+                    Same as the facility{typeof walkinPolicy === "string" && walkinPolicy ? ` (${walkinPolicy})` : ""}
+                  </option>
+                  {WALKIN_APPOINTMENT_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Some specialists only see patients by appointment. When a doctor takes appointments,
+                  their public card shows your booking phone and links.
+                </p>
+              </div>
+
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">Languages spoken</p>
@@ -535,47 +630,6 @@ export function Step4DoctorsForm({
                   onChange={(rows) => autoSave(updateDoctor(doctor.id, { available_schedule: rows }))}
                   value={doctor.available_schedule}
                 />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-foreground">Photo (optional)</label>
-                <p className="text-xs text-muted-foreground">
-                  A professional headshot helps patients recognize their doctor
-                </p>
-                <div className="flex items-center gap-3">
-                  {doctor.photo_url && (
-                    <img
-                      alt={doctor.full_name || "Doctor photo"}
-                      className="size-[60px] rounded-full object-cover"
-                      src={doctor.photo_url}
-                    />
-                  )}
-                  <button
-                    className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
-                    disabled={uploadingId === doctor.id}
-                    onClick={() => fileInputRefs.current[doctor.id]?.click()}
-                    type="button"
-                  >
-                    {uploadingId === doctor.id
-                      ? "Uploading…"
-                      : doctor.photo_url
-                        ? "Replace photo"
-                        : "Upload photo"}
-                  </button>
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => onPhotoFileSelected(doctor.id, e.target.files?.[0])}
-                    ref={(el) => {
-                      fileInputRefs.current[doctor.id] = el;
-                    }}
-                    type="file"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">JPG, PNG, or WEBP · Max 10MB</p>
-                {photoErrors[doctor.id] && (
-                  <p className="text-xs text-red-500">{photoErrors[doctor.id]}</p>
-                )}
               </div>
 
               <div className="flex flex-col gap-1.5">

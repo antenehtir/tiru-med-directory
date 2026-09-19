@@ -10,6 +10,7 @@ import type { SpecialistDetail, SpecialistListItem } from "@/lib/supabase/get-sp
 import type { VerificationStatus } from "@/types/verification";
 import { SpecialistAvailabilitySection } from "./SpecialistAvailabilitySection";
 import { SpecialistCard } from "./SpecialistCard";
+import { DoctorBookingOptions } from "@/components/facility-detail/DoctorBookingOptions";
 
 function getInitials(name: string): string {
   return name
@@ -93,6 +94,13 @@ export function SpecialistDetailPage({
                     {appointment.text}
                   </Badge>
                 </div>
+
+                <DoctorBookingOptions
+                  className="mt-3 max-w-md"
+                  facilityPhone={specialist.facilityPhone}
+                  modalities={specialist.facilityAppointmentModalities}
+                  policy={specialist.facilityWalkinAppointment}
+                />
 
                 <p className="mt-3 text-base leading-7 text-muted-foreground">
                   Practices at{" "}

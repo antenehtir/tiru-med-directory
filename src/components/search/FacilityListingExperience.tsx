@@ -46,9 +46,13 @@ function FacilityListingExperienceInner({
     ? activeFilterCount - (filters.type ? 1 : 0)
     : activeFilterCount;
 
-  const results = filterFacilitiesByQuery(facilities, query).filter((facility) =>
+  const queried = filterFacilitiesByQuery(facilities, query);
+  const results = queried.filter((facility) =>
     facilityMatchesListingFilters(facility, effectiveFilters),
   );
+  // The Filters dialog previews against the same list the page shows, so its
+  // area suggestions and "Show N results" match what the page will show.
+  const withLock = (draft: typeof filters) => (lockedType ? { ...draft, type: lockedType } : draft);
 
   return (
     <div className="grid gap-4">
@@ -60,6 +64,14 @@ function FacilityListingExperienceInner({
       />
 
       <FilterModal
+        areaTexts={(draft) =>
+          queried
+            .filter((facility) => facilityMatchesListingFilters(facility, withLock(draft)))
+            .map((facility) => [facility.area ?? "", facility.address].filter(Boolean).join(", "))
+        }
+        countMatches={(draft) =>
+          queried.filter((facility) => facilityMatchesListingFilters(facility, withLock(draft))).length
+        }
         filters={filters}
         isOpen={isOpen}
         lockedType={lockedType}
