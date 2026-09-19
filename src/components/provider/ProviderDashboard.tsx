@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { calculateCompletion, missingRequiredFieldKeys } from "@/lib/provider/onboarding-config";
 import { formatAddisDate } from "@/lib/addis-time";
+import { listingCompletenessItems, listingCompletenessPct } from "@/lib/provider/listing-completeness";
+import { CompletionMeter } from "@/components/provider/CompletionProgress";
 
 type ProviderAccount = {
   id: string;
@@ -155,7 +157,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-export type LiveFacilitySummary = {
+export type LiveFacilitySummary = Record<string, unknown> & {
   doctors: unknown;
   photo_urls: unknown;
   photo_url: string | null;
@@ -179,9 +181,40 @@ function LiveOverview({ facility }: { facility: LiveFacilitySummary }) {
       ? 1
       : 0;
   const lastUpdated = facility.updated_at ? formatDate(facility.updated_at) : "—";
+  const completionPct = listingCompletenessPct(facility);
+  const missing = listingCompletenessItems(facility).filter((item) => !item.done);
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <p className="font-semibold text-foreground">How complete your listing is</p>
+        <CompletionMeter pct={completionPct} />
+        {missing.length > 0 ? (
+          <>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Patients choose listings with more detail. Still missing:
+            </p>
+            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-xl border border-border">
+              {missing.map((item) => (
+                <li key={item.key}>
+                  <a
+                    className="flex min-h-11 items-center justify-between gap-3 bg-background px-4 py-2.5 text-sm text-foreground transition hover:bg-muted"
+                    href={`/provider/listing?section=${item.section}`}
+                  >
+                    <span>{item.label}</span>
+                    <span className="shrink-0 text-xs font-semibold text-primary">Add →</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Everything patients look for is filled in. Keep it current as things change.
+          </p>
+        )}
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <p className="font-semibold text-foreground">Your listing is live</p>
         <p className="mt-1 text-sm text-muted-foreground">

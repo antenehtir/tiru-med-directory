@@ -12,7 +12,7 @@ export function FeaturedFacilityStrip({ facilities }: { facilities: Facility[] }
   if (showcasedFacilities.length === 0) return null;
 
   const cards = showcasedFacilities.map((facility) => (
-    <CompactFacilityCard className="w-[280px] min-w-[280px] shrink-0" facility={facility} key={facility.slug} />
+    <CompactFacilityCard className="w-[280px] min-w-[280px] shrink-0" facility={facility} key={facility.slug} rotatePhotos />
   ));
 
   return (
@@ -130,7 +130,7 @@ function MobileFacilityCarousel({ facilities }: { facilities: Facility[] }) {
       >
         {facilities.map((facility, index) => (
           <div className="w-[85%] shrink-0 snap-start" data-index={index} key={facility.id} ref={(el) => { cardRefs.current[index] = el; }}>
-            <CompactFacilityCard className="h-full w-full" facility={facility} />
+            <CompactFacilityCard className="h-full w-full" facility={facility} rotatePhotos />
           </div>
         ))}
       </div>

@@ -5,6 +5,7 @@ import { autoSaveStep4, saveStep4AndContinue } from "@/app/provider/(console)/on
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { ClearStepButton } from "@/components/provider/ClearStepButton";
 import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
+import { showToast } from "@/components/ui/Toaster";
 import { Spinner } from "@/components/provider/Spinner";
 import { Pill } from "@/components/ui/Pill";
 import { SelectAllButton } from "@/components/ui/SelectAllButton";
@@ -134,6 +135,7 @@ export function Step4DoctorsForm({
     const roster = publishableRoster(doctors);
     if (JSON.stringify(roster) === liveBaseline) {
       setLiveError("Nothing to save — no changes were made in this section.");
+      showToast("No changes to save", "info");
       return;
     }
     startTransition(async () => {
@@ -141,8 +143,11 @@ export function Step4DoctorsForm({
         await live.save(live.facilityId, roster);
         setLiveBaseline(JSON.stringify(roster));
         setLastSaved(new Date());
+        showToast("Saved — your changes are live");
       } catch (e) {
-        setLiveError(e instanceof Error ? e.message : "Failed to save.");
+        const message = e instanceof Error ? e.message : "Failed to save.";
+        setLiveError(message);
+        showToast(message, "error");
       }
     });
   }
@@ -304,6 +309,7 @@ export function Step4DoctorsForm({
       await autoSaveStep4(applyFacilityAppointmentPolicy(doctors));
       setLastSaved(new Date());
       setPendingAction(null);
+      showToast("Draft saved");
     });
   }
 

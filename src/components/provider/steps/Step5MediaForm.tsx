@@ -10,6 +10,7 @@ import {
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { ClearStepButton } from "@/components/provider/ClearStepButton";
 import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
+import { showToast } from "@/components/ui/Toaster";
 import { formatAddisTime } from "@/lib/addis-time";
 import { Spinner } from "@/components/provider/Spinner";
 import { Badge } from "@/components/ui/Badge";
@@ -106,6 +107,7 @@ export function Step5MediaForm({
     if (!live) return;
     if (JSON.stringify(urls) === liveBaseline) {
       setSaveError("Nothing to save — no changes were made in this section.");
+      showToast("No changes to save", "info");
       return;
     }
     setSaveError(null);
@@ -114,8 +116,11 @@ export function Step5MediaForm({
       if (result.ok) {
         setLiveBaseline(JSON.stringify(urls));
         setLastSaved(new Date());
+        showToast("Saved — your changes are live");
       } else {
-        setSaveError(result.error ?? "Save failed — please try again.");
+        const message = result.error ?? "Save failed — please try again.";
+        setSaveError(message);
+        showToast(message, "error");
       }
     });
   }
@@ -306,8 +311,11 @@ export function Step5MediaForm({
       if (result.ok) {
         setSaveError(null);
         setLastSaved(new Date());
+        showToast("Draft saved");
       } else {
-        setSaveError(result.error ?? "Save failed — please try again.");
+        const message = result.error ?? "Save failed — please try again.";
+        setSaveError(message);
+        showToast(message, "error");
       }
       setPendingAction(null);
     });

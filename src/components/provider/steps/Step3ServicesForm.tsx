@@ -5,6 +5,7 @@ import { saveStep3, autoSaveStep3 } from "@/app/provider/(console)/onboarding/se
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { ClearStepButton } from "@/components/provider/ClearStepButton";
 import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
+import { SaveOutcomeToast } from "@/components/provider/SaveOutcomeToast";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import { getPillClassName, Pill } from "@/components/ui/Pill";
@@ -526,6 +527,7 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
 
   return (
     <form action={saveStep3} className="space-y-6" onSubmit={handleSubmit}>
+      <SaveOutcomeToast />
       {/* Hidden fields for checkboxes/toggles */}
       <input name="checkup_offered" type="hidden" value={checkupOffered ? "yes" : "no"} />
       <input

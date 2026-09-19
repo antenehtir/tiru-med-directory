@@ -6,6 +6,7 @@ import { EmptyState, SearchIcon } from "@/components/ui/EmptyState";
 import { filterFacilitiesByQuery, type FacilityCategoryFilter } from "@/lib/frontend-search-filters";
 import { facilityMatchesListingFilters } from "@/lib/listing-filters";
 import type { Facility } from "@/types/facility";
+import { facilityPlaceText } from "@/lib/place-match";
 import { FilterModal } from "./FilterModal";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { useListingFilterModal } from "./use-listing-filter-modal";
@@ -67,7 +68,7 @@ function FacilityListingExperienceInner({
         areaTexts={(draft) =>
           queried
             .filter((facility) => facilityMatchesListingFilters(facility, withLock(draft)))
-            .map((facility) => [facility.area ?? "", facility.address].filter(Boolean).join(", "))
+            .map((facility) => facilityPlaceText(facility))
         }
         countMatches={(draft) =>
           queried.filter((facility) => facilityMatchesListingFilters(facility, withLock(draft))).length

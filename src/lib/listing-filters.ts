@@ -8,6 +8,7 @@ import {
 import type { SpecialistListItem } from "@/lib/supabase/get-specialists";
 import type { Doctor } from "@/types/doctor";
 import type { Facility } from "@/types/facility";
+import { facilityPlaceText, placeTextMatches } from "@/lib/place-match";
 
 export type ListingFilters = {
   type: FacilityCategoryFilter | "";
@@ -87,14 +88,10 @@ export function facilityMatchesListingFilters(
     }
   }
 
-  if (filters.area) {
-    const areaText = normalize(
-      [facility.area ?? "", facility.location, facility.address].join(" "),
-    );
-
-    if (!areaText.includes(normalize(filters.area))) {
-      return false;
-    }
+  // Word by word, tolerant of a one-letter slip, and across the area,
+  // address and every branch — see lib/place-match.ts.
+  if (filters.area && !placeTextMatches(facilityPlaceText(facility), filters.area)) {
+    return false;
   }
 
   if (filters.specialty) {
@@ -121,7 +118,7 @@ export function doctorMatchesListingFilters(
     return false;
   }
 
-  if (filters.area && !normalize(doctor.location).includes(normalize(filters.area))) {
+  if (filters.area && !placeTextMatches(doctor.location, filters.area)) {
     return false;
   }
 
@@ -146,7 +143,7 @@ export function specialistMatchesListingFilters(
     return false;
   }
 
-  if (filters.area && !locationText.includes(normalize(filters.area))) {
+  if (filters.area && !placeTextMatches(locationText, filters.area)) {
     return false;
   }
 

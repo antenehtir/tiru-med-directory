@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ClockIcon, MapPinIcon, PhoneIcon, ShieldIcon } from "@/components/cards/contact-icons";
 import { facilityCategoryDisplayLabel, facilityCategorySpineClasses, facilityMonogram, facilityPlateClasses, facilityWatermarkIconKey, resolveFacilityCardCategoryKey } from "@/components/cards/facility-category-style";
@@ -37,9 +37,77 @@ type FacilityCardProps = {
   // town to it even when a branch was two blocks away.
   nearestBranch?: FacilityBranch;
 };
-type FacilityBannerProps = { facility: Facility; heightClassName?: string };
+type FacilityBannerProps = { facility: Facility; heightClassName?: string; rotatePhotos?: boolean };
 
-export function FacilityBanner({ facility, heightClassName }: FacilityBannerProps) {
+// How long each photo stays before crossfading to the next: long enough to
+// take in, short enough that the card feels alive.
+const PHOTO_ROTATE_MS = 5000;
+
+function coverPhotoUrls(facility: Facility): string[] {
+  const urls = (facility.photoUrls ?? []).map((url) => url?.trim()).filter((url): url is string => Boolean(url));
+  const single = facility.photoUrl?.trim();
+  if (single && !urls.includes(single)) urls.push(single);
+  return urls;
+}
+
+// Crossfades through a facility's photos while the card is on screen.
+// Stops for reduced-motion users and when off screen, and each card starts on
+// its own offset so a row of cards never flips in unison.
+function RotatingCover({ urls, seed }: { urls: string[]; seed: string }) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.3 });
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible || urls.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let offset = 0;
+    for (const ch of seed) offset = (offset * 31 + ch.charCodeAt(0)) % 1000;
+    let timer: number | undefined;
+    // The first change comes early (about 2s): on phones the strip itself
+    // moves to the next card every few seconds, and a later first change
+    // would never be seen.
+    const start = window.setTimeout(() => {
+      setIndex((i) => (i + 1) % urls.length);
+      timer = window.setInterval(() => setIndex((i) => (i + 1) % urls.length), PHOTO_ROTATE_MS);
+    }, 1800 + offset);
+    return () => {
+      window.clearTimeout(start);
+      if (timer) window.clearInterval(timer);
+    };
+  }, [visible, urls.length, seed]);
+
+  return (
+    <div className="absolute inset-0" ref={frameRef}>
+      {urls.map((url, i) => (
+        <img
+          alt=""
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${i === index ? "opacity-100" : "opacity-0"}`}
+          key={url}
+          loading="lazy"
+          src={url}
+        />
+      ))}
+      {urls.length > 1 ? (
+        <div className="absolute bottom-1.5 left-1/2 flex -translate-x-1/2 gap-1">
+          {urls.map((url, i) => (
+            <span className={`size-1.5 rounded-full shadow-sm transition-colors ${i === index ? "bg-white" : "bg-white/50"}`} key={url} />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function FacilityBanner({ facility, heightClassName, rotatePhotos = false }: FacilityBannerProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const WatermarkIcon = facilityCategoryIcons[facilityWatermarkIconKey[categoryKey]];
   const coverPhotoUrl = facility.photoUrls?.find((url) => url?.trim())?.trim() || facility.photoUrl?.trim() || undefined;
@@ -54,7 +122,7 @@ export function FacilityBanner({ facility, heightClassName }: FacilityBannerProp
           the corner; the icon is 40%-opacity ambient texture, so it moves.
           Two 24px elements cannot clear each other in 56px, hence the shrink
           to size-4 too: badge now runs y=8-26, icon y=34-50, ~8px apart. */}
-      {coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[2rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18]">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute bottom-1.5 right-3 size-4 opacity-40" /></div>}
+      {coverPhotoUrl && rotatePhotos ? <RotatingCover seed={facility.slug} urls={coverPhotoUrls(facility)} /> : coverPhotoUrl ? <img alt="" className="h-full w-full object-cover" loading="lazy" src={coverPhotoUrl} /> : <div className={`relative flex h-full w-full items-center overflow-hidden ${facilityPlateClasses[categoryKey]}`}><span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-display text-[2rem] font-bold leading-none tracking-[-0.05em] opacity-[0.18]">{facilityMonogram(facility.name)}</span><WatermarkIcon className="absolute bottom-1.5 right-3 size-4 opacity-40" /></div>}
       {showBadge ? <div className="absolute right-2 top-2 drop-shadow-sm"><VerificationBadge compact status={facility.verificationStatus} /></div> : null}
     </div>
   );
@@ -229,14 +297,18 @@ export function FacilityCard({ facility, distanceLabel, highlightLabels, nearest
   );
 }
 
-type CompactFacilityCardProps = { facility: Facility; className?: string };
+type CompactFacilityCardProps = { facility: Facility; className?: string; rotatePhotos?: boolean };
 
-export function CompactFacilityCard({ facility, className = "" }: CompactFacilityCardProps) {
+export function CompactFacilityCard({ facility, className = "", rotatePhotos = false }: CompactFacilityCardProps) {
   const categoryKey = resolveFacilityCardCategoryKey(facility);
   const detailHref = facility.detailHref ?? `/facilities/${facility.slug}`;
   const callAction = createPublicContactActions(facility.contactChannels).find((action) => action.kind === "phone");
   const directionsHref = facilityDirectionsHref(facility);
   const compactLocality = facilityLocalityLabel(facility);
+  // The area in words patients use ("Megenagna, behind Zefmesh"), without the
+  // sub-city the chip above already shows.
+  const areaLine = splitFacilityAddress(facility).street || facility.area?.trim() || "";
+  const extraBranches = facility.branches?.length || facility.branchCount || 0;
   return (
     <article className={`group isolate relative flex h-full min-w-0 flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-strong-border hover:shadow-lift motion-reduce:transform-none motion-reduce:transition-none ${className}`}>
       <Link aria-label={`View ${facility.name}`} className="absolute inset-0 z-0 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" href={detailHref} />
@@ -245,11 +317,17 @@ export function CompactFacilityCard({ facility, className = "" }: CompactFacilit
           image. This row used to repeat it in full ("Community sourced")
           right underneath — the same signal twice on one card, the second
           copy in the words the first was deliberately abbreviating. */}
-      <FacilityBanner facility={facility} />
+      <FacilityBanner facility={facility} rotatePhotos={rotatePhotos} />
       <div className="pointer-events-none relative z-10 flex flex-1 flex-col pb-3 pl-4 pr-3 pt-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{facilityCategoryDisplayLabel(facility, categoryKey)}</span>
         <h3 className="mt-1.5 line-clamp-2 min-h-[2.3em] break-words font-display text-[17px] font-semibold leading-[1.15] text-foreground">{facility.name}</h3>
-        {compactLocality ? <p className="mt-1.5"><span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground"><MapPinIcon className="size-3 shrink-0" />{compactLocality}</span></p> : null}
+        {compactLocality || extraBranches > 0 ? (
+          <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {compactLocality ? <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground"><MapPinIcon className="size-3 shrink-0" />{compactLocality}</span> : null}
+            {extraBranches > 0 ? <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[12px] font-semibold text-primary">+{extraBranches} {extraBranches === 1 ? "branch" : "branches"}</span> : null}
+          </p>
+        ) : null}
+        {areaLine ? <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-muted-foreground">{areaLine}</p> : null}
         <AvailabilityLine facility={facility} />
         <div className="pointer-events-auto relative z-20 mt-auto flex items-center gap-2 border-t border-border pt-2.5">
           {callAction ? <a aria-label={`Call ${facility.name}`} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-control text-[13px] font-semibold text-foreground transition-colors hover:bg-muted" href={callAction.href}><PhoneIcon className="size-3.5 shrink-0" />Call Now</a> : null}

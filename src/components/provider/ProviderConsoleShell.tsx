@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { formatAddisDate } from "@/lib/addis-time";
 import type { BadgeVariant } from "@/lib/design-tokens";
 import { CompletionMeter, CompletionRefreshProvider } from "@/components/provider/CompletionProgress";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 
 type NavItem = {
   label: string;
@@ -266,12 +267,10 @@ function SidebarContent({
             View live listing
           </a>
         )}
-        <a
+        <SignOutButton
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           href="/provider/logout"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          Sign out
-        </a>
+        />
       </div>
     </div>
   );

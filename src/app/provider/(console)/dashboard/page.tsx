@@ -18,7 +18,7 @@ export default async function ProviderDashboardPage() {
   if (provider.facility_id && provider.status === "approved") {
     const { data } = await supabase
       .from("facilities")
-      .select("doctors, photo_urls, photo_url, updated_at")
+      .select("*")
       .eq("id", provider.facility_id)
       .maybeSingle();
     liveFacility = (data as LiveFacilitySummary | null) ?? null;

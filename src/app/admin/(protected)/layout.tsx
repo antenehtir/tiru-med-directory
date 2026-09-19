@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createAdminSupabaseClient, getAdminUser } from "@/lib/supabase/admin-client";
 import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 
 export const metadata = {
   title: "Tiru Admin",
@@ -49,12 +50,7 @@ export default async function AdminLayout({
           >
             {adminUser.display_name ?? adminUser.email}
           </Link>
-          <a
-            className="text-sm text-muted-foreground hover:text-foreground"
-            href="/admin/logout"
-          >
-            Sign out
-          </a>
+          <SignOutButton className="text-sm text-muted-foreground hover:text-foreground" href="/admin/logout" />
         </div>
       </header>
 

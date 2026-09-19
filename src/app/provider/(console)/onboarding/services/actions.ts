@@ -15,7 +15,7 @@ export async function saveStep3(formData: FormData) {
   const claimId = await ensureClaimId(supabase, provider.id, provider.facility_id ?? null);
   if (!claimId) {
     console.error("saveStep3: could not find or create claim for provider", provider.id);
-    redirect("/provider/onboarding/services");
+    redirect("/provider/onboarding/services?save=failed");
   }
 
   const services = formData.getAll("services") as string[];
@@ -77,7 +77,7 @@ export async function saveStep3(formData: FormData) {
 
   if (error) {
     console.error("saveStep3 failed:", error.message);
-    redirect("/provider/onboarding/services");
+    redirect("/provider/onboarding/services?save=failed");
   }
 
   const { data: updatedClaim } = await supabase

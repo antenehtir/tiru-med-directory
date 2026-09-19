@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { saveStep2, autoSaveStep2 } from "@/app/provider/(console)/onboarding/location/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
+import { SaveOutcomeToast } from "@/components/provider/SaveOutcomeToast";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
@@ -122,6 +123,7 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
 
   return (
     <form action={saveStep2} className="space-y-6">
+      <SaveOutcomeToast />
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>

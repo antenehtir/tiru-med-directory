@@ -11,6 +11,7 @@ import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { ClearStepButton } from "@/components/provider/ClearStepButton";
 import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
 import { PillOption } from "@/components/provider/PillOption";
+import { SaveOutcomeToast } from "@/components/provider/SaveOutcomeToast";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { SAVE_INTENT_CONTINUE, SAVE_INTENT_FIELD, SAVE_INTENT_STAY } from "@/lib/provider/save-intent";
 import {
@@ -165,6 +166,7 @@ export function Step1IdentityForm({
 
   return (
     <form action={saveStep1} className="space-y-6" onSubmit={handleSubmit}>
+      <SaveOutcomeToast />
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>

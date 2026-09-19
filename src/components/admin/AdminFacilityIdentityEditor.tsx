@@ -1,6 +1,7 @@
 "use client";
 
 import { formatAddisTime } from "@/lib/addis-time";
+import { showToast } from "@/components/ui/Toaster";
 import { useState, useTransition } from "react";
 import { updateFacilityIdentity } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import {
@@ -117,6 +118,7 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
 
     if (Object.keys(fields).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
+      showToast("No changes to save", "info");
       return;
     }
 
@@ -129,8 +131,11 @@ export function AdminFacilityIdentityEditor({ facility }: { facility: Facility }
           subcategory: resolved?.subcategory ?? initial.subcategory,
         });
         setSavedAt(new Date());
+        showToast("Saved — your changes are live");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to save.");
+        const message = e instanceof Error ? e.message : "Failed to save.";
+        setError(message);
+        showToast(message, "error");
       }
     });
   }

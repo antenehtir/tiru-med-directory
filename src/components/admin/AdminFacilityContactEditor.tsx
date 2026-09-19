@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { showToast } from "@/components/ui/Toaster";
 import { updateFacilityContact } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import type { FacilityContactFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
@@ -100,6 +101,7 @@ export function AdminFacilityContactEditor({
     }
     if (Object.keys(changed).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
+      showToast("No changes to save", "info");
       return;
     }
 
@@ -108,8 +110,11 @@ export function AdminFacilityContactEditor({
         await saveAction(facility.id as string, changed);
         initial.current = { ...initial.current, ...changed };
         setSavedAt(new Date());
+        showToast("Saved — your changes are live");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to save.");
+        const message = e instanceof Error ? e.message : "Failed to save.";
+        setError(message);
+        showToast(message, "error");
       }
     });
   }

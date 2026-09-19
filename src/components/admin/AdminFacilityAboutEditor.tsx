@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { showToast } from "@/components/ui/Toaster";
 import { updateFacilityAbout } from "@/app/admin/(protected)/facilities/[id]/edit/actions";
 import type { FacilityAboutFields } from "@/lib/facility-edit/save-sections";
 import { formatAddisTime } from "@/lib/addis-time";
@@ -158,6 +159,7 @@ export function AdminFacilityAboutEditor({
 
     if (Object.keys(fields).length === 0) {
       setError("Nothing to save — no changes were made in this section.");
+      showToast("No changes to save", "info");
       return;
     }
 
@@ -173,8 +175,11 @@ export function AdminFacilityAboutEditor({
           access_notes: accessNotes.trim(),
         });
         setSavedAt(new Date());
+        showToast("Saved — your changes are live");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to save.");
+        const message = e instanceof Error ? e.message : "Failed to save.";
+        setError(message);
+        showToast(message, "error");
       }
     });
   }
