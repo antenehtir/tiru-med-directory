@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
-import { approveClaim, rejectClaim } from "@/app/admin/(protected)/claims/actions";
+import { approveClaim, rejectClaim, saveCallNotes } from "@/app/admin/(protected)/claims/actions";
 import { Pill } from "@/components/ui/Pill";
-import { formatAddisDateTime } from "@/lib/addis-time";
+import { AdminAccountChangeList, type AccountChange } from "@/components/admin/AdminAccountChangeList";
+import { formatAddisDate, formatAddisDateTime } from "@/lib/addis-time";
 
 export type Facility = {
   id: string;
@@ -26,6 +27,7 @@ export type Claim = {
   claimant_role_other: string | null;
   claimant_phone: string | null;
   facility_official_phone_claimed: string | null;
+  facility_phone: string | null;
   work_email: string | null;
   referral_source: string | null;
   verification_status_internal: string;
@@ -33,30 +35,54 @@ export type Claim = {
   facility_id: string | null;
   facility_name: string | null;
   submitted_at: string | null;
+  proposed_phone: string | null;
+  proposed_sub_city: string | null;
+  proposed_area: string | null;
+  // Set when this provider was rejected before and has submitted again.
+  resubmission: { count: number; lastReason: string; lastRejectedAt: string } | null;
   facilities: Facility | null;
 };
 
-type Tab = "claims" | "new-listings";
+type Tab = "claims" | "new-listings" | "resubmitted" | "account-changes";
 
-export function AdminClaimsList({ claims }: { claims: Claim[] }) {
+export function AdminClaimsList({
+  claims,
+  accountChanges = [],
+}: {
+  claims: Claim[];
+  accountChanges?: AccountChange[];
+}) {
   const searchParams = useSearchParams();
-  const claimsItems = claims.filter((c) => c.facility_id !== null);
-  const newListingsItems = claims.filter((c) => c.facility_id === null);
+  // A resubmission is reviewed on its own tab: the admin checks first
+  // whether the reason it was sent back has been fixed.
+  const resubmittedItems = claims.filter((c) => c.resubmission);
+  const claimsItems = claims.filter((c) => !c.resubmission && c.facility_id !== null);
+  const newListingsItems = claims.filter((c) => !c.resubmission && c.facility_id === null);
 
   const tabParam = searchParams.get("tab");
   const initialTab: Tab =
-    tabParam === "claims" || tabParam === "new-listings"
+    tabParam === "claims" ||
+    tabParam === "new-listings" ||
+    tabParam === "resubmitted" ||
+    tabParam === "account-changes"
       ? tabParam
-      : newListingsItems.length > claimsItems.length
-        ? "new-listings"
-        : "claims";
+      : resubmittedItems.length > 0 && claimsItems.length === 0 && newListingsItems.length === 0
+        ? "resubmitted"
+        : newListingsItems.length > claimsItems.length
+          ? "new-listings"
+          : "claims";
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [isPending, startTransition] = useTransition();
-  const [notes, setNotes] = useState<Record<string, string>>({});
+  // Seeded from what is already on file, so notes written earlier are sent
+  // with the decision rather than replaced by an empty box.
+  const [notes, setNotes] = useState<Record<string, string>>(() =>
+    Object.fromEntries(claims.map((c) => [c.id, c.verification_call_notes ?? ""])),
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const visible = activeTab === "claims" ? claimsItems : newListingsItems;
+  const visible =
+    activeTab === "claims" ? claimsItems : activeTab === "new-listings" ? newListingsItems : resubmittedItems;
 
   function handleApprove(claimId: string, facilityId: string | null, facilityName: string) {
     const msg =
@@ -74,23 +100,25 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
   function handleReject(claimId: string) {
     const reason = prompt("Reason for rejection:");
     if (reason === null) return;
-    startTransition(() => rejectClaim(claimId, reason));
+    startTransition(() => rejectClaim(claimId, reason, notes[claimId] ?? ""));
   }
 
   return (
     <div>
       {/* Tab bar */}
-      <div className="mb-6 border-b border-border">
-        <div className="flex">
+      <div className="mb-6 overflow-x-auto border-b border-border [scrollbar-width:none]">
+        <div className="flex w-max">
           {(
             [
               { key: "claims" as Tab, label: "Claims", count: claimsItems.length },
               { key: "new-listings" as Tab, label: "New Listings", count: newListingsItems.length },
+              { key: "resubmitted" as Tab, label: "Resubmitted", count: resubmittedItems.length },
+              { key: "account-changes" as Tab, label: "Account changes", count: accountChanges.length },
             ] as const
           ).map(({ key, label, count }) => (
             <button
               key={key}
-              className={`mr-1 border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
+              className={`mr-1 whitespace-nowrap border-b-2 px-4 pb-3 text-sm font-medium transition-colors ${
                 activeTab === key
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -110,22 +138,30 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
         </div>
       </div>
 
+      {activeTab === "account-changes" && <AdminAccountChangeList changes={accountChanges} />}
+
       {/* Empty state */}
-      {visible.length === 0 && (
+      {activeTab !== "account-changes" && visible.length === 0 && (
         <div className="rounded-2xl border border-border bg-card p-12 text-center">
           <p className="text-lg font-semibold text-foreground">
-            {activeTab === "claims" ? "No pending claims" : "No pending new listings"}
+            {activeTab === "claims"
+              ? "No pending claims"
+              : activeTab === "new-listings"
+                ? "No pending new listings"
+                : "No resubmissions waiting"}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {activeTab === "claims"
               ? "Provider claims on existing facilities awaiting verification will appear here."
-              : "New facility listing requests awaiting review will appear here."}
+              : activeTab === "new-listings"
+                ? "New facility listing requests awaiting review will appear here."
+                : "Submissions sent back once and submitted again will appear here."}
           </p>
         </div>
       )}
 
       {/* Card list */}
-      {visible.length > 0 && (
+      {activeTab !== "account-changes" && visible.length > 0 && (
         <div className="space-y-4">
           {visible.map((claim) => {
             const facility = claim.facilities;
@@ -141,12 +177,30 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
               facility.phone.replace(/\s/g, "") ===
                 claim.facility_official_phone_claimed.replace(/\s/g, "");
             const isExpanded = expandedId === claim.id;
+            // New-listing signups keep the person's number in phone and the
+            // facility's in facility_phone; claims fill claimant_phone. Both
+            // are read so the card never shows a blank where a number is on file.
+            const submitterPhone = claim.claimant_phone || claim.phone;
+            const newListingPhone = claim.proposed_phone || claim.facility_phone;
+            const noteText = notes[claim.id] ?? "";
 
             return (
               <div key={claim.id} className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-foreground">{displayName}</h3>
+                    <h3 className="font-bold text-foreground">
+                      {displayName}
+                      {claim.resubmission && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                          Resubmitted{claim.resubmission.count > 1 ? ` ×${claim.resubmission.count}` : ""}
+                        </span>
+                      )}
+                    </h3>
+                    {activeTab === "resubmitted" && (
+                      <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+                        {isNewListing ? "New listing" : "Claim on an existing listing"}
+                      </p>
+                    )}
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {isNewListing ? "Submitted" : "Claimed"} by {claim.display_name} ·{" "}
                       {claimantRole}
@@ -164,6 +218,17 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
 
                 {isExpanded && (
                   <div className="mt-4 space-y-4 border-t border-border pt-4">
+                    {claim.resubmission && (
+                      <div className="rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
+                        <p className="text-xs font-semibold text-foreground">
+                          ↩ Sent back on {formatAddisDate(claim.resubmission.lastRejectedAt)} — check this is fixed
+                        </p>
+                        <p className="mt-1 text-sm text-foreground">
+                          {claim.resubmission.lastReason || "No reason was recorded."}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Cross-check grid */}
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-xl bg-muted/40 p-3">
@@ -173,7 +238,14 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                         <p className="mt-1 text-sm text-foreground">{claim.display_name}</p>
                         <p className="text-xs text-muted-foreground">Role: {claimantRole}</p>
                         <p className="text-xs text-muted-foreground">
-                          Phone: {claim.claimant_phone}
+                          Phone:{" "}
+                          {submitterPhone ? (
+                            <a className="font-semibold text-foreground hover:underline" href={`tel:${submitterPhone.replace(/\s/g, "")}`}>
+                              {submitterPhone}
+                            </a>
+                          ) : (
+                            "not given"
+                          )}
                         </p>
                         <p className="text-xs text-muted-foreground">Email: {claim.email}</p>
                         {claim.work_email && (
@@ -192,6 +264,21 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               New listing — not yet in the directory
+                            </p>
+                            {(claim.proposed_area || claim.proposed_sub_city) && (
+                              <p className="text-xs text-muted-foreground">
+                                {[claim.proposed_area, claim.proposed_sub_city].filter(Boolean).join(", ")}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Facility phone:{" "}
+                              {newListingPhone ? (
+                                <a className="font-semibold text-foreground hover:underline" href={`tel:${newListingPhone.replace(/\s/g, "")}`}>
+                                  {newListingPhone}
+                                </a>
+                              ) : (
+                                "not given"
+                              )}
                             </p>
                           </>
                         ) : (
@@ -302,16 +389,25 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
 
                     {/* Call notes */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-muted-foreground">
+                      <label className="text-xs font-semibold text-muted-foreground" htmlFor={`call-notes-${claim.id}`}>
                         CALL NOTES
                       </label>
                       <textarea
                         className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        defaultValue={claim.verification_call_notes ?? ""}
+                        id={`call-notes-${claim.id}`}
+                        onBlur={(e) => {
+                          if (e.target.value !== (claim.verification_call_notes ?? "")) {
+                            void saveCallNotes(claim.id, e.target.value);
+                          }
+                        }}
                         onChange={(e) => setNotes((n) => ({ ...n, [claim.id]: e.target.value }))}
+                        value={noteText}
                         placeholder="Record what the facility confirmed..."
                         rows={2}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Required to approve. Saved with the decision in the audit log.
+                      </p>
                     </div>
 
 
@@ -319,10 +415,11 @@ export function AdminClaimsList({ claims }: { claims: Claim[] }) {
                     <div className="flex gap-2">
                       <button
                         className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                        disabled={isPending}
+                        disabled={isPending || !noteText.trim()}
                         onClick={() =>
                           handleApprove(claim.id, claim.facility_id, displayName)
                         }
+                        title={noteText.trim() ? undefined : "Add call notes first"}
                         type="button"
                       >
                         {isNewListing ? "✓ Approve & publish listing" : "✓ Approve & hand over to facility"}

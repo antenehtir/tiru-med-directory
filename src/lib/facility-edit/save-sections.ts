@@ -1,6 +1,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { FACILITIES_CACHE_TAG } from "@/lib/supabase/get-facilities";
 import { summarizeFacilityChanges } from "@/lib/audit/change-summary";
+import { firstPhoneError } from "@/lib/phone";
 import type { createProviderSupabaseClient } from "@/lib/supabase/provider-client";
 
 // One save path for the live facility editor, whoever is holding it.
@@ -179,6 +180,19 @@ export async function saveServicesSection(
     throw new Error("Number of beds must be a whole number between 1 and 5000.");
   }
 
+  if (Array.isArray(fields.appointment_modalities)) {
+    const phoneProblem = firstPhoneError(
+      (fields.appointment_modalities as { type?: string; value?: string }[])
+        .filter((m) => m?.type === "phone" || m?.type === "phone_2" || m?.type === "whatsapp")
+        .map((m) => ({
+          label: m.type === "whatsapp" ? "WhatsApp booking" : "Booking phone",
+          value: m.value,
+          kind: m.type === "whatsapp" ? ("personal" as const) : ("facility" as const),
+        })),
+    );
+    if (phoneProblem) throw new Error(phoneProblem);
+  }
+
   const payload: Record<string, unknown> = { ...fields };
 
   // Two columns the onboarding wizard always kept in step with these and the
@@ -257,6 +271,13 @@ export async function saveContactSection(
       throw new Error(`"${value}" is not a valid URL for ${key}.`);
     }
   }
+  const phoneProblem = firstPhoneError([
+    ...(fields.phones ?? []).map((value, i) => ({ label: `Phone number ${i + 1}`, value })),
+    { label: "Primary phone", value: fields.phone },
+    { label: "Second phone", value: fields.phone_2 },
+    { label: "WhatsApp", value: fields.whatsapp, kind: "personal" as const },
+  ]);
+  if (phoneProblem) throw new Error(phoneProblem);
 
   await commitSection(editor, facilityId, "contact", { ...fields });
 }
@@ -311,6 +332,13 @@ export async function saveLocationSection(
   // truth: count the array.
   const payload: Record<string, unknown> = { ...fields };
   if (Array.isArray(fields.branches)) {
+    const phoneProblem = firstPhoneError(
+      (fields.branches as { name?: string; phone?: string; phone_2?: string }[]).flatMap((b, i) => [
+        { label: `${b?.name?.trim() || `Branch ${i + 1}`} phone`, value: b?.phone },
+        { label: `${b?.name?.trim() || `Branch ${i + 1}`} second number`, value: b?.phone_2 },
+      ]),
+    );
+    if (phoneProblem) throw new Error(phoneProblem);
     payload.branch_count = fields.branches.length + 1;
   } else {
     delete payload.branch_count;

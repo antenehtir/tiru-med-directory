@@ -1,5 +1,6 @@
 "use server";
 
+import { firstPhoneError } from "@/lib/phone";
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { loadClaimableFacility, recordClaim } from "@/lib/provider/claim-facility";
@@ -20,6 +21,9 @@ export async function submitClaim(formData: FormData) {
 
   if (!role || !phone || (role === "Other" && !roleOther)) {
     redirect("/provider/claim?error=missing");
+  }
+  if (firstPhoneError([{ label: "Phone", value: phone, kind: "personal" }])) {
+    redirect("/provider/claim?error=bad_phone");
   }
 
   const supabase = await createProviderSupabaseClient();

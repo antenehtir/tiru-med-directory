@@ -1,5 +1,6 @@
 "use server";
 
+import { firstPhoneError } from "@/lib/phone";
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ensureClaimId } from "@/lib/provider/get-claim";
@@ -38,6 +39,18 @@ export async function saveStep2(formData: FormData) {
   const tiktok = formData.get("tiktok") as string;
   const linkedin = formData.get("linkedin") as string;
   const youtube = formData.get("youtube") as string;
+
+  // The fields refuse a bad number as it is typed; this is the same rule for
+  // a request that skipped them.
+  if (
+    firstPhoneError([
+      { label: "Primary phone", value: phone },
+      { label: "Secondary phone", value: phone2 },
+      { label: "WhatsApp", value: whatsapp, kind: "personal" },
+    ])
+  ) {
+    redirect("/provider/onboarding/location?save=failed");
+  }
 
   const { error: updateError } = await supabase
     .from("facility_claims")

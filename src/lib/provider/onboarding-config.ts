@@ -1,3 +1,5 @@
+import { isValidEthiopianPhone } from "@/lib/phone";
+
 export const ONBOARDING_STEPS = [
   { num: 1, slug: "identity", label: "Basic Identity", weight: 10 },
   { num: 2, slug: "location", label: "Location & Contact", weight: 30 },
@@ -625,7 +627,7 @@ export function calculateCompletion(claim: Record<string, unknown>): number {
 export const REQUIRED_FIELD_LABELS = {
   name: "facility name",
   category: "facility type",
-  phone: "phone number",
+  phone: "a working phone number",
   subCity: "sub-city",
   area: "area or neighbourhood",
   coordinates: "map location",
@@ -643,7 +645,9 @@ export function missingRequiredFieldKeys(claim: Record<string, unknown>): Requir
   // facility_type is the column onboarding writes; proposed_category_data is
   // the sub-selection under it and does not stand in for the type itself.
   if (!String(claim.facility_type ?? "").trim()) missing.push("category");
-  if (!String(claim.proposed_phone ?? "").trim()) missing.push("phone");
+  // A number that cannot be dialled counts as missing — it is the one way a
+  // patient reaches the facility.
+  if (!isValidEthiopianPhone(String(claim.proposed_phone ?? ""))) missing.push("phone");
   if (!String(claim.proposed_sub_city ?? "").trim()) missing.push("subCity");
   if (!String(claim.proposed_area ?? "").trim()) missing.push("area");
 
@@ -675,7 +679,7 @@ export function missingFacilityRequiredFieldKeys(facility: Record<string, unknow
   if (!text(facility.name)) missing.push("name");
   if (!text(facility.category)) missing.push("category");
   const phones = Array.isArray(facility.phones) ? facility.phones.map(text).filter(Boolean) : [];
-  if (!text(facility.phone) && phones.length === 0) missing.push("phone");
+  if (![text(facility.phone), ...phones].some((p) => p && isValidEthiopianPhone(p))) missing.push("phone");
   if (!text(facility.sub_city)) missing.push("subCity");
   if (!text(facility.area)) missing.push("area");
   if (facility.latitude == null || facility.longitude == null) missing.push("coordinates");

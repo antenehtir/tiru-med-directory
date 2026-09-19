@@ -6,6 +6,7 @@ import { ADDIS_SUB_CITIES } from "@/lib/provider/onboarding-config";
 import { Pill } from "@/components/ui/Pill";
 import { ScheduleBuilder, type ScheduleRow } from "@/components/provider/ScheduleBuilder";
 import type { FacilityBranch } from "@/types/facility";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 // The branch list, extracted from Step2LocationForm so the admin facility
 // editor can reuse it rather than growing a second implementation. Purely
@@ -486,14 +487,25 @@ function BranchField({
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-muted-foreground">{label}</label>
-      <input
-        className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        onBlur={(e) => onCommit?.(e.target.value)}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        type={type}
-        value={value}
-      />
+      {type === "tel" ? (
+        <PhoneInput
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          kind="facility"
+          onBlur={(e) => onCommit?.(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          value={value}
+        />
+      ) : (
+        <input
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          onBlur={(e) => onCommit?.(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          type={type}
+          value={value}
+        />
+      )}
       {help && <p className="text-xs text-muted-foreground">{help}</p>}
     </div>
   );

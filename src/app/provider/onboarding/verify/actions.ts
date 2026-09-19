@@ -1,5 +1,6 @@
 "use server";
 
+import { firstPhoneError } from "@/lib/phone";
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 
@@ -13,6 +14,15 @@ export async function submitVerification(formData: FormData) {
   const officialPhone = formData.get("facility_official_phone_claimed") as string;
   const workEmail = formData.get("work_email") as string;
   const referral = formData.get("referral_source") as string;
+
+  if (
+    firstPhoneError([
+      { label: "Your phone", value: claimantPhone, kind: "personal" },
+      { label: "Facility phone", value: officialPhone },
+    ])
+  ) {
+    redirect("/provider/onboarding/verify?error=bad_phone");
+  }
 
   const supabase = await createProviderSupabaseClient();
 

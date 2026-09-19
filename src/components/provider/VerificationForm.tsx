@@ -5,6 +5,7 @@ import { submitVerification } from "@/app/provider/onboarding/verify/actions";
 import { submitClaim } from "@/app/provider/claim/actions";
 import { SubmitButton } from "@/components/provider/SubmitButton";
 import { CLAIMANT_ROLES } from "@/lib/provider/onboarding-config";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 type ProviderData = {
   display_name: string;
@@ -82,17 +83,17 @@ export function VerificationForm({
             <label className="text-sm font-medium text-foreground" htmlFor="claimant_phone">
               Your direct phone number *
             </label>
-            <input
+            <PhoneInput
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               defaultValue={provider.claimant_phone || provider.phone}
               id="claimant_phone"
               name="claimant_phone"
               placeholder="+251 ..."
               required
-              type="tel"
+              kind="personal"
             />
             <p className="text-xs text-muted-foreground">
-              We may call this to confirm your identity.
+              So the Tiru team can reach you about your listing.
             </p>
           </div>
 
@@ -105,14 +106,14 @@ export function VerificationForm({
               <label className="text-sm font-medium text-foreground" htmlFor="facility_official_phone_claimed">
                 Facility&apos;s official phone number *
               </label>
-              <input
+              <PhoneInput
                 className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 defaultValue={provider.facility_official_phone_claimed}
                 id="facility_official_phone_claimed"
                 name="facility_official_phone_claimed"
                 placeholder="+251 ..."
                 required
-                type="tel"
+                kind="facility"
               />
               <p className="text-xs text-muted-foreground">
                 The main public number of the facility.

@@ -5,6 +5,8 @@ import { CLAIMANT_ROLES } from "@/lib/provider/onboarding-config";
 import { updateAccountDetails, updatePassword } from "@/app/provider/(console)/settings/actions";
 import { AutoSaveIndicator } from "@/components/provider/AutoSaveIndicator";
 import { Spinner } from "@/components/provider/Spinner";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { LockedAccountDetails, type AccountChangeRequest } from "@/components/provider/LockedAccountDetails";
 
 type ProviderAccountFields = {
   display_name: string | null;
@@ -96,26 +98,32 @@ function AccountDetailsCard({ provider }: { provider: ProviderAccountFields }) {
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Mobile number
           </label>
-          <input
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            onBlur={() => save({ phone })}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
-            value={phone}
-          />
+          <div className="flex flex-col gap-1.5">
+            <PhoneInput
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              id="settings_phone"
+              kind="personal"
+              onBlur={() => save({ phone })}
+              onChange={(e) => setPhone(e.target.value)}
+              value={phone}
+            />
+          </div>
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Facility phone
           </label>
-          <input
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            onBlur={() => save({ facility_phone: facilityPhone })}
-            onChange={(e) => setFacilityPhone(e.target.value)}
-            type="tel"
-            value={facilityPhone}
-          />
+          <div className="flex flex-col gap-1.5">
+            <PhoneInput
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              id="settings_facility_phone"
+              kind="facility"
+              onBlur={() => save({ facility_phone: facilityPhone })}
+              onChange={(e) => setFacilityPhone(e.target.value)}
+              value={facilityPhone}
+            />
+          </div>
         </div>
 
         <div>
@@ -253,10 +261,24 @@ function ChangePasswordCard() {
   );
 }
 
-export function SettingsForm({ provider }: { provider: ProviderAccountFields }) {
+export function SettingsForm({
+  provider,
+  locked = false,
+  requests = [],
+}: {
+  provider: ProviderAccountFields;
+  // True once the provider has submitted for review or been approved — the
+  // details are then changed through a request to the Tiru team.
+  locked?: boolean;
+  requests?: AccountChangeRequest[];
+}) {
   return (
     <div className="space-y-6">
-      <AccountDetailsCard provider={provider} />
+      {locked ? (
+        <LockedAccountDetails provider={provider} requests={requests} />
+      ) : (
+        <AccountDetailsCard provider={provider} />
+      )}
       <ChangePasswordCard />
     </div>
   );

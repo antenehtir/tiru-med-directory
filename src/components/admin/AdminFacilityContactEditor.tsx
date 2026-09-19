@@ -8,6 +8,7 @@ import { formatAddisTime } from "@/lib/addis-time";
 import { normalizeUrl } from "@/lib/normalize-url";
 import { FieldGrid, FIELD_GRID_FULL } from "@/components/ui/FieldGrid";
 import { PhoneNumberList } from "@/components/admin/PhoneNumberList";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 type Facility = Record<string, unknown>;
 
@@ -147,12 +148,12 @@ export function AdminFacilityContactEditor({
           <label className="text-sm font-medium text-foreground" htmlFor="admin_whatsapp">
             WhatsApp
           </label>
-          <input
+          <PhoneInput
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             id="admin_whatsapp"
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="+251 ..."
-            type="tel"
+            kind="personal"
             value={whatsapp}
           />
         </div>

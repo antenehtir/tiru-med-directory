@@ -15,6 +15,7 @@ import { FieldGrid } from "@/components/ui/FieldGrid";
 import { AccessNotesField } from "@/components/provider/AccessNotesField";
 import { ClearStepButton } from "@/components/provider/ClearStepButton";
 import { useRefreshCompletion } from "@/components/provider/CompletionProgress";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 const MapPinPicker = dynamic(
   () => import("@/components/provider/MapPinPicker").then((m) => m.MapPinPicker),
@@ -252,13 +253,13 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <label className="text-sm font-medium text-foreground" htmlFor="phone">
               Primary phone *
             </label>
-            <input
+            <PhoneInput
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="phone"
               name="phone"
               placeholder="+251 ..."
               required
-              type="tel"
+              kind="facility"
               {...field(phone, setPhone, { phone })}
             />
           </div>
@@ -268,12 +269,12 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <label className="text-sm font-medium text-foreground" htmlFor="phone_2">
               Secondary phone
             </label>
-            <input
+            <PhoneInput
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="phone_2"
               name="phone_2"
               placeholder="+251 ..."
-              type="tel"
+              kind="facility"
               {...field(phone2, setPhone2, { phone_2: phone2 })}
             />
           </div>
@@ -283,12 +284,12 @@ export function Step2LocationForm({ claim }: { claim: Claim }) {
             <label className="text-sm font-medium text-foreground" htmlFor="whatsapp">
               WhatsApp
             </label>
-            <input
+            <PhoneInput
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id="whatsapp"
               name="whatsapp"
               placeholder="+251 ..."
-              type="tel"
+              kind="personal"
               {...field(whatsapp, setWhatsapp, { whatsapp })}
             />
           </div>

@@ -2,6 +2,57 @@
 
 import { revalidatePath } from "next/cache";
 import { getProviderAccount, createProviderSupabaseClient } from "@/lib/supabase/provider-client";
+import { firstPhoneError } from "@/lib/phone";
+import { isAccountLocked } from "@/lib/provider/account-lock";
+
+export type AccountChangeField = "display_name" | "claimant_role" | "phone" | "facility_phone";
+
+const FIELD_LABELS: Record<AccountChangeField, string> = {
+  display_name: "Display name",
+  claimant_role: "Role",
+  phone: "Mobile number",
+  facility_phone: "Facility phone",
+};
+
+export async function requestAccountChange(
+  field: AccountChangeField,
+  requestedValue: string,
+  reason: string,
+): Promise<{ ok: true } | { error: string }> {
+  const provider = await getProviderAccount();
+  if (!provider) return { error: "Not authenticated." };
+  if (!(field in FIELD_LABELS)) return { error: "That detail can't be changed here." };
+
+  const value = requestedValue.trim();
+  const why = reason.trim();
+  if (!value) return { error: `Enter the new ${FIELD_LABELS[field].toLowerCase()}.` };
+  if (!why) return { error: "Tell us why it is changing." };
+  if (field === "phone" || field === "facility_phone") {
+    const problem = firstPhoneError([
+      { label: FIELD_LABELS[field], value, kind: field === "phone" ? "personal" : "facility" },
+    ]);
+    if (problem) return { error: problem };
+  }
+
+  const current = (provider[field] as string | null) ?? null;
+  if ((current ?? "").trim() === value) return { error: "That is already the value on file." };
+
+  const supabase = await createProviderSupabaseClient();
+  const { error } = await supabase.from("account_change_requests").insert({
+    provider_id: provider.id,
+    field,
+    current_value: current,
+    requested_value: value,
+    reason: why,
+  });
+  if (error) {
+    console.error("requestAccountChange failed:", error.message);
+    return { error: "Could not send the request. Please try again." };
+  }
+
+  revalidatePath("/provider/settings");
+  return { ok: true };
+}
 
 export async function updateAccountDetails(data: {
   display_name?: string;
@@ -13,6 +64,16 @@ export async function updateAccountDetails(data: {
   if (!provider) return { error: "Not authenticated." };
 
   const supabase = await createProviderSupabaseClient();
+
+  if (await isAccountLocked(supabase, provider as { id: string; status?: string | null })) {
+    return { error: "These details are locked after submission. Use \"Request a change\" instead." };
+  }
+
+  const phoneProblem = firstPhoneError([
+    { label: "Mobile number", value: data.phone, kind: "personal" },
+    { label: "Facility phone", value: data.facility_phone },
+  ]);
+  if (phoneProblem) return { error: phoneProblem };
 
   const updates: Record<string, unknown> = {};
   if (data.display_name !== undefined) updates.display_name = data.display_name || null;

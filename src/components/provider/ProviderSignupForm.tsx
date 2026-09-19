@@ -11,6 +11,7 @@ import {
 import { CLAIMANT_ROLES, DIAGNOSTIC_SUBTYPE_OPTIONS } from "@/lib/provider/onboarding-config";
 import { PasswordStrengthHint } from "./PasswordStrengthHint";
 import { SubmitButton } from "./SubmitButton";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 const ROLE_OPTIONS = [
   "Owner",
@@ -247,13 +248,13 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
           <label className="text-sm font-medium text-foreground" htmlFor="facility_phone">
             Facility phone *
           </label>
-          <input
+          <PhoneInput
             className={inputClass}
             id="facility_phone"
             name="facility_phone"
             placeholder="+251 11 234 5678"
             required
-            type="tel"
+            kind="facility"
           />
           <p className="text-xs text-muted-foreground">
             The official number patients call.
@@ -318,13 +319,13 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
           <label className="text-sm font-medium text-foreground" htmlFor="phone">
             Your mobile number *
           </label>
-          <input
+          <PhoneInput
             className={inputClass}
             id="phone"
             name="phone"
             placeholder="+251 91 234 5678"
             required
-            type="tel"
+            kind="personal"
           />
           <p className="text-xs text-muted-foreground">
             Your direct number — for urgent notifications about your listing.

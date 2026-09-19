@@ -10,6 +10,7 @@ import { SelectAllButton } from "@/components/ui/SelectAllButton";
 import { AddOtherList } from "@/components/ui/AddOtherList";
 import { BedCountField, INPATIENT_SERVICE } from "@/components/provider/BedCountField";
 import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import {
   BasicLabSelector,
   PillSelector,
@@ -715,18 +716,33 @@ export function AdminFacilityServicesEditor({
                           </span>
                         </label>
                         {isSelected && (
-                          <input
-                            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            defaultValue={existing?.value ?? ""}
-                            onBlur={(e) => {
-                              const value = e.target.value;
-                              setAppointmentModalities((prev) =>
-                                prev.map((m) => (m.type === option.type ? { ...m, value } : m)),
-                              );
-                            }}
-                            placeholder={option.placeholder}
-                            type={option.inputType}
-                          />
+                          option.inputType === "tel" ? (
+                            <PhoneInput
+                              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              defaultValue={existing?.value ?? ""}
+                              onBlur={(e) => {
+                                const value = e.target.value;
+                                setAppointmentModalities((prev) =>
+                                  prev.map((m) => (m.type === option.type ? { ...m, value } : m)),
+                                );
+                              }}
+                              placeholder={option.placeholder}
+                              kind={option.type === "whatsapp" ? "personal" : "facility"}
+                            />
+                          ) : (
+                            <input
+                              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              defaultValue={existing?.value ?? ""}
+                              onBlur={(e) => {
+                                const value = e.target.value;
+                                setAppointmentModalities((prev) =>
+                                  prev.map((m) => (m.type === option.type ? { ...m, value } : m)),
+                                );
+                              }}
+                              placeholder={option.placeholder}
+                              type={option.inputType}
+                            />
+                          )
                         )}
                       </div>
                     );

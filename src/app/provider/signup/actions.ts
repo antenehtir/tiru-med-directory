@@ -1,5 +1,6 @@
 "use server";
 
+import { firstPhoneError } from "@/lib/phone";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -49,6 +50,12 @@ export async function providerSignUp(formData: FormData) {
   if (!termsAccepted) {
     redirect("/provider/signup?error=terms");
   }
+
+  const phoneProblem = firstPhoneError([
+    { label: "Facility phone", value: facilityPhone },
+    { label: "Your mobile number", value: phone, kind: "personal" },
+  ]);
+  if (phoneProblem) redirect(`/provider/signup?error=${encodeURIComponent(phoneProblem)}`);
 
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -138,6 +145,9 @@ export async function providerClaimSignUp(formData: FormData) {
   const roleOther = String(formData.get("claimant_role_other") ?? "").trim();
 
   if (formData.get("terms") !== "on") redirect(`${back}&error=terms`);
+
+  const phoneProblem = firstPhoneError([{ label: "Your mobile number", value: phone, kind: "personal" }]);
+  if (phoneProblem) redirect(`${back}&error=${encodeURIComponent(phoneProblem)}`);
 
   const supabase = await createSignupClient();
 

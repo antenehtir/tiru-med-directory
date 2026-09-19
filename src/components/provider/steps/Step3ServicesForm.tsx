@@ -48,6 +48,7 @@ import { AddOtherList } from "@/components/ui/AddOtherList";
 import { BedCountField, INPATIENT_SERVICE } from "@/components/provider/BedCountField";
 import { joinInsurers, splitInsurers } from "@/lib/provider/insurers";
 import type { FacilityAppointmentModality } from "@/types/facility";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 type Claim = Record<string, unknown>;
 
@@ -897,13 +898,13 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
               <label className="text-sm font-medium text-foreground" htmlFor="dispatch_phone">
                 Emergency dispatch number (if different from main phone)
               </label>
-              <input
+              <PhoneInput
                 className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 defaultValue={categoryData.dispatch_phone ?? ""}
                 id="dispatch_phone"
                 onBlur={(e) => autoSaveCategory({ dispatch_phone: e.target.value })}
                 placeholder="+251 91 234 5678"
-                type="tel"
+                kind="facility"
               />
             </div>
           </>
@@ -1155,21 +1156,39 @@ export function Step3ServicesForm({ claim }: { claim: Claim }) {
                             </label>
 
                             {isSelected && (
-                              <input
-                                className="ml-6 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                                defaultValue={existing?.value ?? ""}
-                                onBlur={(e) => {
-                                  const next = appointmentModalities.map((m) =>
-                                    m.type === option.type
-                                      ? { ...m, value: e.target.value }
-                                      : m,
-                                  );
-                                  setAppointmentModalities(next);
-                                  autoSave({ proposed_appointment_modalities: next });
-                                }}
-                                placeholder={option.placeholder}
-                                type={option.inputType}
-                              />
+                              option.inputType === "tel" ? (
+                                <PhoneInput
+                                  className="ml-6 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                  defaultValue={existing?.value ?? ""}
+                                  onBlur={(e) => {
+                                    const next = appointmentModalities.map((m) =>
+                                      m.type === option.type
+                                        ? { ...m, value: e.target.value }
+                                        : m,
+                                    );
+                                    setAppointmentModalities(next);
+                                    autoSave({ proposed_appointment_modalities: next });
+                                  }}
+                                  placeholder={option.placeholder}
+                                  kind={option.type === "whatsapp" ? "personal" : "facility"}
+                                />
+                              ) : (
+                                <input
+                                  className="ml-6 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                  defaultValue={existing?.value ?? ""}
+                                  onBlur={(e) => {
+                                    const next = appointmentModalities.map((m) =>
+                                      m.type === option.type
+                                        ? { ...m, value: e.target.value }
+                                        : m,
+                                    );
+                                    setAppointmentModalities(next);
+                                    autoSave({ proposed_appointment_modalities: next });
+                                  }}
+                                  placeholder={option.placeholder}
+                                  type={option.inputType}
+                                />
+                              )
                             )}
                           </div>
                         );

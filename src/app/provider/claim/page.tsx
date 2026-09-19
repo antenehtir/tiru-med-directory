@@ -13,6 +13,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   already_managed:
     "This facility is already managed by a verified account. If you work there, contact the Tiru team and we'll sort it out.",
   save_failed: "Your claim could not be saved. Please try again.",
+  bad_phone: "Please enter a working Ethiopian phone number, e.g. 0912 345 678 or +251 912 345 678.",
 };
 
 function Shell({ children }: { children: React.ReactNode }) {

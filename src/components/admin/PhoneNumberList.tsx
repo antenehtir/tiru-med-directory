@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { PHONE_EXAMPLE } from "@/lib/phone";
 
 // A facility can have as many numbers as it has. The database has held exactly
 // two — phone and phone_2 — and 94 of 106 rows already use both, which is what
@@ -69,15 +71,18 @@ export function PhoneNumberList({
 
       <div className="flex flex-col gap-2">
         {numbers.map((value, index) => (
-          <div className="flex items-center gap-2" key={index}>
-            <input
+          <div className="flex items-start gap-2" key={index}>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <PhoneInput
               className="min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               id={`${name}-${index}`}
               onChange={(e) => update(index, e.target.value)}
               placeholder={index === 0 ? "+251 ..." : "Another number"}
-              type="tel"
+              hideExample
+              kind="facility"
               value={value}
             />
+            </div>
             {numbers.length > 1 && (
               <button
                 aria-label={`Remove number ${index + 1}`}
@@ -96,6 +101,7 @@ export function PhoneNumberList({
           on the server, so what posts is what the person can see they typed. */}
       <input name={name} type="hidden" value={kept.join("\n")} />
 
+      <p className="text-xs text-muted-foreground">{PHONE_EXAMPLE.facility.replace(/^e\.g\./, "Example:")}</p>
       {help && <p className="text-xs text-muted-foreground">{help}</p>}
     </div>
   );

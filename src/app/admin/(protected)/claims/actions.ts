@@ -37,6 +37,13 @@ async function markLatestClaimApproved(
     .eq("id", claim.id);
 }
 
+// How a verification call is written into the audit log, so every approval
+// and rejection carries what the facility actually said on the phone.
+function callNotesLine(callNotes: string): string {
+  const notes = callNotes.trim();
+  return notes ? `Call notes: ${notes}` : "Call notes: (none recorded)";
+}
+
 export async function approveClaim(
   providerId: string,
   facilityId: string | null,
@@ -44,6 +51,12 @@ export async function approveClaim(
 ): Promise<{ warning?: string; error?: string } | void> {
   const admin = await getAdminUser();
   if (!admin) throw new Error("Unauthorized");
+
+  // Approval rests on the verification call, so the call has to be on record
+  // before anything is approved — the audit log keeps it permanently.
+  if (!callNotes.trim()) {
+    return { error: "Write down what the facility confirmed on the call before approving." };
+  }
 
   const supabase = await createAdminSupabaseClient();
 
@@ -105,7 +118,7 @@ export async function approveClaim(
       entity_type: "facility",
       entity_id: facilityId,
       new_value: { verification_status: "facility-owned" },
-      note: `Claim approved for ${facility?.name}. ${callNotes}`,
+      note: `Claim approved for ${facility?.name}. ${callNotesLine(callNotes)}`,
     });
 
     await markLatestClaimApproved(supabase, providerId, facilityId);
@@ -249,7 +262,7 @@ export async function approveClaim(
       action: "claim_approved_new_listing",
       entity_type: "facility",
       entity_id: newFacility.id,
-      note: `New facility "${newFacility.name}" (slug: ${slug}) created and approved from provider claim ${claim.id as string}. ${callNotes}`,
+      note: `New facility "${newFacility.name}" (slug: ${slug}) created and approved from provider claim ${claim.id as string}. ${callNotesLine(callNotes)}`,
     });
   }
 
@@ -277,7 +290,7 @@ export async function approveClaim(
   revalidatePath("/admin");
 }
 
-export async function rejectClaim(providerId: string, reason: string) {
+export async function rejectClaim(providerId: string, reason: string, callNotes = "") {
   const admin = await getAdminUser();
   if (!admin) throw new Error("Unauthorized");
 
@@ -289,6 +302,7 @@ export async function rejectClaim(providerId: string, reason: string) {
       verification_status_internal: "rejected",
       status: "rejected",
       admin_note: reason,
+      ...(callNotes.trim() ? { verification_call_notes: callNotes.trim() } : {}),
       reviewed_by: admin.id,
       reviewed_at: new Date().toISOString(),
     })
@@ -299,7 +313,7 @@ export async function rejectClaim(providerId: string, reason: string) {
     action: "reject_claim",
     entity_type: "provider_account",
     entity_id: providerId,
-    note: `Claim rejected: ${reason}`,
+    note: `Claim rejected: ${reason}. ${callNotesLine(callNotes)}`,
   });
 
   // Keep the provider's facility_claims row in sync — the Provider
@@ -329,6 +343,75 @@ export async function saveCallNotes(providerId: string, notes: string) {
     .from("provider_accounts")
     .update({ verification_call_notes: notes })
     .eq("id", providerId);
+
+  revalidatePath("/admin/claims");
+}
+
+// A verified provider's request to change a detail on their account (name,
+// role or a phone number). Those details are locked once submitted because
+// they are what the verification call checked, so only an admin applies the
+// change — and the decision is written to the audit log either way.
+const ACCOUNT_FIELDS = ["display_name", "claimant_role", "phone", "facility_phone"] as const;
+
+export async function decideAccountChange(
+  requestId: string,
+  approve: boolean,
+  adminNote: string,
+): Promise<{ error?: string } | void> {
+  const admin = await getAdminUser();
+  if (!admin) throw new Error("Unauthorized");
+
+  const supabase = await createAdminSupabaseClient();
+  const { data: request } = await supabase
+    .from("account_change_requests")
+    .select("id, provider_id, field, current_value, requested_value, status")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (!request) return { error: "That request could not be found." };
+  if (request.status !== "pending") return { error: "That request has already been decided." };
+  const field = request.field as (typeof ACCOUNT_FIELDS)[number];
+  if (!ACCOUNT_FIELDS.includes(field)) return { error: "Unknown account detail." };
+
+  if (approve) {
+    // The personal number lives in two columns — phone (new-listing signup)
+    // and claimant_phone (claims) — so both move together.
+    const updates: Record<string, unknown> =
+      field === "phone"
+        ? { phone: request.requested_value, claimant_phone: request.requested_value }
+        : field === "claimant_role"
+          ? { claimant_role: request.requested_value, claimant_role_other: null }
+          : { [field]: request.requested_value };
+    const { error: updateError } = await supabase
+      .from("provider_accounts")
+      .update(updates)
+      .eq("id", request.provider_id as string);
+    if (updateError) return { error: `Could not update the account: ${updateError.message}` };
+  }
+
+  const { data: decided, error } = await supabase
+    .from("account_change_requests")
+    .update({
+      status: approve ? "approved" : "declined",
+      reviewed_by: admin.id,
+      reviewed_at: new Date().toISOString(),
+      admin_note: adminNote.trim() || null,
+    })
+    .eq("id", requestId)
+    .select("id");
+  if (error || !decided?.length) {
+    return { error: error?.message ?? "The decision did not save — check your admin permissions." };
+  }
+
+  await supabase.from("audit_log").insert({
+    admin_id: admin.id,
+    action: approve ? "account_change_approved" : "account_change_declined",
+    entity_type: "provider_account",
+    entity_id: request.provider_id,
+    old_value: { [field]: request.current_value },
+    new_value: approve ? { [field]: request.requested_value } : null,
+    note: `${approve ? "Approved" : "Declined"} change of ${field.replace("_", " ")} from "${request.current_value ?? "—"}" to "${request.requested_value}".${adminNote.trim() ? ` Note: ${adminNote.trim()}` : ""}`,
+  });
 
   revalidatePath("/admin/claims");
 }

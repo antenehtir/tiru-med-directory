@@ -325,7 +325,7 @@ export function ProviderDashboard({
           <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
             Need help? Contact us
           </a>
-          <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
+          <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Solutions</p>
         </div>
       </div>
     );
@@ -340,7 +340,7 @@ export function ProviderDashboard({
           <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
             Need help? Contact us
           </a>
-          <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
+          <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Solutions</p>
         </div>
       </div>
     );
@@ -513,7 +513,7 @@ export function ProviderDashboard({
         <a className="text-sm text-muted-foreground hover:text-foreground" href="/contact">
           Need help? Contact us
         </a>
-        <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Medical Directory</p>
+        <p className="mt-2 text-xs text-muted-foreground">Powered by Tiru Solutions</p>
       </div>
     </div>
   );
