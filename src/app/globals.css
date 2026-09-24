@@ -84,7 +84,6 @@
   --strong-border: #D6D3D1;
   --input: var(--tiru-white);
   --ring: #0F766E;
-  --homepage-background: linear-gradient(180deg, #F7F5F2 0%, #FAF9F7 55%);
 
   /* Elevation is warm-tinted (shadows on warm paper must carry the paper's
      hue or they read as dirty gray) and always has offset + soft blur.
@@ -93,12 +92,6 @@
     0 8px 24px -10px rgba(28, 25, 23, 0.10);
   --elevation-lift: 0 2px 4px rgba(28, 25, 23, 0.05),
     0 16px 32px -12px rgba(28, 25, 23, 0.14);
-
-  /* Ambient light behind the hero. Alpha is baked into the token rather than
-     applied with color-mix() at the use site, because color-mix() wrapping a
-     var() is rewritten to the bare colour by this build's CSS minifier — a
-     solid teal blob behind the H1. See .tiru-hero-light. */
-  --hero-glow: rgba(15, 118, 110, 0.11);
 
   /* Three-tier radius language, replacing uniform rounded-2xl everywhere:
      panels 14px, controls 10px, pills full. */
@@ -184,9 +177,6 @@
   --strong-border: #57534E;
   --input: #292524;
   --ring: #14B8A6;
-  --homepage-background: linear-gradient(180deg, #141110 0%, #1C1917 55%);
-
-  --hero-glow: rgba(20, 184, 166, 0.10);
 
   /* On a dark ground a warm-tinted shadow is invisible; depth has to come
      from near-black instead, at higher opacity than the light theme. */
@@ -194,6 +184,89 @@
     0 8px 24px -10px rgba(0, 0, 0, 0.52);
   --elevation-lift: 0 2px 4px rgba(0, 0, 0, 0.38),
     0 16px 32px -12px rgba(0, 0, 0, 0.62);
+}
+
+/* ── tiruhealth.com theme (homepage, header, footer) ─────────────────────────
+   Deep green, teal and gold on soft mint. Every name here is new and only the
+   homepage and the shared header/footer read them, so no other page shifts.
+   Dark values keep the same roles: the mint wash becomes a teal-tinted dark
+   surface, and the four category tints drop to low-alpha versions of their hue
+   so they still read as four different things. */
+:root {
+  --home-deep: #0B2E2B;
+  --home-teal: #0F766E;
+  --home-teal-bright: #14B8A6;
+  --home-gold: #B8893B;
+  --home-gold-bright: #D3A24A;
+  --home-ink: #0B2E2B;
+  --home-text: #3F5652;
+  --home-muted: #5E726E;
+  --home-line: #D8E7E2;
+  --home-surface: #FFFFFF;
+  --home-page: #F8FBFA;
+  --home-mint: #EEF7F4;
+  --home-mint-strong: #E2F1EC;
+  --home-hero: linear-gradient(135deg, #E8F4F0 0%, #F4FAF8 48%, #FFFFFF 100%);
+  --home-accent-text: #0F766E;
+  --home-tint-care-bg: #EAF5F0;
+  --home-tint-care-icon: #0F766E;
+  --home-tint-people-bg: #EDF3FD;
+  --home-tint-people-icon: #2F5FD0;
+  --home-tint-tests-bg: #F1EEFC;
+  --home-tint-tests-icon: #6A4FCF;
+  --home-tint-meds-bg: #FCF0E6;
+  --home-tint-meds-icon: #C2562A;
+  --home-shadow: 0 1px 2px rgba(11, 46, 43, 0.04), 0 8px 24px -12px rgba(11, 46, 43, 0.14);
+}
+
+[data-theme="dark"] {
+  --home-ink: #EEF6F3;
+  --home-text: #C3D3CF;
+  --home-muted: #9DB2AD;
+  --home-line: #28403C;
+  --home-surface: #15201E;
+  --home-page: #0F1716;
+  --home-mint: #13211F;
+  --home-mint-strong: #182B28;
+  --home-hero: linear-gradient(135deg, #10201D 0%, #0F1917 55%, #0F1716 100%);
+  --home-accent-text: #2DD4BF;
+  --home-tint-care-bg: rgba(20, 184, 166, 0.12);
+  --home-tint-care-icon: #5EEAD4;
+  --home-tint-people-bg: rgba(96, 140, 240, 0.14);
+  --home-tint-people-icon: #93B4F8;
+  --home-tint-tests-bg: rgba(139, 112, 230, 0.16);
+  --home-tint-tests-icon: #B9A6F5;
+  --home-tint-meds-bg: rgba(226, 125, 70, 0.14);
+  --home-tint-meds-icon: #F0A77C;
+  --home-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
+}
+
+@theme inline {
+  --color-home-deep: var(--home-deep);
+  --color-home-teal: var(--home-teal);
+  --color-home-teal-bright: var(--home-teal-bright);
+  --color-home-gold: var(--home-gold);
+  --color-home-gold-bright: var(--home-gold-bright);
+  --color-home-ink: var(--home-ink);
+  --color-home-text: var(--home-text);
+  --color-home-muted: var(--home-muted);
+  --color-home-line: var(--home-line);
+  --color-home-surface: var(--home-surface);
+  --color-home-page: var(--home-page);
+  --color-home-mint: var(--home-mint);
+  --color-home-mint-strong: var(--home-mint-strong);
+  --color-home-accent-text: var(--home-accent-text);
+  --color-home-tint-care-bg: var(--home-tint-care-bg);
+  --color-home-tint-care-icon: var(--home-tint-care-icon);
+  --color-home-tint-people-bg: var(--home-tint-people-bg);
+  --color-home-tint-people-icon: var(--home-tint-people-icon);
+  --color-home-tint-tests-bg: var(--home-tint-tests-bg);
+  --color-home-tint-tests-icon: var(--home-tint-tests-icon);
+  --color-home-tint-meds-bg: var(--home-tint-meds-bg);
+  --color-home-tint-meds-icon: var(--home-tint-meds-icon);
+  --shadow-home: var(--home-shadow);
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-archivo), "Noto Sans Ethiopic", system-ui, sans-serif;
 }
 
 @theme inline {
@@ -371,11 +444,6 @@ body {
   outline-offset: 3px;
 }
 
-.homepage-clinical-bg {
-  background: var(--homepage-background);
-  min-height: 100vh;
-}
-
 /* ── Locator beam ────────────────────────────────────────────────────────────
    The one authored motion on the public site, and it belongs to exactly one
    control: "Find nearby care". A single light completes a circuit of the
@@ -453,62 +521,7 @@ body {
   }
 }
 
-/* Ambient light behind the hero so the paper reads as lit rather than flat.
-   One soft source, off to the leading edge, at a strength you notice only if
-   you look for it.
-
-   The glow used to be a ::before on .tiru-hero-light itself, with
-   overflow:hidden on that same section to stop its negative inset from
-   adding to document scroll width. But that section is also the containing
-   block for the search box's autocomplete dropdown — overflow:hidden clipped
-   the dropdown's bottom the instant it had enough results to extend past the
-   section's own content height (visible as suggestions cutting off with no
-   bottom edge, no shadow, mid-list). The glow now lives in its own layer with
-   its own clipping box, so the section itself stays overflow:visible and the
-   dropdown can extend past it freely. */
-.tiru-hero-light {
-  position: relative;
-  isolation: isolate;
-}
-
-.tiru-hero-light__glow {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.tiru-hero-light__glow::before {
-  content: "";
-  position: absolute;
-  inset: -20% -10% auto -25%;
-  height: 130%;
-  /* Same Lightning CSS caveat as the beam — a dedicated token with the alpha
-     already baked in stays theme-aware AND compiles verbatim, where
-     color-mix(… var() …) would have shipped as solid teal behind the H1. */
-  background: radial-gradient(60% 55% at 22% 30%, var(--hero-glow) 0%, transparent 70%);
-}
-
-.homepage-facility-strip {
-  scroll-snap-type: x mandatory;
-}
-
-@media (min-width: 1024px) {
-  .homepage-facility-strip {
-    animation: homepage-facility-marquee 44s linear infinite;
-  }
-
-  .homepage-facility-strip:hover {
-    animation-play-state: paused;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .homepage-facility-strip {
-    animation: none;
-  }
-
   /* Tailwind's animate-* utilities don't honor reduced-motion on their own.
      Both of these are looping, indefinite animations (WCAG 2.2.2), and both
      are purely decorative amplifiers: animate-ping is a halo behind a CTA
@@ -518,16 +531,6 @@ body {
   .animate-ping,
   .animate-pulse {
     animation: none;
-  }
-}
-
-@keyframes homepage-facility-marquee {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
   }
 }
 

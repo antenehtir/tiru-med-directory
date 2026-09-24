@@ -1,58 +1,60 @@
 import Link from "next/link";
+import { SearchIcon, UserIcon } from "@/components/home/home-icons";
 import { DesktopNavigation } from "@/components/navigation/DesktopNavigation";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { SignInMenu } from "@/components/layout/SignInMenu";
 import { HeaderMenu } from "@/components/layout/HeaderMenu";
 
+// tiruhealth.com-style header shared by every public page.
+//
+// xl and up: lockup, primary nav with dropdowns, search, theme, "List your
+// facility", "Sign in". Below xl: lockup, search and a menu — the same
+// breakpoint the bottom tab bar hides at, so primary navigation is never
+// missing at any width.
+//
+// The xl-only ThemeToggle is hidden with CSS, not unmounted, below xl: the
+// toggle is also what applies the stored theme on load, so one instance has
+// to stay mounted at every width (the menu's copy only exists while open).
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/90 shadow-[0_1px_10px_rgba(28,25,23,0.035)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/78">
-      <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center gap-2 px-3 min-[360px]:px-4 sm:gap-3 sm:px-6 xl:min-h-[4.25rem] xl:px-8">
+    <header className="sticky top-0 z-30 border-b border-home-line bg-home-surface/90 font-body backdrop-blur-xl supports-[backdrop-filter]:bg-home-surface/80">
+      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 xl:min-h-[4.5rem] xl:gap-4 xl:px-8">
         <div className="flex min-w-0 shrink-0 items-center">
           <BrandMark />
         </div>
 
-        {/* Full desktop identity: primary nav, "Sign in", a labelled "List
-            your facility" button, and the theme toggle, all switched on
-            together. This used to switch on at lg (1024px) and overflowed
-            twice as items were added there, because that is several
-            independent pieces of content turning on at once with no margin
-            behind them. Moved the whole tier to xl (1280px), where it has
-            room to spare rather than just barely fitting. */}
         <DesktopNavigation />
 
-        {/* SignInMenu's own root div carries no responsive class — only the
-            button inside it does — so without this wrapper it stays a real,
-            zero-width flex item below xl and still costs a full `gap` unit
-            on both sides at every one of those widths, for nothing visible.
-            Wrapping it the same way ThemeToggle already is removes it from
-            the flex flow entirely below xl instead. */}
-        <div className="hidden xl:flex">
-          <SignInMenu />
-        </div>
+        <div className="ml-auto flex items-center gap-1 xl:ml-0 xl:gap-2">
+          <Link
+            aria-label="Search"
+            className="flex size-10 items-center justify-center rounded-full text-home-ink transition-colors hover:bg-home-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal xl:bg-home-mint"
+            href="/search?focus=1"
+          >
+            <SearchIcon className="size-[18px]" />
+          </Link>
 
-        <Link
-          className="ml-2 hidden min-h-9 items-center rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-px hover:bg-primary-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 xl:inline-flex"
-          href="/provider/signup"
-        >
-          List or claim your facility
-        </Link>
+          <div className="hidden xl:flex">
+            <ThemeToggle />
+          </div>
 
-        <div className="hidden xl:flex">
-          <ThemeToggle />
-        </div>
+          <Link
+            className="hidden min-h-10 items-center rounded-full bg-home-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-home-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal focus-visible:ring-offset-2 dark:bg-home-teal-bright dark:text-home-deep dark:hover:bg-home-teal xl:inline-flex"
+            href="/provider/signup"
+          >
+            List your facility
+          </Link>
+          <Link
+            className="hidden min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-home-ink transition-colors hover:bg-home-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal xl:inline-flex"
+            href="/provider/login"
+          >
+            <UserIcon className="size-[18px]" />
+            Sign in
+          </Link>
 
-        {/* Below xl: one control and a menu, not a multi-icon toolbar. The
-            theme toggle stays visible because burying a display setting
-            means opening a menu to see what you just changed. Search,
-            List-your-facility and Sign in fold into HeaderMenu; the first
-            two already sit in the bottom tab bar at exactly these widths, so
-            out here they were a second copy of a control the visitor
-            already had. */}
-        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 xl:hidden">
-          <ThemeToggle />
-          <HeaderMenu />
+          <div className="xl:hidden">
+            <HeaderMenu />
+          </div>
         </div>
       </div>
     </header>

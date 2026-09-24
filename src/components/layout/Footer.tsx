@@ -1,62 +1,95 @@
 import Link from "next/link";
+import { ChevronDownIcon } from "@/components/home/home-icons";
 import { ROUTES } from "@/components/navigation/navigation-items";
+import { BrandMark } from "@/components/ui/BrandMark";
 
-const quickLinks = [
-  { label: "Search", href: ROUTES.search },
-  { label: "Nearby", href: ROUTES.nearby },
-  { label: "Specialists", href: ROUTES.specialists },
-  { label: "Facilities", href: ROUTES.facilities },
-  { label: "Pharmacies", href: ROUTES.pharmacies },
-  { label: "Diagnostics (Lab/Imaging)", href: ROUTES.diagnostics },
+// Only routes that exist. The mockup's Privacy and Terms entries are left out
+// until those pages exist, "About" is the homepage's about section, and there
+// are no social icons because Tiru has no social accounts to link to yet.
+const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: "Discover",
+    links: [
+      { label: "Find Care", href: ROUTES.facilities },
+      { label: "Specialists", href: ROUTES.specialists },
+      { label: "Find a Test", href: ROUTES.diagnostics },
+      { label: "Find a Medicine", href: ROUTES.pharmacies },
+    ],
+  },
+  {
+    title: "For Providers",
+    links: [
+      { label: "List your facility", href: "/provider/signup" },
+      { label: "Claim your profile", href: "/provider/claim" },
+      { label: "Provider sign in", href: "/provider/login" },
+      { label: "Suggest a correction", href: "/corrections" },
+    ],
+  },
+  {
+    title: "Tiru",
+    links: [
+      { label: "About", href: "/#about" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
 ];
 
-const providerLinks = [
-  { label: "List or claim your facility", href: "/provider/signup" },
-  { label: "Provider login", href: "/provider/login" },
-  { label: "Suggest correction", href: "/corrections" },
-  { label: "Contact", href: "/contact" },
-];
+const linkClass = "text-sm text-white/70 transition-colors hover:text-home-teal-bright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal-bright";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-footer-background">
-      <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-10 pb-28 text-sm text-footer-muted sm:px-6 sm:grid-cols-2 sm:gap-8 md:pb-10 lg:px-8">
-        <nav aria-label="Footer quick links">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-footer-foreground">
-            Explore
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1">
-            {quickLinks.map((link) => (
-              <Link
-                className="flex min-h-9 w-fit items-center text-footer-muted transition-colors hover:text-footer-accent"
-                href={link.href}
-                key={link.href}
-              >
-                {link.label}
-              </Link>
-            ))}
+    // Stays deep green in both themes. The bottom padding below xl clears the
+    // fixed mobile tab bar, which covers the last ~80px of the page there.
+    <footer className="bg-home-deep font-body text-white/80">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-28 pt-10 sm:px-6 xl:px-8 xl:pb-8">
+        <div className="grid gap-8 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] md:gap-10">
+          <div>
+            <BrandMark tone="inverse" />
           </div>
-        </nav>
 
-        <nav aria-label="Footer provider links">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-footer-foreground">
-            For Healthcare Providers
-          </p>
-          <div className="mt-3 grid gap-1">
-            {providerLinks.map((link) => (
-              <Link
-                className="flex min-h-9 w-fit items-center text-footer-muted transition-colors hover:text-footer-accent"
-                href={link.href}
-                key={link.href}
-              >
-                {link.label}
-              </Link>
+          {/* md and up: open columns. */}
+          {COLUMNS.map((column) => (
+            <nav aria-label={column.title} className="hidden md:block" key={column.title}>
+              <p className="text-sm font-semibold text-white">{column.title}</p>
+              <ul className="mt-3 grid gap-2">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link className={linkClass} href={link.href}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+
+          {/* Below md: one accordion per column, native <details> so it works
+              without JavaScript. */}
+          <div className="divide-y divide-white/10 border-y border-white/10 md:hidden">
+            {COLUMNS.map((column) => (
+              <details className="group" key={column.title}>
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
+                  {column.title}
+                  <ChevronDownIcon className="size-4 text-white/60 transition-transform group-open:rotate-180" />
+                </summary>
+                <ul className="grid gap-2 pb-4">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link className={linkClass} href={link.href}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
             ))}
           </div>
-        </nav>
-      </div>
-      <div className="mx-auto w-full max-w-6xl border-t border-white/10 px-4 pb-6 pt-4 text-xs text-footer-muted sm:px-6 lg:px-8">
-        © 2025 Tiru &middot; Addis Ababa
+        </div>
+
+        <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2025 Tiru Medical Directory. All rights reserved.</p>
+          <p>Made for a healthier Addis Ababa.</p>
+        </div>
       </div>
     </footer>
   );

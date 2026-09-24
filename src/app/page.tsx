@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Homepage } from "@/components/home/Homepage";
 import { PageShell } from "@/components/layout/PageShell";
 import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
-import { resolveNearbyFacilityCoordinates } from "@/lib/nearby-coordinates";
-import { SUB_CITIES } from "@/lib/constants/specialty-options";
 
 export const dynamic = "force-dynamic";
 
@@ -13,71 +11,28 @@ export const metadata: Metadata = {
     "Search hospitals, specialty centres and diagnostic labs across Addis Ababa, or find the care closest to you.",
 };
 
+const NEW_ON_TIRU_COUNT = 4;
+
 export default async function Home() {
   const facilities = await getFacilitiesFromDB();
 
-  // Coordinates are resolved once, server-side, via the exact same helper
-  // /nearby uses, so the two surfaces can never quietly disagree about which
-  // facilities are positionable.
-  const positionable = facilities.map((facility) => ({
-    ...facility,
-    coordinates: resolveNearbyFacilityCoordinates(facility),
-  }));
+  // The stat strip's "Healthcare listings": the active listings this page
+  // actually loaded, counted live rather than written into the copy.
+  const listingCount = facilities.length;
 
-  // Drives the hero trust line. Counts facilities that actually resolve to
-  // coordinates rather than the raw row count, because that is what "mapped"
-  // means here: the ones that can be placed and distance-sorted.
-  const mappedFacilityCount = positionable.filter(
-    (facility) => facility.coordinates,
-  ).length;
-
-  // The second half of the hero stat, and the reason it is computed rather
-  // than written: it is meant to grow. As claiming ramps up this number rises
-  // on its own and the clause appears without anyone editing copy.
-  //
-  // Only "facility-owned" counts. "verified" is a reserved quality mark with
-  // no criteria yet and nothing assigned to it, so folding it in would inflate
-  // a trust number with a status that means nothing.
-  const facilityManagedCount = facilities.filter(
-    (facility) => facility.verificationStatus === "facility-owned",
-  ).length;
-
-  // Trust-band stats, both derived from the rendered data rather than
-  // hardcoded. Sub-cities are counted against the canonical SUB_CITIES list
-  // instead of counting distinct raw strings, because the data contains
-  // spelling variants for the same place ("Gulele" and "Gullele") and short
-  // forms ("Kolfe" for "Kolfe Keranio") that would otherwise inflate or
-  // deflate the number.
-  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z]/g, "");
-  const presentSubCities = new Set(
-    facilities.flatMap((facility) =>
-      (facility.subCities ?? []).map((subCity) => normalize(subCity)).filter(Boolean),
-    ),
-  );
-  const subCityCount = SUB_CITIES.filter((canonical) => {
-    const key = normalize(canonical);
-    return [...presentSubCities].some(
-      (present) => present.startsWith(key) || key.startsWith(present),
-    );
-  }).length;
-
-  // Facilities publishing round-the-clock hours. Replaces the old ambulance
-  // stat, which claimed coverage a single ambulance listing did not support.
-  const openAllHoursCount = facilities.filter(
-    (facility) => (facility.workingHours ?? "").trim().toLowerCase() === "24/7",
-  ).length;
-
-
+  // "New on Tiru": the most recently created listings that are live. The
+  // query already returns active rows only; drafts are excluded again here so
+  // an unpublished admin draft can never be featured, even if that changes.
+  // Rows without a created date can't be ranked, so they are left out rather
+  // than guessed at.
+  const newFacilities = facilities
+    .filter((facility) => facility.isActive !== false && !facility.isDraft && facility.createdAt)
+    .sort((a, b) => Date.parse(b.createdAt!) - Date.parse(a.createdAt!))
+    .slice(0, NEW_ON_TIRU_COUNT);
 
   return (
     <PageShell>
-      <Homepage
-        facilities={facilities}
-        facilityManagedCount={facilityManagedCount}
-        mappedFacilityCount={mappedFacilityCount}
-        openAllHoursCount={openAllHoursCount}
-        subCityCount={subCityCount}
-      />
+      <Homepage facilities={facilities} listingCount={listingCount} newFacilities={newFacilities} />
     </PageShell>
   );
 }

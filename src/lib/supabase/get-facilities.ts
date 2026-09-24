@@ -64,6 +64,7 @@ type DBFacility = {
   languages: unknown;
   access_notes: string | null;
   updated_at: string | null;
+  created_at?: string | null;
   branch_count: number | null;
   branches: unknown;
   closed_on_public_holidays: boolean | null;
@@ -226,6 +227,8 @@ function mapDBRowToFacility(row: DBFacility): Facility {
         ? [row.photo_url]
         : [],
     updatedAt: row.updated_at ?? undefined,
+    // Already in the select("*") row; only surfaced here, no query change.
+    createdAt: row.created_at ?? undefined,
     subCity: row.sub_city ?? undefined,
     subCities,
     area: row.area ?? undefined,

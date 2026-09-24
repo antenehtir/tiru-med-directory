@@ -2,27 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ROLE_OPTIONS, roleIcons } from "@/components/layout/SignInMenu";
+import { UserIcon } from "@/components/home/home-icons";
+import { headerNavigationItems } from "@/components/navigation/navigation-items";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-// The compact header's overflow menu. Below xl the header used to end in
-// several separate controls — theme, search, list-your-facility, sign in —
-// competing in a 44px-tall strip, which reads as a toolbar rather than as a
-// header with a point of view.
-//
-// The theme toggle stays out here: it is a display setting people flip while
-// looking at the page, and burying it behind a menu means opening the menu to
-// see the effect of the thing you just changed.
-//
-// The rest fold in here. Search and List-your-facility are both already
-// reachable from the bottom tab bar on exactly the widths where this menu
-// shows, so out here they were a second copy of a control the visitor already
-// has, spending header room to do it.
+// The compact header's menu (below xl): the same navigation as the desktop
+// bar, with each dropdown's links listed under its heading, then the two
+// provider actions and the theme switch. Built from the same
+// headerNavigationItems, so the two menus can't drift apart.
 export function HeaderMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Same dismissal contract as SignInMenu: pointer outside closes, Escape
-  // closes. Listeners are only attached while open.
+  // Pointer outside closes, Escape closes. Listeners only while open.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -43,109 +35,86 @@ export function HeaderMenu() {
     };
   }, [isOpen]);
 
+  const close = () => setIsOpen(false);
+
   return (
     <div className="relative" ref={containerRef}>
       <button
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label={isOpen ? "Close menu" : "Open menu"}
-        className="flex size-10 shrink-0 items-center justify-center rounded-control border border-border/80 bg-card/95 text-foreground shadow-sm transition-all hover:-translate-y-px hover:border-strong-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:translate-y-0"
+        className="flex size-10 shrink-0 items-center justify-center rounded-full text-home-ink transition-colors hover:bg-home-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal"
         onClick={() => setIsOpen((open) => !open)}
         type="button"
       >
-        {/* Three bars that become a cross, rather than two swapped icons: the
-            same three elements move, so the control reads as one thing in two
-            states. The middle bar fades because it has nowhere to go. */}
+        {/* Three bars that become a cross: the same three elements move, so
+            the control reads as one thing in two states. */}
         <span aria-hidden="true" className="relative block h-4 w-[18px]">
-          <span
-            className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-transform duration-200 motion-reduce:transition-none ${
-              isOpen ? "top-[7px] rotate-45" : "top-[2px]"
-            }`}
-          />
-          <span
-            className={`absolute left-0 top-[7px] block h-[2px] w-full rounded-full bg-current transition-opacity duration-200 motion-reduce:transition-none ${
-              isOpen ? "opacity-0" : "opacity-100"
-            }`}
-          />
-          <span
-            className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-transform duration-200 motion-reduce:transition-none ${
-              isOpen ? "top-[7px] -rotate-45" : "top-[12px]"
-            }`}
-          />
+          <span className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "top-[7px] rotate-45" : "top-[2px]"}`} />
+          <span className={`absolute left-0 top-[7px] block h-[2px] w-full rounded-full bg-current transition-opacity duration-200 motion-reduce:transition-none ${isOpen ? "opacity-0" : "opacity-100"}`} />
+          <span className={`absolute left-0 block h-[2px] w-full rounded-full bg-current transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "top-[7px] -rotate-45" : "top-[12px]"}`} />
         </span>
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+          className="absolute right-0 top-full z-40 mt-2 max-h-[calc(100dvh-5.5rem)] w-72 overflow-y-auto rounded-2xl border border-home-line bg-home-surface p-2 shadow-home"
           role="menu"
         >
-          <div className="py-1">
+          <nav aria-label="Menu">
+            {headerNavigationItems.map((item) =>
+              "href" in item ? (
+                <Link
+                  className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-home-ink transition-colors hover:bg-home-mint"
+                  href={item.href}
+                  key={item.label}
+                  onClick={close}
+                  role="menuitem"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <div className="py-1" key={item.label}>
+                  <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-home-muted">{item.label}</p>
+                  {item.items.map((link) => (
+                    <Link
+                      className="flex min-h-10 items-center rounded-xl px-3 text-sm text-home-ink transition-colors hover:bg-home-mint"
+                      href={link.href}
+                      key={link.href}
+                      onClick={close}
+                      role="menuitem"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ),
+            )}
+          </nav>
+
+          <div className="mt-2 grid gap-2 border-t border-home-line pt-3">
             <Link
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              href="/search?focus=1"
-              onClick={() => setIsOpen(false)}
+              className="flex min-h-11 items-center justify-center rounded-full bg-home-deep px-4 text-sm font-semibold text-white dark:bg-home-teal-bright dark:text-home-deep"
+              href="/provider/signup"
+              onClick={close}
               role="menuitem"
             >
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0 text-primary"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m16.5 16.5 4 4" />
-              </svg>
-              Search
+              List your facility
             </Link>
             <Link
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              href="/provider/signup"
-              onClick={() => setIsOpen(false)}
+              className="flex min-h-11 items-center justify-center gap-2 rounded-full border border-home-line px-4 text-sm font-semibold text-home-ink"
+              href="/provider/login"
+              onClick={close}
               role="menuitem"
             >
-              <svg
-                aria-hidden="true"
-                className="size-4 shrink-0 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 5v14m-7-7h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-              </svg>
-              List or claim your facility
+              <UserIcon className="size-4" />
+              Sign in
             </Link>
           </div>
 
-          <div className="border-t border-border">
-            <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Sign in as
-            </p>
-            <div className="py-1">
-              {ROLE_OPTIONS.map((role) => {
-                const RoleIcon = roleIcons[role.key];
-
-                return (
-                  <Link
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
-                    href={role.href}
-                    key={role.key}
-                    onClick={() => setIsOpen(false)}
-                    role="menuitem"
-                  >
-                    <RoleIcon className="size-4 shrink-0 text-primary" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium leading-tight">{role.label}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {role.description}
-                      </span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
+          <div className="mt-2 flex items-center justify-between rounded-xl px-3 py-2">
+            <span className="text-sm text-home-text">Theme</span>
+            <ThemeToggle />
           </div>
         </div>
       )}

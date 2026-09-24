@@ -1,27 +1,23 @@
 import Link from "next/link";
+import { TiruMark } from "@/components/home/TiruMark";
 
-export function BrandMark() {
+// Header lockup: the Tiru mark, the wordmark, the product name and the
+// strapline, as on tiruhealth.com. The strapline drops out on the narrowest
+// phones, where the three stacked lines would crowd the search and menu
+// buttons beside them.
+export function BrandMark({ tone = "default" }: { tone?: "default" | "inverse" }) {
+  const inverse = tone === "inverse";
   return (
-    <Link
-      className="flex min-w-0 flex-col items-start justify-center py-1"
-      href="/"
-      aria-label="Tiru home"
-    >
-      {/* Was three arbitrary rem one-offs (1.45/1.6/1.7) plus a 0.68rem
-          sub-label. Now the display face on the scale's 24→28 step, with the
-          sub-label on the 12px step (text-xs) rather than the 11px micro
-          step: at 11px, against text-muted-foreground, this read as
-          "invisible" on a real phone even though it renders correctly and
-          clears WCAG AA contrast (7.25:1 light, 6.93:1 dark) — sub-pixel
-          rendering at that size on a high-DPI screen is the likely reason a
-          bug report couldn't be reproduced in this environment. One step up
-          the type scale is the fix; the color and weight were never the
-          problem. */}
-      <span className="font-display text-2xl font-bold leading-none tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
-        Tiru
-      </span>
-      <span className="mt-1 max-w-[8.5rem] truncate text-xs font-medium leading-none tracking-[0.01em] text-muted-foreground min-[380px]:max-w-none">
-        Trace the right care.
+    <Link aria-label="Tiru Medical Directory home" className="flex min-w-0 items-center gap-2.5 py-1" href="/">
+      <TiruMark className="size-9 shrink-0 sm:size-10" inverse={inverse} />
+      <span className="flex min-w-0 flex-col leading-none">
+        <span className={`font-body text-[1.35rem] font-bold tracking-[-0.03em] sm:text-2xl ${inverse ? "text-white" : "text-home-ink"}`}>
+          Tiru
+        </span>
+        <span className={`mt-0.5 text-[11px] font-semibold ${inverse ? "text-white/85" : "text-home-ink"}`}>Medical Directory</span>
+        <span className={`mt-0.5 hidden text-[10px] font-medium min-[360px]:block ${inverse ? "text-home-teal-bright" : "text-home-accent-text"}`}>
+          Trace the right care.
+        </span>
       </span>
     </Link>
   );

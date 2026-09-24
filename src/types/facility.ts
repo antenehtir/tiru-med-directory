@@ -124,6 +124,9 @@ export type Facility = {
   /** Up to 4 gallery photos; photoUrl mirrors the first entry for back-compat. */
   photoUrls?: string[];
   updatedAt?: string;
+  /** When the listing row was created (facilities.created_at). Drives the
+   *  homepage's "New on Tiru"; absent on the static intake snapshot. */
+  createdAt?: string;
   subCity?: string;
   subCities: string[];
   area?: string;

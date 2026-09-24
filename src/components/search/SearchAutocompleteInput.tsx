@@ -3,6 +3,7 @@
 import {
   FormEvent,
   KeyboardEvent,
+  type ReactNode,
   useEffect,
   useRef,
   useState,
@@ -19,6 +20,10 @@ type SearchAutocompleteInputProps = {
   autoFocus?: boolean;
   buttonLabel?: string;
   buttonClassName: string;
+  // Replaces the button's icon/text when given. Lets one field show a text
+  // button on wide screens and an icon on narrow ones (the homepage's closing
+  // search band); callers that don't pass it render exactly as before.
+  buttonContent?: ReactNode;
   buttonText?: string;
   formClassName: string;
   id: string;
@@ -34,6 +39,7 @@ export function SearchAutocompleteInput({
   autoFocus = false,
   buttonLabel = "Search",
   buttonClassName,
+  buttonContent,
   buttonText = "Search",
   formClassName,
   id,
@@ -185,11 +191,11 @@ export function SearchAutocompleteInput({
 
 
       <button
-        aria-label={isIconButton ? buttonLabel : undefined}
+        aria-label={isIconButton || buttonContent ? buttonLabel : undefined}
         className={buttonClassName}
         type="submit"
       >
-        {isIconButton ? <SearchIcon /> : buttonText}
+        {buttonContent ?? (isIconButton ? <SearchIcon /> : buttonText)}
       </button>
     </form>
   );

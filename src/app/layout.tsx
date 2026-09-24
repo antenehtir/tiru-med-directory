@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Archivo, Inter, Newsreader } from "next/font/google";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 import { Toaster } from "@/components/ui/Toaster";
 import "./globals.css";
@@ -14,10 +14,22 @@ const inter = Inter({
 // genuinely better at 13px in a record — but it was previously doing both
 // jobs, which is what made every heading read as a size of the body text
 // rather than a different voice.
+// 400 added for the homepage, header and footer, which use Archivo as their
+// body face (the tiruhealth.com pairing). Everywhere else Archivo stays the
+// display face at 500-700 and Inter keeps the body.
 const archivo = Archivo({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-archivo",
+});
+
+// Headline serif of the tiruhealth.com theme. Scoped by class (font-serif) to
+// the homepage, header and footer rather than swapped in globally, so every
+// other page keeps its current type exactly.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-newsreader",
 });
 
 export const metadata: Metadata = {
@@ -38,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${inter.variable} ${archivo.variable}`}
+      className={`h-full antialiased ${inter.variable} ${archivo.variable} ${newsreader.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ScrollRestoration />
