@@ -6,7 +6,7 @@ import { getFacilitiesFromDB } from "@/lib/supabase/get-facilities";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tiru — Healthcare in Addis Ababa",
+  title: "Tiru Health — Healthcare in Addis Ababa",
   description:
     "Search hospitals, specialty centres and diagnostic labs across Addis Ababa, or find the care closest to you.",
 };

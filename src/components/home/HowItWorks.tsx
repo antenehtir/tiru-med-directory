@@ -10,7 +10,7 @@ export function HowItWorks() {
   return (
     <section aria-labelledby="how-heading" className="mx-auto w-full max-w-7xl px-4 pt-10 sm:px-6 lg:px-8 lg:pt-14">
       <div className="rounded-3xl bg-home-mint px-4 py-7 ring-1 ring-home-line/70 sm:px-8 lg:px-10 lg:py-9">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-home-accent-text">How Tiru works</p>
+        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-home-accent-text">How Tiru Health works</p>
         <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.01em] text-home-ink sm:text-[2rem]" id="how-heading">
           Find. Explore. Connect.
         </h2>

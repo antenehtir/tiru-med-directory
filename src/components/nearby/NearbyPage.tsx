@@ -609,7 +609,7 @@ export function NearbyPage({
               icon={<MapPinOffIcon />}
               title={
                 selectedCategory === "pharmacies"
-                  ? "Pharmacies are being onboarded to Tiru"
+                  ? "Pharmacies are being onboarded to Tiru Health"
                   : `No ${activeCategoryLabel} providers with location data yet`
               }
             />

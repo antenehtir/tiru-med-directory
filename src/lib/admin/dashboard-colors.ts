@@ -28,7 +28,7 @@ export const BADGE_STATUS_LABELS: Record<string, string> = {
 // for claims because red means "needs attention" elsewhere in the admin
 // area. The dashboard's "Claims Pending" card uses the same orange.
 export const ACTIVITY_SERIES = [
-  { key: "adminAdded", label: "Added by Tiru team", color: "var(--chart-activity-team)" },
+  { key: "adminAdded", label: "Added by Tiru Health team", color: "var(--chart-activity-team)" },
   { key: "newListings", label: "Listed by provider", color: "var(--chart-activity-listed)" },
   { key: "claims", label: "Claimed by provider", color: "var(--chart-activity-claimed)" },
 ] as const;

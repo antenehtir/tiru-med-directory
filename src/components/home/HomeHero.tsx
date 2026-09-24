@@ -17,15 +17,10 @@ export function HomeHero() {
       </div>
       <div className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pb-8 pt-7 sm:px-6 sm:pt-10 lg:min-h-[31rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-8 lg:pb-14 lg:pt-12">
         <div className="relative z-10 min-w-0">
-          <p className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-home-accent-text">
-            <span aria-hidden="true" className="h-px w-5 bg-current" />
-            Trace the right care.
-          </p>
-          {/* 1.8rem on phones keeps "Find the care you need," on one line at
-              390px, as in the mobile mockup; at 2.35rem it broke after "you". */}
-          <h1 className="mt-3 font-serif text-[1.8rem] font-semibold leading-[1.08] tracking-[-0.02em] text-home-ink min-[400px]:text-[2rem] sm:text-5xl lg:text-[3.4rem]">
-            Find the care you need,
-            <span className="block text-home-accent-text">right now.</span>
+          {/* No eyebrow: the header lockup already carries "Trace the right care." */}
+          <h1 className="font-serif text-[2.1rem] font-semibold leading-[1.06] tracking-[-0.02em] text-home-ink min-[400px]:text-[2.3rem] sm:text-5xl lg:text-[3.6rem]">
+            Find the right care,
+            <span className="block text-home-accent-text">Right now!</span>
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-7 text-home-text sm:text-lg">
             Discover facilities, specialists, tests and medicines across Addis Ababa.

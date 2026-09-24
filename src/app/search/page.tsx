@@ -11,7 +11,7 @@ import { getAllSpecialists } from "@/lib/supabase/get-specialists";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Search — Tiru",
+  title: "Search — Tiru Health",
   description: "Search private healthcare providers in Addis Ababa.",
 };
 

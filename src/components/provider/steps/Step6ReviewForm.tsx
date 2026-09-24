@@ -552,7 +552,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
           </p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Listings that answer a patient&apos;s question without a phone call
-            are the ones people open, and Tiru shows them to more visitors.
+            are the ones people open, and Tiru Health shows them to more visitors.
             {namesSpecialists
               ? " For a facility like yours, the detail doing most of that work is your specialists and the days they are in — someone searching for a cardiologist on a Tuesday can only find you if your listing says who is there and when."
               : " Photos, opening hours and a full service list are what visitors look for first."}
@@ -599,7 +599,7 @@ export function Step6ReviewForm({ claim }: { claim: Claim }) {
             type="checkbox"
           />
           <span className="text-foreground">
-            I consent to Tiru Medical Directory publishing this information once approved by an
+            I consent to Tiru Health Medical Directory publishing this information once approved by an
             admin.
           </span>
         </label>

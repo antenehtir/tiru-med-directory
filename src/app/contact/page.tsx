@@ -3,8 +3,8 @@ import { ContactPage } from "@/components/contact/ContactPage";
 import { PageShell } from "@/components/layout/PageShell";
 
 export const metadata: Metadata = {
-  title: "Contact — Tiru",
-  description: "Get in touch with the Tiru team.",
+  title: "Contact — Tiru Health",
+  description: "Get in touch with the Tiru Health team.",
 };
 
 export default function ContactRoute() {

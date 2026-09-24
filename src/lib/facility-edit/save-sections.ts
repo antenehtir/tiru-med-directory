@@ -369,7 +369,7 @@ export async function saveIdentitySection(
   fields: FacilityIdentityFields,
 ) {
   if (editor.kind !== "admin") {
-    throw new Error("Name and type changes are reviewed by Tiru — request one from your listing.");
+    throw new Error("Name and type changes are reviewed by Tiru Health — request one from your listing.");
   }
   if (fields.name !== undefined && !fields.name.trim()) {
     throw new Error("Facility name is required.");

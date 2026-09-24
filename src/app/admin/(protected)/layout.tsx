@@ -5,7 +5,7 @@ import { AdminSidebar, AdminBottomNav } from "@/components/admin/AdminSidebar";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 
 export const metadata = {
-  title: "Tiru Admin",
+  title: "Tiru Health Admin",
   robots: { index: false, follow: false },
 };
 
@@ -38,7 +38,7 @@ export default async function AdminLayout({
       {/* Top bar */}
       <header className="fixed left-0 right-0 top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-foreground">Tiru</span>
+          <span className="text-lg font-bold text-foreground">Tiru Health</span>
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
             Admin
           </span>

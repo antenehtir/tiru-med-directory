@@ -33,7 +33,7 @@ export async function generateMetadata({
   const listed = facility && facility.isActive !== false && !facility.isDraft ? facility : null;
 
   return {
-    title: listed ? `${listed.name} — Tiru` : "Facility — Tiru",
+    title: listed ? `${listed.name} — Tiru Health` : "Facility — Tiru Health",
     description: listed ? `${listed.category} in ${listed.location}, Addis Ababa.` : "",
   };
 }
@@ -66,7 +66,7 @@ export default async function FacilityDetailRoute({
       <PageShell>
         <PageContainer className="py-16 text-center">
           <p className="text-lg font-semibold text-foreground">
-            This facility is no longer listed on Tiru Medical Directory.
+            This facility is no longer listed on Tiru Health Medical Directory.
           </p>
           <p className="mt-2 text-base text-muted-foreground">
             The listing may have closed, moved, or been removed.{" "}

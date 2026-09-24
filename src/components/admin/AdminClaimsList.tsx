@@ -369,7 +369,7 @@ export function AdminClaimsList({
                       <p className="mt-1 text-sm italic text-muted-foreground">
                         {isNewListing ? (
                           <>
-                            &quot;Hello, this is Tiru Medical Directory. We received a new listing
+                            &quot;Hello, this is Tiru Health Medical Directory. We received a new listing
                             request for {claim.facility_name ?? "your facility"} from{" "}
                             {claim.display_name}, listed as {claimantRole}. Can you confirm this
                             person is authorized to list your facility in our public
@@ -377,7 +377,7 @@ export function AdminClaimsList({
                           </>
                         ) : (
                           <>
-                            &quot;Hello, this is Tiru Medical Directory. We received a request to
+                            &quot;Hello, this is Tiru Health Medical Directory. We received a request to
                             manage {facility?.name ?? "your facility"}&apos;s online listing from{" "}
                             {claim.display_name}, listed as {claimantRole}. Can you confirm this
                             person works there and is authorized to manage your public

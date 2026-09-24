@@ -275,7 +275,7 @@ export function Step1IdentityForm({
               ) : (
                 <p className="text-xs text-muted-foreground">
                   {isLive
-                    ? "Your listing is live, so this doesn't change immediately — it sends the new type to Tiru for review, with your reason, and an admin applies it once they've confirmed it."
+                    ? "Your listing is live, so this doesn't change immediately — it sends the new type to Tiru Health for review, with your reason, and an admin applies it once they've confirmed it."
                     : "Changing this moves your listing to a different section of the directory once it's approved. It does not change the services you have already listed — worth a check afterward if the new type expects a different checklist."}
                 </p>
               )}
@@ -347,8 +347,8 @@ export function Step1IdentityForm({
                   {nameChangeState.phase === "error"
                     ? nameChangeState.message
                     : nameChangeState.phase === "sent"
-                      ? "Sent to Tiru for review. Your listing keeps its current name until an admin applies the change."
-                      : "Sends the new name to Tiru for review — it does not change immediately."}
+                      ? "Sent to Tiru Health for review. Your listing keeps its current name until an admin applies the change."
+                      : "Sends the new name to Tiru Health for review — it does not change immediately."}
                 </p>
               </div>
             </div>

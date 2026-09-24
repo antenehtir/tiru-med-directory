@@ -22,7 +22,7 @@ export default async function AdminUsersPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Admin Users</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage who has access to the Tiru admin panel
+          Manage who has access to the Tiru Health admin panel
         </p>
       </div>
       <AdminUserList

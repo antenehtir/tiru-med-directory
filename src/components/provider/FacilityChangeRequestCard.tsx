@@ -74,7 +74,7 @@ export function FacilityChangeRequestCard({ facility }: { facility: Record<strin
       <h2 className="mb-1 text-lg font-bold text-foreground">Name &amp; facility type</h2>
       <p className="mb-5 text-sm text-muted-foreground">
         Listed as <span className="font-semibold text-foreground">{currentName || "—"}</span>
-        {currentType ? ` · ${currentType}` : ""}. Changes to these are checked by the Tiru team
+        {currentType ? ` · ${currentType}` : ""}. Changes to these are checked by the Tiru Health team
         before they appear on your listing.
       </p>
 
@@ -134,7 +134,7 @@ export function FacilityChangeRequestCard({ facility }: { facility: Record<strin
       )}
       {state.phase === "sent" && (
         <p className="mt-4 rounded-lg border border-success-border bg-success-bg px-4 py-2 text-sm text-success-text">
-          Request sent. Your listing keeps its current name and type until the Tiru team applies the change.
+          Request sent. Your listing keeps its current name and type until the Tiru Health team applies the change.
         </p>
       )}
       {state.phase === "unchanged" && (

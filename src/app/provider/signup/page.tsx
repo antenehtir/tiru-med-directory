@@ -5,7 +5,7 @@ import { createProviderSupabaseClient } from "@/lib/supabase/provider-client";
 import { getActiveFacilityCount } from "@/lib/supabase/get-facilities";
 import { loadClaimableFacility } from "@/lib/provider/claim-facility";
 
-export const metadata = { title: "Register Your Facility — Tiru" };
+export const metadata = { title: "Register Your Facility — Tiru Health" };
 
 // The front door of the provider portal, and the one place the claim and
 // new-listing paths split:
@@ -47,7 +47,7 @@ export default async function ProviderSignupPage({
           <div className="space-y-4">
             <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
               {claimable.reason === "already_managed"
-                ? "This facility is already managed by a verified account. If you work there, contact the Tiru team and we'll sort it out."
+                ? "This facility is already managed by a verified account. If you work there, contact the Tiru Health team and we'll sort it out."
                 : "That facility could not be found. Search for it again below."}
             </p>
             <ClaimFacilityForm />
@@ -60,7 +60,7 @@ export default async function ProviderSignupPage({
   if (params.path === "new" || params.facility_name) {
     return (
       <Page
-        subtitle="Create an account to add your facility to Tiru. It's free."
+        subtitle="Create an account to add your facility to Tiru Health. It's free."
         title="List a new facility"
       >
         <ProviderSignupForm />
@@ -72,8 +72,8 @@ export default async function ProviderSignupPage({
 
   return (
     <Page
-      subtitle={`${facilityCount > 0 ? `Tiru already lists ${facilityCount} facilities. ` : ""}Search for yours — if it's here, claim it instead of creating it again.`}
-      title="Is your facility already on Tiru?"
+      subtitle={`${facilityCount > 0 ? `Tiru Health already lists ${facilityCount} facilities. ` : ""}Search for yours — if it's here, claim it instead of creating it again.`}
+      title="Is your facility already on Tiru Health?"
     >
       <ClaimFacilityForm />
     </Page>

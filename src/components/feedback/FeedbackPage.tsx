@@ -70,7 +70,7 @@ export function FeedbackPage() {
             Feedback received
           </h1>
           <p className="mt-2 text-sm leading-6 text-[#0F766E]">
-            Thanks for helping us improve Tiru.
+            Thanks for helping us improve Tiru Health.
           </p>
         </div>
       </PageContainer>

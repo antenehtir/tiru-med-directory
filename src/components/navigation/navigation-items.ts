@@ -23,7 +23,7 @@ export type HeaderNavItem =
 // The header's primary navigation. Every dropdown entry is an existing route
 // or an existing filter on one (category/subtype/status query parameters the
 // list pages already read) — nothing points at a page that does not exist.
-// "About" is the homepage's own about section; there is no /about page.
+// "About" goes to the company site, about.tiruhealth.com.
 export const headerNavigationItems: HeaderNavItem[] = [
   { label: "Home", href: ROUTES.home },
   {
@@ -54,7 +54,7 @@ export const headerNavigationItems: HeaderNavItem[] = [
     ],
   },
   { label: "Specialists", href: ROUTES.specialists },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "https://about.tiruhealth.com" },
 ];
 
 export const mobileNavigationItems = [

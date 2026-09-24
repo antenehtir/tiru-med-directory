@@ -40,22 +40,22 @@ export async function sendApprovalEmail({
     const body =
       kind === "claim"
         ? `<p>We've confirmed you with <strong>${facility}</strong>. You now manage its listing on the
-          Tiru Medical Directory, and it shows the Facility Managed badge.</p>
+          Tiru Health Medical Directory, and it shows the Facility Managed badge.</p>
           <p>You can update services, hours, contact details, doctors and photos yourself —
           anything you save appears on the public listing straight away.</p>`
         : `<p><strong>${facility}</strong> has been approved and is now live on the
-          Tiru Medical Directory with the Facility Managed badge.</p>
+          Tiru Health Medical Directory with the Facility Managed badge.</p>
           <p>Your profile is currently ${completionPct}% complete. Complete your remaining
           steps (Doctors & Staff, additional photos) to reach 100% and give patients the
           most complete picture of your facility.</p>`;
 
     await resend.emails.send({
-      from: `Tiru Medical Directory <${fromAddress}>`,
+      from: `Tiru Health Medical Directory <${fromAddress}>`,
       to,
       subject:
         kind === "claim"
-          ? `You now manage ${facilityName} on Tiru Medical Directory`
-          : `🎉 ${facilityName} is now live on Tiru Medical Directory!`,
+          ? `You now manage ${facilityName} on Tiru Health Medical Directory`
+          : `🎉 ${facilityName} is now live on Tiru Health Medical Directory!`,
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
           <h2 style="color: #0f766e;">Congratulations, ${name}!</h2>
@@ -68,7 +68,7 @@ export async function sendApprovalEmail({
             </a>
           </p>
           <p style="color: #6b7280; font-size: 13px; margin-top: 32px;">
-            Tiru Medical Directory — Addis Ababa
+            Tiru Health Medical Directory — Addis Ababa
           </p>
         </div>
       `,

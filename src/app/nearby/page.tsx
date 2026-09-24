@@ -17,7 +17,7 @@ import type { Facility } from "@/types/facility";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Nearby Care — Tiru",
+  title: "Nearby Care — Tiru Health",
   description:
     "Find the nearest hospital, clinic, or pharmacy to your location in Addis Ababa.",
 };

@@ -36,7 +36,7 @@ async function ownFacilityEditor(facilityId: string): Promise<FacilityEditor> {
   const provider = await getProviderAccount();
   if (!provider) throw new Error("Please sign in again.");
   if (provider.status !== "approved" || !provider.facility_id) {
-    throw new Error("Your listing can be edited once Tiru has verified your claim.");
+    throw new Error("Your listing can be edited once Tiru Health has verified your claim.");
   }
   if (provider.facility_id !== facilityId) {
     throw new Error("You can only edit the facility your account was verified for.");

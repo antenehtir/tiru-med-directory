@@ -24,7 +24,7 @@ export async function generateMetadata({
   const specialist = await getSpecialistBySlug(slug);
 
   return {
-    title: specialist ? `${specialist.fullName} — Tiru` : "Specialist — Tiru",
+    title: specialist ? `${specialist.fullName} — Tiru Health` : "Specialist — Tiru Health",
     description: specialist
       ? `${specialist.specialty} at ${specialist.facilityName}, Addis Ababa.`
       : "",

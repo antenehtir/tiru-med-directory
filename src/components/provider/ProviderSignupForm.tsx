@@ -70,7 +70,7 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
       : errorParam === "account_creation_failed"
         ? "Account creation failed. Please try again."
         : errorParam === "already_managed"
-          ? "This facility is already managed by a verified account. If you work there, contact the Tiru team."
+          ? "This facility is already managed by a verified account. If you work there, contact the Tiru Health team."
           : errorParam === "not_found"
             ? "That facility could not be found. Please search for it again."
             : errorParam
@@ -107,7 +107,7 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
               </a>
             </div>
             <p className="text-xs text-muted-foreground">
-              Tiru already has this facility&apos;s details — you won&apos;t need to enter them.
+              Tiru Health already has this facility&apos;s details — you won&apos;t need to enter them.
               Once we&apos;ve verified you work there, you can edit the listing yourself.
             </p>
           </>
@@ -439,7 +439,7 @@ function ProviderSignupFormInner({ claimFacility }: { claimFacility?: ClaimSignu
             type="checkbox"
           />
           <label className="text-sm text-muted-foreground" htmlFor="terms">
-            I agree to Tiru&apos;s{" "}
+            I agree to Tiru Health&apos;s{" "}
             <a className="text-primary hover:underline" href="/terms" target="_blank">
               Terms of Service
             </a>{" "}

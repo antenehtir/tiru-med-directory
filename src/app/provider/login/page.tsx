@@ -1,7 +1,7 @@
 import { ProviderLoginForm } from "@/components/provider/ProviderLoginForm";
 import { BrandMark } from "@/components/ui/BrandMark";
 
-export const metadata = { title: "Provider Sign In — Tiru" };
+export const metadata = { title: "Provider Sign In — Tiru Health" };
 
 export default function ProviderLoginPage() {
   return (

@@ -47,8 +47,8 @@ type VerificationBadgeProps = {
 const badgeContent: Record<VerificationStatus, { label: string; variant: BadgeVariant; title: string }> = {
   "community-submitted": { label: "Community sourced", variant: "warning", title: "Community sourced — gathered from the web and social media. Please confirm details with the facility." },
   pending: { label: "Community sourced", variant: "warning", title: "Community sourced — a provider claim is in review" },
-  "facility-owned": { label: "Facility Managed", variant: "success", title: "Facility Managed — this listing is owned and managed directly by the facility, whether newly listed or claimed from an existing entry. Tiru has not checked credentials or licences." },
-  verified: { label: "Verified", variant: "info", title: "Verified — reviewed by Tiru against published criteria" },
+  "facility-owned": { label: "Facility Managed", variant: "success", title: "Facility Managed — this listing is owned and managed directly by the facility, whether newly listed or claimed from an existing entry. Tiru Health has not checked credentials or licences." },
+  verified: { label: "Verified", variant: "info", title: "Verified — reviewed by Tiru Health against published criteria" },
 };
 
 // Both long labels abbreviate on dense surfaces. "Facility Managed" is two

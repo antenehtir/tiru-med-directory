@@ -14,7 +14,7 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Facilities — Tiru",
+  title: "Facilities — Tiru Health",
   description:
     "Browse private hospitals, specialty centers and clinics in Addis Ababa.",
 };

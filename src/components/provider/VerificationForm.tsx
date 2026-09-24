@@ -93,7 +93,7 @@ export function VerificationForm({
               kind="personal"
             />
             <p className="text-xs text-muted-foreground">
-              So the Tiru team can reach you about your listing.
+              So the Tiru Health team can reach you about your listing.
             </p>
           </div>
 
@@ -140,7 +140,7 @@ export function VerificationForm({
           {!isClaim && (
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="referral_source">
-              How did you hear your facility is on Tiru?
+              How did you hear your facility is on Tiru Health?
             </label>
             <input
               className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"

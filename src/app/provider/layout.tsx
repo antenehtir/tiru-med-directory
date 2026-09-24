@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Tiru Provider Portal",
+  title: "Tiru Health Provider Portal",
   robots: { index: false, follow: false },
 };
 

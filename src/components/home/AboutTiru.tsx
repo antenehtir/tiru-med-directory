@@ -1,7 +1,8 @@
 import { TiruMark } from "./TiruMark";
 
-// id="about" is what the header's "About" link lands on — there is no separate
-// about page, so the section on the homepage is the destination.
+// The homepage's short about section. The header and footer "About" links go
+// to the company site (about.tiruhealth.com); id="about" is kept so any old
+// /#about link still lands here.
 export function AboutTiru() {
   return (
     <section aria-labelledby="about-heading" className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 pt-10 sm:px-6 lg:px-8 lg:pt-12" id="about">
@@ -11,13 +12,13 @@ export function AboutTiru() {
             <TiruMark className="size-7 lg:size-9" />
           </span>
           <div className="min-w-0">
-            <p className="text-[13px] font-medium text-home-muted">About Tiru</p>
+            <p className="text-[13px] font-medium text-home-muted">About Tiru Health</p>
             <h2 className="mt-0.5 font-serif text-xl font-semibold tracking-[-0.01em] text-home-ink sm:text-2xl" id="about-heading">
               Healthcare shouldn&apos;t be difficult to find.
             </h2>
             <p className="mt-2 max-w-lg text-[13px] leading-6 text-home-text sm:text-sm">
               Healthcare providers are everywhere, but finding the right service, specialist, test or medicine
-              isn&apos;t always easy. Tiru was created to make that journey simpler. Starting in Addis Ababa, we are
+              isn&apos;t always easy. Tiru Health was created to make that journey simpler. Starting in Addis Ababa, we are
               building a trusted digital layer that helps people discover and connect with healthcare.
             </p>
           </div>

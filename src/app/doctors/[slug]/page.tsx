@@ -52,7 +52,7 @@ export async function generateMetadata({
   const doctor = result.status === "success" ? result.detail : null;
 
   return {
-    title: doctor ? `${doctor.name} — Tiru` : "Specialist — Tiru",
+    title: doctor ? `${doctor.name} — Tiru Health` : "Specialist — Tiru Health",
     description: doctor ? `${doctor.categoryLabel} in Addis Ababa.` : "",
   };
 }

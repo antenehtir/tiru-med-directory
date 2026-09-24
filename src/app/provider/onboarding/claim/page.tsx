@@ -15,7 +15,7 @@ export default async function ClaimFacilityPage() {
       <div className="w-full max-w-lg">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">
-            Is your facility already on Tiru?
+            Is your facility already on Tiru Health?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {facilityCount > 0 ? `We have ${facilityCount} facilities listed. ` : ""}

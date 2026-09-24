@@ -21,7 +21,7 @@ export function NewOnTiru({ facilities }: { facilities: Facility[] }) {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h2 className="font-serif text-2xl font-semibold tracking-[-0.01em] text-home-ink sm:text-[2rem]" id="new-heading">
-            New on Tiru
+            New on Tiru Health
           </h2>
           <p className="mt-1 hidden text-sm text-home-muted sm:block">Recently added healthcare providers in your area.</p>
         </div>

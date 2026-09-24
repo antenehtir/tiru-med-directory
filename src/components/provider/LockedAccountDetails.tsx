@@ -37,7 +37,7 @@ const inputClass =
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
 const STATUS_LABEL: Record<AccountChangeRequest["status"], string> = {
-  pending: "Waiting for Tiru",
+  pending: "Waiting for Tiru Health",
   approved: "Approved",
   declined: "Declined",
 };
@@ -66,7 +66,7 @@ export function LockedAccountDetails({ provider, requests }: { provider: Details
         showToast(result.error, "error");
         return;
       }
-      showToast("Request sent — Tiru will review it");
+      showToast("Request sent — Tiru Health will review it");
       setOpen(false);
       setValue("");
       setReason("");
@@ -77,7 +77,7 @@ export function LockedAccountDetails({ provider, requests }: { provider: Details
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
       <h2 className="text-base font-bold text-foreground">Account details</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        These were confirmed when your listing was reviewed. To change one, send a request and the Tiru team will
+        These were confirmed when your listing was reviewed. To change one, send a request and the Tiru Health team will
         update it.
       </p>
 
@@ -234,7 +234,7 @@ export function LockedAccountDetails({ provider, requests }: { provider: Details
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">Sent {formatAddisDate(request.created_at)}</p>
-                {request.admin_note && <p className="mt-1 text-xs text-muted-foreground">Tiru: {request.admin_note}</p>}
+                {request.admin_note && <p className="mt-1 text-xs text-muted-foreground">Tiru Health: {request.admin_note}</p>}
               </li>
             ))}
           </ul>

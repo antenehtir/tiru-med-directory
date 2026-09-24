@@ -6,13 +6,13 @@ import { SubmitButton } from "@/components/provider/SubmitButton";
 import { chooseDifferentFacility } from "@/app/provider/claim/actions";
 import { formatAddisDate } from "@/lib/addis-time";
 
-export const metadata = { title: "Your claim — Tiru Provider Portal" };
+export const metadata = { title: "Your claim — Tiru Health Provider Portal" };
 
 const ERROR_MESSAGES: Record<string, string> = {
   missing: "Please fill in your role and phone number.",
   not_found: "That facility is no longer listed. Please choose it again.",
   already_managed:
-    "This facility is already managed by a verified account. If you work there, contact the Tiru team and we'll sort it out.",
+    "This facility is already managed by a verified account. If you work there, contact the Tiru Health team and we'll sort it out.",
   save_failed: "Your claim could not be saved. Please try again.",
   bad_phone: "Please enter a working Ethiopian phone number, e.g. 0912 345 678 or +251 912 345 678.",
 };
@@ -117,7 +117,7 @@ export default async function ClaimPage({
             <li className="flex gap-3">
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">1</span>
               <span>
-                The Tiru team confirms that you work at {facility?.name ?? "this facility"}.
+                The Tiru Health team confirms that you work at {facility?.name ?? "this facility"}.
               </span>
             </li>
             <li className="flex gap-3">
@@ -179,7 +179,7 @@ export default async function ClaimPage({
         <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
           {ERROR_MESSAGES.already_managed}
           <a className="mt-2 block font-medium text-primary hover:underline" href="/contact">
-            Contact the Tiru team →
+            Contact the Tiru Health team →
           </a>
         </div>
       ) : (

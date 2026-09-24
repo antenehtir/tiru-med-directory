@@ -6,7 +6,7 @@ import { BuildingIcon, PinIcon, RefreshIcon, ShieldIcon } from "./home-icons";
 // are real. The other three are statements about the service, not counts.
 export function HomeStats({ listingCount }: { listingCount: number }) {
   return (
-    <section aria-label="Tiru at a glance" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section aria-label="Tiru Health at a glance" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <ul className="-mt-2 grid grid-cols-3 gap-y-4 rounded-2xl bg-home-surface px-3 py-4 shadow-home ring-1 ring-home-line sm:px-6 lg:mt-0 lg:grid-cols-4 lg:divide-x lg:divide-home-line lg:py-5">
         <Stat icon={<BuildingIcon className="size-6" />} label="Healthcare listings" shortLabel="Listings" value={listingCount.toLocaleString("en-US")} />
         <Stat icon={<PinIcon className="size-6" />} label="Citywide coverage" shortLabel="Coverage" value="Addis Ababa" />

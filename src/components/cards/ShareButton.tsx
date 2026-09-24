@@ -26,7 +26,7 @@ export function ShareButton({
       try {
         await navigator.share({
           title: name,
-          text: `Find ${name} on Tiru — Healthcare in Addis Ababa`,
+          text: `Find ${name} on Tiru Health — Healthcare in Addis Ababa`,
           url,
         });
       } catch {

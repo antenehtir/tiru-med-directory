@@ -123,7 +123,7 @@ function ShareFacilityButton({ facility }: { facility: Facility }) {
     const url = `${window.location.origin}/facilities/${facility.slug}`;
     const shareData = {
       title: facility.name,
-      text: `Find ${facility.name} on Tiru — Trace the right care.`,
+      text: `Find ${facility.name} on Tiru Health — Trace the right care.`,
       url,
     };
 

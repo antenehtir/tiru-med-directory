@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { BrandMark } from "@/components/ui/BrandMark";
 
-export const metadata = { title: "Admin Login — Tiru" };
+export const metadata = { title: "Admin Login — Tiru Health" };
 
 export default function AdminLoginPage() {
   return (

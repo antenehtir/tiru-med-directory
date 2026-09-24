@@ -14,9 +14,9 @@ type FacilityTrustSectionProps = {
 // detail. See the accordion below for where title/body now render.
 const trustCopy: Record<Facility["verificationStatus"], { summary: string; title: string; body: string }> = {
   verified: {
-    summary: "Tiru has reviewed this facility against published criteria.",
-    title: "Reviewed by Tiru",
-    body: "Tiru has reviewed this facility against its published criteria. Information can still change, so the latest update date is shown on the profile.",
+    summary: "Tiru Health has reviewed this facility against published criteria.",
+    title: "Reviewed by Tiru Health",
+    body: "Tiru Health has reviewed this facility against its published criteria. Information can still change, so the latest update date is shown on the profile.",
   },
   "facility-owned": {
     // States the limit as plainly as the benefit. The badge used to read
@@ -112,7 +112,7 @@ export function FacilityTrustSection({ facility }: FacilityTrustSectionProps) {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Tiru separates facility-managed information from community-sourced information so health seekers can see where a listing&apos;s details came from before making a decision. Neither is a judgement about the care a facility provides.
+            Tiru Health separates facility-managed information from community-sourced information so health seekers can see where a listing&apos;s details came from before making a decision. Neither is a judgement about the care a facility provides.
           </p>
         </div>
       ) : null}

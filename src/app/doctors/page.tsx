@@ -14,7 +14,7 @@ import type { Doctor, DoctorTelemedicineStatus } from "@/types/doctor";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Specialists — Tiru",
+  title: "Specialists — Tiru Health",
   description: "Find specialists and physicians in Addis Ababa.",
 };
 

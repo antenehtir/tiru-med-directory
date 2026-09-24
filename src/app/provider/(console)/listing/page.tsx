@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { ProviderListingEditor } from "@/components/provider/ProviderListingEditor";
 
-export const metadata = { title: "Your listing — Tiru Provider Portal" };
+export const metadata = { title: "Your listing — Tiru Health Provider Portal" };
 
 // Where a verified provider edits their facility. Everything here saves
 // straight to the public listing — there is no draft and no re-approval.
@@ -32,7 +32,7 @@ export default async function ProviderListingPage() {
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <h1 className="text-lg font-bold text-foreground">We couldn&apos;t load your listing</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Please refresh the page. If it keeps happening, contact the Tiru team.
+            Please refresh the page. If it keeps happening, contact the Tiru Health team.
           </p>
         </div>
       </div>

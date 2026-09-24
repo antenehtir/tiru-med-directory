@@ -4,8 +4,8 @@ import { ROUTES } from "@/components/navigation/navigation-items";
 import { BrandMark } from "@/components/ui/BrandMark";
 
 // Only routes that exist. The mockup's Privacy and Terms entries are left out
-// until those pages exist, "About" is the homepage's about section, and there
-// are no social icons because Tiru has no social accounts to link to yet.
+// until those pages exist; "About" and "Partner with us" go to the company
+// site; there are no social icons because there are no accounts to link to yet.
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Discover",
@@ -26,9 +26,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     ],
   },
   {
-    title: "Tiru",
+    title: "Tiru Health",
     links: [
-      { label: "About", href: "/#about" },
+      { label: "About Tiru Health", href: "https://about.tiruhealth.com" },
+      { label: "Partner with us", href: "https://about.tiruhealth.com/request?type=partnership" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -87,7 +88,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2025 Tiru Medical Directory. All rights reserved.</p>
+          <p>© 2025 Tiru Health Medical Directory. All rights reserved.</p>
           <p>Made for a healthier Addis Ababa.</p>
         </div>
       </div>

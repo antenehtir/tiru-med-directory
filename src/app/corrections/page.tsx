@@ -5,9 +5,9 @@ import { PageShell } from "@/components/layout/PageShell";
 import { getFacilityBySlug } from "@/lib/supabase/get-facilities";
 
 export const metadata: Metadata = {
-  title: "Suggest a Correction — Tiru",
+  title: "Suggest a Correction — Tiru Health",
   description:
-    "Help keep Tiru accurate by suggesting corrections to provider listings.",
+    "Help keep Tiru Health accurate by suggesting corrections to provider listings.",
 };
 
 type CorrectionsRouteProps = {
