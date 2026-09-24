@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 const feedbackTypeOptions = [
@@ -79,9 +80,11 @@ export function FeedbackPage() {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-          Send feedback
-        </h1>
+        <PageIntro
+          description="Tell us what's working and what isn't — it shapes what we build next."
+          eyebrow="Feedback"
+          title="Send feedback"
+        />
 
         <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <div>

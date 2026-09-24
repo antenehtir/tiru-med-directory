@@ -2,29 +2,28 @@
 @custom-variant dark (&:is([data-theme=dark] *));
 
 :root {
-  /* Neutrals are a WARM family (stone), not the blue-tinted grays this file
-     used through Phase 8. The old #6B7280/#E5E7EB/#F7F9FC set read as
-     fluorescent-clinical on a bright screen; warm neutrals keep the clinical
-     register while losing the sterility. These are the SAME semantic token
-     names as before, re-pointed — deliberately not a parallel --ink/--line
-     set, so every existing text-muted-foreground / border-border consumer
-     inherits the shift and there is only ever one neutral system. */
-  --tiru-deep-ink: #1C1917;
+  /* Neutrals follow the tiruhealth.com theme the homepage set: deep-green
+     ink on a faint mint paper, with mint-grey borders and muted text. These
+     are the SAME semantic token names as before, re-pointed — deliberately
+     not a parallel set — so every page's text-muted-foreground / border-border
+     / bg-background consumer moves with the homepage and the site reads as one
+     product from any tab. (Previously a warm stone family.) */
+  --tiru-deep-ink: #0B2E2B;
   --tiru-accent: #0F766E;
   --tiru-accent-hover: #0B5E58;
   --tiru-supporting-teal: #14B8A6;
-  --tiru-soft-accent: #ECFEFF;
+  --tiru-soft-accent: #E6F4F0;
   --tiru-white: #FFFFFF;
 
   /* Surface tiers: paper (page) → card (raised) → sunken (bands, wells) →
      deep (footer + high-emphasis band). --deep is a near-black with teal in
      it, derived from --tiru-accent, so the dark band belongs to this brand
      rather than being generic slate. */
-  --background: #FAF9F7;
-  --sunken: #F4F2EF;
+  --background: #F8FBFA;
+  --sunken: #EEF7F4;
   --deep: #0B2E2B;
-  --deep-foreground: #F5F5F4;
-  --deep-muted: #A8A29E;
+  --deep-foreground: #F2F8F6;
+  --deep-muted: #A9C3BD;
   --foreground: var(--tiru-deep-ink);
 
   --primary: #0F766E;
@@ -76,27 +75,27 @@
   --card: var(--tiru-white);
   --card-foreground: var(--tiru-deep-ink);
 
-  --muted: #F4F2EF;
-  --muted-foreground: #57534E;
-  --soft-accent: #ECFEFF;
+  --muted: #EEF7F4;
+  --muted-foreground: #4F6662;
+  --soft-accent: #E6F4F0;
 
-  --border: #E7E5E4;
-  --strong-border: #D6D3D1;
+  --border: #D8E7E2;
+  --strong-border: #BCD3CC;
   --input: var(--tiru-white);
   --ring: #0F766E;
 
   /* Elevation is warm-tinted (shadows on warm paper must carry the paper's
      hue or they read as dirty gray) and always has offset + soft blur.
      Raw values live here; @theme maps them to shadow-card / shadow-lift. */
-  --elevation-card: 0 1px 2px rgba(28, 25, 23, 0.04),
-    0 8px 24px -10px rgba(28, 25, 23, 0.10);
-  --elevation-lift: 0 2px 4px rgba(28, 25, 23, 0.05),
-    0 16px 32px -12px rgba(28, 25, 23, 0.14);
+  --elevation-card: 0 1px 2px rgba(11, 46, 43, 0.04),
+    0 8px 24px -12px rgba(11, 46, 43, 0.14);
+  --elevation-lift: 0 2px 4px rgba(11, 46, 43, 0.05),
+    0 16px 32px -12px rgba(11, 46, 43, 0.18);
 
   /* Three-tier radius language, replacing uniform rounded-2xl everywhere:
      panels 14px, controls 10px, pills full. */
-  --r-card: 14px;
-  --r-control: 10px;
+  --r-card: 16px;
+  --r-control: 12px;
 
   /* Footer tokens — a fixed dark surface for the footer only, independent of
      the light/dark theme toggle (intentionally NOT redefined under
@@ -112,16 +111,15 @@
 }
 
 [data-theme="dark"] {
-  /* Warm-neutral counterparts (stone) to the light palette above — NOT the
-     cold slate this block used previously. Shipping warm light-mode neutrals
-     against cold dark-mode neutrals would be the same one-concept-two-systems
-     split that produced the four rival category-color maps. */
-  --background: #1C1917;
-  --sunken: #141110;
+  /* Dark counterparts in the same green family: teal-black paper, green-grey
+     cards and borders, matching the homepage's dark values so a page never
+     changes temperature when you move between tabs. */
+  --background: #0F1716;
+  --sunken: #0B1211;
   --deep: #0B2E2B;
-  --deep-foreground: #F5F5F4;
-  --deep-muted: #A8A29E;
-  --foreground: #FAFAF9;
+  --deep-foreground: #F2F8F6;
+  --deep-muted: #A9C3BD;
+  --foreground: #EEF6F3;
 
   --primary: #14B8A6;
   --primary-hover: #0D9488;
@@ -166,16 +164,16 @@
   --category-default-border: #4B5563;
   --category-default-text: #D1D5DB;
 
-  --card: #292524;
-  --card-foreground: #FAFAF9;
+  --card: #15201E;
+  --card-foreground: #EEF6F3;
 
-  --muted: #292524;
-  --muted-foreground: #A8A29E;
+  --muted: #1A2926;
+  --muted-foreground: #9DB2AD;
   --soft-accent: rgba(20, 184, 166, 0.14);
 
-  --border: #44403C;
-  --strong-border: #57534E;
-  --input: #292524;
+  --border: #28403C;
+  --strong-border: #36544E;
+  --input: #15201E;
   --ring: #14B8A6;
 
   /* On a dark ground a warm-tinted shadow is invisible; depth has to come
@@ -330,13 +328,12 @@
   --color-deep-foreground: var(--deep-foreground);
   --color-deep-muted: var(--deep-muted);
 
-  /* Archivo is a grotesque with signage/government-form heritage — sturdy and
-     institutional without being cold. Noto Sans Ethiopic follows in both
-     stacks so Ge'ez degrades to a designed face rather than a system
-     fallback; there is no Amharic in the UI today, this is groundwork. */
-  --font-display: var(--font-archivo), "Noto Sans Ethiopic", system-ui,
-    sans-serif;
-  --font-sans: var(--font-inter), "Noto Sans Ethiopic", Arial, Helvetica,
+  /* The tiruhealth.com pairing, sitewide: Newsreader for display headings,
+     Archivo for everything else. Noto Sans Ethiopic follows so Ge'ez
+     degrades to a designed face rather than a system fallback. */
+  --font-display: var(--font-newsreader), "Noto Serif Ethiopic", Georgia,
+    serif;
+  --font-sans: var(--font-archivo), "Noto Sans Ethiopic", Arial, Helvetica,
     sans-serif;
   --font-mono: "Courier New", Courier, monospace;
 
@@ -364,11 +361,11 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* Display face: tightened tracking is part of the scale, not per-element
-   styling — Archivo at headline sizes needs it to hold together. */
+/* Display face: the homepage's Newsreader serif, so every page title and
+   section heading shares the landing page's voice. */
 .font-display {
-  font-family: var(--font-archivo), "Noto Sans Ethiopic", system-ui, sans-serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-newsreader), "Noto Serif Ethiopic", Georgia, serif;
+  letter-spacing: -0.015em;
 }
 
 html[data-theme="dark"] {
@@ -381,7 +378,7 @@ body {
      surface tiers. Section rhythm now comes from paper/sunken/deep bands. */
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), "Noto Sans Ethiopic", Arial, Helvetica,
+  font-family: var(--font-archivo), "Noto Sans Ethiopic", Arial, Helvetica,
     sans-serif;
   line-height: 1.5;
   /* text-rendering: optimizeLegibility was here and is deliberately gone. It

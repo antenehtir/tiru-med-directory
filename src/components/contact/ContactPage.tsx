@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { SVGProps } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { WHATSAPP_HREF } from "@/lib/whatsapp";
 
 function BuildingIcon(props: SVGProps<SVGSVGElement>) {
@@ -118,12 +119,11 @@ export function ContactPage() {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-          How can we help?
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Choose what you need &mdash; we&apos;ll route you to the right place.
-        </p>
+        <PageIntro
+          description={<>Choose what you need &mdash; we&apos;ll route you to the right place.</>}
+          eyebrow="Contact"
+          title="How can we help?"
+        />
 
         <div className="mt-6 grid gap-3">
           {triageCards.map(({ Icon, title, description, href, isExternal }) => (

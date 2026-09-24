@@ -18,8 +18,8 @@ export function DoctorsPage({
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
-        <ListingStatusBanner />
         <DoctorsHero />
+        <ListingStatusBanner />
         <SpecialtyFilterChips activeSpecialty={activeSpecialty} />
 
         <DoctorListingExperience

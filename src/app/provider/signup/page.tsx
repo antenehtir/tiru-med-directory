@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/ui/BrandMark";
 import { ProviderSignupForm } from "@/components/provider/ProviderSignupForm";
 import { ClaimFacilityForm } from "@/components/provider/ClaimFacilityForm";
 import { createProviderSupabaseClient } from "@/lib/supabase/provider-client";
@@ -89,10 +90,13 @@ function Page({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-background bg-[image:var(--home-hero)] px-4 py-12">
       <div className="w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <BrandMark />
+        </div>
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <h1 className="font-display text-3xl font-semibold text-foreground">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
         </div>
         {children}

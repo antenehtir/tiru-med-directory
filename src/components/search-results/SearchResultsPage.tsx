@@ -6,6 +6,7 @@ import { DoctorCard } from "@/components/cards/DoctorCard";
 import { FacilityCard } from "@/components/cards/FacilityCard";
 import { ListingRefinementPills } from "@/components/facilities/ListingRefinementPills";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { FilterModal } from "@/components/search/FilterModal";
 import { ListingSearchBar } from "@/components/search/ListingSearchBar";
 import { useListingFilterModal } from "@/components/search/use-listing-filter-modal";
@@ -126,14 +127,11 @@ function SearchResultsPageInner({
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
-        <header>
-          <h1 className="font-display text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-            Search healthcare
-          </h1>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Search across hospitals, clinics, specialists, diagnostics, and pharmacies.
-          </p>
-        </header>
+        <PageIntro
+          description="Search across hospitals, clinics, specialists, diagnostics, and pharmacies."
+          eyebrow="Search"
+          title="Search healthcare"
+        />
 
         <ListingSearchBar
           activeFilterCount={activeFilterCount}

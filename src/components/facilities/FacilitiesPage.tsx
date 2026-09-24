@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FacilityListingExperience } from "@/components/search/FacilityListingExperience";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListingStatusBanner } from "@/components/ui/ListingStatusBanner";
 import type { Facility } from "@/types/facility";
@@ -138,16 +139,13 @@ export function FacilitiesPage({
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
-        <ListingStatusBanner />
+        <PageIntro
+          description="Hospitals, clinics and specialized centers across Addis Ababa."
+          eyebrow="Find care"
+          title="Browse trusted healthcare facilities."
+        />
 
-        <header className="max-w-3xl">
-          <p className="mb-3 inline-flex rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground">
-            Facilities directory
-          </p>
-          <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
-            Browse trusted healthcare facilities.
-          </h1>
-        </header>
+        <ListingStatusBanner />
 
         <FacilityCategoryFilters activeCategory={activeCategory} />
 

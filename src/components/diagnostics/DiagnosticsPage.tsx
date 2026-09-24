@@ -15,8 +15,8 @@ export function DiagnosticsPage({ activeType, diagnostics = [] }: DiagnosticsPag
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
-        <ListingStatusBanner />
         <DiagnosticsHero />
+        <ListingStatusBanner />
         <DiagnosticsFilterChips activeType={activeType} />
         <FacilityListingExperience
           facilities={diagnostics}

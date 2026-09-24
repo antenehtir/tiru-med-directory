@@ -18,8 +18,8 @@ export function PharmaciesPage({
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="grid gap-6">
-        <ListingStatusBanner />
         <PharmacyHero />
+        <ListingStatusBanner />
         <PharmacyFilterChips activeStatus={activeStatus} />
         <FacilityListingExperience
           facilities={pharmacies}

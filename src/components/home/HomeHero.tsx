@@ -7,9 +7,16 @@ import { GridIcon, PinIcon, SearchIcon } from "./home-icons";
 // submit to /search?q=), restyled — not a second search implementation.
 export function HomeHero() {
   return (
+    // overflow stays visible so the search suggestions can drop below the
+    // hero; the photo carries its own clipping box instead.
     <section className="relative isolate overflow-visible bg-[image:var(--home-hero)]">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-8 pt-7 sm:px-6 sm:pt-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:px-8 lg:pb-14 lg:pt-12">
-        <div className="min-w-0">
+      {/* Desktop: the photo fills the right side of the hero, edge to edge,
+          and fades into the gradient under the headline. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[58%] overflow-hidden lg:block">
+        <HeroPhoto variant="wide" />
+      </div>
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pb-8 pt-7 sm:px-6 sm:pt-10 lg:min-h-[31rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-8 lg:pb-14 lg:pt-12">
+        <div className="relative z-10 min-w-0">
           <p className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-home-accent-text">
             <span aria-hidden="true" className="h-px w-5 bg-current" />
             Trace the right care.
@@ -56,7 +63,10 @@ export function HomeHero() {
           </div>
         </div>
 
-        <HeroPhoto />
+        {/* Phone and tablet: in flow under the buttons, fading on every side. */}
+        <div className="-mx-4 sm:-mx-6 lg:hidden">
+          <HeroPhoto variant="inline" />
+        </div>
       </div>
     </section>
   );

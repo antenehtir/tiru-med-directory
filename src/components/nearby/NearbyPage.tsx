@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FacilityCard } from "@/components/cards/FacilityCard";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { Badge } from "@/components/ui/Badge";
 import { ChipScroller } from "@/components/ui/ChipScroller";
 import { EmptyState, MapPinOffIcon, SearchIcon } from "@/components/ui/EmptyState";
@@ -345,12 +346,11 @@ export function NearbyPage({
 
   return (
     <main className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 min-[360px]:px-4 sm:px-6 sm:py-10 lg:px-8">
-      <header>
-        <p className="text-sm font-semibold text-primary">Near you</p>
-        <h1 className="mt-2 font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
-          Which care are you looking for?
-        </h1>
-      </header>
+      <PageIntro
+        description="Facilities and specialists sorted by distance from you."
+        eyebrow="Near you"
+        title="Which care are you looking for?"
+      />
 
       <ListingStatusBanner />
 

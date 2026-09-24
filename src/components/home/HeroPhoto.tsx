@@ -1,61 +1,56 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
-// public/images/home-hero.jpg is supplied separately. Until it exists (or if it
-// ever fails to load) the frame shows a drawn placeholder instead of a broken
-// image, so the hero keeps its shape either way. The check is a load error
-// rather than a filesystem test: on a serverless host the public folder is
-// served by the CDN, not visible to the function rendering this page.
-const HERO_SRC = "/images/home-hero.jpg";
+const HERO_SRC = "/images/home-hero.webp";
+const HERO_ALT = "A doctor smiling as she talks with a patient across her desk";
 
-export function HeroPhoto() {
-  const [failed, setFailed] = useState(false);
+// No frame, no border, no hard edge: the photo dissolves into the hero's own
+// background. Two gradient masks are intersected — one horizontal, one
+// vertical — so every side fades, not just one.
+//
+// wide:   right half of the hero on desktop. The long fade on the left is what
+//         lets the headline sit beside the photo without a seam.
+// inline: the phone layout, under the buttons; fades on all four sides.
+const MASKS: Record<"wide" | "inline", string> = {
+  wide: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.55) 22%, #000 46%, #000 92%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 16%, #000 80%, transparent 100%)",
+  inline: "linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 14%, #000 80%, transparent 100%)",
+};
 
-  return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] bg-home-mint-strong shadow-home ring-1 ring-home-line lg:aspect-[5/4]">
-      {failed ? (
-        <HeroPlaceholder />
-      ) : (
-        <Image
-          alt="A doctor talking with a patient in a consultation room"
-          className="object-cover"
-          fill
-          onError={() => setFailed(true)}
-          // A missing file fails fast, often before hydration, and onError
-          // attached afterwards never fires. An image that is already
-          // complete with no pixels has failed, so check once on attach.
-          ref={(img) => {
-            if (img && img.complete && img.naturalWidth === 0) setFailed(true);
-          }}
-          priority
-          sizes="(min-width: 1024px) 560px, 100vw"
-          src={HERO_SRC}
-        />
-      )}
-    </div>
-  );
+function maskStyle(variant: "wide" | "inline"): CSSProperties {
+  return {
+    maskImage: MASKS[variant],
+    WebkitMaskImage: MASKS[variant],
+    maskComposite: "intersect",
+    WebkitMaskComposite: "source-in",
+  };
 }
 
-function HeroPlaceholder() {
+export function HeroPhoto({ variant }: { variant: "wide" | "inline" }) {
+  // If the file is ever missing, show nothing rather than a broken image —
+  // the hero reads fine as text on its gradient. A failure can land before
+  // hydration, when onError is not attached yet, hence the check on attach.
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+
   return (
-    <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(120%_90%_at_80%_10%,var(--home-mint)_0%,var(--home-mint-strong)_55%,var(--home-mint)_100%)]">
-      <svg className="absolute inset-0 h-full w-full text-home-teal/25 dark:text-home-teal-bright/20" fill="none" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 300">
-        <circle cx="300" cy="70" r="90" stroke="currentColor" strokeWidth="1.2" />
-        <circle cx="300" cy="70" r="55" stroke="currentColor" strokeWidth="1.2" />
-        <path d="M40 250h320" stroke="currentColor" strokeWidth="1.2" />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex size-24 items-center justify-center rounded-3xl bg-home-surface/80 text-home-teal shadow-home dark:text-home-teal-bright">
-          <svg className="size-12" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" viewBox="0 0 24 24">
-            <path d="M6 3v6a5 5 0 0 0 10 0V3" />
-            <path d="M6 3H4.5M16 3h1.5" />
-            <path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V13" />
-            <circle cx="20" cy="11" r="2" />
-          </svg>
-        </div>
-      </div>
+    <div
+      className={variant === "wide" ? "absolute inset-0" : "relative aspect-[16/10] w-full"}
+      style={maskStyle(variant)}
+    >
+      <Image
+        alt={HERO_ALT}
+        className="object-cover object-[62%_35%]"
+        fill
+        onError={() => setFailed(true)}
+        priority
+        ref={(img) => {
+          if (img && img.complete && img.naturalWidth === 0) setFailed(true);
+        }}
+        sizes={variant === "wide" ? "(min-width: 1024px) 58vw, 100vw" : "100vw"}
+        src={HERO_SRC}
+      />
     </div>
   );
 }

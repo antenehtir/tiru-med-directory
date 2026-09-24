@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { facilityCategoryIcons } from "./category-icons";
+import { PageIntro } from "@/components/layout/PageIntro";
 import type { FacilityCategoryFilter } from "@/lib/frontend-search-filters";
+import { facilityCategoryIcons } from "./category-icons";
 
 type FacilityCategoryHeroProps = {
   category: FacilityCategoryFilter;
@@ -8,34 +8,24 @@ type FacilityCategoryHeroProps = {
   count: number;
 };
 
-export function FacilityCategoryHero({
-  category,
-  categoryLabel,
-  count,
-}: FacilityCategoryHeroProps) {
+// A category view of /facilities. Same opening as every other page, with the
+// category's icon beside the live provider count.
+export function FacilityCategoryHero({ category, categoryLabel, count }: FacilityCategoryHeroProps) {
   const Icon = facilityCategoryIcons[category];
 
   return (
-    <header className="rounded-card border border-teal-100 bg-gradient-to-br from-teal-50 via-card to-card px-5 py-8 sm:px-8">
-      <Link
-        className="text-sm font-semibold text-muted-foreground transition hover:text-foreground"
-        href="/facilities"
-      >
-        &larr; All categories
-      </Link>
-      <div className="mt-4 flex items-center gap-4">
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-card bg-primary/10 text-primary">
-          <Icon className="size-8" />
+    <PageIntro
+      back={{ href: "/facilities", label: "All categories" }}
+      description={
+        <span className="inline-flex items-center gap-2">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-home-mint-strong text-home-accent-text">
+            <Icon className="size-4" />
+          </span>
+          {count} {count === 1 ? "provider" : "providers"}
         </span>
-        <div className="min-w-0">
-          <h1 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-balance text-foreground sm:text-[2.75rem]">
-            {categoryLabel}
-          </h1>
-          <p className="mt-1 text-base font-medium text-muted-foreground">
-            {count} {count === 1 ? "provider" : "providers"}
-          </p>
-        </div>
-      </div>
-    </header>
+      }
+      eyebrow="Find care"
+      title={categoryLabel}
+    />
   );
 }

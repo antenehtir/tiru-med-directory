@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import type { Facility } from "@/types/facility";
 
@@ -140,9 +141,11 @@ export function CorrectionsPage({ facility = null }: CorrectionsPageProps) {
   return (
     <PageContainer className="py-8 sm:py-10 lg:py-14">
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-          Suggest a correction
-        </h1>
+        <PageIntro
+          description="Spotted something outdated? Tell us and we'll check it with the facility."
+          eyebrow="Corrections"
+          title="Suggest a correction"
+        />
 
         {!isClaimed && (
           <div

@@ -19,7 +19,8 @@ const inter = Inter({
 // display face at 500-700 and Inter keeps the body.
 const archivo = Archivo({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // 800 is the logo wordmark's weight.
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-archivo",
 });
 

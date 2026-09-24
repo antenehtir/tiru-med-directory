@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/ui/BrandMark";
 import { redirect } from "next/navigation";
 import { createProviderSupabaseClient, getProviderAccount } from "@/lib/supabase/provider-client";
 import { VerificationForm } from "@/components/provider/VerificationForm";
@@ -18,8 +19,13 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-12 sm:items-center">
-      <div className="w-full max-w-lg space-y-6">{children}</div>
+    <div className="flex min-h-screen items-start justify-center bg-background bg-[image:var(--home-hero)] px-4 py-12 sm:items-center">
+      <div className="w-full max-w-lg space-y-6">
+        <div className="flex justify-center">
+          <BrandMark />
+        </div>
+        {children}
+      </div>
     </div>
   );
 }
