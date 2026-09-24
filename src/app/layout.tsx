@@ -49,10 +49,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning: the script below sets data-theme on <html>
+    // before React hydrates, which is the point of it.
     <html
       lang="en"
       className={`h-full antialiased ${inter.variable} ${archivo.variable} ${newsreader.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Applies the saved theme before first paint, on every page. The
+            toggle used to be the only thing applying it, so pages without a
+            header (provider and admin sign-in) always rendered light, and
+            every page flashed light before switching to dark. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('tiru-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}",
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ScrollRestoration />
         {children}
