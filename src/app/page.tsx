@@ -31,7 +31,7 @@ export default async function Home() {
     .slice(0, NEW_ON_TIRU_COUNT);
 
   return (
-    <PageShell>
+    <PageShell homepage>
       <Homepage facilities={facilities} listingCount={listingCount} newFacilities={newFacilities} />
     </PageShell>
   );
