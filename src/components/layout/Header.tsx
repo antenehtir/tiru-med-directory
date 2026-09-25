@@ -5,19 +5,15 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { HeaderMenu } from "@/components/layout/HeaderMenu";
 
-// tiruhealth.com-style header shared by every public page.
-//
-// xl and up: lockup, primary nav with dropdowns, search, theme, "List your
-// facility", "Sign in". Below xl: lockup, search and a menu — the same
-// breakpoint the bottom tab bar hides at, so primary navigation is never
-// missing at any width.
-//
-// The xl-only ThemeToggle is hidden with CSS, not unmounted, below xl: the
-// toggle is also what applies the stored theme on load, so one instance has
-// to stay mounted at every width (the menu's copy only exists while open).
-export function Header() {
+export function Header({ homepage = false }: { homepage?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-home-line bg-home-surface/90 font-body backdrop-blur-xl supports-[backdrop-filter]:bg-home-surface/80">
+    <header
+      className={
+        homepage
+          ? "absolute inset-x-0 top-0 z-30 border-b border-home-line/60 bg-home-surface/35 font-body backdrop-blur-sm supports-[backdrop-filter]:bg-home-surface/20"
+          : "sticky top-0 z-30 border-b border-home-line bg-home-surface/90 font-body backdrop-blur-xl supports-[backdrop-filter]:bg-home-surface/80"
+      }
+    >
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 xl:min-h-[4.5rem] xl:gap-4 xl:px-8">
         <div className="flex min-w-0 shrink-0 items-center">
           <BrandMark />
@@ -28,7 +24,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-1 xl:ml-0 xl:gap-2">
           <Link
             aria-label="Search"
-            className="flex size-10 items-center justify-center rounded-full text-home-ink transition-colors hover:bg-home-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal xl:bg-home-mint"
+            className="flex size-10 items-center justify-center rounded-full text-home-ink transition-colors hover:bg-home-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal xl:bg-home-mint/70"
             href="/search?focus=1"
           >
             <SearchIcon className="size-[18px]" />
