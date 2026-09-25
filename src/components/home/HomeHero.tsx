@@ -3,30 +3,29 @@ import { SearchAutocompleteInput } from "@/components/search/SearchAutocompleteI
 import { HeroPhoto } from "./HeroPhoto";
 import { GridIcon, PinIcon, SearchIcon } from "./home-icons";
 
-// The search field is the existing autocomplete (suggestions, ghost text,
-// submit to /search?q=), restyled — not a second search implementation.
 export function HomeHero() {
   return (
-    // overflow stays visible so the search suggestions can drop below the
-    // hero; the photo carries its own clipping box instead.
     <section className="relative isolate overflow-visible bg-[image:var(--home-hero)]">
-      {/* Desktop: the photo fills the right side of the hero, edge to edge,
-          and fades into the gradient under the headline. */}
       <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[58%] overflow-hidden lg:block">
         <HeroPhoto variant="wide" />
       </div>
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pb-8 pt-7 sm:px-6 sm:pt-10 lg:min-h-[31rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-8 lg:pb-14 lg:pt-12">
+
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pb-10 pt-24 sm:px-6 sm:pt-28 lg:min-h-[35rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-8 lg:pb-16 lg:pt-32">
         <div className="relative z-10 min-w-0">
-          {/* No eyebrow: the header lockup already carries "Trace the right care." */}
-          <h1 className="font-serif text-[2.1rem] font-semibold leading-[1.06] tracking-[-0.02em] text-home-ink min-[400px]:text-[2.3rem] sm:text-5xl lg:text-[3.6rem]">
-            Find the right care,
-            <span className="block text-home-accent-text">Right now!</span>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-home-accent-text">
+            Trace the right care.
+          </p>
+
+          <h1 className="font-serif text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.025em] text-home-ink min-[400px]:text-[2.45rem] sm:text-5xl lg:text-[4rem]">
+            Find the care you need,
+            <span className="block text-home-accent-text">right now.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-7 text-home-text sm:text-lg">
+
+          <p className="mt-5 max-w-xl text-[15px] leading-7 text-home-text sm:text-lg">
             Discover facilities, specialists, tests and medicines across Addis Ababa.
           </p>
 
-          <div className="relative mt-6 max-w-xl rounded-2xl bg-home-surface p-2 shadow-home ring-1 ring-home-line">
+          <div className="relative mt-7 max-w-2xl rounded-2xl bg-home-surface p-2 shadow-home ring-1 ring-home-line">
             <SearchIcon className="pointer-events-none absolute left-5 top-1/2 z-10 size-[18px] -translate-y-1/2 text-home-muted" />
             <SearchAutocompleteInput
               buttonClassName="flex size-12 shrink-0 items-center justify-center rounded-xl bg-home-teal text-white transition-colors hover:bg-home-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-teal focus-visible:ring-offset-2 dark:bg-home-teal-bright dark:text-home-deep dark:hover:bg-home-teal"
@@ -58,7 +57,6 @@ export function HomeHero() {
           </div>
         </div>
 
-        {/* Phone and tablet: in flow under the buttons, fading on every side. */}
         <div className="-mx-4 sm:-mx-6 lg:hidden">
           <HeroPhoto variant="inline" />
         </div>
